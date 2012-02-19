@@ -702,6 +702,7 @@ proc ::TolInspector::TrimContent { grammar content } {
     }
     NameBlock -
     Set {
+      #puts "HTItem, ref = '$ref' '$args'"
       # args[5] is the index of the set object
       # args[6] is the flag file
       # args[8] is the subtype
@@ -734,14 +735,16 @@ proc ::TolInspector::Insert_HTItem {ht tree grammar name content path desc args}
 
   #upvar \#0 ::TolTk::Images Images
 
+  #puts "ENTER: ::TolInspector::Insert_HTItem"
   if { $knownReference eq "" } {
     set objRef $iterSet
     lappend objRef $item_id
   } else {
-    puts "knownReference = $knownReference"
+    #puts "knownReference = $knownReference"
     set objRef $knownReference
   }
 
+  #puts "\tobjRef = $objRef"
   if { $gra_parent eq "NameBlock" } {
     array set info_member [ FilterNameBlockMember $name ]
     if { !$info_member(-show) } {
@@ -760,7 +763,7 @@ proc ::TolInspector::Insert_HTItem {ht tree grammar name content path desc args}
     set ref_value [lindex [lindex $args end] 1]
   } elseif {[regexp -- "console" $node_prefix]} {
     set ref_value [list Console]
-	eval lappend ref_value $tolindex $item_id
+    eval lappend ref_value $tolindex $item_id
   } else {
     set ref_value ""
   }
@@ -797,7 +800,9 @@ proc ::TolInspector::Insert_HTItem {ht tree grammar name content path desc args}
     }
     # aqui hay que pedir el bitmap en funcion del subtype: args[2]
     if {$grammar eq "Set"} {
+      #puts "*******Set $objRef *******"
       set icon_grammar [SubTypeImage [lindex $args 2]]
+      set data [lreplace $data 9 9 $objRef]  
     } else {
       #(pgea) se reemplaza el valor de la referencia en data
       set data [lreplace $data 9 9 $objRef]  
@@ -963,7 +968,7 @@ proc ::TolInspector::OpenObject { index } {
           #Tolcon_Trace "OpenObject. tolset=$tolset"
         } elseif {[regexp -- "console(.+)" $node_prefix --> idx_con]} {
           set tolset "Console"
-		  #puts "OpenObject: Console: leaf_info = $leaf_info"
+          #puts "OpenObject: Console: leaf_info = $leaf_info"
           if {[llength $leaf_info] == 1} {
             set tolindex $idx_con
           } else {
@@ -1138,7 +1143,7 @@ proc ::TolInspector::InsertPoolObj { } {
       if {$obj(grammar) eq "Set"} {
         set icon [SubTypeImage [lindex $infoObj 7]]
       } else  {
-        puts "en pool = $obj(reference)"
+        #puts "en pool = $obj(reference)"
         set objAddress [ tol::info address $objRef ]
         set icon [ ::ImageManager::getIconForInstance $objAddress ]
       }
@@ -1425,7 +1430,7 @@ proc ::TolInspector::SelectObject { } {
     }
     default {
       set node_prefix $node_type
-	  #puts "SelectObject: node_prefix = $node_prefix"
+      #puts "SelectObject: node_prefix = $node_prefix"
       if { $node_type eq "package" } {
         foreach {tolset tolindex} [ getPackageReference $path ] break
       } elseif {[regexp -- "pool" $node_type]} {
@@ -1460,12 +1465,12 @@ proc ::TolInspector::SelectObject { } {
       } else {
         set idx [$ht_tree find -name $node_type]
         array set aryData [$ht_tree entry cget $idx -data]
-		#puts "SelectObject: FileName=$aryData(FileName) info_node=$info_node"
+        #puts "SelectObject: FileName=$aryData(FileName) info_node=$info_node"
         set tolset [list File $aryData(FileName)]
         set tolindex [lrange $info_node 1 end]
         #set tolindex [lrange $info_node 2 end]
       }
-	  #puts "SelectObject end: tolset=$tolset, tolindex=$tolindex"
+      #puts "SelectObject end: tolset=$tolset, tolindex=$tolindex"
       SelectSet
     }
   }
@@ -2208,7 +2213,7 @@ proc ::TolInspector::PostVariable { x y } {
     if { [lsearch $vars_selected $node_act] >= 0 } {
       foreach var $vars_selected {
         array set aryData [$ht_vars entry cget $var -data]
-	    #puts "PostVariable: aryData = [array get aryData]"
+        #puts "PostVariable: aryData = [array get aryData]"
         set itemid $aryData(Index)
         set path   $aryData(Path)
         set grammar [lindex $item_data($itemid) 2]
@@ -2224,12 +2229,12 @@ proc ::TolInspector::PostVariable { x y } {
             if { [string length $tolset] } {
               #set object [concat [list File $tolset] $tolindex $itemid]
               set object [concat $tolset $tolindex $itemid]
-			  #puts "tolset = $tolset"
+              #puts "tolset = $tolset"
             } else {
               if [llength $objName] {
                 set object [list $grammar $objName]
               } else {
-			    set object $objName
+                set object $objName
               }
             }
           }
@@ -2254,7 +2259,7 @@ proc ::TolInspector::PostVariable { x y } {
           Set {
             # Si el objeto se da como referencia
             if { [llength $object] > 1 }  {
-			  #puts "PostVariable: Set: object = $object"
+              #puts "PostVariable: Set: object = $object"
               if {$InRootFiles} {
                 set isFile 1
               } else {
@@ -2293,7 +2298,6 @@ proc ::TolInspector::PostVariable { x y } {
               -menu $data_menu(Matrix,Export)
               if {[llength $options_selected($grammar)] == 1} {
                 set object [lindex [lindex $options_selected($grammar) 0] 0]
-                puts "PostVariable:Matrix: object=$object"
                 $data_menu(main) add command -label [mc "Table matrix"] \
                   -command [list ::TolInspector::TableMatrix $object]
                 $data_menu(Matrix,Export) add command -label "BDT" \
@@ -2504,7 +2508,6 @@ proc ::TolInspector::PostVariable { x y } {
           }
 
           $data_menu(main) add separator
-          puts "grammar = $grammar"
           $data_menu(main) add cascade -label [mc "Functions"] \
              -menu $data_menu($grammar,Functions)
           ShowMenuUserFunc $grammar
@@ -2571,7 +2574,6 @@ proc ::TolInspector::PostFunction { x y } {
   variable tolindex
   
   array unset options_selected
-  puts "PostFunction"
   foreach it [array names data_menu] {
     $data_menu($it) delete 0 end
   }
@@ -2673,17 +2675,17 @@ proc ::TolInspector::PostTree { x y } {
   #puts "node_act: $node_act"  
   if { [string length $node_act] } {
     set vars_selected [$ht_tree curselection]
-    puts "vars_selected: $vars_selected"      
+    #puts "vars_selected: $vars_selected"      
     if { [lsearch $vars_selected $node_act] >= 0 } { ;# Not root node
       set index [$ht_tree index anchor]
-      puts "index: $index"    
+      #puts "index: $index"    
       if { $index } {
         set info_node [split [lindex [$ht_tree get -full $index] end] "-"]
-        puts "info_node: $info_node"  
+        #puts "info_node: $info_node"  
         set node_type [lindex $info_node 0]
-        puts "node_type: $node_type"          
+        #puts "node_type: $node_type"          
         set node_name [lindex $info_node 1]
-        puts "node_name: $node_name"          
+        #puts "node_name: $node_name"          
       } else { ;# root node
         set node_type root
         set node_name root
@@ -2695,7 +2697,7 @@ proc ::TolInspector::PostTree { x y } {
       }
       # label of object showed in the tree
       set objName [$ht_tree entry cget $index -label]
-      puts "objName: $objName"
+      #puts "objName: $objName"
       set object $objName
 
       if {$InRootFiles} {
@@ -2717,7 +2719,7 @@ proc ::TolInspector::PostTree { x y } {
           set object $objName
         }
       }
-      puts "object = $objName '[$ht_tree entry cget $index -data]'"
+      #puts "object = $objName '[$ht_tree entry cget $index -data]'"
 #Tolcon_Trace "***********************************" {red}
 #Tolcon_Trace "index=$index, node_type=$node_type, node_name=$node_name" {red}
 #Tolcon_Trace "tolset=$tolset, tolindex=$tolindex, aryData= [$ht_tree entry cget $index -data]" {red}
@@ -3557,7 +3559,7 @@ proc ::TolInspector::ShowMenuUserFunc {gra} {
   variable data_menu
   variable regFunLst
   
-  puts "ShowMenuUserFunc: gra=$gra"
+  #puts "ShowMenuUserFunc: gra=$gra"
   if {[expr [info exist ::TolInspector::regFunLst] && [llength $regFunLst] ]} {
     array set regFun $regFunLst
     regsub -all ,nameGui \

@@ -1195,7 +1195,7 @@ proc ::TolConsole::GlobalIniToolbarsButtons {} {
   set lstFrameBut   [lsort -unique $lstFrameBut]
   set lstToolFramesAux {}
   foreach it $lstToolFrames {
-    puts $it
+    #puts $it
     if {!([lsearch -exact $lstToolFramesAux $it ] >= 0)} {
       lappend lstToolFramesAux $it
     }
@@ -1206,7 +1206,7 @@ proc ::TolConsole::GlobalIniToolbarsButtons {} {
   }
   set lstFramesAux {}
   foreach it $lstFrames {
-    puts $it
+    #puts $it
     if {!([lsearch -exact $lstFramesAux $it ] >= 0)} {
       lappend lstFramesAux $it
     }
