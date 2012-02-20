@@ -1272,10 +1272,8 @@ Text ReplaceInFile(Text filePath, Text old, Text new)
 Real TextMatch_Tcl(Text text, Text pattern, Real case) 
 //////////////////////////////////////////////////////////////////////////////
 {
-  Text text.tcl = "{"<<Replace(Replace(Replace(text, "\\", "\\\\"), 
-    "{",  "\\{"), "}",  "\\}") << "}";
-  Text pattern.tcl = "{"<<Replace(Replace(Replace(pattern, "\\", "\\\\"), 
-    "{",  "\\{"), "}",  "\\}") << "}";
-  Text caseText = If(case, "", "-nocase ");
-  Eval(Tcl_Eval("string match "<<caseText<<pattern.tcl<<" "<<text.tcl)[1])
+  Set tclScript = [[ "string", "match" ]];
+  Set If( Not(case), Set Append( tclScript, [[ "-nocase" ]] ) );
+  Set Append( tclScript, [[ pattern, text ]] );
+  TextToReal( Tcl_EvalEx( tclScript )[1] )
 };
