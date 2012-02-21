@@ -1663,9 +1663,7 @@ proc ::TolInspector::SelectGrammar { } {
         InsertChild $grammar $var [lindex $vinfo 2] [lindex $vinfo 3] [list [lindex $vinfo 4]] 1  
       } elseif { $grammar eq "Set" || $grammar eq "NameBlock" } {
         #Tolcon_Trace "Set : -- $vinfo --"
-        if { $grammar eq "NameBlock" } {
-          set knownReference [ list "NameBlock" $var ]
-        }
+        set knownReference [ list $grammar $var ]
         InsertChild $grammar $var [lindex $vinfo 2] [lindex $vinfo 3] [list [lindex $vinfo 4]] \
           $item_id [lindex $vinfo 5] [lindex $vinfo 6] [lindex $vinfo 7]
       } else {
