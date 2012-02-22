@@ -2659,7 +2659,7 @@ proc ::TolInspector::PostTree { x y } {
   #return
   array unset options_selected
   
-  puts "::TolInspector::PostTree $x $y" 
+  #puts "::TolInspector::PostTree $x $y" 
   foreach it [array names data_menu] {
     $data_menu($it) delete 0 end
   }
@@ -2706,9 +2706,10 @@ proc ::TolInspector::PostTree { x y } {
       }
       #puts "2objName: $objName"   
       if { $InRootPool } {
-        #puts "es InRootPool"        
+        #puts "es InRootPool $item_id"        
         set itemid $item_id
-        set object $data(pool,variables,$itemid)
+        #set object $data(pool,variables,$itemid)
+        set object $data(pool,reference,$node_type)
       } else {
         #puts "NO InRootPool"
         if { [string length $tolset] } {          
@@ -2723,6 +2724,11 @@ proc ::TolInspector::PostTree { x y } {
 #Tolcon_Trace "tolset=$tolset, tolindex=$tolindex, aryData= [$ht_tree entry cget $index -data]" {red}
 #Tolcon_Trace "object=$object, label=$objName" {red}
 #Tolcon_Trace "***********************************" {red}
+      
+      #
+      # TICKET: #1438
+      # Por que se pregunta aqui por los objetos de consola?
+      #
       set stackList [::tol::console stack list]
       #puts "stackList: $stackList"
       set stackValue {}
