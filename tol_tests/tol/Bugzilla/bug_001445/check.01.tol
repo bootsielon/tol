@@ -1,0 +1,17 @@
+Set expr = [[
+  "Real x = a&b;",
+  "Real x = a & b;",
+  "Real x = a & b"
+]];
+
+Set table = For(1,Card(expr),Set(Real k_)
+{
+  Real k = k_;
+  Text expression = expr[k]; 
+  Set tree = Parse(expression);
+  Text tree_dump = ""<<tree;
+  [[k,expression,tree,tree_dump]]
+}); 
+
+
+

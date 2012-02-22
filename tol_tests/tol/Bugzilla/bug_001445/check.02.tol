@@ -1,0 +1,10 @@
+#Require TextEncoding;
+
+Text expression = ReadFile("check.01.tol");
+Set tree.1 = TextEncoding::Parsing(expression);
+Text unparsed.1 = TextEncoding::Unparsing(tree.1);
+WriteLn("unparsed.1=\n"+unparsed.1+"\n");
+Set tree.2 = TextEncoding::Parsing(unparsed.1);
+Text unparsed.2 = TextEncoding::Unparsing(tree.2);
+WriteLn("unparsed.2=\n"+unparsed.1+"\n");
+Real ok = unparsed.1==unparsed.2;
