@@ -306,12 +306,15 @@ DefExtOpr(1, BDteSuccessor, "Succ", 2,3, "Date TimeSet Real",
 void BDteSuccessor::CalcContens()
 //--------------------------------------------------------------------
 {
-    BDate		dte = Date(Arg(1));
+    BDate dte = Date(Arg(1));
     BUserTimeSet* tms = Tms(Arg(2));
-    BReal		num = 1;
+    BDat num = 1;
     
-    if(Arg(3)) { num = Real(Arg(3)); }
-    contens_ = tms->Next(dte,(BInt)num);
+    if(Arg(3)) { num = Dat(Arg(3)); }
+    if(!num.IsUnknown())
+    {
+      contens_ = tms->Next(dte,(BInt)num.Value());
+    }
 }
 
 
@@ -326,8 +329,8 @@ DefExtOpr(1, BDteFirst, "First", 1, 1, "Serie",
 void BDteFirst::CalcContens()
 //--------------------------------------------------------------------
 {
-    BUserTimeSerie* tsr = Tsr(Arg(1));
-    contens_ = tsr->FirstDate();
+  BUserTimeSerie* tsr = Tsr(Arg(1));
+  contens_ = tsr->FirstDate();
 }
 
 
