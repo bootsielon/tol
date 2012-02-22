@@ -1,13 +1,9 @@
-Real PutRandomSeed(0);
-Real rndSeed_iv = GetRandomSeed(0);
-WriteLn("Current Random Seed for initial values= "<<rndSeed_iv);
 
 Polyn closeToCeroStationary(Polyn p)
 {
   1-((1-p)*1.E-2)
 };
 
-Set arima.0 = RandCopyARIMA(ARIMA);
 
 Set For(1,Card(arima.0), Real(Real k)
 {
@@ -56,5 +52,5 @@ Set For(1,Card(arima.0), Real(Real k)
   True
 });
 /* */
-Real arima.time = Copy(Time)-arima.t0;
+Real maxlh.time = Copy(Time)-arima.t0;
 

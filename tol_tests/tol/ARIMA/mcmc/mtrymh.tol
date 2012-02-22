@@ -3,10 +3,12 @@
 // Test de pruebas del método Multiple-Try Metropolis
 //////////////////////////////////////////////////////////////////////////////
 
-Real numErr.0 = Copy(NError);
-Real numWar.0 = Copy(NWarning);
+#Require BysMulTryMet;
+
 Set Include("generate.model.tol");
-Set Include("maxlh.tol");
+
+
+//Set Include("maxlh.tol");
 
 /* */
 //Set k.range = [[ 1 ]];
@@ -23,3 +25,4 @@ Set simulation = EvalSet(k.range, Set(Real k)
   Eval(name+"=aux")
 });
 /* */
+

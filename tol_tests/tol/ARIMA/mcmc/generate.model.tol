@@ -1,3 +1,5 @@
+Real numErr.0 = Copy(NError);
+Real numWar.0 = Copy(NWarning);
 
 //Random seed setting
 //Real PutRandomSeed(2020115182);
@@ -44,4 +46,10 @@ VMatrix Z = Mat2VMat(Tra(SerMat(z)));
 Real SIGMA = SimulArima::SimulationParameters::Sigma;
 
 Text arima.label = GetLabelFromArima(ARIMA);
+
+Real PutRandomSeed(0);
+Real rndSeed_iv = GetRandomSeed(0);
+WriteLn("Current Random Seed for initial values= "<<rndSeed_iv);
+
+Set arima.0 = RandCopyARIMA(ARIMA);
 

@@ -1,35 +1,15 @@
-@MultiTryMetropolis_ARIMA mtm_arima = @MultiTryMetropolis_ARIMA::New(
+Real numErr.0 := Copy(NError);
+Real arima.time = 0;
+BysSampler::@Arima.MulTryMet.RandWalk mtm_arima = 
+BysSampler::@Arima.MulTryMet.RandWalk::New(
   Z,
   SIGMA,
   arima.0);
 
-Real mtm_arima::_.k := If(ObjectExist("Real","k"), k, 
-  IntRand(1,mtm_arima::_.n));
+Real mtm_arima::_.k := If(ObjectExist("Real","k"), k, 3);
+
 
 Matrix mcmc = Rand(0,mtm_arima::_.n,0,0);
-
-Real If(!ObjectExist("Matrix","modEst.0::Correlations::COV"),
-{
-  VMatrix mtm_arima::_.nu := mtm_arima::_.x;
-  VMatrix mtm_arima::_.L := Eye(mtm_arima::_.n);
-  VMatrix mtm_arima::_.Li :=  Eye(mtm_arima::_.n);
-  Real mtm_arima::_.s := 0.001
-},
-{
-  Matrix L = {
-    Matrix COV = modEst.0::Correlations::COV;
-    Real n = mtm_arima::_.n;
-    Real r = Rows(COV);
-    Real k = r-n+1;
-    Choleski(Sub(COV,k,k,n,n))
-  };
-  Matrix Li = LTInverse(L);
-  VMatrix mtm_arima::_.nu := mtm_arima::_.x;
-  VMatrix mtm_arima::_.L := Mat2VMat(L);
-  VMatrix mtm_arima::_.Li := Mat2VMat(Li);
-  Real mtm_arima::_.s := 1
-});
-  
 
 Real numSim = 0;
 
@@ -37,25 +17,18 @@ Real append_draw(VMatrix draw)
 {
   If(!(numSim%100), WriteLn("
 ##############################################################################
-Simulation "<<numSim+ " _.acceptRatio="<<mtm_arima::_.acceptRatio));
+Simulation "<<numSim+ 
+  " _.acceptRatio="<<mtm_arima::_.acceptRatio+ 
+  " _.S="<<Matrix VMat2Mat(mtm_arima::_.S,True)));
   Matrix mcmc := mcmc << VMat2Mat(Tra(draw));
   Real numSim := numSim+1
 };
 
-/* * / 
-Real mtm_arima::_.sFactor := 1.01;
-Real numSim := 0;
-Real mh.t0 = Copy(Time);
-While(numSim<1000, append_draw(mtm_arima::draw_single_try(0)));
-Real mh.time = (Copy(Time) - mh.t0)/numSim;
-WriteLn("Time by MH simulation "<<mh.time);
-
 /* */
-Real mtm_arima::_.sFactor := 1.01;
 Real numSim := 0;
 Real mtm.t0 = Copy(Time);
 //Real TolOprProfiler.Enabled := True;
-While(And(numSim<2500,NError==numErr.0), append_draw(mtm_arima::draw_multiple_try(0)));
+While(And(numSim<10000,NError==numErr.0), append_draw(mtm_arima::draw(0)));
 //Real TolOprProfiler.Dump("draw_multiple_try.k"<<mtm_arima::_.k+".csv");
 Real mtm.time = (Copy(Time) - mtm.t0)/numSim;
 Real mtm.speed = mtm_arima::_.acceptRatio / mtm.time;
@@ -108,17 +81,12 @@ Real logLH.real = (SimulArima::EvalRealARIMA::ev)[12];
 Real logLH.avr = (ev.avr)[12];
 Real prob.refuse = Min(1,Max(0,1-Exp(logLH.avr-logLH.real)));
 
-Real Q_draw_by_Pi_draw = mtm_arima::_.num_Q_draw/mtm_arima::_.num_draw;
-Real num_logWeight_by_Pi_draw = mtm_arima::_.num_logWeight/mtm_arima::_.num_draw;
-
 Text report = ""
   <<rndSeed+"\t"
   <<rndSeed_iv+"\t"
   <<arima.label+"\t"
   <<mtm_arima::_.n+"\t"
   <<mtm_arima::_.k+"\t"
-  <<Q_draw_by_Pi_draw+"\t"
-  <<num_logWeight_by_Pi_draw+"\t"
   <<arima.time+"\t"
   <<mtm.time+"\t"
   <<mtm_arima::_.acceptRatio+"\t"
@@ -132,14 +100,13 @@ Text report = ""
   <<prob.refuse+"\t"
   <<numErr+"\t"
   <<numWar+"\n";
+
 Text If(!FileExist(report.path), WriteFile(report.path,""
   +"rndSeed\t"
   +"rndSeed_iv\t"
   +"arima.label\t"
   +"mtm_arima::_.n\t"
   +"mtm_arima::_.k\t"
-  +"Q_draw_by_Pi_draw\t"
-  +"num_logWeight_by_Pi_draw\t"
   +"arima.time\t"
   +"mtm.time\t"
   +"mtm_arima::_.acceptRatio\t"

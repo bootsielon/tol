@@ -71,7 +71,7 @@ CASO 4
 ////////////////////////////////////////////////////
   ");
   Real OSCmdWait("touch "+tolPath);
-  Real Sleep(2);
+  Real Sleep(5);
   Set S4 = Ois.UseCache(tolPath, 1/0);
 
   Real numErr4 = Copy(NError);

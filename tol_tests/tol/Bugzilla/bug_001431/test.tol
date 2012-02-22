@@ -15,15 +15,19 @@ Real numWar0 = Copy(NWarning);
 
 Set s = SetOfAnything(1,2,"hola");
 
-@Real R1 = @Real(s[1]);
-@Anything R2 = @Anything(s[2]);
-@Text R3 = @Text(s[3]);
+@Real     R1 = [[ s[1] ]];
+@Anything R2 = [[ s[2] ]];
+@Text     R3 = [[ s[3] ]];
 
 Real x = $R1-1;
 Real y = $R2;
 Text z = $R3;
 Real y := 5;
 Real $R1 := 6;
+
+Text G1 = Grammar($R1);
+Text G2 = Grammar($R2);
+Text G3 = Grammar($R3);
 
 //x es s[1]-1 = 1-1 = 0
 Real ok.1 = x == 0;
