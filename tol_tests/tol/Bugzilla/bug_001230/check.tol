@@ -1,20 +1,10 @@
 
-Set example = { Include("ErrorEnAIA2.oza") };
-
-//Set outliers = [[ PulseOut, StepOut, TrendOut ]];
-Set outliers = [[ PulseOut ]];
-Set ShowAia(Set aia)
-{
-  WriteLn("\n"+Name(aia)+" has "<<Card(aia)+" outliers : ");
-  Set View(aia,"Std");
-  WriteLn("");
-  aia
-};
-
+Set aia.0 = ShowAia(AIA(example::serie,example::piw,outliers)); 
 Set aia.1 = ShowAia(AIA(example::serie,example::piw,outliers, 2)); 
 Set aia.2 = ShowAia(AIA(example::serie,example::piw,outliers, 3, 100)); 
 Set aia.3 = ShowAia(AIA(example::serie,example::piw,outliers, 1)); 
 Set aia.4 = ShowAia(AIA(example::serie,example::piw,outliers, 5, 100, 0.99)); 
+Set aia.5 = ShowAia(AIA(example::serie,example::piw,outliers, 5, 100, 0.99, 200)); 
 
 //Reconstruyo la serie original para echarle un vistazo
 Ratio psiw = (1/1) : example::piw;
@@ -27,10 +17,12 @@ Serie SumEffect(Set aia)
     inp->Omega : inp->X
   }))
 };
+Serie filter.0 = SumEffect(aia.0);
 Serie filter.1 = SumEffect(aia.1);
 Serie filter.2 = SumEffect(aia.2);
 Serie filter.3 = SumEffect(aia.3);
 Serie filter.4 = SumEffect(aia.4);
+Serie filter.5 = SumEffect(aia.5);
 
 
 /* */
