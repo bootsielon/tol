@@ -1,5 +1,5 @@
 
-Set example = { Include("ErrorEnAIA2.oza") };
+Set example = { Include("ErrorEnAIA.oza") };
 
 //Set outliers = [[ PulseOut, StepOut, TrendOut ]];
 Set outliers = [[ PulseOut ]];
