@@ -702,7 +702,7 @@ proc ::TolInspector::TrimContent { grammar content } {
     }
     NameBlock -
     Set {
-      #puts "HTItem, ref = '$ref' '$args'"
+      puts "HTItem, ref = '$ref' '$args'"
       # args[5] is the index of the set object
       # args[6] is the flag file
       # args[8] is the subtype
@@ -807,7 +807,9 @@ proc ::TolInspector::Insert_HTItem {ht tree grammar name content path desc args}
       #(pgea) se reemplaza el valor de la referencia en data
       set data [lreplace $data 9 9 $objRef]  
       #(pgea) se utiliza la informacon de instancia
+      puts "Tol_ClassOfFromReference $objRef"
       set classOf [Tol_ClassOfFromReference $objRef]
+      puts "Tol_InstanceContentFromReference $objRef"
       set insCont [Tol_InstanceContentFromReference $objRef]
       if {$insCont ne ""} {
         set data [lreplace $data 3 3 [TrimContent $grammar $insCont]]
@@ -1377,6 +1379,7 @@ proc ::TolInspector::SelectObject { } {
   #variable closing
   variable node_prefix ""
   variable data
+  variable knownReference ""
 
   set index [$ht_tree index anchor]
     
@@ -1487,16 +1490,20 @@ proc ::TolInspector::SelectFileRoot { } {
 #/////////////////////////////////////////////////////////////////////////////
   variable item_id 1
   variable w_tabset
-    
+  variable knownReference ""
+
   ClearHiertables
   $w_tabset tab configure Variables -text [mc Files]
   #  $w_tabset tab configure Functions -state disabled
   $w_tabset select 0
   foreach f [lreverse [::tol::info included]] {
-    set fi [::tol::info included $f]
+    # this catch is needed because info include could return files not
+    # realy included.
+    if { [ catch { ::tol::info included $f } fi ] } continue
     # tener en cuenta el subtype cuando lo retorne
+    set knownReference [ list "File" $f ] 
     InsertChild Set $f \
-        [lindex $fi 0] [lindex $fi 1] [list [lindex $fi 2]] $item_id 1 [lindex $fi 3] [lindex $fi 4]
+        [lindex $fi 0] [lindex $fi 1] [list [lindex $fi 2]] $item_id 1 [lindex $fi 3] [lindex $fi 4] 
   }
 }
 
@@ -2028,6 +2035,10 @@ proc Tol_StructOf { obj_addr } {
 }
 
 proc Tol_StructOfFromReference { objReference } {
+  if { [ llength $objReference ] == 2 && 
+       [ lindex $objReference 0 ] eq "File" } {
+    return ""
+  }
   set addr [ ::tol::info address $objReference ]
   return [ Tol_StructOf $addr ]
 }
