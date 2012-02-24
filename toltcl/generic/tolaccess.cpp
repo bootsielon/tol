@@ -633,31 +633,40 @@ BSyntaxObject * Tol_ResolveObject(Tcl_Interp *interp,
         }
       }
     } else {
-      if (n==2) {
-        // look global var in grammar
-        BGrammar * gra;
-        gra = BGrammar::FindByName(type);
-        if (!gra) {
-          Tcl_AppendStringsToObj(obj_result, "\"",
-			                           type,
-			                           "\" isn't a grammar", NULL);
-          return NULL;
+      if ( n==2 ) {
+        if ( !strcasecmp( type, "ADDRESS" ) ) {
+          return
+            BSyntaxObject::GetObjectFromAddress( Tcl_GetString( items[1] ) );
+        } else {
+          // look global var in grammar
+          BGrammar * gra;
+          gra = BGrammar::FindByName(type);
+          if (!gra) {
+            Tcl_AppendStringsToObj(obj_result, "\"",
+                                   type,
+                                   "\" isn't a grammar", NULL);
+            return NULL;
+          }
+          Tcl_DString dstr;
+          Tcl_DStringInit(&dstr);
+          Tcl_UtfToExternalDString(NULL,Tcl_GetString(items[1]),-1,&dstr);
+          if (!(syn = gra->FINDVARIABLE(Tcl_DStringValue(&dstr))))
+            Tcl_AppendStringsToObj(obj_result, "variable '",
+                                   obj_ref, "' not found in grammar '",
+                                   gra->Name().String(), "'", NULL);
+          Tcl_DStringFree(&dstr);
+          /* found and matched */
+          return syn;
         }
-        Tcl_DString dstr;
-        Tcl_DStringInit(&dstr);
-        Tcl_UtfToExternalDString(NULL,Tcl_GetString(items[1]),-1,&dstr);
-        if (!(syn = gra->FINDVARIABLE(Tcl_DStringValue(&dstr))))
-          Tcl_AppendStringsToObj(obj_result, "variable '",
-                                 obj_ref, "' not found in grammar '",
-                                 gra->Name().String(), "'", NULL);
-        Tcl_DStringFree(&dstr);
-        /* found and matched */
-        return syn;
+      } else {
+        Tcl_AppendStringsToObj(obj_result,
+                               "invalid object reference in ResolveObject",
+                               NULL);
       }
     }
   } else {
       Tcl_AppendStringsToObj(obj_result,
-                             "incorrect object reference in ResolveObject",
+                             "invalid object reference in ResolveObject",
                              NULL);
   }
 /*  if (grammar && syn && syn->Grammar()!=grammar) {
