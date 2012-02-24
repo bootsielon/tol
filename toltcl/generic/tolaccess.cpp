@@ -824,6 +824,16 @@ inline void SAVE_SET_STRING( Tcl_Obj **obj, Tcl_DString* dstr )
     Tcl_SetStringObj( *obj, Tcl_DStringValue( dstr ),-1 );
 }
 
+inline void SAVE_SET_STRING( Tcl_Obj **obj, const char* str )
+{
+  if (Tcl_IsShared( *obj ) ) {
+    Tcl_DecrRefCount( *obj );
+    *obj = Tcl_NewStringObj( str, -1 );
+    Tcl_IncrRefCount( *obj );
+  } else 
+    Tcl_SetStringObj( *obj, str,-1 );
+}
+
 class ContainerIterator
 {
 public:
@@ -1095,7 +1105,7 @@ int Tol_ForEach (Tcl_Interp * interp,
   datav[ OBJ_HASSUBSETV ] = Tcl_NewObj( );
   datav[ OBJ_SUBTYPE ]    = Tcl_NewStringObj( "subtype", -1 );
   datav[ OBJ_SUBTYPEV ]   = Tcl_NewObj( );
-  datav[ OBJ_STRUCT ]     = Tcl_NewStringObj( "struct", -1 );
+  datav[ OBJ_STRUCT ]     = Tcl_NewObj( );
   datav[ OBJ_STRUCTV ]    = Tcl_NewObj( );
 
   // the just created objects have refcount = 0
@@ -1191,15 +1201,26 @@ int Tol_ForEach (Tcl_Interp * interp,
         datav[ OBJ_SUBTYPEV ] = Tcl_NewIntObj( set_i->SubType( ) );
         Tcl_IncrRefCount( datav[ OBJ_SUBTYPEV ] );
       } else
-        Tcl_SetIntObj( datav[ OBJ_SUBTYPEV ],set_i->SubType( ) );
+        Tcl_SetIntObj( datav[ OBJ_SUBTYPEV ], set_i->SubType( ) );
         
-      /* STRUCT INFO */
+      /* STRUCT OR CLASS INFO */
       // asume que dstr esta a longitud 0
-      if ( set_i->Struct( ) ) {
-        btxt = set_i->Struct( )->Name( );
-        Tcl_ExternalToUtfDString( NULL, btxt, -1, &dstr );
+      if ( syn_i->Grammar() == GraNameBlock() ) {
+        SAVE_SET_STRING( datav + OBJ_STRUCT, "class" );
+        const BNameBlock& nb = ((BUserNameBlock*)(syn_i))->Contens();
+        const BClass* cls = nb.Class( );
+        if ( cls ) {
+          btxt = cls->FullName();
+          Tcl_ExternalToUtfDString( NULL, btxt, -1, &dstr );
+        }
+      } else {
+        SAVE_SET_STRING( datav + OBJ_STRUCT, "struct" );
+        if ( set_i->Struct( ) ) {
+          btxt = set_i->Struct( )->Name( );
+          Tcl_ExternalToUtfDString( NULL, btxt, -1, &dstr );
+        }
       }
-      SAVE_SET_STRING( datav + OBJ_PATHV, &dstr ); 
+      SAVE_SET_STRING( datav + OBJ_STRUCTV, &dstr ); 
       Tcl_DStringFree( &dstr );
       datac = NUM_OBJS;
     } else
@@ -2247,7 +2268,7 @@ int Tol_SetFunctionInfoObj (Tcl_Obj * gra_name,
   return TCL_ERROR;
 }
 
-/* ojo info debe tener espacio para 7 Tcl_Obj como maximo */
+/* ojo info debe tener espacio para 9 Tcl_Obj como maximo */
 /* retorna cuantos Tcl_Obj creo */
 
 int SynObj2TclObj( const BSyntaxObject * var, Tcl_Obj * info[] )
@@ -2319,13 +2340,22 @@ int SynObj2TclObj( const BSyntaxObject * var, Tcl_Obj * info[] )
     info[7] = Tcl_NewIntObj( ptrSet->SubType() );
       
     /* STRUCTURE */
-    if ( ptrSet->Struct() ) {
+    if ( var->Grammar() == GraNameBlock() ) {
+      const BNameBlock& nb = ((BUserNameBlock*)(var))->Contens();
+      const BClass* cls = nb.Class( );
+      if ( cls ) {
+        info[8] = Tcl_NewStringObj( cls->FullName().String(), -1 );
+      } else {
+        info[8] = Tcl_NewStringObj( NULL, 0 );
+      }
+    } else if ( ptrSet->Struct() ) {
       BText btxt( ptrSet->Struct()->Name() );
       Tcl_ExternalToUtfDString(NULL,btxt,-1,&dstr);
       info[8] = Tcl_NewStringObj( Tcl_DStringValue(&dstr), -1 );
       Tcl_DStringFree( &dstr );
-    } else
+    } else {
       info[8] = Tcl_NewStringObj( NULL, 0 );
+    }
     infoc = 9;
   } else
     infoc = 6;
