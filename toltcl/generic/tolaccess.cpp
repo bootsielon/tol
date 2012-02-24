@@ -1021,7 +1021,7 @@ int Tol_ForEach (Tcl_Interp * interp,
   if ( length < 2 ) {
     Tcl_AppendStringsToObj( obj_result,
                             "invalid object reference '",
-                            Tcl_GetString(objv[0]),
+                            Tcl_GetString( objv[1] ),
                             "' must be {TYPE ?name? i1 i2 ... ik}",
                             NULL );
     return TCL_ERROR;
