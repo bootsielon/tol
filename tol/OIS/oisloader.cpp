@@ -1443,14 +1443,18 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
             }
             else 
             {
-              BText expr = Compact(BParser::Unparse(tree,"  ","\n"));
-              if(name.HasName()) { expr = name+" = "+expr; }
-              Warning(BText("Cannot rebuild virtual expression of non "
-                      "bounded TimeSet ")+expr+ "\nOnly cached "
-                      "dates will be accessible between ["+beginCache+","+
-                      endCache+"]\nTo avoid this problem save just "
-                      "bounded time sets or use expressions that could "
-                      "be evaluated at OIS loading time." );
+              x = (BUserTimeSet*)GraTimeSet()->FindOperand(name,true);
+              if(!x)
+              {
+                BText expr = Compact(BParser::Unparse(tree,"  ","\n"));
+                if(name.HasName()) { expr = name+" = "+expr; }
+                Warning(BText("Cannot rebuild virtual expression of non "
+                        "bounded TimeSet ")+expr+ "\nOnly cached "
+                        "dates will be accessible between ["+beginCache+","+
+                        endCache+"]\nTo avoid this problem save just "
+                        "bounded time sets or use expressions that could "
+                        "be evaluated at OIS loading time." );
+              }
             } 
           }
           if(!x)
