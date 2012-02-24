@@ -2342,7 +2342,7 @@ int Tol_SetVariableInfoObj (Tcl_Obj * gra_name,
  * Or the element info if gra_name is a reference of an element 
  * of a global container.
  */
-int Tol_SetVariablesObj (Tcl_Interp *interp, Tcl_Obj *gra_name,
+int Tol_SetVariablesObj (Tcl_Interp *interp, Tcl_Obj *obj_reference,
                          Tcl_Obj *obj_result)
 {
   const BSyntaxObject *syn ;
@@ -2351,18 +2351,20 @@ int Tol_SetVariablesObj (Tcl_Interp *interp, Tcl_Obj *gra_name,
   Tcl_Obj ** items;
   int tcl_code;
   
-  if (Tcl_ListObjLength(interp,gra_name,&length)!=TCL_OK) {
-    Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));
+  if ( Tcl_ListObjLength( interp, obj_reference, &length ) != TCL_OK ) {
+    Tcl_AppendObjToObj( obj_result, Tcl_GetObjResult( interp ) );
     return TCL_ERROR;
   }
-  if (length!=1) {
+  if ( length > 1 ) {
+    /*
     if (length == 2) {
-      tcl_code = Tcl_ListObjGetElements(interp,gra_name,&length,&items);
+      tcl_code = Tcl_ListObjGetElements(interp,obj_reference,&length,&items);
       assert(tcl_code == TCL_OK);
       if (strcmp(Tcl_GetString(items[0]),"Console"))
         return Tol_SetVariableInfoObj(items[0], items[1], obj_result);
     }
-    if (!(syn=Tol_ResolveObject(interp, gra_name, obj_result))) {
+    */
+    if ( !( syn = Tol_ResolveObject( interp, obj_reference, obj_result ) ) ) {
       return TCL_ERROR;
     }
 //    Tcl_DString dstr;
@@ -2373,10 +2375,10 @@ int Tol_SetVariablesObj (Tcl_Interp *interp, Tcl_Obj *gra_name,
     Tcl_SetListObj(obj_result,infoc,info);
     return TCL_OK;
   }
-  BGrammar *gra = BGrammar::FindByName(Tcl_GetString(gra_name));
+  BGrammar *gra = BGrammar::FindByName(Tcl_GetString( obj_reference ) );
   if (!gra) {
     Tcl_AppendStringsToObj( obj_result, "'",
-                            Tcl_GetString(gra_name),
+                            Tcl_GetString( obj_reference ),
                             "' isn't a grammar", NULL );
     return TCL_ERROR;
   }
