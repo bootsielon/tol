@@ -1332,30 +1332,34 @@ DefExtOpr(1, BTextCompiledFiles, "CompiledFiles", 1, 1, "Text",
 void BTextCompiledFiles::CalcContens()
 //--------------------------------------------------------------------
 {
-    BText fileName = Text(Arg(1));
-    contens_ = fileName;
-    ofstream out;
-    if(fileName!="Std") { out.open(fileName.String()); }
-    WriteFileOrStd(fileName,out,(I2("Name~   Path~   Elements~",
-            "Nombre~ Camino~ Elementos~")+"\n"));
-    
-    for(BInt n=1; n<=BSetFromFile::NSetFromFile(); n++)
+  BText fileName = Text(Arg(1));
+  contens_ = fileName;
+  ofstream out;
+  if(fileName!="Std") { out.open(fileName.String()); }
+  WriteFileOrStd(fileName,out,
+  (I2("Name~   Path~   Elements~",
+      "Nombre~ Camino~ Elementos~")+"\n"));
+  int size = BSetFromFile::NSetFromFileGlobal();
+  for(BInt n=1; n<=size; n++)
+  {
+    BSetFromFile* file = (BSetFromFile*)BSetFromFile::FindCompiled(n);
+    if(file)
     {
-  BSetFromFile* file = (BSetFromFile*)BSetFromFile::FindCompiled(n);
-  BSet& set = file->Contens();
-  WriteFileOrStd
+      BSet& set = file->Contens();
+      WriteFileOrStd
       (
-    fileName,out,
-    (
-        file->Identify() + "~" +
-        file->TolPath()      + "~" +
-        set.Card()   + "~" + "\n"
+        fileName,out,
+        (
+          file->Identify() + "~" +
+          file->TolPath()      + "~" +
+          set.Card()   + "~" + "\n"
         )
-    );
+      );
     }
+  }
     
 //    if(fileName!="Std") { BSys::EditTable(fileName, BSTFILE); }
-    if(fileName!="Std") { out.close(); }
+  if(fileName!="Std") { out.close(); }
 }
 
 

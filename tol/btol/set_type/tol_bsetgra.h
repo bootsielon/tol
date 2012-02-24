@@ -214,6 +214,7 @@ protected:
   static BTerminator  terminator_;
   static BList*	      compiled_;
   static BInt	        nSetFromFile_;
+  static BInt	        nSetFromFileGlobal_;
   BText  tolPath_;
 #if defined(_MSC_VER)
 #pragma warning( disable : 4251)
@@ -245,6 +246,8 @@ public:
   BInt BinRead ();
 
   static BInt NSetFromFile() { return(nSetFromFile_); }
+  static BInt NSetFromFileGlobal() { return(nSetFromFileGlobal_); }
+
   const BText& TolPath() const { return(tolPath_); }
   BBool	    Open       ();
   void	    Close      ();

@@ -66,6 +66,8 @@ const BSourcePath* BSourcePath::current_      = NIL;
 
 BList*	    BSetFromFile::compiled_     = NIL;
 BInt	      BSetFromFile::nSetFromFile_ = 0;
+BInt	      BSetFromFile::nSetFromFileGlobal_ = 0;
+
 BTerminator BSetFromFile::terminator_   = NIL;
 
 BDat BSetIncludeBDT::fillValue_    = 0;
@@ -283,6 +285,7 @@ BSetFromFile::BSetFromFile(BList* arg)
 #endif
   if(BGrammar::Level()==0)
   {
+    nSetFromFileGlobal_++;
     compiled_ = Cons(this, compiled_);
     DecNRefs();
   }
@@ -311,6 +314,7 @@ BSetFromFile::BSetFromFile(const BText& path)
 #endif
   if(BGrammar::Level()==0)
   {
+    nSetFromFileGlobal_++;
     compiled_ = Cons(this, compiled_);
     DecNRefs();
   }
@@ -335,6 +339,7 @@ BSetFromFile::~BSetFromFile()
   DecNRefs();
   if(Level()==0)
   {
+    nSetFromFileGlobal_--;
     IncNRefs();
     compiled_=LstRemoveAtom(compiled_,this);
   }
@@ -1830,7 +1835,6 @@ BUserSet* IncludeFile(const BText& fileName)
 //    BText expression = BText("Set ")+name+" = Include(\""+path+"\")";
     BText expression = BText("Include(\"")+path+"\")";
     BSetFromFile* set= (BSetFromFile*)(GraSet()->EvaluateExpr(expression));
-    
     return(set);
 }
 
@@ -1843,6 +1847,7 @@ BSyntaxObject* IncludeEvaluator(BList* arg)
   static bool show_msg_including = true;
   static BSyntaxObject* show_msg_included_so = NULL;
   static bool show_msg_included = true;
+  int nErr0 = (int)TOLErrorNumber().Value();
   if(!show_msg_including_so)
   {
     show_msg_including_so = BNameBlock::FindPublicMember(GraReal(),
@@ -1930,6 +1935,12 @@ BSyntaxObject* IncludeEvaluator(BList* arg)
     {
       Std(ok+I2(" file ", " el fichero ")+p+" ["+BDat((double)tm.MSec()/1000.0).Format("%.3lf")+" sec.]\n");
     }
+  }
+  int nErr1 = (int)TOLErrorNumber().Value();
+  BSetFromFile* sff = (BSetFromFile*)result;
+  if(sff && (!sff->Contens().Card()) && (nErr1>nErr0))
+  {
+    DESTROY(result);
   }
   return(result);
 }
