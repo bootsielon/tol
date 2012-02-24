@@ -1022,7 +1022,7 @@ int Tol_ForEach (Tcl_Interp * interp,
     Tcl_AppendStringsToObj( obj_result,
                             "invalid object reference '",
                             Tcl_GetString(objv[0]),
-                            "must be {TYPE ?name? i1 i2 ... ik}",
+                            "' must be {TYPE ?name? i1 i2 ... ik}",
                             NULL );
     return TCL_ERROR;
   }
