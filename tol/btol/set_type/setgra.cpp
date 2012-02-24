@@ -123,6 +123,12 @@ DefineContensCommonOperators(BSet, "Set");
 
 
 
+  void ErrCannotModify(const BText& member, const BSyntaxObject* constant) 
+  { 
+    Error(I2("Cannot modify <","No se puede modificar <") + member +
+          I2("> of constant object ","> del objeto constante ") + 
+          constant->Identify()); 
+  }
 
 //--------------------------------------------------------------------
 class BSetAppend: public BExternalOperator
@@ -161,6 +167,10 @@ public:
     BList* lst = arg;
     bool incrementalIndexByName = false;
     BUserSet* uSet1 = USet(lst->Car()); lst = lst->Cdr();
+    if(uSet1->IsConstant()) { 
+      ErrCannotModify("value",uSet1);
+      return(NULL);
+    }
     BUserSet* uSet2 = USet(lst->Car()); lst = lst->Cdr();
     if(lst && lst->Car())
     {
@@ -208,6 +218,10 @@ public:
     BList* lst = arg;
     bool incrementalIndexByName = false;
     BUserSet* uSet = USet(lst->Car()); lst = lst->Cdr();
+    if(uSet->IsConstant()) { 
+      ErrCannotModify("value",uSet);
+      return(NULL);
+    }
     BUserDat* uDat = UDat(lst->Car()); lst = lst->Cdr();
     bool do_deletion = true;
     if(lst)
