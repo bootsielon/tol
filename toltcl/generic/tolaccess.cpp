@@ -1001,11 +1001,8 @@ int Tol_ForEach (Tcl_Interp * interp,
 {
   BSyntaxObject* container;
   Tcl_DString dstr;
-  Tcl_Obj * ArgIndexes;
   int tcl_code = TCL_OK;
   int i;
-  int n, index_length;
-  Tcl_Obj ** items;
 
   int length = 0;
 
@@ -1037,9 +1034,7 @@ int Tol_ForEach (Tcl_Interp * interp,
   const int OBJ_PATHV      = OBJ_PATH + 1;
   const int OBJ_DESC       = OBJ_PATHV + 1;
   const int OBJ_DESCV      = OBJ_DESC + 1;
-  const int OBJ_INDEXES    =  OBJ_DESCV + 1;
-  const int OBJ_INDEXESV   =  OBJ_INDEXES + 1;
-  const int OBJ_ISFILE     = OBJ_INDEXESV + 1;
+  const int OBJ_ISFILE     = OBJ_DESCV + 1;
   const int OBJ_ISFILEV    = OBJ_ISFILE + 1;
   const int OBJ_HASSUBSET  = OBJ_ISFILEV + 1;
   const int OBJ_HASSUBSETV = OBJ_HASSUBSET + 1;
@@ -1067,23 +1062,6 @@ int Tol_ForEach (Tcl_Interp * interp,
     return TCL_ERROR;
   }
   
-  // is ok to ask for a list
-  Tcl_ListObjGetElements( interp, objv[ 1 ], &n, &items );
-
-  // initialize the list of indexes (the common part) for every item
-  // in the Set
-  if (strcmp(Tcl_GetString( items[ 0 ] ),"Console")) {
-    if (n>2)
-      ArgIndexes = Tcl_NewListObj( n - 2, items + 2 );
-    else
-      ArgIndexes = Tcl_NewListObj( 0, NULL );
-  } else {
-    if ( n > 1 )
-      ArgIndexes = Tcl_NewListObj( n - 1, items + 1 );
-    else
-      ArgIndexes = Tcl_NewListObj( 0, NULL );
-  }
-
   datav[ OBJ_GRAMMAR ]  = Tcl_NewStringObj( "grammar", -1 );
   datav[ OBJ_GRAMMARV ] = Tcl_NewObj( );
   datav[ OBJ_NAME ]     = Tcl_NewStringObj( "name", -1 );
@@ -1094,11 +1072,6 @@ int Tol_ForEach (Tcl_Interp * interp,
   datav[ OBJ_PATHV ]    = Tcl_NewObj( );
   datav[ OBJ_DESC ]     = Tcl_NewStringObj( "description", -1 );
   datav[ OBJ_DESCV ]    = Tcl_NewObj( );
-  Tcl_Obj * last_index  = Tcl_NewIntObj( 1 );
-  Tcl_ListObjAppendElement( NULL, ArgIndexes, last_index );
-  datav[ OBJ_INDEXES ]  = Tcl_NewStringObj( "indexes", -1 );
-  datav[ OBJ_INDEXESV ] = ArgIndexes;
-  Tcl_ListObjLength( NULL, datav[ OBJ_INDEXES ], &index_length );
   datav[ OBJ_ISFILE ]     = Tcl_NewStringObj( "isfile", -1 );
   datav[ OBJ_ISFILEV ]    = Tcl_NewObj( );
   datav[ OBJ_HASSUBSET ]  = Tcl_NewStringObj( "hassubset", -1 );
@@ -1144,26 +1117,16 @@ int Tol_ForEach (Tcl_Interp * interp,
     
     /* read the path */
     btxt = syn_i->SourcePath();
-    Tcl_ExternalToUtfDString(NULL,btxt,-1,&dstr);
+    Tcl_ExternalToUtfDString(NULL, btxt, -1,& dstr);
     SAVE_SET_STRING( datav + OBJ_PATHV, &dstr ); 
     Tcl_DStringFree(&dstr);
     
     /* read the description */   
     btxt = syn_i->Description();
     Tcl_ExternalToUtfDString(NULL,btxt,-1,&dstr);
-    SAVE_SET_STRING( datav + OBJ_PATHV, &dstr ); 
+    SAVE_SET_STRING( datav + OBJ_DESCV, &dstr ); 
     Tcl_DStringFree(&dstr);
 
-    /* update last index */
-    if ( Tcl_IsShared( last_index ) ) {
-      last_index = Tcl_NewIntObj( i );
-      Tcl_ListObjReplace( NULL, datav[ OBJ_INDEXESV ], index_length-1,
-                          1, 1, &last_index );
-    } else {
-      Tcl_SetIntObj( last_index, i );
-    }
-    /* to refresh the string */
-    Tcl_InvalidateStringRep( datav[ OBJ_INDEXESV ] );
     // Este if es para incluir en los items que son Set informacion
     // que solo ellos llevan como: Subtype, IsFile, etc ...
 
@@ -1224,7 +1187,7 @@ int Tol_ForEach (Tcl_Interp * interp,
       Tcl_DStringFree( &dstr );
       datac = NUM_OBJS;
     } else
-      datac = OBJ_INDEXESV + 1;
+      datac = OBJ_DESCV + 1;
     // set the loop variable
     Tcl_Obj *varValuePtr = Tcl_ObjSetVar2( interp, objv[ 0 ], NULL,
                                            Tcl_NewListObj( datac, datav ),
@@ -1239,6 +1202,8 @@ int Tol_ForEach (Tcl_Interp * interp,
       break;
     }
     tcl_code = Tcl_EvalObjEx( interp, objv[ 2 ], 0 );
+    // unset loop variable
+    Tcl_UnsetVar( interp, Tcl_GetString( objv[ 0 ] ), 0 );
     if ( tcl_code != TCL_OK) {
       if ( tcl_code == TCL_CONTINUE) {
         tcl_code = TCL_OK;
@@ -1256,7 +1221,7 @@ int Tol_ForEach (Tcl_Interp * interp,
 
   delete citer;
   
-  /* liberar los objetos tcl */
+  /* release tcl objects holds on datav */
   for ( i = 0; i < NUM_OBJS; ++i ) {
     Tcl_DecrRefCount( datav[ i ] );
   }
