@@ -649,10 +649,11 @@ BSyntaxObject * Tol_ResolveObject(Tcl_Interp *interp,
           }
           Tcl_DString dstr;
           Tcl_DStringInit(&dstr);
-          Tcl_UtfToExternalDString(NULL,Tcl_GetString(items[1]),-1,&dstr);
+          Tcl_UtfToExternalDString(NULL, Tcl_GetString(items[1]), -1, &dstr);
           if (!(syn = gra->FINDVARIABLE(Tcl_DStringValue(&dstr))))
             Tcl_AppendStringsToObj(obj_result, "variable '",
-                                   obj_ref, "' not found in grammar '",
+                                   Tcl_DStringValue( &dstr ),
+                                   "' not found in grammar '",
                                    gra->Name().String(), "'", NULL);
           Tcl_DStringFree(&dstr);
           /* found and matched */
