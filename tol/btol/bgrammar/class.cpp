@@ -1356,6 +1356,7 @@ static BInt MemberCmp(const void* v1, const void* v2)
 {
 //return(BParser::Unparse(tree_,"","\n"));
   if(!isGood_) { return(BText("Class ")+Name()+" "); }
+  BText desc = Description();
   BText dump;
   dump+=BText("\n/* API for Class ")+FullName()+" */\n";  
   dump+=BText("Class ")+Name()+" "; 
@@ -1398,6 +1399,12 @@ static BInt MemberCmp(const void* v1, const void* v2)
     }
   }  
   dump += "{";
+  if(desc.HasName()) 
+  {  
+    dump+=BText("/* \n ");
+    dump+=desc;
+    dump+=BText("\n*/ \n ");
+  }
   BArray<const BMember*> mem;
   BArray<const BMember*> met;
   int num_mem = GetSortedMembers(mem);
