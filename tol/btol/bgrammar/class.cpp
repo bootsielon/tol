@@ -1401,7 +1401,7 @@ static BInt MemberCmp(const void* v1, const void* v2)
   dump += "{";
   if(desc.HasName()) 
   {  
-    dump+=BText("/* \n ");
+    dump+=BText("\n/* \n ");
     dump+=desc;
     dump+=BText("\n*/ \n ");
   }
