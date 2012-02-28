@@ -560,7 +560,7 @@ proc ::TolConsole::OnInfo { args } {
     default {
       foreach {icon grammar name content path desc objRef} $args {}
       if { $grammar eq "Anything" } {
-        if { [ regexp {/+\sClass\s} $content ] } {
+        if { [ regexp {/\* API for Class (.+) \*/\nClass (@[^ ]+) (.*)$} $content ] } {
           ActivateInfoWidget "text"
           $widgets(tabset,info) setwidget $widgets(info,hltext)
           $widgets(info,hltext) insert end $content
