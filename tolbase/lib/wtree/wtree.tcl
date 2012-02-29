@@ -914,7 +914,6 @@ snit::widget wtree {
     
     foreach { item I column C elem E } $treeInfo { }
     
-    #puts "OnButtonPress1: $treeInfo"
     if { $item == "item" && \
              $column == "column" && \
              $elem == "elem" && \
@@ -924,20 +923,21 @@ snit::widget wtree {
 
       set idx_info $column_info(MAPIDX,$C)
 
-      if { $column_info($idx_info,-editable) && $E eq "eTXT"} {
+      if { $column_info($idx_info,-editable) && 
+           ( $E eq "eTXT" || $E eq "eRECT" ) } {
         set exists [winfo exists $tree.entry]
-        ::TreeCtrl::EntryOpen $tree $I $C $E
+        ::TreeCtrl::EntryOpen $tree $I $C eTXT
         if {!$exists} {
-          $tree.entry configure -borderwidth 1 -justify center  \
+          $tree.entry configure -borderwidth 1 -justify left  \
               -background white -relief sunken
           update idletask
         }
         $tree.entry selection clear
-        scan [$tree item bbox $I $C $E] "%d %d %d %d" x1 y1 x2 y2
+        scan [ $tree item bbox $I $C eRECT ] "%d %d %d %d" x1 y1 x2 y2
         set left $x1
         set right $x2
-        place $tree.entry -y $y1 -x $left -width [expr {$right - $left + 4}]
-        $tree.entry icursor [$tree.entry index @[expr {$x - ($x1 + 1)}]]
+        place $tree.entry -y $y1 -x $left -width [expr {$right - $left + 1}]
+        $tree.entry icursor [$tree.entry index @[expr {$x - $x1}]]
         return -code break
 
         ::TreeCtrl::ButtonPress1 $tree $x $y
@@ -993,7 +993,7 @@ snit::widget wtree {
     set T [ wtree $w.t -table $istable -filter yes -buttonstyle mac \
                 -columns [ list \
                                { {image text} -tags ID   -label Identifier } \
-                               { text -tags DESC -label Description } ] ]
+                               { text -tags DESC -label Description -editable yes } ] ]
     
     $T notify bind $T <Expand-before> {
       #puts "before openning %I"
@@ -1002,7 +1002,7 @@ snit::widget wtree {
       #puts "after closing %I"
     }
     $T notify bind $T <ActiveItem> {
-      #puts "now active item is %c the previous was %p"
+      puts "now active item is %c the previous was %p"
     }
     grid $T -row 1 -column 0 -sticky "snew"
     grid rowconfigure $w 1 -weight 1
