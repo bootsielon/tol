@@ -719,7 +719,11 @@ void BSetNCopy::CalcContens()
     BList* lst = NIL;
     BInt n, N = (BInt)Real(Arg(1));
     BSyntaxObject* obj = Arg(2);
-    for(n=1; n<=N; n++) { lst = Cons(obj->CopyContens(), lst); }
+    for(n=1; n<=N; n++) 
+    { 
+      lst = Cons(obj->CopyContens(), lst); 
+      if(BGrammar::StopFlag()) { break; }
+    }
     contens_.RobElement(lst);
 }
 
@@ -752,6 +756,7 @@ void setConcat(const BSet& setOfSets, BSet& contens_)
       BSet& set = Set(setOfSets[n]);
       totCard += set.Card(); 
     }
+    if(BGrammar::StopFlag()) { return; }
   }
   contens_.PrepareStore(totCard);
   for(n=1; n<=setOfSets.Card(); n++)
@@ -762,8 +767,10 @@ void setConcat(const BSet& setOfSets, BSet& contens_)
       for(k=1; k<=set.Card(); k++)
       {
         contens_.AddElement(set[k]);
+        if(BGrammar::StopFlag()) { return; }
       }
     }
+    if(BGrammar::StopFlag()) { return; }
   }
 }
 
@@ -907,6 +914,7 @@ void BSetCartesianProduct::CalcContens()
   for(BInt n=setOfSets.Card()-1; n>=0; n--)
   { 
     module[n] = module[n+1] * Set(setOfSets[n+1]).Card(); 
+    if(BGrammar::StopFlag()) { return; }
   }
   contens_.PrepareStore(module[0]);
   for(BInt k = 1; k<=module[0]; k++)
@@ -917,8 +925,10 @@ void BSetCartesianProduct::CalcContens()
     {
       BInt m = 1 + ((k-1) / module[n]) % Set(setOfSets[n]).Card();
       set.AddElement(Set(setOfSets[n])[m]);
+      if(BGrammar::StopFlag()) { return; }
     }
     contens_.AddElement(new BSetTuple("", set));
+    if(BGrammar::StopFlag()) { return; }
   }
 }
 
@@ -941,7 +951,11 @@ void BSetPower::CalcContens()
 //--------------------------------------------------------------------
 {
     BList* lst = NIL;
-    for(BInt n=0; n<Dat(Arg(2)); n++) { lst = Cons(Arg(1), lst); }
+    for(BInt n=0; n<Dat(Arg(2)); n++) 
+    { 
+      lst = Cons(Arg(1), lst); 
+      if(BGrammar::StopFlag()) { return; }
+    }
     BSetCartesianProduct set(lst);
     contens_ = set.Contens();
 }
@@ -1007,6 +1021,7 @@ void BSetRange::CalcContens()
   {
     x = 1.0 + (from + step*k) -1.0;
     LstFastAppend(result, aux, new BContensDat("",x));
+    if(BGrammar::StopFlag()) { break; }
   }
   contens_.RobElement(result);
 }
@@ -1630,6 +1645,7 @@ void BSetClassify::CalcContens()
         }
       //Std(Out()+"\nObject "+ n + " = " +sorted[n]->Dump());
         LstFastAppend(classLst, classAux, sorted[n]);
+        if(BGrammar::StopFlag()) { break; }
       }
       LstFastAppend(result, aux, NewSet("",BText("Class ")+m,classLst,
                     NIL,BSet::Generic));
@@ -1665,6 +1681,7 @@ void BSetClassify::CalcContens()
           cl->Contens().AddElement(set[k+1]);  
         }
         contens_.AddElement(cl);
+        if(BGrammar::StopFlag()) { break; }
       }
     }
   }
@@ -1754,6 +1771,7 @@ void BSetExtractByIndex::CalcContens()
 	    {
 		LstFastAppend(result, aux, set[m]);
 	    }
+      if(BGrammar::StopFlag()) { break; }
 	}
     }
     contens_.RobElement(result);
@@ -1790,7 +1808,10 @@ void BSetAddColumns2::CalcContens()
 	return;
     }
     for(n=1; n<=n1; n++)
-    { LstFastAppend(result,aux,new BSetTuple("",Set(set1[n])<<Set(set2[n]))); }
+    { 
+      LstFastAppend(result,aux,new BSetTuple("",Set(set1[n])<<Set(set2[n]))); 
+      if(BGrammar::StopFlag()) { break; }
+    }
     contens_.RobElement(result);
 }
 
@@ -1835,8 +1856,10 @@ void BSetTraspose::CalcContens()
 	BList* resCol = NIL;
 	for(m=1; m<=col; m++) {
 	    LstFastAppend(resCol, auxCol, Set(set[m])[n]); 
+      if(BGrammar::StopFlag()) { break; }
 	}
 	LstFastAppend(result, aux, NewSet("","",resCol,NIL,BSet::Generic));
+      if(BGrammar::StopFlag()) { break; }
     }
     contens_.RobStruct(result,NIL,BSet::Table);
 }
@@ -1894,6 +1917,7 @@ void BSetFor::CalcContens()
           sprintf(es, "Fallo en función <For> en iteración %d.", n);
           Error(I2(en ,es));
         }
+        if(BGrammar::StopFlag()) { break; }
       }
     }
   }
@@ -1946,6 +1970,7 @@ void BSetEvalSet::CalcContens()
 	    }
 	    LstFastAppend(result, aux, objCode);
 	    n++;
+      if(BGrammar::StopFlag()) { break; }
 	  }
 	  while(n<=set.Card());
   }
@@ -2020,6 +2045,7 @@ void BSetEvalSetNth::CalcContens()
       }
       LstFastAppend(result, aux3, objCode);
       k++;
+      if(BGrammar::StopFlag()) { break; }
     }
     while(k<=K);
   }
@@ -2072,6 +2098,7 @@ void BSetEvalSetOfCode::CalcContens()
       }
       LstFastAppend(result, aux, objCode);
     }
+    if(BGrammar::StopFlag()) { break; }
   }
   contens_.RobElement(result);
 }
@@ -2132,6 +2159,7 @@ void BSetSelect::CalcContens()
     }
     DESTROY(objCode);
     if(valid) { LstFastAppend(result, aux, set[n]); }
+    if(BGrammar::StopFlag()) { break; }
   }
   contens_.RobElement(result);
   //SumPartialTime;
@@ -2190,6 +2218,7 @@ void BSetDates::CalcContens()
    	{
       dte.PutHash(hash[k]); 
       LstFastAppend(result, aux, new BContensDate("",dte,""));
+      if(BGrammar::StopFlag()) { break; }
     }
   }
   else
@@ -2258,19 +2287,23 @@ DefExtOpr(1, BSetMat, "MatSet", 1, 1, "Matrix",
 void BSetMat::CalcContens()
 //--------------------------------------------------------------------
 {
-    BMat	mat    = Mat (Arg(1));
-    BList*	result = NIL;
-    BList*	aux    = NIL;
-    BInt	i,j;
-    for(i = 0; i < mat.Rows(); i++)
-    {
-	BList* lsta	  = NIL;
-	BList* auxa	  = NIL;
-	for(j = 0; j < mat.Columns(); j++)
-	{ LstFastAppend(lsta, auxa, new BContensDat("",mat(i,j),""));  }
-	LstFastAppend(result, aux,  NewSet("","",lsta,NIL,BSet::Generic));
+  BMat	mat    = Mat (Arg(1));
+  BList*	result = NIL;
+  BList*	aux    = NIL;
+  BInt	i,j;
+  for(i = 0; i < mat.Rows(); i++)
+  {
+    BList* lsta	  = NIL;
+    BList* auxa	  = NIL;
+    for(j = 0; j < mat.Columns(); j++)
+    { 
+      LstFastAppend(lsta, auxa, new BContensDat("",mat(i,j),""));  
+      if(BGrammar::StopFlag()) { break; }
     }
-    contens_.RobStruct(result,NIL,BSet::Table);
+    LstFastAppend(result, aux,  NewSet("","",lsta,NIL,BSet::Generic));
+    if(BGrammar::StopFlag()) { break; }
+  }
+  contens_.RobStruct(result,NIL,BSet::Table);
 }
 
 
@@ -2302,6 +2335,7 @@ void BSetSerMat::CalcContens()
      "","",dating,first,last,mat.SubRow(i).Data());
     serie->PutName(BText("S")+(i+1));
     LstFastAppend(result, aux, serie);
+    if(BGrammar::StopFlag()) { break; }
   }
   contens_.RobStruct(result,NIL,BSet::Table);
 }
@@ -2337,11 +2371,13 @@ void BSetDir::CalcContens()
 	  {
       BText f = dir.FileName(i);
       files.AddElement(new BContensText("",f,f));
+      if(BGrammar::StopFlag()) { break; }
 	  }
 	  for(i = 0; i < dir.NumDirs(); i++)
 	  {
       BText d = dir.DirName(i);
 	    dirs.AddElement(new BContensText("",d,d));
+      if(BGrammar::StopFlag()) { break; }
 	  }
 	  contens_.AddElement(new BContensSet("",files,"Files"));
 	  contens_.AddElement(new BContensSet("",dirs, "Directories"));
@@ -2569,6 +2605,7 @@ BUserSet* ParsingTreeToSet( const List* ATree )
 	    BranchIdx++;
 //	    ABranch   = TreBranch((BList*)ATree,BranchIdx);
 	    ABranch = Tree::treBranch((List*)ATree, BranchIdx);
+    if(BGrammar::StopFlag()) { break; }
 	} // end while
 	
 	// Translate all node stuff into a new set
@@ -2870,6 +2907,7 @@ void BSetClassAscentOf::CalcContens()
       BText fn = iterC->second->FullName();
     //Std(BText(""\nBOisCreator::Write BMemberOwner parent ")+fn);
       contens_.AddElement(new BContensText("",fn,""));
+      if(BGrammar::StopFlag()) { break; }
     }
   }
 }
