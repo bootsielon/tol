@@ -3296,6 +3296,44 @@ void BMatConcatRow::CalcContens()
   }
 }
 
+//--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatAppendRows);
+DefExtOpr(1, BDatAppendRows,  "AppendRows", 2, 2, "Matrix Matrix",
+  "(Matrix matRef, Matrix newRows)",
+  I2("Modifies first matrix adding all the rows from second one."
+     "If both matrices have not the same number of columns then "
+     "does nothing and returns 0, else returns the total number of "
+     "rows.",
+     "Modifica la primera matriz añadiéndole todas las filas de la"
+     "segunda. En caso de éxito, devuelve el número total de filas,"
+     "pero si las dos matrices no tienen el mismo número de columnas "
+     "no hace nada y devuelve 0."),
+      BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BDatAppendRows::CalcContens()
+//--------------------------------------------------------------------
+{
+  BMat& M1 = Mat(Arg(1));
+  BMat& M2 = Mat(Arg(2));
+  int c1 = M1.Columns();
+  int c2 = M2.Columns();
+  int r1 = M1.Rows();
+  int r2 = M2.Rows();
+  if(c1!=c2) { contens_ = 0; }
+  else if(r2==0)  { contens_ = r1; }
+  else
+  {
+    int r = r1+r2;
+    int s1 = r1*c1*sizeof(BDat);
+    int s2 = r2*c2*sizeof(BDat);
+    M1.Alloc(r,c1);
+    BDat* addPnt = M1.GetData().GetBuffer()+(r1*c1);
+    const BDat* newPnt = M2.Data().Buffer();
+    memcpy(addPnt,newPnt,s2);
+    contens_ = r;
+  }
+
+}
 
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatExtractDiag);
