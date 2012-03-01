@@ -1,0 +1,54 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+Real bugNum_ =  1455;
+Text email_ = "vdebuen@tol-project.com"; 
+Text summary_="Aceleración de la autoconcatenación de cadenas MCMC";
+Text link_ = GetTolBugzillaLink(bugNum_);
+
+Real numErr0 = Copy(NError);
+Real numWar0 = Copy(NWarning);
+
+Real c = 10;
+Real r1 = 100;
+Real r2 = 10;
+
+Matrix M1 = Constant(r1,c,1);
+Matrix M2 = Constant(r2,c,2);
+
+Matrix M1_ = M1;
+
+Real r = AppendRows(M1,M2);
+
+Matrix M12_ = M1_<<M2;
+
+Real ok.1 = r==r1+r2;
+Real ok.2 = Rows(M1)==r1+r2;
+Real ok.3 = MatMax(Abs(M1-M12_))==0;
+
+Real numErr1 = Copy(NError);
+Real numWar1 = Copy(NWarning);
+
+Set partialResults_ = [[ 
+  numErr0,numErr1,numWar1,numWar0,ok.1,ok.2,ok.3]];
+
+//This is a messure of the success of the test 
+Real quality_ = And(
+  numWar0 == numWar1,
+  numErr1 == numErr0,ok.1,ok.2,ok.3);
+
+//Return the results 
+Set resultStr_ =
+  @strTestStatus(summary_, link_, quality_,
+                 "Partial results = "<<partialResults_,
+                 "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                 email_);
+WriteLn(""<<resultStr_);
+resultStr_;
+
+/* */
+
