@@ -121,31 +121,43 @@ Set LocalInfo(Text name.version)
 };
 
 //////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.PackagePrefix = 
+"Devuelve un prefijo de paquete para poder hacwer comparaciones con "
+"TextBeginWith.";
+Text PackagePrefix(Text package)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real _trace("RefersPackage", "Begin", 1);
+  Set tok = Tokenizer(package,".");
+  Real tokCard = Card(tok);
+  Real endAtPoint = TextEndAt(package,".");
+  Text pkgPrefix = Case(
+    tokCard==1,package+".",
+    tokCard==4,tok[1]+"."+tok[2]+"."+tok[3],
+    endAtPoint,package,
+    1==1,      package+".");
+  Real _trace("RefersPackage", "package='"<<package+"'", 5);
+  Real _trace("RefersPackage", "tok={"<<tok+"}", 5);
+  Real _trace("RefersPackage", "tokCard="<<tokCard, 5);
+  Real _trace("RefersPackage", "endAtPoint="<<endAtPoint, 5);
+  Real _trace("RefersPackage", "pkgPrefix='"<<pkgPrefix+"'", 1);
+  Real _trace("RefersPackage", "End", 1);
+  pkgPrefix
+};
+
+//////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.LocalLastCompatible = 
 "Devuelve la última versión de un paquete disponible localmente que es "
 "compatible con la versión actual de TOL.";
-Text LocalLastCompatible(Text package_)
+Text LocalLastCompatible(Text package)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Set tok  = Tokenizer(package_,".");
-  Real tokCard = Card(tok);
-  Real endAtPoint = TextEndAt(package_,".");
-  Text package = Case(
-    tokCard==1,package_+".",
-    tokCard==4,tok[1]+"."+tok[2]+"."+tok[3],
-    endAtPoint,package_,
-    1==1,      package_+".");
-  Real _trace("LocalLastCompatible", "Begin", 1);
-  Real _trace("LocalLastCompatible", "package_='"<<package_+"'", 5);
-  Real _trace("LocalLastCompatible", "tok={"<<tok+"}", 5);
-  Real _trace("LocalLastCompatible", "tokCard="<<tokCard, 5);
-  Real _trace("LocalLastCompatible", "endAtPoint="<<endAtPoint, 5);
-  Real _trace("LocalLastCompatible", "package='"<<package+"'", 1);
+  Text pkgPrefix = PackagePrefix(package);
   Set pkgLst = GetDir(TolPackage::Client::_.localRoot)[2];
   Set pkgSel = Select(pkgLst,Real(Text pkgNamVer)
   {
     Real _trace("LocalLastCompatible", "checking version ="<<pkgNamVer, 5);
-    Real ok1 = TextBeginWith(pkgNamVer, package);
+    Real ok1 = TextBeginWith(pkgNamVer, pkgPrefix);
     If(!ok1, False,
     {
       Set info = TolPackage::Client::LocalInfo(pkgNamVer);
@@ -249,6 +261,8 @@ Real LocalClean(Text package)
 //////////////////////////////////////////////////////////////////////////////
 {
   Real _trace("LocalClean", "Begin", 1);
+  Text pkgPrefix = PackagePrefix(package);
+
   Real ok = If(TextFind(package,"."),
   {
     Real OSDirRemove(_.localRoot+package)
@@ -257,7 +271,7 @@ Real LocalClean(Text package)
     Set dir = GetDir(_.localRoot)[2];
     Set sel = Select(dir,Real(Text sub)
     {
-      TextBeginWith(sub,package)
+      TextBeginWith(sub,pkgPrefix)
     });
     SetMin(EvalSet(sel,Real(Text pkg)
     {
@@ -846,25 +860,27 @@ Real RemoteUpgradeAll(Real updateSyncInfo)
 
 ////////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.GetCompatibleVersion.one = 
-"Gets the latest version of a package that is compatible with a tol version.";
-Text GetCompatibleVersion.one(Text tol_version, Text package)
+"Gets the latest version of a package that is compatible with current "
+"tol version.";
+Text GetCompatibleVersion.one(Text package)
 ////////////////////////////////////////////////////////////////////////////////
 {
   Real _trace("GetCompatibleVersion.one", "Begin", 1);
+  Text pkgPrefix = PackagePrefix(package);
   Real If(!Card(_.versSyncInfo), 
    TolPackage::Client::RemoteUpdateVersSyncInfo(True));
   
   Set sel_compatible = Select(_.versSyncInfo, 
   Real(TolPackage::@VersionSynchro reg)
   {
-    And(TextBeginWith(reg->co_name_version,package), 
-        tol_version>=reg->te_min_tol_version, 
-        tol_version<=reg->te_max_tol_version)
+    And(TextBeginWith(reg->co_name_version, pkgPrefix), 
+        TolPackage::_.currentTolVersion>=reg->te_min_tol_version, 
+        TolPackage::_.currentTolVersion<=reg->te_max_tol_version)
   });
   If(!Card(sel_compatible),
   {
     WriteLn("[GetCompatibleVersion.one] Cannot find a version of package "<<
-    package+" compatible with TOL "+tol_version,"E");
+    package+" compatible with TOL "+TolPackage::_.currentTolVersion,"E");
     Real Stop;
     ""
   },
@@ -881,14 +897,14 @@ Text GetCompatibleVersion.one(Text tol_version, Text package)
 
 ////////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.GetCompatibleVersion.all = 
-"Gets the latest versions of a set of packages that are compatible with a tol "
-"version.";
-Set GetCompatibleVersion.all(Text tol_version, Set package.list)
+"Gets the latest versions of a set of packages that are compatible with "
+"current tol version.";
+Set GetCompatibleVersion.all(Set package.list)
 ////////////////////////////////////////////////////////////////////////////////
 {
   EvalSet(package.list, Text (Text pv) 
   {
-    GetCompatibleVersion.one(tol_version, pv)
+    GetCompatibleVersion.one(pv)
   })
 };
 
@@ -974,12 +990,13 @@ Set GetVersionInfo(Set package.version.list)
 ////////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.GetCompatibleDeepDependencies = 
 "Gets the TolPackage::@VersionSynchro related to all deep dependencies of a "
-"list of packages for the last version that is compatible with a tol version";
-Set GetCompatibleDeepDependencies(Text tol_version, Set package.list)
+"list of packages for the last version that is compatible with current tol "
+"version";
+Set GetCompatibleDeepDependencies(Set package.list)
 ////////////////////////////////////////////////////////////////////////////////
 {
   Real _trace("GetCompatibleDeepDependencies", "Begin", 1);
-  Set package.version.list = GetCompatibleVersion.all(tol_version, package.list);
+  Set package.version.list = GetCompatibleVersion.all(package.list);
   Set dep = GetVersionInfo(GetDeepDependencies.all(package.version.list));
   Real _trace("GetCompatibleDeepDependencies", "End", 2);
   dep
@@ -992,33 +1009,23 @@ Text _.autodoc.member.DownloadCompatibleDeepDependencies =
 "Arguments : \n"
 "  Text localRoot      : Local directory where packages will be downloaded\n"
 "  Real cleanLocalRoot : If true, local directory will be cleaned before to download\n"
-"  Text tol_version    : Version of TOL comaptible with all packages\n"
 "  Set package.list    : List of packages without explicit version\n"
 "Returns true if all packages are found and downloaded.";
 Real DownloadCompatibleDeepDependencies(
   Text localRoot,
   Real cleanLocalRoot,    
-  Text tol_version,  
   Set package.list)
 ////////////////////////////////////////////////////////////////////////////////
 {
   Real _trace("DownloadCompatibleDeepDependencies", "Begin", 1);
-  If(Compare.VersionString(tol_version,TolPackage::_.currentTolVersion)>0,
+  Real If(cleanLocalRoot, OSDirRemove(localRoot));
+  Set dep = GetCompatibleDeepDependencies(package.list);
+  Real ok = SetMin(EvalSet(dep, Real(TolPackage::@VersionSynchro vsi)
   {
-    WriteLn("[DownloadCompatibleDeepDependencies] Cannot download packages for "
-    "TOL "+tol_version+" using TOL "+TolPackage::_.currentTolVersion,"E");
-    False
-  },
-  {
-    Real If(cleanLocalRoot, OSDirRemove(localRoot));
-    Set dep = GetCompatibleDeepDependencies(tol_version, package.list);
-    Real ok = SetMin(EvalSet(dep, Real(TolPackage::@VersionSynchro vsi)
-    {
-      DownloadPackage(vsi->te_url,vsi->co_name_version,True,localRoot)
-    }));
-    Real _trace("DownloadCompatibleDeepDependencies", "End", 1);
-    ok
-  })
+    DownloadPackage(vsi->te_url,vsi->co_name_version,True,localRoot)
+  }));
+  Real _trace("DownloadCompatibleDeepDependencies", "End", 1);
+  ok
 };
 
 
