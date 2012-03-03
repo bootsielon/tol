@@ -766,8 +766,8 @@ void BDatPutCSerDat::CalcContens()
 }
 
 
-static char* structFinder_ = "Struct";
-static char* classFinder_  = "Class";
+static const char* structFinder_ = "Struct";
+static const char* classFinder_  = "Class";
 static BSyntaxObject* structGra_ = (BSyntaxObject*)structFinder_;
 static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
 
@@ -2063,7 +2063,7 @@ void BDatTextToReal::CalcContens()
 }
 
 
-
+static BUserFunction *tclTextMatch = NULL;
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatMatchText);
   DefExtOpr(1, BDatMatchText, "TextMatch", 2, 3, "Text Text Real",
@@ -2112,20 +2112,28 @@ void BDatTextToReal::CalcContens()
   if(Arg(3)) { mode = (BInt)Real(Arg(3)); }
   if(TolTclIsEnabled())
   {
-    BText expr = BText("TextMatch_Tcl(\"")+string+"\",\""+pattern+"\","+mode+")";
-    BSyntaxObject* uMatch = GraReal()->EvaluateExpr(expr);
-    if(uMatch)
-    { 
-      contens_ = Real(uMatch)!=0;
-      DESTROY(uMatch);
+    if ( tclTextMatch || ( tclTextMatch = (BUserFunction*)GraReal()->FindOperator( "TextMatch_Tcl" ) ) ) {
+      BList *args = Cons( Arg(1), NCons( Arg(2) ) );
+
+      if ( Arg(3) ) {
+        LstAppend( args, Arg(3) );
+      } else {
+        BUserDat *uMode = BContensDat::New( "", BDat(mode), "" );
+        uMode->PutName( "case" );
+        LstAppend( args, uMode ); 
+      }
+      BSyntaxObject *evalResult = tclTextMatch->Evaluator( args );
+      if ( evalResult ) {
+        contens_ = Dat( evalResult );
+      }
+      // DUDA: debo destruir args?
+      DESTROY( evalResult );
+      return;
     }
   }
-  else
-  {
-    Warning("Using internal version of TextMatch could cause invalid results. "
-    "Please use a TCL version of TOL like tolsh or tolbase.");
-    contens_ = (BReal)(string.Match(pattern, mode));
-  }
+  Warning("Using internal version of TextMatch could cause invalid results. "
+          "Please use a TCL version of TOL like tolsh or tolbase.");
+  contens_ = (BReal)(string.Match(pattern, mode));
 }
 
 
