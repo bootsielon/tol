@@ -2072,3 +2072,71 @@ void BSetLevinsonARMA::CalcContens()
   contens_.RobElement(result);
 }
 
+
+
+
+
+BPolyn<BDat> ReversePolyn(const BPolyn<BDat>& p);
+void VectorToSchur(BPolyn<BDat>& p, const BArray<BDat>& v, int n, int n0);
+void SchurToVector(BArray<BDat>& v, const BPolyn<BDat>& p, int n0);
+
+//--------------------------------------------------------------------
+DeclareContensClass(BPol, BPolTemporary, BPolUncVec2SttPol);
+DefExtOpr(1, BPolUncVec2SttPol, "UncVec2SttPol", 2, 3, 
+  "Matrix Real Real",
+  "(Matrix vec, Real period [, Real iniPos] )",
+  "Returns the stationary polynomial represented by an unconstrained "
+  "vector. The inverse function is SttPol2UncVec.",
+	BOperClassify::Sthocastic_);
+//--------------------------------------------------------------------
+void BPolUncVec2SttPol::CalcContens()
+//--------------------------------------------------------------------
+{
+  BMatrix<BDat>& V = Mat(Arg(1));
+  const BArray<BDat>& vec = V.Data();
+  int n = vec.Size();
+  if(n==0) { contens_ = BPolyn<BDat>::One(); }
+  else
+  {
+    int period = (int)Real(Arg(2));
+    int iniPos = 0;
+    if(Arg(3)) { iniPos = (int)Real(Arg(3)); }
+    int d;
+    BPolyn<BDat> q; 
+    VectorToSchur(q, vec, n, iniPos);
+    for(d = 0; d<q.Size(); d++) { q(d).PutDegree(q(d).Degree()*period); }
+    contens_ = ReversePolyn(q);
+  }
+}
+
+
+//--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatSttPol2UncVec);
+DefExtOpr(1, BMatSttPol2UncVec, "SttPol2UncVec", 2, 2, "Polyn Real",
+  "(Polyn pol, Real period)",
+  "Returns the unconstrained column vector representing an stationary "
+  "polynomial. The inverse function is UncVec2SttPol.",
+	BOperClassify::Sthocastic_);
+//--------------------------------------------------------------------
+void BMatSttPol2UncVec::CalcContens()
+//--------------------------------------------------------------------
+{
+  BPolyn<BDat>& pol = Pol(Arg(1));
+  int period =(int)Real(Arg(2));
+  int n = pol.Degree()/period;
+  if(n<=0)
+  {
+    contens_.Alloc(0,1);
+  }
+  else
+  {
+    contens_.Alloc(n,1);
+    BArray<BDat>& vec = contens_.GetData();
+    int d;
+    BPolyn<BDat> q = pol;
+    for(d = 0; d<q.Size(); d++) { q(d).PutDegree(q(d).Degree()/period); }
+    q = ReversePolyn(q);
+    SchurToVector(vec, q, 0);
+  }
+}
+

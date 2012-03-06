@@ -817,7 +817,7 @@ void BModel::CalcNonLinnearInputDifFilter(BInt N)
 static BDat eps_ = 1.E-4;
 
 //--------------------------------------------------------------------
-static BPolyn<BDat> ReversePolyn(const BPolyn<BDat>& p)
+BPolyn<BDat> ReversePolyn(const BPolyn<BDat>& p)
 //--------------------------------------------------------------------
 {
   static BPol B = BPol::B();
@@ -828,7 +828,7 @@ static BPolyn<BDat> ReversePolyn(const BPolyn<BDat>& p)
 
 
 //--------------------------------------------------------------------
-static void SchurToVector(BArray<BDat>& v, const BPolyn<BDat>& p, int n0)
+void SchurToVector(BArray<BDat>& v, const BPolyn<BDat>& p, int n0)
 //--------------------------------------------------------------------
 {
   int  n  = p.Degree();
@@ -863,7 +863,7 @@ static void SchurToVector(BArray<BDat>& v, const BPolyn<BDat>& p, int n0)
 
 
 //--------------------------------------------------------------------
-static void VectorToSchur(BPolyn<BDat>& p, const BArray<BDat>& v, int n, int n0)
+void VectorToSchur(BPolyn<BDat>& p, const BArray<BDat>& v, int n, int n0)
 //--------------------------------------------------------------------
 {
   static BPol B = BPol::B();
