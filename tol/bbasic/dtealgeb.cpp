@@ -472,7 +472,9 @@ BInt BDate::DayIndex() const
 {
   BInt days;
   BInt rest, i;
-  if(!HasValue()) { return(year_*366); }
+  if(*this==begin_) { return(-115782); }
+  if(*this==end_) { return(219147); }
+  if(!HasValue()) { return(2147483647); }
 
   days = (year_ / 400) * DAYSCICLE400;
   rest = year_ % 400;

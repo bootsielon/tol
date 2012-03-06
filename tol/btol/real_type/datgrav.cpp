@@ -372,7 +372,11 @@ void BDatDistanceIn::CalcContens()
      BOperClassify::TimeAlgebra_);
   void BDatDateToIndex::CalcContens()
 //--------------------------------------------------------------------
-{ contens_ = Date(Arg(1)).Index(); }
+{ 
+  BDate& dte = Date(Arg(1));
+  int dayIdx = dte.DayIndex(); 
+  if(dayIdx!=2147483647) { contens_ = dte.Index(); }
+}
 
 
 //--------------------------------------------------------------------
