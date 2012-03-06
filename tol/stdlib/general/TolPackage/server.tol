@@ -122,9 +122,15 @@ Text BuildPackage(
   NameBlock pkg = pkgCnt[1];
   Text name.version = name+"."<<
     pkg::_.autodoc.version.high+"."<<pkg::_.autodoc.version.low;
+
+  Text minTolVersion = If(!ObjectExist("Text","pkg::_.autodoc.minTolVersion"),
+   "v000000000000000000",  pkg::_.autodoc.minTolVersion);
+  Text maxTolVersion = If(!ObjectExist("Text","pkg::_.autodoc.maxTolVersion"),
+   "v999999999999999999",  pkg::_.autodoc.maxTolVersion);
+
   Real okTolVersion = And(
-    Compare.VersionString(pkg::_.autodoc.minTolVersion,TolPackage::_.currentTolVersion)<=0,
-    Compare.VersionString(pkg::_.autodoc.maxTolVersion,TolPackage::_.currentTolVersion)>=0);
+    Compare.VersionString(minTolVersion,TolPackage::_.currentTolVersion)<=0,
+    Compare.VersionString(maxTolVersion,TolPackage::_.currentTolVersion)>=0);
   Real If(!okTolVersion, 
   {
     Error("[TolPackage::Server::BuildPackage] cannot create package "<<name.version+
