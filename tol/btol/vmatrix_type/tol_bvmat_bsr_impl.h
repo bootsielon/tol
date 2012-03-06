@@ -799,9 +799,19 @@ public:
     assign_sigma_to_noise* t = (assign_sigma_to_noise*)this;
   //Std(BText("\nassign_sigma_to_noise(")+str.c_str()+")");
   //Std(BText("sigmaIdx=")+sigInf->index);
-    t->noise_info_->sigmaName = sigInf.name;
-    t->noise_info_->sigmaIdx = sigInf.index;
-    t->noise_info_->sigmaCte = BDat::Nan();
+    if(!noise_info_->size)
+    {
+      Warning(BSR()+"Cannot define a variance parameter "+
+        sigInf.name.c_str()+" over an empty noise. It will be skyped.");
+      t->noise_info_->sigmaName = "";
+      t->noise_info_->sigmaIdx = -1;
+    }
+    else
+    {
+      t->noise_info_->sigmaName = sigInf.name;
+      t->noise_info_->sigmaIdx = sigInf.index;
+    }
+    t->noise_info_->sigmaCte = BDat::Nan();  
     t->noise_info_->sigPriExpr = "";
     t->noise_info_->cov.Eye(noise_info_->size,noise_info_->size,0,1);
     t->noise_info_->L = t->noise_info_->cov;

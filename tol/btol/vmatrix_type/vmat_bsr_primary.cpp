@@ -562,13 +562,23 @@ public:
     int b = noise.vec.size();
     if(!b)
     {
-      Error(BSR()+"At least a vector of noise with independent normal distribution must be defined");
+      Error(BSR()+"There are no defined noise");
       return(-4);
     }
-    if(!m)
+    else if(b>1)
     {
-      Error(BSR()+"At least a linear equation must be defined");
+      Error(BSR()+"There are more than one defined noise");
+      return(-4);
+    }
+    else if(noise.vec[0].size!=m)
+    {
+      Error(BSR()+"There are "+m+" linear equations but noise is defined "
+              "with length "<<noise.vec[0].size);
       return(-5);
+    }
+    else if(!m)
+    {
+      Warning(BSR()+"Segment has no linear equation");
     }
     return(0);
   };
@@ -590,6 +600,7 @@ public:
     int m = numEqu_;
     int r = ine_vec.size();
     if(!n && !X_.Rows()) { X_.BlasRDense(m,0); }
+    if(!m) { m = X.Rows(); }
   //Std(BSR()+" Building model definition of primary module\n");
     int result = checkDimensions(m);
     if(result) { return(result); }
