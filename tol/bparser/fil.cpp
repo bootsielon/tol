@@ -26,6 +26,7 @@
 #include <tol/tol_bfilter.h>
 #include <tol/tol_barray.h>
 #include <tol/tol_bout.h>
+#include <tol/tol_bparser.h>
 
 #include <ctype.h>
 #include <assert.h>
@@ -775,3 +776,12 @@ BText ToName(BText txt)
   }
   return(name);
 }
+
+//--------------------------------------------------------------------
+BText UnscapeTOLString(const BText& expression)
+//--------------------------------------------------------------------
+{
+  BText unscaped = expression;
+  BParser::DefaultParser()->Filter()->CleanQuotes(unscaped);
+  return(unscaped);
+} 

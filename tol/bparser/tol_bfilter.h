@@ -109,8 +109,10 @@ public:
   void CleanQuotes(BText& expression) const;
   void Replace(BText& txt) const;
   void UnReplace(BText& txt) const;
+
 };
 
+TOL_API BText UnscapeTOLString(const BText& expression);
 
 //--------------------------------------------------------------------
 // external functions
