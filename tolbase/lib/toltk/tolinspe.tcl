@@ -646,7 +646,7 @@ proc ::TolInspector::TrimContent { grammar content } {
 # PURPOSE: este proc es para ancapsular desc en una lista
 #
 #/////////////////////////////////////////////////////////////////////////////
-  eval InsertChild [lrange $args 0 3] [list [list [lindex $args 4]]] [lrange $args 5 end]
+    eval InsertChild [lrange $args 0 3] [list [list [lindex $args 4]]] [lrange $args 5 end]
 }
 
 #/////////////////////////////////////////////////////////////////////////////
@@ -702,7 +702,7 @@ proc ::TolInspector::TrimContent { grammar content } {
     }
     NameBlock -
     Set {
-      puts "HTItem, ref = '$ref' '$args'"
+      #puts "HTItem, ref = '$ref' '$args'"
       # args[5] is the index of the set object
       # args[6] is the flag file
       # args[8] is the subtype
@@ -807,9 +807,9 @@ proc ::TolInspector::Insert_HTItem {ht tree grammar name content path desc args}
       #(pgea) se reemplaza el valor de la referencia en data
       set data [lreplace $data 9 9 $objRef]  
       #(pgea) se utiliza la informacon de instancia
-      puts "Tol_ClassOfFromReference $objRef"
+      #puts "Tol_ClassOfFromReference $objRef"
       set classOf [Tol_ClassOfFromReference $objRef]
-      puts "Tol_InstanceContentFromReference $objRef"
+      #puts "Tol_InstanceContentFromReference $objRef"
       set insCont [Tol_InstanceContentFromReference $objRef]
       if {$insCont ne ""} {
         set data [lreplace $data 3 3 [TrimContent $grammar $insCont]]
@@ -1370,6 +1370,7 @@ proc ::TolInspector::SelectObject { } {
 #          selected.
 #
 #/////////////////////////////////////////////////////////////////////////////
+
   #Tolcon_Trace "LLAMADA A SELECTOBJECT"
   variable w_tabset
   variable ht_tree
@@ -2035,6 +2036,9 @@ proc Tol_StructOf { obj_addr } {
 }
 
 proc Tol_StructOfFromReference { objReference } {
+  # WATCH!!!!
+  # when Tol_StructOfFromReference is invoken on {File xxx} xxx is
+  # decompiled!!!!
   if { [ llength $objReference ] == 2 && 
        [ lindex $objReference 0 ] eq "File" } {
     return ""
