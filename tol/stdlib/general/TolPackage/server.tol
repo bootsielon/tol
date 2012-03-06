@@ -122,10 +122,21 @@ Text BuildPackage(
   NameBlock pkg = pkgCnt[1];
   Text name.version = name+"."<<
     pkg::_.autodoc.version.high+"."<<pkg::_.autodoc.version.low;
+  Real okTolVersion = And(
+    Compare.VersionString(pkg::_.autodoc.minTolVersion,TolPackage::_.currentTolVersion)<=0,
+    Compare.VersionString(pkg::_.autodoc.maxTolVersion,TolPackage::_.currentTolVersion)>=0);
+  Real If(!okTolVersion, 
+  {
+    Error("[TolPackage::Server::BuildPackage] cannot create package "<<name.version+
+    "with current TOL version "<<Version+". It requires a version in interval "+
+    "["<<pkg::_.autodoc.minTolVersion+","<<pkg::_.autodoc.maxTolVersion+"]");
+    Real Stop
+  });
   Text ppRoot_ = destination+name.version;
   Text ppRoot = ppRoot_+"/";
   Real TolPackage::PackageInfo.Build(pkgCnt[1],ppRoot,release.gmt);
   Set nonTolResources = pkg::_.autodoc.nonTolResources;
+
 
   Real OSDirMake(ppRoot);
   Real Ois.Store(pkgCnt,ppRoot+name.version+".oza");
