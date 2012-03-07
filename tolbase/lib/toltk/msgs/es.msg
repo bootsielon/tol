@@ -700,14 +700,14 @@ mcset es "Delete"               "Borrar"
 mcset es "You must fill X Values"    "Debe rellenar Valores en X"
 mcset es "You must fill Y Values"    "Debe rellenar Valores en Y"
 mcset es "You must specify a name"   "Debe especificar un nombre"
-mcset es "Item not selectionable"    "Elemento no seleccionable"
+mcset es "Item not selectable"    "Elemento no seleccionable"
 mcset es "UniqueXAxis"     "Si elige una columna de texto, fechas o genérica \
  para los valores en X de una serie, debe elegir esa columna como valores en \
  X de todas las series."
 mcset es "You have added another serie with this name" \
  "Ya ha añadido una serie con ese nombre"
 mcset es "You must select a serie"   "Debe seleccionar una serie"
-mcset es "Series do not exist that to draw" "No existen series que dibujar"
+mcset es "There are no data to draw" "No existen datos que dibujar"
 mcset es "No selection information related" \
  "No hay información asociada a la selección"
 
