@@ -59,6 +59,7 @@ proc ::SetGraph::Create {path info set tableset {fileGCF {}} {title {}}} {
   set gInfo(names)   ""
   set gInfo(xTicks)  ""
 
+  #puts "***** info : ***** \n$info"
   array set gInfo $info
 
   if {!$holdon} {
@@ -83,29 +84,33 @@ proc ::SetGraph::Create {path info set tableset {fileGCF {}} {title {}}} {
     set ii  0
   }
   set i 0
-  foreach vec $gInfo(vectors) {
+  # TICKET 1450
+  foreach segments $gInfo(vectors) {
+    #puts "**** $i -- [llength $segments] -- $segments"
     set j  0
-    set segs  {}
+    set segIds  {}
 
-    set xdata [lindex $vec 0]
-    set ydata [lindex $vec 1]
-
-    $grpath line create l$ii-$j -xdata $xdata -ydata $ydata
-    lappend segs l$ii-$j
-    if { $j } {
-      $grpath line configure l$i-$j -label ""
-    } else {
-      set _label_ [lindex $gInfo(names) $i]
-      foreach _it_ [$grpath element names] {
-        if {$_label_ eq [$grpath element cget $_it_ -label]} {
-          append _label_ "x"
+    foreach seg $segments {
+      set xdata [lindex $seg 0]
+      set ydata [lindex $seg 1]
+      $grpath line create l$ii-$j -xdata $xdata -ydata $ydata
+      lappend segIds l$ii-$j
+      if { $j } {
+        $grpath line configure l$i-$j -label ""
+      } else {
+        set _label_ [lindex $gInfo(names) $i]
+        foreach _it_ [$grpath element names] {
+          if {$_label_ eq [$grpath element cget $_it_ -label]} {
+            append _label_ "x"
+          }
         }
+        $grpath line configure l$ii-0 -label $_label_
       }
-      $grpath line configure l$ii-0 -label $_label_
+      incr j
     }
     incr i
     incr ii
-    lappend data(gr,$gr,elements) $segs
+    lappend data(gr,$gr,elements) $segIds
   }
   ::bayesGraph::BindLegend $Instance
 
@@ -293,9 +298,9 @@ proc ::SetGraph::ToTable {this} {
      raise $tl
   } else  {
 	set tl [::project::CreateForm \
-              -title    "[mc "Set table"]: $nameSet" \
-              -iniconfig Tables \
-              -type     Tables ]
+                    -title    "[mc {Set table}]: $nameSet" \
+                    -iniconfig Tables \
+                    -type     Tables ]
 
     $tl withdraw
 	set tlf [$tl getframe]
@@ -441,6 +446,8 @@ proc ::SetGraphDialog::DrawSet {path tableset set type {pairs {}} {names {}} {fi
 #/////////////////////////////////////////////////////////////////////////////
   variable data
 
+  #puts "**** ::SetGraphDialog::DrawSet $tableset type=$type"
+
   ::SetGraphDialog::InitData $tableset
 
   switch [CheckGraphicable] {
@@ -451,7 +458,8 @@ proc ::SetGraphDialog::DrawSet {path tableset set type {pairs {}} {names {}} {fi
     }
     1 {
       # fill listX and listY
-      ::SetGraphDialog::SetDataVarList
+      # TICKET 1450
+      #::SetGraphDialog::SetDataVarList
       switch $type {
         0 {
           # custom
@@ -491,7 +499,7 @@ proc ::SetGraphDialog::DrawSet {path tableset set type {pairs {}} {names {}} {fi
         bind $path <Destroy> +[list ::SetGraphDialog::OnDestroyGraph $data(nameVectors)]
         return $instance
       } else {
-        set msg [mc "Series do not exist that to draw"] 
+        set msg [mc "There are no data to draw"] 
         ::TolConsole::HciWriter "<W>$msg</W>"
       }
     }
@@ -562,12 +570,18 @@ proc ::SetGraphDialog::OnDestroyGraph {list} {
 
   variable data
 
+  set data(var,listX) \
+    [list [list -1 "<Generic 1-[$tableset info datarows]>"]]
+
+  set data(var,listY) {}
+
   set idx 0
   for {set i 1} {$i <= 4} {incr i} {
     set data(idxColsType$i) ""
     set data(nameColsType$i) ""
   }
   foreach it [$tableset info columns] {
+    #puts "**** it = $it"
     foreach {key value} $it {
       set data(infCols,$idx,$key) $value
     }
@@ -580,6 +594,7 @@ proc ::SetGraphDialog::OnDestroyGraph {list} {
         }
 
         lappend data(idxColsType2) $idx
+        lappend data(var,listX) [ list $idx $data(infCols,$idx,name) ]
       }
       Real {
         # first column
@@ -589,10 +604,14 @@ proc ::SetGraphDialog::OnDestroyGraph {list} {
         if {$data(infCols,$idx,infinity)} {
           lappend data(idxColsType4) $idx
 #         lappend data(idxColsType1) $idx
+          lappend data(var,listY) [ list $idx $data(infCols,$idx,name) ]
         } elseif {$data(infCols,$idx,unknown)} {
           lappend data(idxColsType3) $idx
+          lappend data(var,listY) [ list $idx $data(infCols,$idx,name) ]
         } else {
           lappend data(idxColsType1) $idx 
+          lappend data(var,listX) [ list $idx $data(infCols,$idx,name) ]
+          lappend data(var,listY) [ list $idx $data(infCols,$idx,name) ]
         }
       }
     }
@@ -633,6 +652,7 @@ proc ::SetGraphDialog::OnDestroyGraph {list} {
   variable data
   variable tmpOpt
 
+  #puts "******* ::SetGraphDialog::DrawDialog"
   set dialog [Dialog .t -title [mc "Columns Selector"] -separator yes\
                 -modal local -parent .]
   set tmpOpt(dialog) $dialog
@@ -643,7 +663,8 @@ proc ::SetGraphDialog::OnDestroyGraph {list} {
   set f1 [frame $w.f1]
   
   # fill listX and listY
-  ::SetGraphDialog::SetDataVarList
+  # TICKET 1450
+  #::SetGraphDialog::SetDataVarList
 
   set values ""
   set lst    ""
@@ -836,7 +857,7 @@ proc ::SetGraphDialog::OnDestroyGraph {list} {
       set parent .
     }
     set parent  
-    set msg "[mc {Item not selectionable}].\n[mc UniqueXAxis]"
+    set msg "[mc {Item not selectable}].\n[mc UniqueXAxis]"
     tk_messageBox -type ok -icon warning -message $msg\
                   -parent $parent        -title [mc Warning] 
   } else {
@@ -889,6 +910,8 @@ Tolcon_Trace "X. No se puede graficar [lindex $data(var,listX) $indexX]: $firLin
   # travel all columuns
   #puts "DEBUG: ::SetGraphDialog::GrapthEvenUneven"
   set row 0
+
+  # TICKET 1450: que cosa mas rara se hace aqui!!!!!!!
   for {set i 0} {$i<[expr [llength $data(var,listY)] - 1]} {incr i 2} {
     set colX [lindex [lindex $data(var,listY) $i] 0]
     set colY [lindex $data(var,listY) [expr $i + 1]]
@@ -1157,6 +1180,7 @@ Tolcon_Trace "X. No se puede graficar: $colX"
   Cancel $dialog
 }
 
+# TICKET #1450: aqui es donde se ponen los datos que luego se pintan.
 #/////////////////////////////////////////////////////////////////////////////
   proc ::SetGraphDialog::SetSelection {} {
 #
@@ -1200,21 +1224,39 @@ Tolcon_Trace "X. No se puede graficar: $colX"
     if {[llength $vecsY] > 1} {
       set i 0
       set subVectors ""
+      set subcurves {}
       set lstX {}
+      set segX {}
       set lstY {}
+      set segY {}
       foreach item $vecsY {
         #si no es un omitido (vacio o ?)
         if {[string equal $item ""] || [string equal $item "?"]} {
-          incr i
+          # TICKET 1450
+          # close this segment
+          if { [ llength $segX ] } {
+            lappend subcurves [ list $segX $segY ]
+            set segX {}
+            set segY {}
+          }
         } else  {
-          set datX [lindex $vecX $i] 
-          lappend lstX $datX 
-          lappend lstY $item
-          incr i
+          # TICKET 1450
+          #set datX [lindex $vecX $i] 
+          #lappend lstX $datX 
+          #lappend lstY $item
+          lappend segX [lindex $vecX $i]
+          lappend segY $item
         }
+        incr i
       }
-      lappend data(vectors) [list $lstX $lstY]
+      # TICKET 1450
+      #lappend data(vectors) [list $lstX $lstY]
+      if { [ llength $segX ] } {
+        lappend subcurves [ list $segX $segY ]
+      }
+      lappend data(vectors) $subcurves
     } else {
+      #puts "****** lappend data(vectors) [list [list $vecX $vecsY]]"
       lappend data(vectors) [list [list $vecX $vecsY]]
     }
     lappend data(names) $name
