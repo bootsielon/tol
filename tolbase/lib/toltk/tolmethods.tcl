@@ -217,14 +217,12 @@ proc Tol_SerieAutocor { source {title ""} {geometry {}} } {
 #/////////////////////////////////////////////////////////////////////////////
 
   # name
-  if {[llength $source] > 1} {
-    set nameSerie [lindex [::tol::info variable $source] 1]
-  } else {
-    set nameSerie $source
-  }  
+  set objRef [ list "Serie" $source ]
+  set nameSerie [lindex [::tol::info variable $objRef] 1]
+  
   #title
   if { ![llength $title] } {
-    set title "[mc "Autocorrelation graph"]: $nameSerie"
+    set title "[mc {Autocorrelation graph}]: $nameSerie"
   }
   # create
   set tl [::project::CreateForm \
@@ -236,7 +234,7 @@ proc Tol_SerieAutocor { source {title ""} {geometry {}} } {
   $tl setgeometry $geometry  
   set tlf [$tl getframe]
   # configuration
-  ::AutocorGraph::Create $tlf.g $source
+  ::AutocorGraph::Create $tlf.g $objRef
   $tl bind <Control-F4> "$tl kill; break"
   pack $tlf.g -fill both -expand yes
   update
