@@ -2114,29 +2114,7 @@ static BUserFunction *tclTextMatch = NULL;
   BText& pattern = Text(Arg(2));
   BInt mode = 0;
   if(Arg(3)) { mode = (BInt)Real(Arg(3)); }
-  if(TolTclIsEnabled())
-  {
-    if ( tclTextMatch || ( tclTextMatch = (BUserFunction*)GraReal()->FindOperator( "TextMatch_Tcl" ) ) ) {
-      BList *args = Cons( Arg(1), NCons( Arg(2) ) );
-
-      if ( Arg(3) ) {
-        LstAppend( args, Arg(3) );
-      } else {
-        BUserDat *uMode = BContensDat::New( "", BDat(mode), "" );
-        uMode->PutName( "case" );
-        LstAppend( args, uMode ); 
-      }
-      BSyntaxObject *evalResult = tclTextMatch->Evaluator( args );
-      if ( evalResult ) {
-        contens_ = Dat( evalResult );
-      }
-      // DUDA: debo destruir args?
-      DESTROY( evalResult );
-      return;
-    }
-  }
-  Warning("Using internal version of TextMatch could cause invalid results. "
-          "Please use a TCL version of TOL like tolsh or tolbase.");
+  
   contens_ = (BReal)(string.Match(pattern, mode));
 }
 

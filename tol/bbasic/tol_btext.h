@@ -385,7 +385,7 @@ class TOL_API BText
   BText ExternCompact ();
 
   //! Checks if a given pattern matchs with the actual text
-  BBool Match (const BText pattern, BBool caseSensitive=BFALSE) const;
+  BBool Match (const BText &pattern, BBool caseSensitive=BFALSE) const;
 
   //! Returns the wrapped text \a txt compacted
   BText Wrap (

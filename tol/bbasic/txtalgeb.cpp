@@ -716,7 +716,7 @@ BInt BText::Find(const BText& txt, BInt from) const
   if(HasName() && txt.HasName() && (Length()>=from+txt.Length()))
   {
     const BChar* beginText;
-    if(beginText = strstr(String() + from, txt.String()))
+    if( (beginText = strstr(String() + from, txt.String())) )
     {
       indexText = (beginText - String());
       if(indexText < 0) { indexText = -1; }
@@ -848,7 +848,7 @@ BInt BText::Replace(BChar oldChar, BChar newChar)
   BInt number = 0;
   number = 0;
   BChar* pos=Buffer();
-  while(pos=strchr(pos, oldChar)) 
+  while( (pos=strchr(pos, oldChar)) ) 
   { 
     *pos = newChar; 
     number++; 
@@ -906,7 +906,7 @@ BInt BText::Replace(const BText& oldText, const BText& newText)
       { 
         txt.ReallocateBuffer(2*txt.Size()); 
       }
-      if(pos=strstr(Buffer()+oldPos, oldText.String()))
+      if( (pos=strstr(Buffer()+oldPos, oldText.String())) )
       {
         number++;
         advance = pos-Buffer();
@@ -1061,8 +1061,10 @@ BText ToUpper(const BText& txt)
 }
 
 
+#include "StringMatch.cpp"
+
 //--------------------------------------------------------------------
-BBool BText::Match(const BText pattern, BBool caseSensitive) const
+BBool BText::Match(const BText &pattern, BBool caseSensitive) const
 
 /*! Returns true if the pattern \a pattern makes match with the
  *  BText. Works or not in a case sensitive way. The wild character
@@ -1080,6 +1082,8 @@ BBool BText::Match(const BText pattern, BBool caseSensitive) const
 //--------------------------------------------------------------------
 {
   assert(IsAllOk());
+  return Tol_StringCaseMatch( String(), pattern.String(), !caseSensitive );
+#if 0
   BBool Ok=BFALSE;
   if(!HasName() || !pattern.HasName()) { Ok=BFALSE; }
   else
@@ -1119,6 +1123,7 @@ BBool BText::Match(const BText pattern, BBool caseSensitive) const
     }
   }
   return(Ok);
+#endif
 }
 
 
@@ -1138,7 +1143,7 @@ BText TimeToText(BInt tm, BInt maxSize, const BChar* fmt)
   assert(maxSize<BMEDIUM_SIZE_STRING);
   BText txt;
   BInt len;
-  if(len=strftime(buf, maxSize, fmt, localtime(&t)))
+  if( (len=strftime(buf, maxSize, fmt, localtime(&t))) )
   {
     txt.Copy(buf,len-1);
   }
@@ -1224,7 +1229,7 @@ BInt ReadAllTokens(const BText& line, BArray<BText>& txt, BChar sep)
   const BChar* pos    = oldPos;
   for(n=0; (n<maxItems) && pos && oldPos[0]; n++)
   {
-    if(pos = strchr(oldPos, sep))
+    if( (pos = strchr(oldPos, sep)) )
     {
       txt[n].Copy(oldPos, 0, pos-oldPos-1);
       oldPos=pos+1;
