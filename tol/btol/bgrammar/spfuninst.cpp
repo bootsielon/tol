@@ -2163,15 +2163,22 @@ static BSyntaxObject* EvGlobalFind(BGrammar* gra, const List* tre, BBool left)
   BToken* arg = BParser::treToken(branch);
   const BText& globalName = arg->Name();
   BText errMsg;
-  if(gra==GraAnything())
+  if(gra!=GraAnything())
   {
-    result = gra->FindOperand(globalName, false);
-    if(!result) { result = gra->FindOperator(globalName); }
+    result = gra->FindVariable(globalName);   
   }
-  else if(BSpecialFunction::TestNumArg(_name_, 1, nb, 1))
+  else 
   {
-    BObjClassify oc(gra,BOBJECTMODE);
-    result = BGrammar::SymbolTable().Search(oc, globalName);
+    result = BGrammar::Last()->FindVariable(globalName);
+    int gid;
+    for(gid=BGI_Anything+1; !result && gid<BGI_LastId; gid++)
+    {
+      BGrammar* g = BGrammar::Gra((BGrammarId)gid);
+      if(g!=BGrammar::Last())
+      {
+        result = g->FindVariable(globalName);   
+      }
+    }
   }
   if(errMsg.HasName())
   {
