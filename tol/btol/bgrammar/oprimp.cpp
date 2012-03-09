@@ -1195,8 +1195,8 @@ BSyntaxObject* BStructCreator::Evaluate(const List* argList)
   BStruct*     structure  = NIL;
   const BText& name       = BParser::treToken(argList)->Name();
   BGrammar*    setGrammar = GraSet();
-  BStruct*     str        = FindStruct(name);
-  if(str && str->NameBlock())
+  BStruct*     str        = FindStruct(name); 
+  if(str && str->NameBlock()  && !BNameBlock::Building())
   {
     Warning(I2("Global structure ","La estructura global")+
             " Struct "+name+" "+
@@ -1205,9 +1205,17 @@ BSyntaxObject* BStructCreator::Evaluate(const List* argList)
             " "+str->FullName());
     str = NULL;
   }
+  if(str && BNameBlock::Building())
+  {
+    str = NULL;
+  }
+  if(str && (str->Level()<BGrammar::Level()))
+  {
+    str = NULL;
+  }
   if(str)
   {
-    if(!argList->cdr()) { return(str); }
+  //if(!argList->cdr()) { return(str); }
     BText path = str->SourcePath();
 #ifndef UNIX
     path += BText("\n")+SysPath(path);
