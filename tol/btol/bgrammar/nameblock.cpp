@@ -806,6 +806,8 @@ const BText& BNameBlock::LocalName() const
   bool BNameBlock::CheckMembers()
 //--------------------------------------------------------------------
 {
+  return(true);
+/*
   if((nonPrivateMembers_==0)&&!class_)
   {
     Warning(BText("NameBlock ")+Name()+" "+
@@ -817,6 +819,7 @@ const BText& BNameBlock::LocalName() const
   {
     return(true);
   }
+*/
 }
 
 //--------------------------------------------------------------------
