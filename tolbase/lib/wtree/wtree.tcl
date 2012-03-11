@@ -386,6 +386,14 @@ snit::widget wtree {
     #return $win
   }
   
+  method AcceptEdit { } {
+    ::TreeCtrl::EditClose $tree entry 1 0
+  }
+
+  method CancelEdit { } {
+    ::TreeCtrl::EditClose $tree entry 0 0
+  }
+
   method getItemText { item } {
     set itemText ""
     # buscar las columnas que tiene elemento eTXT
@@ -1033,9 +1041,19 @@ Serie AlgGetData(
                 -columns [ list \
                                { {image text} -tags ID   -label Identifier } \
                                { text -tags DESC -label Description -editable yes} ] ]
-    grid $T -row 1 -column 0 -sticky "snew"
+    grid $T -row 0 -column 0 -sticky "snew"
+    button $w.btn1 -text "OK" \
+        -command [ string map [ list "%T" $T ] {
+          %T AcceptEdit
+        } ]
+    button $w.btn2 -text "Cancel" \
+        -command [ string map [ list "%T" $T ] {
+          %T CancelEdit
+        } ]
+    grid $w.btn1 -row 1 -column 0 
+    grid $w.btn2 -row 1 -column 1 
     grid rowconfigure $w 1 -weight 1
-    grid columnconfigure $w 0 -weight 1
+    grid columnconfigure $w 0 -weight 1 
     
     for { set r 0 } { $r < 100 } { incr r } {
       $T insert [list  [list folder-open "node $r"] [ list "Description for node $r" ] ]
