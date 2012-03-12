@@ -12,7 +12,7 @@ Text _.autodoc.description = "Utilidades para el manejo de paquetes TOL: "
 Set _.autodoc.keys = [["TOL","Package","Repository","Modularity"]];
 Set _.autodoc.authors = [["vdebuen@tol-project.org"]];
 
-Text _.version = "1.2";
+Text _.version = "1.1";
 
 Text _.localRoot = 
   Replace(TolAppDataPath+"TolPackage/"+TolPackage::_.version+"/","\\","/");
