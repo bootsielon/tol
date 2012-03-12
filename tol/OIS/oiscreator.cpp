@@ -1044,7 +1044,9 @@ if(!BDir::CheckIsDir(dir))                                \
       BGrammar::PutLevel(0);
       bool oldEnabled = BOut::Disable();
       BDat numErr0 = TOLErrorTryNumber();
+      BGrammar::IncLevel();
       BUserTimeSet* aux = (BUserTimeSet*)GraTimeSet()->EvaluateTree(tree); 
+      BGrammar::DecLevel();
       BDat numErr1 = TOLErrorTryNumber(); 
       if(oldEnabled) { BOut::Enable(); }
       DESTROY(aux);
@@ -1052,7 +1054,6 @@ if(!BDir::CheckIsDir(dir))                                \
       {
         BText expr = Compact(BParser::Unparse(tree,"  ","\n"));
         if(v->HasName()) { expr = v->Name()+" = "+expr; }
-
         Warning(I2(BText("Unbounded TimeSet \n")+expr+";\n depends on symbol not visible "
           "globally. Only cached data in ["+beginCache+","+endCache+"] will be available "
           "when loaded back.",
