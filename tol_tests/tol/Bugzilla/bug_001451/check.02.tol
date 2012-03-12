@@ -1,0 +1,5 @@
+Set Include("check.01.tol");
+Serie ser.1 = SubSer(CalVar(C,CtSem445_glo), y2001, y2012);
+Serie ser.2 = SubSer(CalVar(C,CtSem445_loc), y2001, y2012);
+Real Ois.Store([[ser.1,ser.2]],"ser.oza");
+
