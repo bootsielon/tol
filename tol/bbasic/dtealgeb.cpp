@@ -463,6 +463,17 @@ BInt BDate::DaysPassInYear() const
 
 
 //--------------------------------------------------------------------
+BReal BDate::Index() const
+//--------------------------------------------------------------------
+{ 
+  int d = DayIndex();
+  if(d== -300000) { return(d); }
+  else if(d<=-115782) { return(-115782); }
+  else if(d>= 219147) { return( 219147); }
+  return(d+Fraction()); 
+}
+
+//--------------------------------------------------------------------
 BInt BDate::DayIndex() const
 
 /*! Returns the index of a date as the amount of days pass from the
@@ -472,9 +483,21 @@ BInt BDate::DayIndex() const
 {
   BInt days;
   BInt rest, i;
-  if(*this==begin_) { return(-115782); }
-  if(*this==end_) { return(219147); }
-  if(!HasValue()) { return(2147483647); }
+//if(!HasValue()) { return(year_*366); }
+  if(!day_) { 
+//  Std(BText("\nTRACE DayIndex for unknown date\n"));
+    return(-300000); 
+  }
+  if(*this<=begin_) 
+  { 
+  //Std(BText("\nTRACE DayIndex for begin date\n"));
+    return(-115782); 
+  }
+  if(*this>=end_  ) 
+  { 
+//  Std(BText("\nTRACE DayIndex for end date\n"));
+    return( 219147); 
+  }
 
   days = (year_ / 400) * DAYSCICLE400;
   rest = year_ % 400;
@@ -512,6 +535,10 @@ void BDate::PutDayIndex(BInt index)
  */
 //--------------------------------------------------------------------
 {
+	double idx = index;
+  if(index == -300000) { *this = unknown_; return; }
+  if(index <= -115782) { *this = begin_; return; }
+  if(index >=  219147) { *this = end_; return; }
   BInt c, y, y4, d=index+DayNumberZero;
   BMonth m = JANUARY;
   BInt daysInMonth;
@@ -586,14 +613,12 @@ void BDate::PutIndex(BReal index)
  */
 //--------------------------------------------------------------------
 {
-	/*
-    index = Floor(index*dsByDay_).Value()/dsByDay_;
-    BInt i = (BInt)index;
-    PutDayIndex(i);
-    PutFraction(index - i);
-	*/
-	double idx;
+	double idx = index;
+  if(index == -300000) { *this = unknown_; return; }
+  if(index <= -115782) { *this = begin_; return; }
+  if(index >=  219147) { *this = end_; return; }
 	double frac = modf(floor(index*dsByDay_)/dsByDay_, &idx);
+
 	PutDayIndex(int(idx));
 	PutFraction(frac);
 }
@@ -807,6 +832,8 @@ BDate DteEasterSunday(BInt year)
 */
 //--------------------------------------------------------------------
 {
+  if(year<=BDate::Begin().Year()) { return(BDate::Begin()); }
+  if(year>=BDate::End  ().Year()) { return(BDate::End  ()); }
   if ((year==1954) || (year==2049) || (year==2106))
   { return(BDate(year,APRIL,18));
   }

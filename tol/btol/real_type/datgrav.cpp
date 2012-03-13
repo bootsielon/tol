@@ -359,7 +359,7 @@ void BDatDistanceIn::CalcContens()
 }
 
 #endif /* __USE_TC__ */
-	     
+
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatDateToIndex);
   DefExtOpr(1, BDatDateToIndex, "DateToIndex", 1, 1, "Date",
@@ -374,8 +374,10 @@ void BDatDistanceIn::CalcContens()
 //--------------------------------------------------------------------
 { 
   BDate& dte = Date(Arg(1));
-  int dayIdx = dte.DayIndex(); 
-  if(dayIdx!=2147483647) { contens_ = dte.Index(); }
+  if(dte==BDate::Begin()) { contens_ = -115782; } 
+  else if(dte==BDate::End()) { contens_ = 219147; } 
+  else if(!dte.HasValue()) { contens_ = BDat::Unknown(); } 
+  else { contens_ = dte.Index(); }
 }
 
 

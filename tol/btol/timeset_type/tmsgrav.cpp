@@ -694,15 +694,14 @@ BDate	BTmsIntersection::SafeSuccessor(const BDate& dte_) const
   CACHED_SUCCESSOR(dte);
   int iter, n, N = (int)MaxIter().Value(), M = (int)OutOfRange().Value();
   BDate curLimit = CurrentCalcLastDate();
-  if(!curLimit.HasValue()) { curLimit = BDate::DefaultLast(); }
+  if(curLimit.IsTheEnd() || !curLimit.HasValue()) 
+  { curLimit = BDate::DefaultLast(); }
   double defaultRange =  BDate::DefaultLast() -  BDate::DefaultFirst();
   BDate cutLimit = curLimit+((1+defaultRange)*cutRangeFactor_.Value());
   for(n=iter=0; iter<N; iter++)
   {
     dte = EnsureNotAbortedSuccessor(dte);
-    if(dte.IsUnknown()||dte.IsTheEnd()) { return(dte); }
-    if(dte>=Sup()) { return(BDate::End()); }
-
+    EnsureLimitsSuccessor(dte);
     if(curLimit<dte) 
     { 
       if((n>M) || (cutLimit<dte))
@@ -746,14 +745,15 @@ BDate BTmsIntersection::SafePredecessor(const BDate& dte_) const
   CACHED_PREDECESSOR(dte);
   int iter, n, N = (int)MaxIter().Value(), M = (int)OutOfRange().Value();
   BDate curLimit = CurrentCalcFirstDate();
-  if(curLimit==BDate::Begin()) { curLimit = BDate::DefaultFirst(); }
+  if(curLimit.IsTheBegin() || !curLimit.HasValue()) 
+  { curLimit = BDate::DefaultFirst(); }
   double defaultRange =  BDate::DefaultLast() -  BDate::DefaultFirst();
   BDate cutLimit = curLimit-((1+defaultRange)*cutRangeFactor_.Value());
+  BDate old = dte;
   for(n=iter=0; iter<N; iter++)
   {
     dte = EnsureNotAbortedPredecessor(dte);
-    if(dte.IsUnknown()||dte.IsTheBegin()) { return(dte); }
-    if(dte<=Inf()) { return(BDate::Begin()); }
+    EnsureLimitsPredecessor(dte);
     if(curLimit>dte) 
     { 
       if((n>M) || (cutLimit>dte))
@@ -777,6 +777,11 @@ BDate BTmsIntersection::SafePredecessor(const BDate& dte_) const
     else if( bc && !ac)    { AbortSaveInfo(dte_, aPred, -1); return(aPred); }
     else if( ac &&  bc)    { BDate d = Maximum(aPred,bPred); AbortSaveInfo(dte_, d, -1); return(d); } 
     else                   { dte =  Minimum(aPred,bPred);  }
+    if(dte==old)
+    {
+      return(BDate::Begin());
+    }
+    old = dte;
   }
   AbortMessageMaxIter("BTmsIntersection::Predecessor",dte_,dte,-1);
   return(BDate::Begin());
@@ -846,7 +851,8 @@ BDate	 BTmsDifference::SafeSuccessor(const BDate& dte_) const
   BDate suc;
   int iter, n, N = (int)MaxIter().Value(), M = (int)OutOfRange().Value();
   BDate curLimit = CurrentCalcLastDate();
-  if(!curLimit.HasValue()) { curLimit = BDate::DefaultLast(); }
+  if(curLimit.IsTheEnd() || !curLimit.HasValue()) 
+  { curLimit = BDate::DefaultLast(); }
   double defaultRange =  BDate::DefaultLast() -  BDate::DefaultFirst();
   BDate cutLimit = curLimit+((1+defaultRange)*cutRangeFactor_.Value());
   if(a_!=b_)
@@ -854,8 +860,7 @@ BDate	 BTmsDifference::SafeSuccessor(const BDate& dte_) const
     for(n=iter=0; iter<N; iter++)
     {
       dte = EnsureNotAbortedSuccessor(dte);
-      if(dte.IsUnknown()||dte.IsTheEnd()) { return(dte); }
-      if(dte>=Sup()) { return(BDate::End()); }
+      EnsureLimitsSuccessor(dte);
       if(curLimit<dte) 
       { 
         if((n>M) || (cutLimit<dte))
@@ -900,7 +905,8 @@ BDate BTmsDifference::SafePredecessor(const BDate& dte_) const
   BDate pre;
   int iter, n, N = (int)MaxIter().Value(), M = (int)OutOfRange().Value();
   BDate curLimit = CurrentCalcFirstDate();
-  if(curLimit==BDate::Begin()) { curLimit = BDate::DefaultFirst(); }
+  if(curLimit.IsTheBegin() || !curLimit.HasValue()) 
+  { curLimit = BDate::DefaultFirst(); }
   double defaultRange =  BDate::DefaultLast() -  BDate::DefaultFirst();
   BDate cutLimit = curLimit-((1+defaultRange)*cutRangeFactor_.Value());
   if(a_!=b_)
@@ -908,8 +914,7 @@ BDate BTmsDifference::SafePredecessor(const BDate& dte_) const
     for(n=iter=0; iter<N; iter++)
     {
       dte = EnsureNotAbortedPredecessor(dte);
-      if(dte.IsUnknown()||dte.IsTheBegin()) { return(dte); }
-      if(dte<=Inf()) { return(BDate::Begin()); }
+      EnsureLimitsPredecessor(dte);
       if(curLimit>dte) 
       { 
         if((n>M) || (cutLimit>dte))
@@ -965,7 +970,7 @@ BBool BTmsAllUnion::Includes(const BDate& dte) const
 //--------------------------------------------------------------------
 {
   BDate d, inf;
-  for(BInt n=1; (inf!=BDate::Begin()) && (n<=NumArgs()); n++)
+  for(BInt n=1; (!inf.IsTheBegin()) && (n<=NumArgs()); n++)
   {
     d = Tms(Arg(n))->Inf();
     if((n==1) || (d<inf)) { inf = d; }
@@ -978,7 +983,7 @@ BBool BTmsAllUnion::Includes(const BDate& dte) const
 //--------------------------------------------------------------------
 {
   BDate d, sup;
-  for(BInt n=1; (sup!=BDate::End()) && (n<=NumArgs()); n++)
+  for(BInt n=1; (!sup.IsTheEnd()) && (n<=NumArgs()); n++)
   {
     d = Tms(Arg(n))->Sup();
     if((n==1) || (d>sup)) { sup = d; }
@@ -1189,14 +1194,14 @@ BDate BTmsAllIntersection::SafeSuccessor(const BDate& dte_) const
   int iter, i, j, n, N = (int)MaxIter().Value(), M = (int)OutOfRange().Value();
   BArray<BDate> D(NumArgs());
   BDate curLimit = CurrentCalcLastDate();
-  if(!curLimit.HasValue()) { curLimit = BDate::DefaultLast(); }
+  if(curLimit.IsTheEnd() || !curLimit.HasValue()) 
+  { curLimit = BDate::DefaultLast(); }
   double defaultRange =  BDate::DefaultLast() -  BDate::DefaultFirst();
   BDate cutLimit = curLimit+((1+defaultRange)*cutRangeFactor_.Value());
   for(n=iter=0; iter<N; iter++)
   {
     dte = EnsureNotAbortedSuccessor(dte);
-    if(dte.IsUnknown()||dte.IsTheEnd()) { return(dte); }
-    if(dte>=Sup()) { return(BDate::End()); }
+    EnsureLimitsSuccessor(dte);
     if(curLimit<dte) 
     { 
       if((n>M)||(cutLimit<dte))
@@ -1254,14 +1259,14 @@ BDate BTmsAllIntersection::SafePredecessor(const BDate& dte_) const
   int iter, i, j, n, N = (int)MaxIter().Value(), M = (int)OutOfRange().Value();
   BArray<BDate> D(NumArgs());
   BDate curLimit = CurrentCalcFirstDate();
-  if(curLimit==BDate::Begin()) { curLimit = BDate::DefaultFirst(); }
+  if(curLimit.IsTheBegin() || !curLimit.HasValue()) 
+  { curLimit = BDate::DefaultFirst(); }
   double defaultRange =  BDate::DefaultLast() -  BDate::DefaultFirst();
   BDate cutLimit = curLimit+((1+defaultRange)*cutRangeFactor_.Value());
   for(n=iter=0; iter<N; iter++)
   {
     dte = EnsureNotAbortedPredecessor(dte);
-    if(dte.IsUnknown()||dte.IsTheBegin()) { return(dte); }
-    if(dte<=Inf()) { return(BDate::Begin()); }
+    EnsureLimitsPredecessor(dte);
     if(curLimit>dte) 
     { 
       if((n>M)||(cutLimit>dte))
@@ -2100,7 +2105,7 @@ BBool BTmsRangeSuc::Includes(const BDate& dte) const
   if(from_>until_) { return(BDate::End()); }
   BDate d, inf, cInf = center_->Inf(), uInf = units_->Inf();
   if(cInf.IsTheBegin()) { return(uInf); }
-  for(int k = from_; (inf!=BDate::Begin()) && (k<=until_); k++)
+  for(int k = from_; (!inf.IsTheBegin()) && (k<=until_); k++)
   {
     if(!k) { d = icu_->Inf(); }
     else   { d = units_->Next(cInf,k); }
@@ -2119,7 +2124,7 @@ BBool BTmsRangeSuc::Includes(const BDate& dte) const
   if(from_>until_) { return(BDate::Begin()); }
   BDate d, sup, cSup = center_->Sup(), uSup = units_->Sup();
   if(cSup.IsTheEnd()) { return(uSup); }
-  for(int k = from_; (sup!=BDate::End()) && (k<=until_); k++)
+  for(int k = from_; (!sup.IsTheEnd()) && (k<=until_); k++)
   {
     if(!k) { d = icu_->Sup(); }
     else   { d = units_->Next(cSup,k); }
@@ -2506,14 +2511,13 @@ BDate BTmsOfSerie::SafeSuccessor(const BDate& dte_) const
   CACHED_SUCCESSOR(dte);
   int iter, n, N = (int)MaxIter().Value(), M = (int)OutOfRange().Value();
   BDate curLimit = CurrentCalcLastDate();
-  if(!curLimit.HasValue()) { curLimit = BDate::DefaultLast(); }
+  if(curLimit.IsTheEnd() || !curLimit.HasValue()) 
+  { curLimit = BDate::DefaultLast(); }
 //Std(Out()+"\nBTmsOfSerie::Successor of "+ser->Identify()+" "+dte);
   for(n=iter=0; iter<N; iter++)
   {
     dte = EnsureNotAbortedSuccessor(dte);
-    if(dte.IsUnknown()||dte.IsTheEnd()) { return(dte); }
-    if(dte>=Sup()) { return(BDate::End()); }
-
+    EnsureLimitsSuccessor(dte);
     if(curLimit<dte) 
     { 
       if(n>M)
@@ -2548,12 +2552,12 @@ BDate BTmsOfSerie::SafePredecessor(const BDate& dte_) const
   CACHED_PREDECESSOR(dte);
   int iter, n, N = (int)MaxIter().Value(), M = (int)OutOfRange().Value();
   BDate curLimit = CurrentCalcFirstDate();
-  if(curLimit==BDate::Begin()) { curLimit = BDate::DefaultFirst(); }
+  if(curLimit.IsTheBegin() || !curLimit.HasValue()) 
+  { curLimit = BDate::DefaultFirst(); }
   for(n=iter=0; iter<N; iter++)
   {
     dte = EnsureNotAbortedPredecessor(dte);
-    if(dte.IsUnknown()||dte.IsTheBegin()) { return(dte); }
-    if(dte<=Inf()) { return(BDate::Begin()); }
+    EnsureLimitsPredecessor(dte);
     if(curLimit>dte) 
     { 
       if(n>M)

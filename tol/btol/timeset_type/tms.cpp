@@ -29,6 +29,7 @@
 #include <tol/tol_bprdist.h>
 #include <tol/tol_bdir.h>
 #include <tol/tol_btmsgra.h>
+#include <tol/tol_btmsgrav.h>
 
 //#define BTimeSetHashStat
 BTraceInit("tms.cpp");
@@ -277,6 +278,9 @@ void BTimeSet::GetHashBetween(BHash& hash, BDate first, BDate last) const
       int S = cache.Size();
       if(!S)
       {
+      //Std(BText("\nTRACE GetHashBetween type=")+typeid(*this).name()+"\n");
+        if(typeid(*this).name()=="class BTmsRangeSuc")
+          printf("");
         NCThis->CalcHashBetween(hash, first, last);
         NCThis->PutCache(hash, bc, ec);
       }

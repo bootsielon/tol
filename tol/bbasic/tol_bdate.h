@@ -352,7 +352,7 @@ public:
   BReal SecondIndex    () const { return(MinuteIndex()*60+Second()); }
   //! Returns the index of the actual date as the amount of days (and fraction
   //! of day) from the predefined day number zero
-  BReal Index	       () const { return(DayIndex()+Fraction()); }
+  BReal Index	       () const;
   //! Returns a hashing real value of this date
   BReal Hash	       () const;
 
