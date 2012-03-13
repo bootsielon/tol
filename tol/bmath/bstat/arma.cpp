@@ -612,7 +612,7 @@ BInt ArrayARIMAFactorCmp(const void* v1, const void* v2)
       Error(I2("ARMA structure is not stationary. ",
                "La estructura ARMA no es estacionaria."));
       return(false);
-    }
+    } /*
     else if(closeToNonStationary)
     { 
       Warning(I2("ARMA structure is not numerically stationary. "
@@ -622,7 +622,7 @@ BInt ArrayARIMAFactorCmp(const void* v1, const void* v2)
                  ""<<err.Format("%.15lg")+"\n"
                  "  ar="+ar.Name()+"\n"
                  "  ma="+ma.Name());
-    }
+    } */
     for(k=0; (k<=p)&&(k<n0); k++) 
     { 
       gn(k) = gp(k,0); 
@@ -1403,7 +1403,15 @@ void BARIMA::OutputDataUpdated()
     aCovDetN_    = aCov_(0)*Exp(aCorLogDet/N);
     BDat aCovDetNSqrt = Sqrt(aCovDetN_);
     likelihoodCoef_ = aCovDetNSqrt*waCoef_;
-    BDat s2 = sigma^2;
+    BDat s2; 
+    if(sigma.IsUnknown())
+    {
+      s2 = ata_/N;
+    }
+    else
+    {
+      s2 = sigma^2;
+    }
     logLikelihood_ = -0.5*(N*Log(2.0*BDat::Pi()*s2)+N*Log(aCovDetN_)+wtCoviw_/s2);
     if(logLikelihood_.IsUnknown()) { logLikelihood_ = BDat::NegInf(); }
 
@@ -1460,6 +1468,7 @@ void BARIMA::OutputDataUpdated()
     ata_ = MtMSqr(a_)(0,0);
     wtCoviw_ = ata_ ;
     aCovDetN_ = 0;
+    if(s2.IsUnknown()) { s2 = ata_/m; }
     logLikelihood_ = -0.5*( m*Log(2*BDat::Pi()*s2)+wtCoviw_/s2);
     return(true);
   }
@@ -1554,6 +1563,7 @@ void BARIMA::OutputDataUpdated()
   double vtv = v.Moment(2)*(q_p);
   wtCoviw_ = ata_ + vtv;
   aCovDetN_ = Exp(log_det_cov_z/m);
+  if(s2.IsUnknown()) { s2 = ata_/m; }
   logLikelihood_ = -0.5*( m*Log(2*BDat::Pi()*s2)+log_det_cov_z+wtCoviw_/s2);
 
   return(true);

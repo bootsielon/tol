@@ -37,6 +37,10 @@
 #include <tol/tol_bsetgra.h>
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bdtegra.h>
+
+#include <tol/tol_blas.h> 
+#include <tol/tol_lapack.h> 
+
 //#include <contrib/fftw/bfft.h>
 
 //#define _USE_GSL_MARQUARDT_
@@ -1335,6 +1339,145 @@ void BPolARMATACov::CalcContens()
   contens_ = ARMAACovGamma(ar,ma,n);
 }
 
+static BDat _getACF(const BMat& rho, int k)
+{
+  int s = rho.Data().Size();
+  if(k== 0)  { return(1.0); }
+  if(k>= s)  { return(0.0); }
+  if(k<=-s)  { return(0.0); }
+  if(k<  0)  { return(rho.Data()[-k-1]); }
+/* if(k>  0)*/ return(rho.Data()[+k-1]); 
+};
+
+//--------------------------------------------------------------------
+static BDat _getACF_BartlettFactor(const BMat& rho, int k, int i)
+//--------------------------------------------------------------------
+{
+  return(_getACF(rho,k+i)+_getACF(rho,k-i)-2*_getACF(rho,i)+_getACF(rho,k));
+};
+
+//--------------------------------------------------------------------
+static BDat _getACF_Bartlett(const BMat& rho, int k, int i, int j)
+//--------------------------------------------------------------------
+{
+  return(_getACF_BartlettFactor(rho,k,i)*_getACF_BartlettFactor(rho,k,j));
+};
+
+//--------------------------------------------------------------------
+static void _covACF_Bartlett(BMat& cov, const BMat& rho, int n, int T, int s_)
+//--------------------------------------------------------------------
+{
+  cov.Alloc(n,n);
+  int i,j,k,s;
+  BArray<BDat> bf(n);
+  for(s=s_; s>10; s--)
+  {
+    if(Abs(rho.Data()(s-1))>1.E-6) { break; }
+  }
+  for(i=0; i<n; i++)
+  {
+    for(j=0; j<=i; j++)
+    {
+      cov(i,j)=0;
+    }
+  }
+  for(k=1; k<=s; k++)
+  {
+    for(i=0; i<n; i++)
+    {
+      bf(i) = _getACF_BartlettFactor(rho,k,i+1);
+    }
+    for(i=0; i<n; i++)
+    {
+      for(j=0; j<=i; j++)
+      {
+        cov(i,j) += bf(i)*bf(j);
+      }
+    }
+  }
+  for(i=0; i<n; i++)
+  {
+    for(j=0; j<=i; j++)
+    {
+      cov(i,j) /= T;
+      if(i>j) { cov(j,i)  = cov(i,j); }
+    }
+  }
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatARMAACFBartlettCov);
+DefExtOpr(1, BMatARMAACFBartlettCov, "ARMA.ACF.Bartlett.Cov", 3, 3, 
+  "Matrix Real Real",
+  "(Matrix rho, Real n, Real T)",
+  I2("Calculates the covariance of asymptotic distribution of sample "
+     "autocorrelation of orders from 1 to n of an ARMA noise of size T, "
+     "given the theorical ACF rho, that should be calculated until it "
+     "decays to zero.",
+     "Calcula la matriz de covarianzas de la distribución aintótica "
+     "de las autocorrelaciones muestrales de órdenes 1 a n de un ruido "
+     "ARMA de tamañlo T, dada la ACF teórica rho, la cual debería ser "
+     "calculada hasta que decaiga a cero."),
+	  BOperClassify::Sthocastic_);
+//--------------------------------------------------------------------
+void BMatARMAACFBartlettCov::CalcContens()
+//--------------------------------------------------------------------
+{
+  BMat& rho = Mat(Arg(1));
+  int n = (int)Real(Arg(2));
+  int T = (int)Real(Arg(3));
+  int s = rho.Data().Size();
+  _covACF_Bartlett(contens_,rho,n,T,s);
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatARMAACFBartlettLLH);
+DefExtOpr(1, BDatARMAACFBartlettLLH, "ARMA.ACF.Bartlett.LLH", 4, 4, 
+  "Polyn Polyn Matrix Real",
+  "(Polyn ar, Polyn ma, Matrix acf, Real T)",
+  I2("Calculates the log-likelihood of asymptotic distribution of sample "
+     "autocorrelation of orders from 1 to n of an ARMA noise of size T.",
+     "Calcula la log-verosimilitud de la distribución aintótica "
+     "de las autocorrelaciones muestrales de órdenes 1 a n de un ruido "
+     "ARMA de tamañlo T"),
+	  BOperClassify::Sthocastic_);
+//--------------------------------------------------------------------
+void BDatARMAACFBartlettLLH::CalcContens()
+//--------------------------------------------------------------------
+{
+  static double _05log2pi = 0.5*log(2*3.14159265358979323846);
+  BPol& ar = Pol(Arg(1));
+  BPol& ma = Pol(Arg(2));
+  BMat& acf = Mat(Arg(3));
+  int T = (int)Real(Arg(4));
+  int n = acf.Data().Size();
+  int s = T*2;
+  int res;
+  BMat rho, rho_, dif, cov, L, eps;
+  BDat alpha = 1.0;
+  BArray<BDat> gn;
+  int i;
+  
+  ARMAAutoCovarianzeVector(gn,ar,ma,s+1,1);
+  rho  = BMatrix<BDat>(s,1,gn.Buffer()+1) / gn[0];
+  rho_ = BMatrix<BDat>(n,1,gn.Buffer()+1) / gn[0];
+  dif = acf-rho_;
+  _covACF_Bartlett(cov,rho,n,T,s);
+
+  res = TolLapack::dpotrf(CblasLower,cov,L);
+  res = TolBlas::dtrsm(CblasLeft,CblasLower,CblasNoTrans,CblasNonUnit,alpha,
+                           L,dif,eps);
+  const BDat* eps_i = eps.Data().Buffer();
+  BDat eps_sumSqr = 0;
+  BDat log_det = 0;
+  for(i=0; i<n; i++, eps_i++)
+  {
+    log_det += Log(L(i,i));
+    eps_sumSqr += *eps_i * *eps_i;
+  }
+  contens_ = -n*_05log2pi-0.5*eps_sumSqr- 0.5*log_det;
+}
+
 //--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetTemporary, BSetARIMALevinsonEval);
 DefExtOpr(1, BSetARIMALevinsonEval, "ARIMALevinsonEval", 2, 4, "Set Matrix Real Real",
@@ -1788,17 +1931,19 @@ void BSetARMAGohbergSemenculEval::CalcContens()
     for(i=N; i<2*N; i++) { var(0,j) -= Lytw(i,j)*Lytw(i,j); }
     if((var(0,j)<0) && !numErr)
     {
+      var(0,j) = BDat::PosInf();
+/*
       Error(I2("Numerical error in ARMAGohbergSemenculEval: "
                "MaxLHVar aproximation is out of range and take negative values.",
                "Error de tipo numérico en ARMAGohbergSemenculEval: "
                "la aproximación de MaxLHVar está fuera de rango y da valores negativos."));
+*/
       numErr = true;
     }  
   }
   var /= double(N);
   BUserMat* Var = BContensMat::New("MaxLHVar",var, I2("Tra(W)*Inv(Cov)*W : Maximum likelihood estimated varianze of the model",
                                           "Tra(W)*Inv(Cov)*W : Estimación máximo verosímil de la varianza del modelo"));
-
   BList* result=NIL;
   BList* aux=NIL;
   LstFastAppend(result, aux, Var);
