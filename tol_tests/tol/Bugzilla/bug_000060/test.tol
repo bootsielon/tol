@@ -12,15 +12,17 @@
 //Write here the initial test TOL code if needed
   Real numErr0 = Copy(NError);
   Set s = Include("badfile.tol");
+  
+  Real ok = !ObjectExist("Set","s");
+
 //Extented information about test behaviour
   Set partialResults_ = 
   [[
-    Real c = Card(s)
+    ok
   ]];
 
 //This is a messure of the success of the test 
-  Real quality_ = And(numErr0+1==NError, c==0);
-
+  Real quality_ = And(numErr0<NError, ok);
 //Return the results 
   Set resultStr_ = @strTestStatus(summary_, link_, quality_,
                     "Partial results = "<<partialResults_,
