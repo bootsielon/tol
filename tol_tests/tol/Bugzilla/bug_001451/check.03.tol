@@ -1,3 +1,3 @@
-//Set Include("check.01.tol");
+Set Include("check.01.tol");
 Set Include("ser.oza");
 

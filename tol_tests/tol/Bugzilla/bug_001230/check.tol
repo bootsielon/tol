@@ -3,8 +3,8 @@ Set aia.0 = ShowAia(AIA(example::serie,example::piw,outliers));
 Set aia.1 = ShowAia(AIA(example::serie,example::piw,outliers, 2)); 
 Set aia.2 = ShowAia(AIA(example::serie,example::piw,outliers, 3, 100)); 
 Set aia.3 = ShowAia(AIA(example::serie,example::piw,outliers, 1)); 
-Set aia.4 = ShowAia(AIA(example::serie,example::piw,outliers, 5, 100, 0.99)); 
-Set aia.5 = ShowAia(AIA(example::serie,example::piw,outliers, 5, 100, 0.99, 200)); 
+Set aia.4 = ShowAia(AIA(example::serie,example::piw,outliers, 4, 100, 0.99)); 
+Set aia.5 = ShowAia(AIA(example::serie,example::piw,outliers, 2, 100, 0.9)); 
 
 //Reconstruyo la serie original para echarle un vistazo
 Ratio psiw = (1/1) : example::piw;

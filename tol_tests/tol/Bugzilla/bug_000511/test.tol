@@ -19,7 +19,7 @@
 //Extented information about test behaviour
   Set partialResults_ = 
   [[
-    Real okErr = numErr1 == numErr0+1
+    Real okErr = numErr1 > numErr0
   ]];
 
 //This is a messure of the success of the test 

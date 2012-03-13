@@ -17,7 +17,7 @@
     
   Set aux = Include("file.tol");
 
-  Real ok = Card(aux)==0;
+  Real ok = !ObjectExist("Set","aux");
 
   Real numErr1 = Copy(NError);
   Real numWar1 = Copy(NWarning);
@@ -25,7 +25,7 @@
   Set partialResults_ = [[numErr0, numErr1]];
 
 //This is a messure of the success of the test 
-  Real quality_ = And(numErr1 == numErr0+1, 
+  Real quality_ = And(numErr1 > numErr0, 
                       numWar1 == numWar0, ok);
 
 //Return the results 
