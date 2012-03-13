@@ -509,6 +509,8 @@ const BText& BNameBlock::LocalName() const
           obj = GraAnything()->EvaluateTree(br);
           if(obj)
           {
+            if(obj->Name()=="CmdInvoke")
+              printf("");
             newNameBlock.AddElement(obj,true,false);
           }
         }
@@ -792,7 +794,9 @@ const BText& BNameBlock::LocalName() const
     {
       BUserCode* uCode = UCode(obj);
       BOperator* opr   = GetOperator(uCode);
-      if(opr && !opr->System() && !opr->NameBlock())
+      if(opr && !opr->System() && !opr->NameBlock() && 
+        (opr->Name()==obj->Name()) && 
+        (opr->Level()==obj->Level()))
       {
         opr->PutNameBlock(this);
       }
