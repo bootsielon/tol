@@ -1,0 +1,13 @@
+Real SetAA( NameBlock args )
+{
+  Real 1
+};
+
+Real SQ_Real( Real x )
+{
+  Real x * x
+};
+
+Real SetAA( [[ Code CMD = SQ_Real ]] );
+
+Real SQ_Real( 1 );
