@@ -1,0 +1,31 @@
+#Embed "functions.tol";
+// Almacenamiento de series y timesets en OZA
+
+Serie s1 = {
+  TimeSet AUX = WD(1);
+  CalInd(C, AUX)
+};
+
+Serie s2 = {
+  TimeSet AUX = WD(2);
+  CalInd(C, AUX)
+};
+
+Serie s3 = SubSer(s1, y2000, y2001);
+Serie s4 = SubSer(s2, y2000, y2001);
+
+// El fechado de s1 y s3 son los lunes WD(1)
+// El fechado de s2 y s4 son los martes WD(2)
+Real Ois.Store([[s1,s2,s3,s4]], "s1_4.oza");
+
+Set ok = [[
+  Real (DatingAddress(s1) != DatingAddress(s2)); // 0
+  Real (DatingAddress(s1) == DatingAddress(s3)); // 1
+  Real (DatingAddress(s1) != DatingAddress(s4)); // 0
+  Real (DatingAddress(s2) != DatingAddress(s3)); // 0
+  Real (DatingAddress(s2) == DatingAddress(s4)); // 1
+  Real (DatingAddress(s3) != DatingAddress(s4))  // 0
+]];
+
+Real ok.all = Group("And",ok);
+

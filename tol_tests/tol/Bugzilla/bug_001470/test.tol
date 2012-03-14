@@ -1,0 +1,33 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+Real bugNum_ =  1470;
+Text email_ = "vdebuen@tol-project.com"; 
+Text summary_="Almacenamiento de series y fechados en OZA";
+Text link_ = GetTolBugzillaLink(bugNum_);
+
+Set check.00 = { Include("check.00.tol") };
+Set check.01 = { Include("check.01.tol") };
+Set check.02 = { Include("check.02.tol") };
+
+
+Set partialResults_ = check.00::ok << check.01::ok << check.02::ok;
+
+//This is a messure of the success of the test 
+Real quality_ = And(check.00::ok.all,check.01::ok.all,check.02::ok.all);
+
+//Return the results 
+Set resultStr_ =
+  @strTestStatus(summary_, link_, quality_,
+                 "Partial results = "<<partialResults_,
+                 "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                 email_);
+WriteLn(""<<resultStr_);
+resultStr_;
+
+/* */
+

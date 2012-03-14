@@ -1,0 +1,33 @@
+#Embed "functions.tol";
+
+//Forzamos el uso de los fechados almacenados en el OIS
+Real Ois.ForceStoredTimeSet := True;
+//Guardamos el número de warnings y errores antes de ejecutar
+Real numWar_0 = Copy(NWarning);
+Real numErr_0 = Copy(NError);
+//Carga del OZA
+Set series = {
+TimeSet AUX = WD(3);
+Set Ois.Load("s1_4.oza")[1]
+};
+//Guardamos el número de warnings y errores después de ejecutar
+Real numWar_1 = Copy(NWarning);
+Real numErr_1 = Copy(NError);
+//Conjunto de chequeo que debe dar todo cierto
+Set ok = [[
+  //                        WD(1) == WD(1)         
+  Real (DatingAddress(series::s1) == DatingAddress(series::s3)); 
+  //                        WD(2) == WD(2)         
+  Real (DatingAddress(series::s2) == DatingAddress(series::s4)); 
+  //                        WD(1) != WD(2)         
+  Real (DatingAddress(series::s1) != DatingAddress(series::s2)); 
+  //                        WD(1) != WD(2)         
+  Real (DatingAddress(series::s3) != DatingAddress(series::s4));
+  //No debe dar warnings 
+  Real numWar_1 == numWar_0;
+  //No debe dar errores
+  Real numErr_1 == numErr_0 
+]];
+
+Real ok.all = Group("And",ok);
+

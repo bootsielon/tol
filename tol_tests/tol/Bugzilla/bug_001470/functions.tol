@@ -1,0 +1,5 @@
+Text DatingAddress(Serie serie) {
+//WriteLn("TRACE DatingAddress("<<Name(serie)+")");
+  GetAddressFromObject(Dating(serie))
+};
+
