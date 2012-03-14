@@ -1,0 +1,50 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+Real bugNum_ =  1471;
+Text email_ = "vdebuen@tol-project.com"; 
+Text summary_="Reproducción del warning 'TimeSet no acotado'";
+Text link_ = GetTolBugzillaLink(bugNum_);
+
+Real numErr0 = Copy(NError);
+Real numWar0 = Copy(NWarning);
+
+TimeSet CtSem445_glo =
+  D(1)*M(1)+WD(6)-(D(2)+D(3))*M(1)-(D(31)+D(30)+D(29)+D(28)+D(27))*M(12);
+
+Serie ser.0 = CalVar(C, CtSem445_glo);
+
+Set t = {
+  Serie data = ser.0;
+  [[ TimeSet Dating(data) ]]
+};
+Serie ser.1 = SubSer(CalVar(C,CtSem445_glo), y2001, y2012);
+Serie ser.2 = SubSer(CalVar(C,t[1]), y2001, y2012);
+Real Ois.Store([[ser.1,ser.2]],"ser.oza");
+
+Real numErr1 = Copy(NError);
+Real numWar1 = Copy(NWarning);
+
+Set partialResults_ = [[ 
+  numErr0,numErr1,numWar1,numWar0]];
+
+//This is a messure of the success of the test 
+Real quality_ = And(
+  numWar0 == numWar1,
+  numErr1 == numErr0);
+
+//Return the results 
+Set resultStr_ =
+  @strTestStatus(summary_, link_, quality_,
+                 "Partial results = "<<partialResults_,
+                 "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                 email_);
+WriteLn(""<<resultStr_);
+resultStr_;
+
+/* */
+
