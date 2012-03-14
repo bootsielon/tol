@@ -1,0 +1,58 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for NameBlock Coherence
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "Checking FullName with members of local exported NameBlock's" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  /* */
+
+  NameBlock fun.1(Real j)
+  {
+    NameBlock aux.1 = [[
+     Text _.builder="fun.1";
+     Real _.j = j
+  ]]};
+
+  NameBlock fun.2(Real i)
+  {
+    NameBlock aux.2 = [[
+     Text _.builder="fun.2";
+     Real _.i = i;
+     NameBlock _.child = fun.1(i) 
+  ]]};
+
+  NameBlock root = fun.2(1);
+
+  Real ok.1 = (FullName(root::_.child           )=="root::_.child");
+  Real ok.2 = (FullName(root::_.child::_.builder)=="root::_.child::_.builder");
+  Text FullName(root::_.child::_.builder);
+
+  Real numErr1 = Copy(NError);
+  
+  /* */
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    ok.1, ok.2
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == numErr1, ok.1, ok.2);
+
+//Return the results 
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+
+/* */
+
+
