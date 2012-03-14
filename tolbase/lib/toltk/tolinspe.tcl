@@ -3507,7 +3507,10 @@ proc ::TolInspector::DecompileFile {name} {
       set data(pool,objects) [lreplace $data(pool,objects) $idx $idx]
     }
   }
-  ::tol::decompile $path
+  # https://www.tol-project.org/ticket/1483
+  catch {
+    ::tol::decompile $path
+  }
   ::TolInspector::UpdateFileRoot
 }
 
