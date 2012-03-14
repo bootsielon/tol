@@ -1,0 +1,23 @@
+#Require GuiTools;
+
+Real {
+  Real RealSquare( Real x, Set args )
+  {
+    Real sqX = x*x;
+    WriteLn( "El cuadrado de " << x << " es " << sqX );
+    sqX
+  };
+  
+  // con esto se genera el segmentation fault 
+  NameBlock auxiliar = [[
+    Code RealSquare
+  ]];
+  
+  Real GuiTools::MenuManager::defineMenuCommand("Real", 
+    [[ Text name = "Real_SQ",
+       Text label = "Cuadrado del Real",
+       Real flagGroup = 0,
+       Code CmdInvoke = RealSquare ]])
+};
+
+Real GuiTools::MenuManager::invokeEntry( "Real_SQ", [[ 3 ]] );

@@ -12,7 +12,9 @@
 //Write here the initial test TOL code if needed
   Real numErr0 = Copy(NError);
 
-  Set partialResults_ = Include( "check.tol" );
+  Set check1 = Include( "check1.tol" );
+  Set check2 = Include( "check2.tol" );
+  Set partialResults_ = [[ check1, check2 ]];
 
 //This is a messure of the success of the test 
   Real quality_ = ( NError == numErr0 );
