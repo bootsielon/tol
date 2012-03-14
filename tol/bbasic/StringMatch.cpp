@@ -217,16 +217,17 @@ int main()
 {
   Check( "A", "a",                            0 );
   Check( "A", "a",                            1 );
+  Check( "C:\\tmp", "C:\\\\*",                1 );
   Check( "Hola que tal", "Hola*",             1 );
   Check( "Hola que tal", "*Hola*tal",         1 );
   Check( "Hola que tal", "Hola*",             0 );
   Check( "Hola que tal", "*Hola",             1 );
   Check( "Hola que tal", "*Hola",             0 );
   Check( "Hola que tal", "*Hola*tal",         0 );
-  Check( "a", "[a-z]",         0 );
-  Check( "A", "[a-z]",         1 );
-  Check( "A", "[a-z]",         0 );
-  Check( "A", "[A-Z]",         0 );
+  Check( "a", "[a-z]",                        0 );
+  Check( "A", "[a-z]",                        1 );
+  Check( "A", "[a-z]",                        0 );
+  Check( "A", "[A-Z]",                        0 );
   Check( "Axyz[3]*", "[A-Z]*\\[[0-9]\\]\\*",              0 );
   return 0;
 }
