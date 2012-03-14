@@ -72,12 +72,7 @@ proc TraceMainGeometry { msg } {
   package require -exact BLT 2.4
   package require autoscroll 1.1
   package require tclodbc
-  if {[info exist ::env(USE_TOLTCL_32)]} {
-    puts "requested to load Toltcl from $::env(USE_TOLTCL_32)"
-    load $::env(USE_TOLTCL_32)
-  } else {
-    package require Toltcl 3.2
-  }
+  package require -exact Toltcl 3.2
   package require rmtps_client
   package require byswidget
   package require mkWidgets 1.3
