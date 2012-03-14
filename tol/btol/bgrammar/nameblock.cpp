@@ -216,10 +216,18 @@ void BNameBlock::Clean()
   }
   owner_ = NULL;
   for(n=1; n<=set_.Card(); n++)
-	{
-    if(set_[n])
+  {
+    if( set_[n] )
     { 
       set_[n]->PutNameBlock(NULL);
+      BSyntaxObject *obj = set_[n];
+      if( obj->Grammar() == GraCode() ) {
+        BUserCode* uCode = UCode(obj);
+        BOperator* opr   = GetOperator(uCode);
+        if ( opr->NameBlock() && opr->NameBlock() == this ) {
+          opr->PutNameBlock( NULL );
+        }
+      }
     }
   }
   public_.clear();
