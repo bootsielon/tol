@@ -509,8 +509,6 @@ const BText& BNameBlock::LocalName() const
           obj = GraAnything()->EvaluateTree(br);
           if(obj)
           {
-            if(obj->Name()=="CmdInvoke")
-              printf("");
             newNameBlock.AddElement(obj,true,false);
           }
         }
