@@ -4,7 +4,6 @@
 // PURPOSE: test for a resolved bug
 //////////////////////////////////////////////////////////////////////////////
 
-Set  {
 //Sets the bugzilla identifier number, your e-mail and the bug´s summary
 Real bugNum_ =  1475;
 Text email_ = "vdebuen@tol-project.com"; 
@@ -60,6 +59,5 @@ Set resultStr_ =
                  email_);
 WriteLn(""<<resultStr_);
 resultStr_
-}
 /* */
 
