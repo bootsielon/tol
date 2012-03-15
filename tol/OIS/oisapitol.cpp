@@ -216,6 +216,16 @@ BTraceInit("oisapitol.cpp");
   );
   OIS_def_BAE_->PutConstant();
 
+  BParamDat* ois_forceStoredTimeSet_= new BParamDat
+  (
+    "Ois.ForceStoredTimeSet",
+    forceStoredTimeSet_,
+    I2("If true then internally stored TimeSet's will be used even if a "
+       "TimeSet with the same name is available.",
+       "Si es cierto se usarán siempre los TimeSet alamcenados localmente "
+       "incluso si está accesible otro con el mismo nombre.")
+  );
+
   loadModeOptions_.AllocBuffer(3);
   loadModeOptions_[0] = OIS_Load_Mode_ShowHierarchy_;
   loadModeOptions_[1] = OIS_Load_Mode_Header_;

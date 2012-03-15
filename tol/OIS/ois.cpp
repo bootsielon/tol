@@ -65,6 +65,8 @@ BArray<BSystemDat*> BOis::loadModeOptions_;
 size_t BOis::_MaxBlockLength_    = 1024*1024;
 int    BOis::_NumAuxiliarBuffer_ = 9;
 
+BDat BOis::forceStoredTimeSet_ = 0;
+
 #ifdef TRACE_OIS_FILE
 FILE* BOis::logWrite_ = fopen((BSys::TolAppData()+"syslog/OisLogWrite.log").String(),"w");
 FILE* BOis::logRead_  = fopen((BSys::TolAppData()+"syslog/OisLogRead.log" ).String(),"w");

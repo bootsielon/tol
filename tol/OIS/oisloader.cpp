@@ -58,9 +58,12 @@ BTraceInit("oisloader.cpp");
   {
     if(obj->OisOffset() && (obj->OisOffset()!=offset_))
     {
-      ::Warning(I2("OIS Object already has assigned offset",
-                   "El objecto OIS ya tiene offset asignado")+
-                ": "+obj->Identify());
+      if(obj->Grammar()!=GraTimeSet() || forceStoredTimeSet_)
+      {
+        ::Warning(I2("OIS Object already has assigned offset",
+                     "El objecto OIS ya tiene offset asignado")+
+                  ": "+obj->Identify());
+      }
       return(obj);
     } 
     object_ = obj;
@@ -1309,6 +1312,9 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           ERead(offset, serie_);
           BUserTimeSerie* x = NULL;  
           List* tree = NULL;
+          BText expr = "";
+          BUserTimeSet* dating = NULL;
+          BDate first, last, beginCache, endCache;
           if(!offset)
           {
             BDat d;
@@ -1319,7 +1325,6 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           {
             object_->SetPos(offset);
             //CALL ReadNextObject
-            BUserTimeSet* dating = NULL;
             {
               BINT64 offset_tms = object_->Offset();
               BSyntaxObject* r = ReadNextObject(false);
@@ -1327,18 +1332,24 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
               { 
                 return(NullError("FATAL cannot built dating of serie")); 
               }
-              dating = (BUserTimeSet*)GraTimeSet()->FindOperand(r->Name(), false);
-              if(!dating) { dating = (BUserTimeSet*)r; }
-              else if(dating!=r)       
+              if(forceStoredTimeSet_!=0)
+              {
+                dating = (BUserTimeSet*)r;
+              } 
+              else
               { 
-                static BOffsetObject ofob_tms;
-                ofob_tms.PutOffset(offset_tms);
-                int found_tms = readed_.FindSorted(ofob_tms, CompareOffset);
-                readed_[found_tms].ReplaceObject(dating);
-                DESTROY(r);
-              }  
+                dating = (BUserTimeSet*)GraTimeSet()->FindOperand(r->Name(), false);
+                if(!dating) { dating = (BUserTimeSet*)r; }
+                else if(dating!=r)       
+                { 
+                  static BOffsetObject ofob_tms;
+                  ofob_tms.PutOffset(offset_tms);
+                  int found_tms = readed_.FindSorted(ofob_tms, CompareOffset);
+                  readed_[found_tms].ReplaceObject(dating);
+                  DESTROY(r);
+                }  
+              }
             }
-            BDate first, last, beginCache, endCache;
             ERead(first, serie_);
             ERead(last,  serie_);
             ERead(beginCache, serie_);
@@ -1357,8 +1368,11 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
                 return(NullError(BText("Cannot load syntax tree of Serie (name='")+
                        name+"' description='"+description+"')")); 
               }
+              expr = BParser::Unparse(tree,"  ","\n");
               bool oldEnabled = BOut::Disable();
+              BGrammar::IncLevel();
               x = (BUserTimeSerie*)GraSerie()->EvaluateTree(tree); 
+              BGrammar::DecLevel();
               if(oldEnabled) { BOut::Enable(); }
               if(x) 
               { 
@@ -1367,7 +1381,6 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
               }
               else 
               {
-                BText expr = BParser::Unparse(tree,"  ","\n");
                 expr = Compact(expr); 
                #ifndef NDEBUG
                 Warning(BText("Cannot rebuild virtual expression of "
@@ -1392,6 +1405,21 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           }
           else                
           { result = x; }
+          BUserTimeSerie* ser = (BUserTimeSerie*)result;
+          if(dating!=ser->Dating())
+          {
+            if(forceStoredTimeSet_!=0)
+            {
+              ser->PutDating(dating);
+            }
+            if(!dating->IsCompatibleWith(*(ser->Dating()),beginCache,endCache))
+            {
+              Warning(BText("Dating of loaded Serie ")+name+"="+expr+
+                            "is not compatible with original dating "+
+                            dating->Identify()+"="+dating->Expression()+" "+
+                            "between ["+beginCache+","+endCache+"]"); 
+            }  
+          }  
           if(tree) 
           {
             if(result && !result->GetOisTree()) { result->PutOisTree(tree); }
@@ -1412,21 +1440,33 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           ERead(s,          timeset_);
           BHash h(s);
           Ensure(Read(h.GetBuffer(),sizeof(double),h.Size(),timeset_));
+          BUserTimeSet* x_old = (BUserTimeSet*)GraTimeSet()->FindOperand(name,true);
           BUserTimeSet* x = NULL;
           char loadTree;
           ERead(loadTree,timeset_);
           List* tree = NULL;
+          BText expr;
           if(loadTree)
           {
             tree = ReadTree(timeset_);
+            expr = Compact(BParser::Unparse(tree,"  ","\n"));
             if(!tree) 
             { 
               return(NullError(BText("Cannot load syntax tree TimeSet (name='")+
                      name+"' description='"+description+"')")); 
             }
+          }
+          if(!forceStoredTimeSet_ && x_old)
+          {
+            x = x_old;
+          }
+          else if(tree)
+          {
             bool oldEnabled = BOut::Disable();
             BDat numErr0 = TOLErrorTryNumber();
+            BGrammar::IncLevel();
             x = (BUserTimeSet*)GraTimeSet()->EvaluateTree(tree); 
+            BGrammar::DecLevel();
             BDat numErr1 = TOLErrorTryNumber();
             if(numErr0<numErr1) { DESTROY(x); }
             if(oldEnabled) { BOut::Enable(); }
@@ -1441,20 +1481,15 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
                 }
               }
             }
-            else 
+            else
             {
-              x = (BUserTimeSet*)GraTimeSet()->FindOperand(name,true);
-              if(!x)
-              {
-                BText expr = Compact(BParser::Unparse(tree,"  ","\n"));
-                if(name.HasName()) { expr = name+" = "+expr; }
-                Warning(BText("Cannot rebuild virtual expression of non "
-                        "bounded TimeSet ")+expr+ "\nOnly cached "
-                        "dates will be accessible between ["+beginCache+","+
-                        endCache+"]\nTo avoid this problem save just "
-                        "bounded time sets or use expressions that could "
-                        "be evaluated at OIS loading time." );
-              }
+              if(name.HasName()) { expr = name+" = "+expr; }
+              Warning(BText("Cannot rebuild virtual expression of non "
+                      "bounded TimeSet ")+expr+ "\nOnly cached "
+                      "dates will be accessible between ["+beginCache+","+
+                      endCache+"]\nTo avoid this problem save just "
+                      "bounded time sets or use expressions that could "
+                      "be evaluated at OIS loading time." );
             } 
           }
           if(!x)
@@ -1472,7 +1507,10 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           }
           if(tree) 
           {
-            if(result && !result->GetOisTree()) { result->PutOisTree(tree); }
+            if(result && (x!=x_old) && !result->GetOisTree()) 
+            { 
+              result->PutOisTree(tree); 
+            }
             tree->Destroy(); 
           }
         }

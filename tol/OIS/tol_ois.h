@@ -564,6 +564,9 @@ protected:
 //Current endian flag
   static bool isLittleEndian_;
 
+//Default for forcing stored TimeSet
+  static BDat forceStoredTimeSet_;
+
   static BStruct*  addressStr_;
   static BStruct*  docStr_;
   static BUserSet* defDoc_;
