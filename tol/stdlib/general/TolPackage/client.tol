@@ -470,18 +470,18 @@ Date RemoteReleaseDate(Text repository, Text package)
 };
 
 //////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.DownloadPackage = 
+Text _.autodoc.member._DownloadPackageOrZip = 
 "Descarga desde el repositorio remoto al path indicado, un paquete "
-"determinado\n";
-Real DownloadPackage(
-  Text repository, Text package, Real showError, Text localRoot)
+"determinado y lo descomprime si unZip es cierto\n";
+Real _DownloadPackageOrZip(
+  Text repository, Text package, Real showError, Text localRoot, Real unZip)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real _trace("DownloadPackage", "Begin", 1);
+  Real _trace("_DownloadPackageOrZip", "Begin", 1);
   Real ok = If(!ChecktolProjectPing(?), 0, 
   {
     Real OSDirMake(localRoot);
-  //WriteLn("_trace [DownloadPackage] 1 repository='"<<repository+"'");
+  //WriteLn("_trace [_DownloadPackageOrZip] 1 repository='"<<repository+"'");
     Real ok = True;
     Text package.orig = package;
     Set pkg.tok = Tokenizer(package,".");
@@ -499,9 +499,9 @@ Real DownloadPackage(
       Text package.version := pkgLst[1]->co_name_version
     });
     If(!ok, 0, {
-  //WriteLn("_trace [DownloadPackage] 2.1 package.orig='"<<package.orig+"'");
-  //WriteLn("_trace [DownloadPackage] 2.2 package='"<<package+"'");
-  //WriteLn("_trace [DownloadPackage] 2.3 package.version='"<<package.version+"'");
+  //WriteLn("_trace [_DownloadPackageOrZip] 2.1 package.orig='"<<package.orig+"'");
+  //WriteLn("_trace [_DownloadPackageOrZip] 2.2 package='"<<package+"'");
+  //WriteLn("_trace [_DownloadPackageOrZip] 2.3 package.version='"<<package.version+"'");
 
     Text pack = package.version+".zip";
     Text oza = package.version+"/"+package.version+".oza";
@@ -513,24 +513,49 @@ Real DownloadPackage(
       "&action=download"+
       "&format=base64"+
       "&package="+package.version);
-  //WriteLn("_trace [DownloadPackage] 3 encoded='"<<encoded+"'");
+  //WriteLn("_trace [_DownloadPackageOrZip] 3 encoded='"<<encoded+"'");
     Real DecodeBase64ToFile(localPack, encoded);
-    If(!FileExist(localPack), False,
+    Real ok = FileExist(localPack);   
+    Case(
+    !FileExist(localPack), False,
+    !unZip, True,
+    1==1,
     {
     //WriteLn("_trace DownloadPackage 4 UnpackFull("<<localDir+")");
       Real PackArchive::UnpackFull("ZipArchive", localDir, True);
-      True
-    });
-    If(!FileExist(localOza), False,
-    {
-    //WriteLn("_trace DownloadPackage 5");
-    //Real RemoteUpdateVersSyncInfo(showError);
-    //Real RemoteUpdatePackSyncInfo(showError);
-      True
+      If(!FileExist(localOza), False,
+      {
+      //WriteLn("_trace DownloadPackage 5");
+      //Real RemoteUpdateVersSyncInfo(showError);
+      //Real RemoteUpdatePackSyncInfo(showError);
+        True
+      })
     })
   })});
-  Real _trace("DownloadPackage", "End", 1);
+  Real _trace("_DownloadPackageOrZip", "End", 1);
   ok
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.DownloadPackage = 
+"Descarga desde el repositorio remoto al directorio localRoot indicado, "
+"un paquete determinado y lo descomprime.\n";
+Real DownloadPackage(
+  Text repository, Text package, Real showError, Text localRoot)
+//////////////////////////////////////////////////////////////////////////////
+{
+  _DownloadPackageOrZip(repository, package, showError, localRoot, True)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.DownloadPackageZip = 
+"Descarga desde el repositorio remoto al directorio localRoot indicado, "
+"un paquete comprimido.\n";
+Real DownloadPackageZip(
+  Text repository, Text package, Real showError, Text localRoot)
+//////////////////////////////////////////////////////////////////////////////
+{
+  _DownloadPackageOrZip(repository, package, showError, localRoot, False)
 };
 
 //////////////////////////////////////////////////////////////////////////////
