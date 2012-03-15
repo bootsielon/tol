@@ -522,7 +522,6 @@ void BDatPutCSerDat::CalcContens()
   contens_ = d->Difference(f,l);
 }
 
-
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatYear);
   DefExtOpr(1, BDatYear, "Year", 1, 1, "Date",
@@ -2835,5 +2834,23 @@ void BDatSameNameBlock::CalcContens()
   BNameBlock& a = ((BUserNameBlock*)Arg(1))->Contens();
   BNameBlock& b = ((BUserNameBlock*)Arg(2))->Contens();
   contens_ = (&a==&b);
+}
+
+//--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatAreCompatibleTimeSet);
+  DefExtOpr(1, BDatAreCompatibleTimeSet, "AreCompatibleTimeSet", 4, 4, 
+  "TimeSet TimeSet Date Date",
+  "(TimeSet tms1, TimeSet tms2, Date from, Date until)",
+  I2("Returns true if two TimeSet are compatible in a time window.",
+     "Devuelve cierto si dos TimeSet son compatibles entre dos fechas."),
+     BOperClassify::TimeAlgebra_);
+  void BDatAreCompatibleTimeSet::CalcContens()
+//--------------------------------------------------------------------
+{
+  BUserTimeSet* a = Tms (Arg(1));
+  BUserTimeSet* b = Tms (Arg(2));
+  BDate&	f = Date(Arg(3));
+  BDate&	l = Date(Arg(4));
+  contens_ = a->IsCompatibleWith(*b,f,l);
 }
 
