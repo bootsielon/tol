@@ -1,6 +1,6 @@
 #Embed "functions.tol";
 
-//Forzamos el uso de los fechados almacenados en el OIS
+//Si existe un fechado previo accesible se usará
 Real Ois.ForceStoredTimeSet := False;
 //Guardamos el número de warnings y errores antes de ejecutar
 Real numWar_0 = Copy(NWarning);
