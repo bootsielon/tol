@@ -102,7 +102,8 @@ public:
   static bool Using  (
     const BSyntaxObject* uns,
     bool usingAlsoReadOnly,
-    bool usingAlsoPrivate);
+    bool usingAlsoPrivate,
+    bool usingAlsoSpecial);
   static void Unusing(const BSyntaxObject* uns);
   static BSyntaxObject* LocalMember(const BText& memberName);
   static BSyntaxObject* UsingMember(const BText& memberName);
@@ -176,7 +177,8 @@ private:
     const BText& name,
     BObjByNameHash::const_iterator iter,
     bool usingAlsoReadOnly,
-    bool usingAlsoPrivate
+    bool usingAlsoPrivate,
+    bool usingAlsoSpecial
   );
 };
 

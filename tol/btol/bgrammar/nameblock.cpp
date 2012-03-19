@@ -1003,11 +1003,19 @@ const BText& BNameBlock::LocalName() const
 }
 
 //--------------------------------------------------------------------
+static bool isSpecial(const BText& name)
+//--------------------------------------------------------------------
+{
+  return(name=="StartActions");
+}
+
+//--------------------------------------------------------------------
 bool BNameBlock::add_using_symbol(
   const BText& name,
   BObjByNameHash::const_iterator iter,
   bool usingAlsoReadOnly,
-  bool usingAlsoPrivate
+  bool usingAlsoPrivate,
+  bool usingAlsoSpecial
 )
 //--------------------------------------------------------------------
 {
@@ -1016,6 +1024,7 @@ bool BNameBlock::add_using_symbol(
     if(!usingAlsoReadOnly && ((iter->first)[1]=='.')) { return(true); }
     if(!usingAlsoPrivate  && ((iter->first)[1]!='.')) { return(true); }
   }
+  if(!usingAlsoSpecial && isSpecial(name)) { return(true); }
   bool ok = true;
   BObjByNameHash::const_iterator found ;
   BObjByClassNameHash::iterator fc;
@@ -1057,7 +1066,8 @@ bool BNameBlock::add_using_symbol(
   bool BNameBlock::Using(
     const BSyntaxObject* obj,
     bool usingAlsoReadOnly,
-    bool usingAlsoPrivate)
+    bool usingAlsoPrivate,
+    bool usingAlsoSpecial)
 //--------------------------------------------------------------------
 {
   assert(obj && (obj->Grammar()==GraNameBlock()));
@@ -1083,12 +1093,13 @@ bool BNameBlock::add_using_symbol(
   BObjByNameHash& pbm = ns.Public();
   for(iter=pbm.begin(); iter!=pbm.end(); iter++)
   {
-    ok = add_using_symbol(name, iter, false, false);
+    ok = add_using_symbol(name, iter, false, false, usingAlsoSpecial);
   }
   BObjByNameHash& prm = ns.Private();
   for(iter=prm.begin(); iter!=prm.end(); iter++)
   {
-    ok = add_using_symbol(name, iter, usingAlsoReadOnly, usingAlsoPrivate);
+    ok = add_using_symbol(name, iter, 
+     usingAlsoReadOnly, usingAlsoPrivate, usingAlsoSpecial);
   }
   return(ok);
 }
@@ -1697,6 +1708,7 @@ public:
     { 
       bool usingAlsoReadOnly = false;
       bool usingAlsoPrivate = false;
+      bool usingAlsoSpecial = false;
       if(lst && lst->Car())
       {
         usingAlsoReadOnly = Real(lst->Car())!=0.0;
@@ -1707,7 +1719,12 @@ public:
         usingAlsoPrivate = Real(lst->Car())!=0.0;
         lst = lst->Cdr();
       }
-      contens_ = BNameBlock::Using(uns_,usingAlsoReadOnly,usingAlsoPrivate); 
+      if(lst && lst->Car())
+      {
+        usingAlsoSpecial = Real(lst->Car())!=0.0;
+        lst = lst->Cdr();
+      }
+      contens_ = BNameBlock::Using(uns_,usingAlsoReadOnly,usingAlsoPrivate,usingAlsoSpecial); 
     }
   }
  ~BDatUsingNameBlock()
@@ -1721,11 +1738,12 @@ DeclareEvaluator(BDatUsingNameBlock);
 
 
 //--------------------------------------------------------------------
-  DefExtOpr(1, BDatUsingNameBlock, "UsingNameBlock",1,3,
+  DefExtOpr(1, BDatUsingNameBlock, "UsingNameBlock",1,4,
   "NameBlock Real Real",
   "(NameBlock nameBlock [, "
     "Real usingAlsoReadOnly = False,"
-    "Real usingAlsoPrivate = False])",
+    "Real usingAlsoPrivate = False,"
+    "Real usingAlsoSpecial = False])",
   I2("In certain circumstances the public members of a NameBlock can "
      "pass to the global scope, that is to say, it is possible to "
      "access to them without specifying it with :: \n"
@@ -1748,6 +1766,8 @@ DeclareEvaluator(BDatUsingNameBlock);
      "also exported.\n"
      "If usingAlsoPrivate is true then private members will be "
      "also exported.\n"
+     "If usingAlsoSpecial is true then special members and methods "
+     "as StartActions of packages will be also exported.\n"
      ,
      "En determinadas circunstancias los miembros públicos de un "
      "NameBlock pueden pasar al ámbito global, es decir, se puede "
@@ -1769,7 +1789,9 @@ DeclareEvaluator(BDatUsingNameBlock);
      "Si usingAlsoReadOnly es cierto los miembros de solo lectura "
      "también serán exportados.\n"
      "Si usingAlsoPrivate es cierto los miembros privados "
-     "también serán exportados.\n"),
+     "también serán exportados.\n"
+     "Si usingAlsoSpecial es cierto los miembros y métodos especiales "
+     "como StartActions también serán exportados.\n"),
   BOperClassify::System_);
 
 //--------------------------------------------------------------------
