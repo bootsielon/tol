@@ -1024,7 +1024,7 @@ bool BNameBlock::add_using_symbol(
     if(!usingAlsoReadOnly && ((iter->first)[1]=='.')) { return(true); }
     if(!usingAlsoPrivate  && ((iter->first)[1]!='.')) { return(true); }
   }
-  if(!usingAlsoSpecial && isSpecial(name)) { return(true); }
+  if(!usingAlsoSpecial && isSpecial(iter->first)) { return(true); }
   bool ok = true;
   BObjByNameHash::const_iterator found ;
   BObjByClassNameHash::iterator fc;
