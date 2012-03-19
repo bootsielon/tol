@@ -1739,7 +1739,7 @@ DeclareEvaluator(BDatUsingNameBlock);
 
 //--------------------------------------------------------------------
   DefExtOpr(1, BDatUsingNameBlock, "UsingNameBlock",1,4,
-  "NameBlock Real Real",
+  "NameBlock Real Real Real",
   "(NameBlock nameBlock [, "
     "Real usingAlsoReadOnly = False,"
     "Real usingAlsoPrivate = False,"
