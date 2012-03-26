@@ -1,0 +1,230 @@
+//////////////////////////////////////////////////////////////////////////////
+Text GetUrlContents.tcl.uri(Text url)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(TolConfigManager::Config::Various::Verbose::DownloadingUrl,
+  Write("[GetUrlContents.tcl.uri] Downloading from \""+url+"\" ... "));
+  Text tcl_helper = 
+    "package require uri\n"+
+    "\n"+
+    "proc ::get_url_contens { url } {\n"+
+    "\n"+
+    "  array set uri_info [ uri::split $url ]\n"+
+    "  if { $uri_info(scheme) eq \"http\" } {\n"+
+    "    set url_content [ uri::geturl $url ]\n"+
+    "    set ${url_content}(body)\n"+
+    "  } elseif { $uri_info(scheme) eq \"ftp\" } {\n"+
+    "    uri::geturl $url\n"+
+    "  }\n"+
+    "}";  
+  Set result0 = Tcl_Eval(tcl_helper);
+  Text If(result0["status"],  
+  {
+    Set result = Tcl_Eval("::get_url_contens " + url);
+    Text If(result["status"], 
+    {
+      If(TolConfigManager::Config::Various::Verbose::DownloadingUrl,
+      WriteLn("OK"));
+      Text result["result"]
+    },
+    {
+      WriteLn("FAIL");
+      WriteLn(result["result"], "W");
+      Text ""
+    })
+  },
+  {
+    WriteLn("FAIL");
+    WriteLn(result0["result"], "W");
+    Text ""
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text GetUrlContents.tcl.curl(Text url_)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(TolConfigManager::Config::Various::Verbose::DownloadingUrl,
+  Write("[GetUrlContents.tcl.curl] Downloading from \""+url_+"\" ... "));
+  Set result1 = CurlApi::GetUrl( [[ Text url = url_ ]] );
+  If( result1::failStatus, 
+  {
+    WriteLn("FAIL");
+    WriteLn( "[GetUrlContents.tcl.curl] error: "<<result1::explain,"W");
+    ""
+  }, 
+  {
+    If(TolConfigManager::Config::Various::Verbose::DownloadingUrl,
+    WriteLn("OK"));
+    result1::bodyData
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text GetUrlContents.sys.wget(Text url)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(TolConfigManager::Config::Various::Verbose::DownloadingUrl,
+  WriteLn("[GetUrlContents.sys.wget]Downloading from \""+url+"\" ..."));
+  Text tmp = TmpDir+"wget."<<IntRand(111111111,999999999)+".tmp";
+  Text order = "wget -O"+tmp+" "+url;
+  Real OSCmdWait(order);
+  Text txt = ReadFile(tmp);
+  Real OSFilRemove(tmp);
+  txt
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text GetUrlContents(Text url)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text method = TolConfigManager::Config::ExternalTools::UrlDownloader;
+  Case(
+  method=="tcl:uri",  GetUrlContents.tcl.uri (url),
+  method=="tcl:curl", GetUrlContents.tcl.curl(url),
+  method=="sys:wget", GetUrlContents.sys.wget(url),
+  1==1, {
+    WriteLn("[GetUrlContents] Invalid option value at "
+    "TolConfigManager::Config::ExternalTools::UrlDownloader=\""+method+"\"\n"+
+    Description(TolConfigManager::Config::ExternalTools::UrlDownloader),"E");
+    ""
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text GetVersionFromTolProject(Text branch)
+//////////////////////////////////////////////////////////////////////////////
+{
+  GetUrlContents("http://packages.tol-project.org/win32/"+
+                 branch+"_tol_release_win.txt")
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Real CheckTOLRelease(Real maxDaysOfDelay)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(Or(OSUnix,ToLower(GetFilePrefix(TOLSessionPath))!="tolbase"),1,
+  {
+    Date tol_release_check = If(FileExist("tol_release_check.tol"),
+    {
+      Include("tol_release_check.tol")[1]
+    },
+    {
+      y1583
+    });
+    Real delay = DateToIndex(Now)-DateToIndex(tol_release_check);
+    Real If(delay < maxDaysOfDelay, 
+    {
+      WriteLn(I2("Last TOL updating check TOL was made at ",
+                 "La última comprobación de la actualización de TOL se hizo en ")
+              <<tol_release_check);
+      -1
+    },
+    {
+      WriteLn(I2("Checking if TOL is updated.",
+                 "Comprobando si TOL está actualizado."));
+      Text WriteFile("tol_release_check.tol", 
+                     "Date tol_release_check = "+
+                     FormatDate(Now,"%cy%Ym%md%dh%hi%is%s")+";\n");
+      Text tol_site = "https://www.tol-project.org/wiki/DownloadTol";
+      Text lastOldStableWin ="";
+      Text lastOfficialWin  = "";
+      Text lastDevelopmWin  = "";
+      Real ostOK = False;
+      Real ofcOK = False;
+      Real devOK = False;
+      Real Show(False,"ALL");
+      Text lastOldStableWin := GetVersionFromTolProject("oldstable");
+      Real ostOK := (Text lastOldStableWin!="");
+      If(ostOK,
+      {
+        Text lastOfficialWin := GetVersionFromTolProject("official");
+        Real ofcOK := (Text lastOfficialWin!="");
+        If(ofcOK,
+        {
+          Text lastDevelopmWin := GetVersionFromTolProject("development");
+          Real devOK := (Text lastDevelopmWin!="")
+        })
+      });
+      Real Show(True,"ALL");
+      Text msg="";
+      Real cannot_connect = False;
+      Real check = If(Or(!ostOK, !ofcOK, !devOK),
+      {
+        Real cannot_connect := True;
+        WriteLn(msg:=I2("Cannot check TOL release.",
+                        "No se pudo chequear la versión de TOL."),"W");
+        -1
+      },
+      {
+        Text current   = Tokenizer(Version,         " ")[1];
+        Text oldStable = Tokenizer(lastOldStableWin," ")[1];
+        Text official  = Tokenizer(lastOfficialWin, " ")[1];
+        Text developm  = Tokenizer(lastDevelopmWin, " ")[1];
+        Text ostMsg = I2("The last old-stable version of TOL for windows is ",
+                         "La versión estable con mantenimiento más antigua de TOL para windows es ")+
+                         lastOldStableWin;
+        Text ofcMsg = I2("The last official version of TOL for windows is ",
+                         "La última versión oficial de TOL para windows es ")+
+                         lastOfficialWin;
+        Text devMsg = I2("The last development version of TOL for windows is ",
+                         "La última versión de desarrollo de TOL para windows es ")+
+                         lastDevelopmWin;
+        Text unkMsg = I2("You are using a too old or unknown TOL version ",
+                         "Está usando una versión demasiado vieja "
+                         "o desconocida de TOL ")+Version+
+                         "\n"+ostMsg+
+                         "\n"+ofcMsg+
+                         "\n"+devMsg;
+        Text obsMsg = I2("You have an obsolete TOL version ",
+                         "Su versión de TOL está obsoleta ")+
+                         Version+"."+
+                         "\n"+ostMsg+
+                         "\n"+ofcMsg+
+                         "\n"+devMsg+"\n"+
+                         I2("Please update it from official web page of TOL ",
+                            "Por favor actualícela desde la página oficial "
+                            "de TOL ")+ tol_site+"\n";
+        Text updMsg = I2("TOL is updated.",
+                         "TOL está actualizado.");
+        Text advMsg = I2("CAUTION: You are using an advanced TOL version ",
+                         "CUIDADO: Está usando una versión avanzada de TOL ")+Version+".";
+        Text last = Case
+        (
+          current==oldStable,  { WriteLn(ostMsg);     lastOldStableWin },
+          current==official,   { WriteLn(ofcMsg);     lastOfficialWin  },
+          current==developm,   { WriteLn(devMsg);     lastDevelopmWin  },
+          1==1,                { WriteLn(unkMsg,"W"); lastOfficialWin  }
+        );
+        Case
+        ( 
+          last == Version, { WriteLn(msg:=updMsg    ), 0},
+          last <  Version, { WriteLn(msg:=advMsg,"W"), 0},
+          last >  Version, { WriteLn(msg:=unkMsg,"W"), 2}
+        )
+      });
+      Real ok = If(check==0, 1,
+      {
+        Text If(!cannot_connect,
+          Set Tcl_EvalEx( [[ "tk_messageBox",
+                             "-title", "Check TOL Release",
+                             "-message", msg,
+                             "-icon", "warning" ]] ));
+        0
+      });
+    //Real If(!check|TolConfigManager::Config::Upgrading::TolPackage::LocalOnly,
+      Real If(!check|TolConfigManager::Config::Upgrading::TolPackage::LocalOnly,
+      {
+        0
+      },
+      { 
+        TolPackage::Client::RemoteUpdatePackSyncInfo(True)
+      });
+      check
+    })
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Comprueba si hay disponible una versión de TOL actualizada.", 
+               CheckTOLRelease);
+//////////////////////////////////////////////////////////////////////////////
