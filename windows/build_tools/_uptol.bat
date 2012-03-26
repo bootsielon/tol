@@ -302,6 +302,10 @@ If Not Exist ..\ActiveTOL\bin\vbtol.dll (
   copy ..\..\vbtol\%winSrc%\Release\vbtol.dll ..\ActiveTOL\bin\vbtol.dll
 )
 
+Rem descargo paquetes que se distriburan por omision con TOL
+Rem Real TolPackage::Client::DefaultFetch(?);
+..\ActiveTOL\bin\tolsh.exe -c "TolPackage::Client::DefaultFetch(?)"
+
 Rem Ejecuto los tests si me lo han pedido
 :DO_TESTS
 If "%_dodist%"=="1" (
