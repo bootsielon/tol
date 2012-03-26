@@ -60,7 +60,7 @@ NameBlock Rglpk =
   "\n"
   "   A: a matrix of the constraint coefficients.\n"
   "\n"
-  "   RHS: the right hand side of the constraints.\n"
+  "   rhs: the right hand side of the constraints.\n"
   "\n"
   "with the following extra args given in the Set optArgs:\n"
   "\n"
@@ -141,7 +141,7 @@ NameBlock Rglpk =
   "                         {[[Set idxInt, Real verbose=TRUE, Real max=TRUE]]})\n"
   "};\n"
   ;
-  Set solveLP(Matrix C, Matrix A, Matrix RHS, Set optArgs)
+  Set solveLP(Matrix C, Matrix A, Matrix rhs, Set optArgs)
   //////////////////////////////////////////////////////////////////////////////
   {
     // Prepare exchange files
@@ -183,8 +183,8 @@ NameBlock Rglpk =
       "source('"+_tolRglpk.R+"'); "
       "Rglpk_solve_LP.TOL('"+_om.bbm+"','"+_rhs.bbm+"','%A')";
 
-    Set rrs = Rapi::RunRScript(script,args.bbm,argList,result.names,verbose);
-    If(Card(rrs), 
+    Set result = Rapi::RunRScript(script,args.bbm,argList,result.names,verbose);
+    If(Card(result), 
     {[[
       Real status     = MatDat(result[1],1,1),
       Real objval     = MatDat(result[1],1,2),

@@ -19,7 +19,7 @@ Set sol1 = {
                 (1,3,2));
   Matrix rhs = ((60, Real -1,80));
 
-  Set bounds = [[ {Set lower=[[ [[1, Real -Inf]], [[2, Real -Inf]], [[3, Real -Inf]] ]]} ]];
+  Set bounds = { [[ Set lower=[[ [[1, Real -Inf]], [[2, Real -Inf]], [[3, Real -Inf]] ]] ]] };
 
   Set sol=Rglpk::solveLP(obj, mat, rhs,
                          {[[Set dir=[["<","<","<"]], Set bounds,
@@ -43,7 +43,7 @@ Set sol2 = {
                 (1,3,2));
   Matrix rhs = ((60,40,80));
 
-  Set bounds = [[ {Set upper=[[ [[2, 4.0]] ]]} ]];
+  Set bounds = { [[ Set upper=[[ [[2, 4.0]] ]] ]] };
 
   Set sol=Rglpk::solveLP(obj, mat, rhs,
                          {[[bounds, Real verbose=TRUE, Real max=TRUE]]});
