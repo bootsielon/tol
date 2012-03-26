@@ -27,7 +27,7 @@ NameBlock If(ObjectExist("NameBlock","TolConfigManager"),
 //////////////////////////////////////////////////////////////////////////////
 Set 
 {
-  Text PutValue(Ois.DefDoc->Name,"stdlib");
+  Text PutValue(Ois.DefDoc->Name,"tolcore");
   Text PutValue(Ois.DefDoc->Subject,I2(
     "TOL Standard Library",
     "Librería estandar de TOL"));
@@ -51,24 +51,24 @@ Set
 };
 
 //////////////////////////////////////////////////////////////////////////////
-//Packages tree of StdLib is loaded as local to allow browsing on inspector 
+//Packages tree of TolCore is loaded as local to allow browsing on inspector 
 //object
 //////////////////////////////////////////////////////////////////////////////
-Set StdLib.Tree = 
+Set TolCore.Tree = 
 {
-  Do Ois.UseModule("_packages.tol")
+  Do Ois.UseModule("_tolcore.tol")
 };
 
 //////////////////////////////////////////////////////////////////////////////
 // Root NameBlock for library
 //////////////////////////////////////////////////////////////////////////////
-NameBlock StdLib = 
+NameBlock TolCore = 
 { 
-  Set StdLib.Tools = { Do Include("general/various/_tools.tol") };
-  Code PlainNamedObjects = StdLib.Tools::PlainNamedObjects;
-  //StdLib structures, functions, and variables are collected in a plain set
-  Set plain = PlainNamedObjects(StdLib.Tree);
-  //and converted to a NameBlock to allow specific access with prefix StdLib::
+  Set TolCore.Tools = { Do Include("various/_tools.tol") };
+  Code PlainNamedObjects = TolCore.Tools::PlainNamedObjects;
+  //CoreLib structures, functions, and variables are collected in a plain set
+  Set plain = PlainNamedObjects(TolCore.Tree);
+  //and converted to a NameBlock to allow specific access with prefix CoreLib::
 
   SetToNameBlock(plain) 
 };
@@ -80,7 +80,7 @@ NameBlock StdLib =
 
 //Publishing NameBlock StdLib to allow calling without prefix StdLib:: until
 //tol v.1.1.7 will be released and NameBlock became mandatory
-Real StdLib.Using = UsingNameBlock(StdLib);
+Real TolCore.Using = UsingNameBlock(TolCore);
 
 Real CMsg::Phase::reset(0);
 Real CMsg::Coded::reset(0);
@@ -96,17 +96,16 @@ Real Ois.Implemented  = True;
 Code Ois.ModuleLoader = FindCode("Set","Ois.UseModule");
 
 //////////////////////////////////////////////////////////////////////////////
-// Tpa initialization
-//////////////////////////////////////////////////////////////////////////////
-Set { Tpa.Hosts = If(TOLAppName!="tolsh",Copy(Empty),
-  StdLib::Tpa::loadLastHosts(0)
-)};
-
-//////////////////////////////////////////////////////////////////////////////
 // TolPackage Client initialization
 //////////////////////////////////////////////////////////////////////////////
 Real TolPackage::Client::Initialize(0);
 
+//////////////////////////////////////////////////////////////////////////////
+// Tpa initialization
+//////////////////////////////////////////////////////////////////////////////
+Set { Tpa.Hosts = If(TOLAppName!="tolsh",Copy(Empty),
+  TolCore::Tpa::loadLastHosts(0)
+)};
 
 //////////////////////////////////////////////////////////////////////////////
 //Checks TOL release every day to detect obsolete versions
@@ -114,7 +113,7 @@ Real TolPackage::Client::Initialize(0);
 Real CheckTOLReleaseIsUpdated = If(
 TolConfigManager::Config::Upgrading::TolVersion::CheckAllowed,
 {
-  StdLib::CheckTOLRelease(
+  TolCore::CheckTOLRelease(
     TolConfigManager::Config::Upgrading::TolVersion::MaxDaysOfDelay
   )
 },

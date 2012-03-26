@@ -1,0 +1,17 @@
+//////////////////////////////////////////////////////////////////////////////
+// PURPOSE: 
+//////////////////////////////////////////////////////////////////////////////
+
+Set Include("_system.tol");
+Set Include("_deprecated.tol");
+Set Include("_geturl.tol");
+
+Set Include("recursive_dir/_init_recursive_dir.tol");
+Set Include("tpa/_init_tpa.tol");
+Set Include("cmsg/_init_cmsg.tol");
+
+Set Include("CurlApi/CurlApi.tol");
+Set Include("PackArchive/PackArchive.tol");
+
+Set Include("_ois.tol");
+
