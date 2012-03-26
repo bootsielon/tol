@@ -1,0 +1,24 @@
+#Require NonLinGloOpt; // => NonLinGloOpt.5.2
+
+Real numObj.0 = Copy(NObject);
+WriteLn("numObj.0="<<numObj.0);
+
+Real {
+  NonLinGloOpt::@Problem problem = [[
+    Real n = 2;
+    Matrix lower_bounds = Row(1);
+    Matrix upper_bounds = Row(1);
+    Anything target = FindCode("Real", "Sin");
+    Set equations = Copy(Empty);
+    Set inequations =  Copy(Empty);
+    // Settings
+    Real sign = 1;
+    Real neededGlobal = 1;
+    Real id_analyticalClass = 1;
+    Real id_useGradient = 1
+  ]];
+1};
+
+Real numObj.1 = Copy(NObject);
+WriteLn("numObj.1="<<numObj.1);
+
