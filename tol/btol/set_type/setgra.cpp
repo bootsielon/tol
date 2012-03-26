@@ -1882,8 +1882,12 @@ void BSetFor::CalcContens()
 {
 //InitTotalTime("BSetFor::CalcContens");
   BStandardOperator* opr  = (BStandardOperator*)GetOperator(UCode(Arg(3)));
-  int from  = (int)Real(Arg(1));
-  int until = (int)Real(Arg(2));
+  BDat from_  = Dat(Arg(1));
+  BDat until_ = Dat(Arg(2));
+  if(from_.IsUnknown() || from_==BDat::NegInf()) { return; }
+  if(until_.IsUnknown() || until_==BDat::PosInf()) { return; }
+  int from  = (int)from_.Value();
+  int until = (int)until_.Value();
   BSyntaxObject* arg     = NIL;
   BSyntaxObject* objCode = NIL;
   int n;
