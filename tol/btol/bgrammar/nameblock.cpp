@@ -224,7 +224,7 @@ void BNameBlock::Clean()
       if( obj->Grammar() == GraCode() ) {
         BUserCode* uCode = UCode(obj);
         BOperator* opr   = GetOperator(uCode);
-        if ( opr->NameBlock() && opr->NameBlock() == this ) {
+        if ( opr && opr->NameBlock() && opr->NameBlock() == this ) {
           opr->PutNameBlock( NULL );
         }
       }
@@ -566,22 +566,24 @@ const BText& BNameBlock::LocalName() const
       for(n=0; n<memberOwner.member_.Size(); n++)
       {
         mbr = memberOwner.member_[n]->member_; 
-        if(mbr->method_) 
+        if(mbr && mbr->method_) 
         { 
           mbr->method_->PutNameBlock(NULL); 
           if(mbr->method_->Mode()==BOBJECTMODE)
           {
             BUserCode* uCode = UCode(mbr->method_);
-            uCode->Contens().Operator()->PutNameBlock(NULL);
+            BOperator* opr = uCode->Contens().Operator();
+            if(opr) { opr->PutNameBlock(NULL); }
           }
         }
-        if(mbr->static_) 
+        if(mbr && mbr->static_) 
         { 
           mbr->static_->PutNameBlock(NULL); 
           if(mbr->isMethod_ && mbr->static_->Mode()==BOBJECTMODE)
           {
             BUserCode* uCode = UCode(mbr->static_);
-            uCode->Contens().Operator()->PutNameBlock(NULL);
+            BOperator* opr = uCode->Contens().Operator();
+            if(opr) { opr->PutNameBlock(NULL); }
           }
         }
       }
@@ -931,7 +933,8 @@ const BText& BNameBlock::LocalName() const
       if(met->Mode()==BOBJECTMODE)
       {
         BUserCode* uCode = UCode(met);
-        uCode->Contens().Operator()->PutNameBlock(this);
+        BOperator* opr = uCode->Contens().Operator();
+        if(opr) { opr->PutNameBlock(this); }
       }
       result = met; 
     } 
@@ -964,7 +967,8 @@ const BText& BNameBlock::LocalName() const
       if(met->Mode()==BOBJECTMODE)
       {
         BUserCode* uCode = UCode(met);
-        uCode->Contens().Operator()->PutNameBlock(this);
+        BOperator* opr = uCode->Contens().Operator();
+        if(opr) { opr->PutNameBlock(this); }
       }
       result = met; 
     } 
@@ -1141,7 +1145,8 @@ bool BNameBlock::add_using_symbol(
       if(met->Mode()==BOBJECTMODE)
       {
         BUserCode* uCode = UCode(met);
-        uCode->Contens().Operator()->PutNameBlock(this);
+        BOperator* opr = uCode->Contens().Operator();
+        if(opr) { opr->PutNameBlock(this); }
       }
       result = met; 
     }
