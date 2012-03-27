@@ -116,13 +116,13 @@ Text GetVersionFromTolProject(Text branch)
     Real If(delay < maxDaysOfDelay, 
     {
       WriteLn(I2("Last TOL updating check TOL was made at ",
-                 "La Ãºltima comprobaciÃ³n de la actualizaciÃ³n de TOL se hizo en ")
+                 "La última comprobación de la actualización de TOL se hizo en ")
               <<tol_release_check);
       -1
     },
     {
       WriteLn(I2("Checking if TOL is updated.",
-                 "Comprobando si TOL estÃ¡ actualizado."));
+                 "Comprobando si TOL está actualizado."));
       Text WriteFile("tol_release_check.tol", 
                      "Date tol_release_check = "+
                      FormatDate(Now,"%cy%Ym%md%dh%hi%is%s")+";\n");
@@ -153,7 +153,7 @@ Text GetVersionFromTolProject(Text branch)
       {
         Real cannot_connect := True;
         WriteLn(msg:=I2("Cannot check TOL release.",
-                        "No se pudo chequear la versiÃ³n de TOL."),"W");
+                        "No se pudo chequear la versión de TOL."),"W");
         -1
       },
       {
@@ -162,33 +162,33 @@ Text GetVersionFromTolProject(Text branch)
         Text official  = Tokenizer(lastOfficialWin, " ")[1];
         Text developm  = Tokenizer(lastDevelopmWin, " ")[1];
         Text ostMsg = I2("The last old-stable version of TOL for windows is ",
-                         "La versiÃ³n estable con mantenimiento mÃ¡s antigua de TOL para windows es ")+
+                         "La versión estable con mantenimiento más antigua de TOL para windows es ")+
                          lastOldStableWin;
         Text ofcMsg = I2("The last official version of TOL for windows is ",
-                         "La Ãºltima versiÃ³n oficial de TOL para windows es ")+
+                         "La última versión oficial de TOL para windows es ")+
                          lastOfficialWin;
         Text devMsg = I2("The last development version of TOL for windows is ",
-                         "La Ãºltima versiÃ³n de desarrollo de TOL para windows es ")+
+                         "La última versión de desarrollo de TOL para windows es ")+
                          lastDevelopmWin;
         Text unkMsg = I2("You are using a too old or unknown TOL version ",
-                         "EstÃ¡ usando una versiÃ³n demasiado vieja "
+                         "Está usando una versión demasiado vieja "
                          "o desconocida de TOL ")+Version+
                          "\n"+ostMsg+
                          "\n"+ofcMsg+
                          "\n"+devMsg;
         Text obsMsg = I2("You have an obsolete TOL version ",
-                         "Su versiÃ³n de TOL estÃ¡ obsoleta ")+
+                         "Su versión de TOL está obsoleta ")+
                          Version+"."+
                          "\n"+ostMsg+
                          "\n"+ofcMsg+
                          "\n"+devMsg+"\n"+
                          I2("Please update it from official web page of TOL ",
-                            "Por favor actualÃ­cela desde la pÃ¡gina oficial "
+                            "Por favor actualícela desde la página oficial "
                             "de TOL ")+ tol_site+"\n";
         Text updMsg = I2("TOL is updated.",
-                         "TOL estÃ¡ actualizado.");
+                         "TOL está actualizado.");
         Text advMsg = I2("CAUTION: You are using an advanced TOL version ",
-                         "CUIDADO: EstÃ¡ usando una versiÃ³n avanzada de TOL ")+Version+".";
+                         "CUIDADO: Está usando una versión avanzada de TOL ")+Version+".";
         Text last = Case
         (
           current==oldStable,  { WriteLn(ostMsg);     lastOldStableWin },
@@ -225,6 +225,6 @@ Text GetVersionFromTolProject(Text branch)
   })
 };
 //////////////////////////////////////////////////////////////////////////////
-PutDescription("Comprueba si hay disponible una versiÃ³n de TOL actualizada.", 
+PutDescription("Comprueba si hay disponible una versión de TOL actualizada.", 
                CheckTOLRelease);
 //////////////////////////////////////////////////////////////////////////////
