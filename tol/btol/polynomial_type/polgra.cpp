@@ -491,27 +491,15 @@ void BPolMatPol::CalcContens()
 
 
 //--------------------------------------------------------------------
-DeclareContensClass(BPol, BPolTemporary, BPolRandStationary);
-DefExtOpr(1, BPolRandStationary, "RandStationary", 1, 2, "Real Real",
-  "(Real d [, Real p = 1])",
-  I2("Returns a random stationary polinomial as \n",
-     "Devuelve un polinomio estacionario aleatorio de la forma \n") +
-     " 1 - C1 * B^p - C2 * B^(2*p) - ... - Cd * B^(d*p).",
-	  BOperClassify::RetardPolynomial_);
-//--------------------------------------------------------------------
-void BPolRandStationary::CalcContens()
+BPol RandStationary(BInt degree, BInt period)
 //--------------------------------------------------------------------
 {
-  BInt degree = (BInt)Real(Arg(1));
-  BInt period = 1;
   BInt n2 = degree/2;
   BInt n1 = degree-2*n2;
   BPol p1 = BPol::One();
   BPol p2 = BPol::One();
   BUniformDist u(-1+2*DEpsilon(),1-2*DEpsilon());
   BDat a, b;
-    
-  if(Arg(2)) { period = (BInt)Real(Arg(2)); }
   BPol BP = BPol::X() ^ period;
   if(n1)
   {
@@ -526,7 +514,25 @@ void BPolRandStationary::CalcContens()
     } while ( (a>=1-b) || (a>=1+b) );
     p2 *= (BPol::One()-b*BP-a*(BP^2));
   }
-  contens_ = p1 * p2;
+  return(p1 * p2);
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BPol, BPolTemporary, BPolRandStationary);
+DefExtOpr(1, BPolRandStationary, "RandStationary", 1, 2, "Real Real",
+  "(Real d [, Real p = 1])",
+  I2("Returns a random stationary polinomial as \n",
+     "Devuelve un polinomio estacionario aleatorio de la forma \n") +
+     " 1 - C1 * B^p - C2 * B^(2*p) - ... - Cd * B^(d*p).",
+	  BOperClassify::RetardPolynomial_);
+//--------------------------------------------------------------------
+void BPolRandStationary::CalcContens()
+//--------------------------------------------------------------------
+{
+  BInt degree = (BInt)Real(Arg(1));
+  BInt period = 1;
+  if(Arg(2)) { period = (BInt)Real(Arg(2)); }
+  contens_ = RandStationary(degree, period);
 }
 
 

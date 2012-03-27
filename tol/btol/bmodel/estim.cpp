@@ -1368,9 +1368,9 @@ static void _covACF_Bartlett(BMat& cov, const BMat& rho, int n, int T, int s_)
 //--------------------------------------------------------------------
 {
   cov.Alloc(n,n);
-  int i,j,k,s;
+  int i,j,k,s=s_;
   BArray<BDat> bf(n);
-  for(s=s_; s>10; s--)
+  for(s=s_; s>=n+1; s--)
   {
     if(Abs(rho.Data()(s-1))>1.E-6) { break; }
   }
@@ -1386,6 +1386,7 @@ static void _covACF_Bartlett(BMat& cov, const BMat& rho, int n, int T, int s_)
     for(i=0; i<n; i++)
     {
       bf(i) = _getACF_BartlettFactor(rho,k,i+1);
+    //Std(BText("\nTRACE _covACF_Bartlett bf(")+i+")="+bf(i))
     }
     for(i=0; i<n; i++)
     {
@@ -1431,27 +1432,16 @@ void BMatARMAACFBartlettCov::CalcContens()
 }
 
 //--------------------------------------------------------------------
-DeclareContensClass(BDat, BDatTemporary, BDatARMAACFBartlettLLH);
-DefExtOpr(1, BDatARMAACFBartlettLLH, "ARMA.ACF.Bartlett.LLH", 4, 4, 
-  "Polyn Polyn Matrix Real",
-  "(Polyn ar, Polyn ma, Matrix acf, Real T)",
-  I2("Calculates the log-likelihood of asymptotic distribution of sample "
-     "autocorrelation of orders from 1 to n of an ARMA noise of size T.",
-     "Calcula la log-verosimilitud de la distribución aintótica "
-     "de las autocorrelaciones muestrales de órdenes 1 a n de un ruido "
-     "ARMA de tamañlo T"),
-	  BOperClassify::Sthocastic_);
-//--------------------------------------------------------------------
-void BDatARMAACFBartlettLLH::CalcContens()
+static BDat ARMAACFBartlettLLH_Theorical(
+  const BPol& ar,
+  const BPol& ma,
+  const BMat& acf,
+  int T,
+  int n,
+  int s)
 //--------------------------------------------------------------------
 {
   static double _05log2pi = 0.5*log(2*3.14159265358979323846);
-  BPol& ar = Pol(Arg(1));
-  BPol& ma = Pol(Arg(2));
-  BMat& acf = Mat(Arg(3));
-  int T = (int)Real(Arg(4));
-  int n = acf.Data().Size();
-  int s = T*2;
   int res;
   BMat rho, rho_, dif, cov, L, eps;
   BDat alpha = 1.0;
@@ -1475,7 +1465,123 @@ void BDatARMAACFBartlettLLH::CalcContens()
     log_det += Log(L(i,i));
     eps_sumSqr += *eps_i * *eps_i;
   }
-  contens_ = -n*_05log2pi-0.5*eps_sumSqr- 0.5*log_det;
+  return(- n*_05log2pi - 0.5*eps_sumSqr - log_det);
+}
+
+//--------------------------------------------------------------------
+static BDat ARMAACFBartlettLLH_Sampling(
+  const BPol& ar,
+  const BPol& ma,
+  const BMat& acf,
+  int T,
+  int n,
+  int s,
+  const BMat& L)
+//--------------------------------------------------------------------
+{
+  static double _05log2pi = 0.5*log(2*3.14159265358979323846);
+  int res;
+  BMat rho, dif, eps;
+  BDat alpha = 1.0;
+  BArray<BDat> gn;
+  int i;
+  
+  ARMAAutoCovarianzeVector(gn,ar,ma,n+1,1);
+  rho = BMatrix<BDat>(n,1,gn.Buffer()+1) / gn[0];
+  dif = acf-rho;
+
+  res = TolBlas::dtrsm(CblasLeft,CblasLower,CblasNoTrans,CblasNonUnit,alpha,
+                           L,dif,eps);
+
+  const BDat* eps_i = eps.Data().Buffer();
+  BDat eps_sumSqr = 0;
+  BDat log_det_L = 0;
+  for(i=0; i<n; i++, eps_i++)
+  {
+    log_det_L += Log(L(i,i));
+    eps_sumSqr += *eps_i * *eps_i;
+  }
+  return(- n*_05log2pi - 0.5*eps_sumSqr - log_det_L);
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatARMAACFBartlettLLH);
+DefExtOpr(1, BDatARMAACFBartlettLLH, "ARMA.ACF.Bartlett.LLH", 4, 4, 
+  "Polyn Polyn Matrix Real",
+  "(Polyn ar, Polyn ma, Matrix acf, Real T)",
+  I2("Calculates the log-likelihood of asymptotic distribution of sample "
+     "autocorrelation acf of an ARMA noise z of size T and equations "
+     "ar(B)*z= ma(B)*e",
+     "Calcula la log-verosimilitud de la distribución aintótica "
+     "de las autocorrelaciones muestrales de un ruido "
+     "ARMA z de tamaño T y ecuaciones  "
+     "ar(B)*z= ma(B)*e"),
+	  BOperClassify::Sthocastic_);
+//--------------------------------------------------------------------
+void BDatARMAACFBartlettLLH::CalcContens()
+//--------------------------------------------------------------------
+{
+  BPol& ar = Pol(Arg(1));
+  BPol& ma = Pol(Arg(2));
+  BMat& acf = Mat(Arg(3));
+  int T = (int)Real(Arg(4));
+  int n = acf.Data().Size();
+  int s = T*2;
+  contens_ = ARMAACFBartlettLLH_Theorical(ar,ma,acf,T,n,s);
+}
+
+
+//--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatARMAACFBartlettLLHRandStationary);
+DefExtOpr(1, BMatARMAACFBartlettLLHRandStationary, 
+  "ARMA.ACF.Bartlett.LLH.RandStationary", 6, 6, 
+  "Real Real Matrix Real Real Real",
+  "(Real p, Real q, Matrix acf, Real T, Real sampleSize, Real exact)",
+  I2("Draws the log-likelihood of asymptotic distribution of sample "
+     "autocorrelation of orders from 1 to n of an ARMA noise of size T."
+     "Generates stationary polynomials AR and MA of degrees p and q "
+     "with uniform distributed modules of roots.",
+     "Simula la log-verosimilitud de la distribución aintótica "
+     "de las autocorrelaciones muestrales de órdenes 1 a n de un ruido "
+     "ARMA de tamaño T.\n"
+     "Genera polinomios AR y MA estacionarios de grados p y q de forma "
+     "uniforme en el módulo de las raíces."),
+	  BOperClassify::Sthocastic_);
+//--------------------------------------------------------------------
+void BMatARMAACFBartlettLLHRandStationary::CalcContens()
+//--------------------------------------------------------------------
+{
+  int p = (int)Real(Arg(1));
+  int q = (int)Real(Arg(2));
+  BMat& acf = Mat(Arg(3));
+  int T = (int)Real(Arg(4));
+  int sampleSize = (int)Real(Arg(5));
+  bool exact = (int)Real(Arg(6));
+  int n = acf.Data().Size();
+  int s = T*2;
+  contens_.Alloc(sampleSize,1);
+  int k;
+  int res;
+  BPol ar, ma;
+  BMat cov, L;
+  if(!exact)
+  {
+    _covACF_Bartlett(cov,acf,n,T,s);
+    res = TolLapack::dpotrf(CblasLower,cov,L);
+  };
+  for(k=0; k<sampleSize; k++)
+  {
+    ar = RandStationary(p,1);
+    ma = RandStationary(q,1);
+    if(exact)
+    {
+      contens_(k,0) = ARMAACFBartlettLLH_Theorical(ar,ma,acf,T,n,s);
+    }
+    else
+    {
+      contens_(k,0) = ARMAACFBartlettLLH_Sampling(ar,ma,acf,T,n,s,L);
+    }
+  }
 }
 
 //--------------------------------------------------------------------
