@@ -985,6 +985,11 @@ BBool InitGrammars(char* calledProgram)
 
   InitRefStructs();
 
+  BStruct* strStructFieldInfo_  = NewStruct("@StructFieldInfo", 
+    "Text:Type,"
+    "Text:Name,"
+    "Text:Description");
+
   TOLHasBeenInitialized_ = true;
   return(initGrammars_);
 }

@@ -34,11 +34,13 @@
 #include <tol/tol_bparser.h>
 #include <tol/tol_bgrammar.h>
 #include <tol/tol_bsymboltable.h>
+#include <tol/tol_btxtgra.h>
 #include <tol/tol_bsetgra.h>
 #include <tol/tol_bcodgra.h>
 #include <tol/tol_bnameblock.h>
 #include <tol/tol_bclass.h>
 
+static BStruct* strStructFieldInfo_  = NULL;
 
 #ifdef CATCH_NON_STANDARD_STRUCT
 ofstream& _non_standard_struct_()
@@ -239,6 +241,7 @@ BInt FieldCmp(const void* any1, const void* any2)
 # define TRACE_Def_StructMember(member,str,name)
 # define TRACE_SHOW_STRUCT_STEP(fun,status,pos,step)
 #endif
+
 
 //--------------------------------------------------------------------
 BStruct::BStruct(const BText& name, bool addToSymbolTable)
@@ -723,4 +726,46 @@ BSyntaxObject* BStruct::Create(BList* lst, const BText& desc)
     ok = false;
   }
   return(ok);
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BSet, BSetTemporary, BStructFields);
+DefExtOpr(1, BStructFields, "StructFields", 1, 1, "Text",
+ "(Text className)",
+ I2("Returns a set with a register of information about each field "
+    " on a structure. The information is returned using structure\n",
+    "Devuelve un conjunto con un registro de información acerca "
+    "de cada uno de los campos de una estructura. La "
+    "información se devuelve usando la estructura:\n")+
+    "  @StructFieldInfo { \n"
+    "    Text Type,\n"
+    "    Text Name,\n"
+    "    Text Description }\n",
+ BOperClassify::System_);
+//--------------------------------------------------------------------
+void BStructFields::CalcContens()
+//--------------------------------------------------------------------
+{
+  static BStruct* strStructFieldInfo_ = NULL;
+  if(!strStructFieldInfo_)
+  {
+    strStructFieldInfo_ = FindStruct("@StructFieldInfo");
+  }
+  assert(strStructFieldInfo_);
+  const BText& strName = Text(Arg(1));
+  BStruct* str = FindStruct(strName);
+  if(!str) { return; }
+  int i;
+  contens_.PrepareStore(str->Size());
+  for(i=0; i<str->Size(); i++)
+  {
+    BField& fld = (*str)[i];
+    BSet reg;
+    reg.PrepareStore(3);
+    reg.AddElement(new BContensText("",fld.GetType(),""));
+    reg.AddElement(new BContensText("",fld.Name(),""));
+    reg.AddElement(new BContensText("","",""));
+    reg.PutStruct(strStructFieldInfo_);
+    contens_.AddElement(new BSetTuple("", reg));
+  }
 }
