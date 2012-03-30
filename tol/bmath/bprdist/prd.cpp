@@ -892,6 +892,195 @@ BDat BTruncatedNormalDist::Varianze	 ()
 }
 
 //--------------------------------------------------------------------
+BDat BTruncatedNormalDist::Random01(
+  BDat lower_, BDat upper_, BDat borderDistance_)
+//--------------------------------------------------------------------
+{
+  double lower = lower_.Value();
+  double upper = upper_.Value();
+  double borderDistance = borderDistance_.Value();
+  double  negInf = BDat::NegInf();
+  double  posInf = BDat::PosInf();
+  double tn;
+  if((lower>negInf)||(upper<posInf))
+  {
+    //Checking different cases
+    //lower = 66.8902; upper = posInf;
+    //upper = -66.8902; lower = negInf;
+
+    //A continuación se generará una N(0,1) truncada estrictamente en el
+    //interior del intevalo de dominio abierto (lower, upper) para evitar
+    //problemas numéricos de frontera.
+
+    //Máximo valor absoluto para el que se usará la distribución N(0,1)
+    double K = 6;
+    //La probabilidad de estar una N(0,1) fuera del intervalo [-K,K] es 
+    //con K=6 es p=1.973175400848959e-009 ~ 1 entre 500 mil millones, por lo que 
+    //es despreciable cualquier valor fuera del mismo y nos evitamos problemas 
+    //numéricos, pues tanto la cumulativa como su inversa funcionan bien 
+    //en este intervalo pero empiezan a fallar a partir de K=8. 
+    //Quizás podría ponerse K=7 pero se toma K=6 por dar un margen y porque
+    //la pérdida de precisión es irrelevante tan lejos de la moda.
+    //Fuera de ahí la distribución se aproximará por la raíz cuadrada de una 
+    //uniforme en el dominio reducido interior al original de tal forma que 
+    //el que el cociente de verosimilitudes entre los extremos sea menor o 
+    //igual a 100, pues en ese rango resulta una buena aproximación de la 
+    //normal truncada y es al mismo tiempo tratable numéricamente.
+    // 
+    //El cociente de densidades entre dos puntos x,y ~ N(0,1) es 
+    // 
+    //  f(x)/f(y) = Exp(-0.5*(x^2-y^2))
+    // 
+    //Si queremos un punto y que sea h veces menos probable que x entonces 
+    // 
+    //  Log(h) = -0.5*(x^2-y^2)
+    //  y^2 = x^2 + 2*Log(h)
+    //
+    //Estas operaciones no comportan riesgos numéricos incluso para valores
+    //muy grandes.
+    double lowMrg = lower;
+    double uppMrg = upper;
+    if(lowMrg>K)
+    { 
+      if(uppMrg>=2*lowMrg) { uppMrg=2*lowMrg; }
+      //Si todo el dominio está por encima de K tomamos como nuevos límites
+      //tentativos los puntos con densidad 1.1 y 110 veces las del límite inferior.
+      //De esta forma el nuevo límite inferior es por construcción 100 veces más 
+      //probable que el superior 
+      double lowMrg_ = sqrt(pow(lowMrg,2) + 2.0 * log(  1.1) );
+      double uppMrg_ = sqrt(pow(lowMrg,2) + 2.0 * log(110.0) );
+      //Si los límites tentativos se salen del dominio hay que meterlos dentro 
+      if(lowMrg_>=upper)
+      {
+        lowMrg = 0.99*lowMrg+0.01*uppMrg;
+        uppMrg = 0.99*uppMrg+0.01*lowMrg;
+      }
+      else 
+      {
+        lowMrg = lowMrg_;
+        if(uppMrg_>=upper)
+        {
+          uppMrg = 0.99*uppMrg+0.01*lowMrg;
+        }
+        else
+        {
+          uppMrg = uppMrg_;
+        }
+      }
+      //Tomamos un r uniforme
+      double r = BUniformDist::Random01().Value();
+      //y calculamos su raíz cuadrada como valor de ponderación de los límites
+      //para forzar puntos más cercanos al nuevo límite inferior.
+      double u = sqrt(r);
+      tn = u*lowMrg + (1.0-u)*uppMrg;
+      if((tn<=lower) ||(tn>=upper))
+      { 
+        Warning(BText("(I) TruncStdGaussian [Case C.1] ")<< 
+          " domain:["<<lower<<","<<upper<<"] -> "<<
+          " interior domain: ["<<lowMrg<<","<<uppMrg<<"] -> "<<tn);
+        return(-1);
+      }
+    }
+    else if(upper<-K)
+    {
+      if(lowMrg<=2*uppMrg) { lowMrg=2*uppMrg; }
+      //Si todo el dominio está por debajo de -K tomamos como nuevos límites
+      //tentativos los puntos con densidad 1.1 y 110 veces las del límite superior.
+      //De esta forma el nuevo límite superior es por construcción 100 veces más 
+      //probable que el inferior 
+      double uppMrg_ = -sqrt(pow(uppMrg,2) + 2.0 * log(  1.1) );
+      double lowMrg_ = -sqrt(pow(uppMrg,2) + 2.0 * log(110.0) );
+      //Si los límites tentativos se salen del dominio hay que meterlos dentro 
+      if(uppMrg_<=lower)
+      {
+        lowMrg = 0.99*lowMrg+0.01*uppMrg;
+        uppMrg = 0.99*uppMrg+0.01*lowMrg;
+      }
+      else 
+      {
+        uppMrg = uppMrg_;
+        if(lowMrg_<=lower)
+        {
+          lowMrg = 0.99*lowMrg+0.01*uppMrg;
+        }
+        else
+        {
+          lowMrg = lowMrg_;
+        }
+      }
+      //Tomamos un r uniforme
+      double r = BUniformDist::Random01().Value();
+      //y calculamos su raíz cuadrada como valor de ponderación de los límites
+      //para forzar puntos más cercanos al nuevo límite inferior.
+      double u = sqrt(r);
+      tn = u*uppMrg + (1.0-u)*lowMrg;
+      if((tn<=lower) ||(tn>=upper))
+      { 
+        Warning(BText("(I) TruncStdGaussian [Case C.2] ") <<
+          " domain:["<<lower<<","<<upper<<"] -> "<<
+          " interior domain: ["<<lowMrg<<","<<uppMrg<<"] -> "<<tn);
+        return(-1);
+      }
+    }
+    else
+    {
+      //Si alguno de los límites cae fuera de [-K,K] hacemos la intersección
+      if(lower<-K) { lowMrg=-K; }
+      if(upper>+K) { uppMrg=+K; }
+      BNormalDist u01(0,1);
+      //Calculamos los cuantiles de la N(0,1) en los extremos
+      double lowF01 = u01.Dist(lowMrg).Value();
+      double uppF01 = u01.Dist(uppMrg).Value();
+      //Calculamos el desplazamiento en la métrica probabilística
+      double difF01 = borderDistance*(uppF01-lowF01);
+      //Desplazamos los límites hacia el interior
+      double lowF01_ = lowF01+difF01;
+      double uppF01_ = uppF01-difF01;
+      //Tomamos un r uniforme
+      double r = BUniformDist::Random01().Value();
+      //Tomamos un u normal truncado en el dominio interior
+      double u = r*uppF01_ + (1.0-r)*lowF01_;
+      //Volvemos a la métrica normalizada   
+      tn = u01.Inverse(u).Value(); 
+      if((tn<=lower) ||(tn>=upper))
+      { 
+        Warning(BText("(I) TruncStdGaussian [Case C.1] ")<<
+          " domain:["<<lower<<","<<upper<<"] -> "<<
+          " Prob domain["<<lowF01<<","<<uppF01<<"] -> "<<
+          " Prob interior domain["<<lowF01_<<","<<uppF01_<<"] -> "<<tn);
+        return(-1);
+      }
+    }
+  }
+  else
+  {
+    tn = BNormalDist::Random01().Value();
+    if((tn<=lower) ||(tn>=upper))
+    { 
+      Warning(BText("(I) TruncStdGaussian [Case D] ")<<
+        I2("(empty interval",
+        "(intervalo vacio")+" ["+BDat(lower).Format("%.16lg")+","+
+                                 BDat(upper).Format("%.16lg")+"])");
+    }
+  }
+  return(tn);
+}
+
+//--------------------------------------------------------------------
+  BDat BTruncatedNormalDist::Random()
+//--------------------------------------------------------------------
+{
+  BDat nu = normal_.Nu();
+  BDat sigma = normal_.Sigma();
+  BDat lower = (A_-nu)/sigma;
+  BDat upper = (B_-nu)/sigma;
+  BDat borderDistance = DEpsilon();
+  BDat tn01 = Random01(lower,upper,borderDistance);
+  BDat tn = sigma*tn01+nu;
+  return(tn);
+}
+
+//--------------------------------------------------------------------
   BClosestInsideDist::BClosestInsideDist(BDat A, BDat B, BDat nu)
 //--------------------------------------------------------------------
 : BTruncatedNormalDist(A, B, nu, DEpsilon()), C_(nu)

@@ -314,6 +314,9 @@ public:
   // Implementation:
   BProbDist& NonTruncated() { return(normal_); }
 
+  static BDat Random01(BDat lower, BDat upper, BDat borderDistance);
+  BDat Random();
+
   BDat Average	 ();
   BDat Varianze	 ();
   BDat Desviation()	  { return(Sqrt(Varianze())); }
