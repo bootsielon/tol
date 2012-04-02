@@ -1,0 +1,5 @@
+
+Set pkg = { Include("pkg.oza") };
+
+Real pkg.num = RequireSetOfPackages(pkg);
+

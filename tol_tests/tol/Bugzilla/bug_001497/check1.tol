@@ -1,0 +1,8 @@
+
+#Require BysMcmc;
+
+Set pkg = RequiredPackages(?);
+
+Real Ois.Store(pkg,"pkg.oza");
+
+
