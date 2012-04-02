@@ -38,7 +38,7 @@
 //When the first part changes new software version is not able to
 //read old OIS files. This will be called a hard change. Then a
 //traslation utility will be available.
-#define OIS_VERSION "02.16"
+#define OIS_VERSION "02.17"
 
 #define OIS_Load_Mode_Header          0 
 #define OIS_Load_Mode_Data            1
@@ -158,11 +158,13 @@ public:
       BText tolVersion_;         //TOL version
       BText tolRelease_;         //TOL release date and time
       BText tolUserLang_;        //TOL user language
+      BArray<BText> globalPackages_;
       TolEngine() 
       : cppCompiler_(), 
         tolVersion_(), 
         tolRelease_(), 
-        tolUserLang_() 
+        tolUserLang_(),
+        globalPackages_() 
       {}
       ~TolEngine() {}
     } tolEngine_;

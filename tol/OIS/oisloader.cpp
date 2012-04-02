@@ -1683,7 +1683,23 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
   BSourcePath::SetCurrent(curSourcePath);
   return(ok);
 }
-
+/*
+//--------------------------------------------------------------------
+  bool BOisLoader::LoadHeader(BSet& info)
+//--------------------------------------------------------------------
+{
+  info.PrepareStore(10);
+  BSet xmlParam;
+  BSet control;
+  BSet options;
+  BSet address;
+  BSet doc;
+  BSet TOLEnvironment;
+  BSet TOLDependencies;
+  BSet RequiredPackages;
+  BSet statistics;
+}
+*/
 //--------------------------------------------------------------------
   bool BOisLoader::Close()
 //--------------------------------------------------------------------

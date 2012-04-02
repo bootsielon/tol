@@ -67,6 +67,16 @@ BTraceInit("oisxml.cpp");
   header_->Print("<tolVersion>%s</tolVersion>\n",                 control_.tolEngine_.tolVersion_.String());
   header_->Print("<tolRelease>%s</tolRelease>\n",                 control_.tolEngine_.tolRelease_.String());
   header_->Print("<tolUserLang>%s</tolUserLang>\n",               control_.tolEngine_.tolUserLang_.String());
+  header_->Print("<globalRequiredPackages>\n");
+  const BRequiredPackage& grp = BNameBlock::GlobalRequiredPackages();
+  int grp_n = grp.CountRequiredPackage();
+  header_->Print("<entries>%ld</entries>\n",grp_n);
+  for(n=1; n<=grp_n; n++)
+  {
+    header_->Print("<package_%ld>%s</package_%ld>\n",
+                   n, grp.GetRequiredPackageVersion(n-1).String(), n);
+  }
+  header_->Print("</globalRequiredPackages>\n");
   header_->Print("</tolEngine>\n");
 
   header_->Print("<typeSizes>\n");
@@ -241,7 +251,6 @@ BTraceInit("oisxml.cpp");
   }
   header_->Print("</filestats>\n");
   header_->Print("</statistics>\n");
-
   header_->Print("</header>\n");
   header_->Flush();
   return(true);
@@ -373,6 +382,19 @@ BTraceInit("oisxml.cpp");
   XMLEnsure(XMLGetNextTagValue(tag_, value_, "tolVersion" )); control_.tolEngine_.tolVersion_   = value_;
   XMLEnsure(XMLGetNextTagValue(tag_, value_, "tolRelease" )); control_.tolEngine_.tolRelease_   = value_;
   XMLEnsure(XMLGetNextTagValue(tag_, value_, "tolUserLang")); control_.tolEngine_.tolUserLang_  = value_;
+  if(control_.oisEngine_.oisVersion_>="02.17")
+  {
+    XMLEnsure(XMLGetNextTagTitle(tag_, "globalRequiredPackages"));
+    XMLEnsure(XMLGetNextTagValue(tag_, value_, "entries")); sscanf(value_,"%d",&m); 
+    control_.tolEngine_.globalPackages_.AllocBuffer(m);
+    for(n=0; n<m; n++)
+    {
+      BText fn = BText("package_")+(n+1);
+      XMLEnsure(XMLGetNextTagValue(tag_, value_, fn)); control_.tolEngine_.globalPackages_[n] = value_;
+    }
+    XMLEnsure(XMLEnsureEndTag("globalRequiredPackages"));
+  }
+
   XMLEnsure(XMLEnsureEndTag   ("tolEngine"));
   if(control_.oisEngine_.oisVersion_>="02.02")
   {
