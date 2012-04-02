@@ -13,7 +13,8 @@ NameBlock Client = [[
 
 Text _.localRoot = TolPackage::_.localRoot +"Client/";
 Text _.defaultPackagePath = GetAbsolutePath( "DefaultPackage" ) + "/";
-Set _.defaultList = Include( "DefaultList.tol" )[1];
+Text _.defaultListFile = GetAbsolutePath( "DefaultList.tol" );
+Set _.defaultList = Copy( Empty );
 
 Set _.versSyncInfo = Copy(Empty);
 //Listado de todos los paquetes disponibles
@@ -1135,6 +1136,7 @@ DefaultFetch.
 Real CheckDefaultPackages( Real verbose )
 ////////////////////////////////////////////////////////////////////////////////
 {
+  Set _.defaultList := Include( _.defaultListFile )[1];
   Set pkgLst = GetDir(_.defaultPackagePath)[ 1 ];
   Set EvalSet( pkgLst, Real( Text pkg ) {
       If( verbose,
