@@ -14,13 +14,13 @@
   Real numErr0 = Copy(NError);
   Real numWar0 = Copy(NWarning);
 
-  Set aux.1 = [[StdLib::Tpa, StdLib::SqlEngine]];
+  Set aux.1 = [[Tpa, SqlEngine]];
   Set aux.2 = [[aux.1, Empty]];
 
   Set ok.all = [[
-    Real ok.1 = SameNameBlock(StdLib::Tpa, StdLib::SqlEngine)==0;
-    Real ok.2 = SameNameBlock(StdLib::SqlEngine, StdLib::SqlEngine)==1;
-    Real ok.3 = SameNameBlock(StdLib::Tpa, aux.1[1]) == 1;
+    Real ok.1 = SameNameBlock(Tpa, SqlEngine)==0;
+    Real ok.2 = SameNameBlock(SqlEngine, SqlEngine)==1;
+    Real ok.3 = SameNameBlock(Tpa, aux.1[1]) == 1;
     Real ok.4 = SameSet(Empty, aux.2[2]) == 1;
     Real ok.5 = SameSet( aux.2[1], aux.2[2]) == 0
   ]];
