@@ -1392,6 +1392,21 @@ bool BRequiredPackage::AddRequiredPackage(const BText& name)
   return(array_[k]);
 }
 
+//--------------------------------------------------------------------
+  BText BRequiredPackage::GetRequiredPackageVersion(int k) const
+//--------------------------------------------------------------------
+{
+  BText pkg = array_[k];
+  BText pkg_ver_expr = BText("\".\"<<")+
+      pkg+"::_.autodoc.version.high << \".\" << "+
+      pkg+"::_.autodoc.version.low";
+//Std(BText("\nTRACE pkg_ver_expr=")+pkg_ver_expr+"\n");
+  BSyntaxObject*  aux = GraText()->EvaluateExpr(pkg_ver_expr);
+  BText pkg_ver = pkg+Text(aux);
+  DESTROY(aux);
+  return(pkg_ver);
+}
+
 
 //--------------------------------------------------------------------
   bool BNameBlock::AddRequiredPackage(const BText& name)
@@ -1875,3 +1890,56 @@ void BDatAddMember::CalcContens()
 }
 
 
+//--------------------------------------------------------------------
+DeclareContensClass(BSet, BSetTemporary, BSetRequiredPackages);
+DefExtOpr(1, BSetRequiredPackages, "RequiredPackages", 1, 1, "Real",
+ "(Real unused)",
+ I2("Returns a set of strings with the extact name and version of "
+    "all currently required packages.",
+    "Devuelve un conjunto de textos con los nombres y versiones "
+    "exactas de todos los paquetes requeridos en el momento de la "
+    "llamada."),
+ BOperClassify::System_);
+//--------------------------------------------------------------------
+void BSetRequiredPackages::CalcContens()
+//--------------------------------------------------------------------
+{
+  int i;
+  BText pkg_ver;
+  BSyntaxObject* aux;
+  const BRequiredPackage& grp = BNameBlock::GlobalRequiredPackages();
+  int n = grp.CountRequiredPackage();
+  contens_.PrepareStore(n);
+  for(i=0; i<n; i++)
+  {
+    pkg_ver = grp.GetRequiredPackageVersion(i);
+    contens_.AddElement(new BContensText("",pkg_ver,""));
+  }
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatRequireSetOfPackages);
+DefExtOpr(1, BDatRequireSetOfPackages, "RequireSetOfPackages", 1, 1, "Set",
+ "(Set packages)",
+ I2("Requires a list of packages. Returns the number of true loaded "
+    "packages.",
+    "Requiere una lista de paquetes. Devuelve el número de paquetes "
+    "que realmente se han podido cargar o ya lo estaban."),
+ BOperClassify::System_);
+//--------------------------------------------------------------------
+void BDatRequireSetOfPackages::CalcContens()
+//--------------------------------------------------------------------
+{
+  const BSet& pkg = Set(Arg(1));
+  int i;
+  int k = 0;
+  for(i=1; i<=pkg.Card(); i++)
+  {
+    if(pkg[i]->Grammar() == GraText())
+    {
+      BSyntaxObject* loaded = BPackage::Load(Text(pkg[i]),true);
+      if(loaded) { k++; }
+    }
+  }
+  contens_ = k;
+}

@@ -59,6 +59,7 @@ public:
   bool AddRequiredPackage(const BText& name);
   int CountRequiredPackage() const;
   const BText& GetRequiredPackage(int k) const;
+  BText GetRequiredPackageVersion(int k) const;
 };
 
 //--------------------------------------------------------------------
@@ -109,6 +110,7 @@ public:
   static BSyntaxObject* UsingMember(const BText& memberName);
   static BSyntaxObject* UsingMember(const BObjClassify&  oc, const BText& memberName);
   static BList* Select(BList* lst, const BObjClassify&  oc);
+  static const BRequiredPackage& GlobalRequiredPackages() { return globalRequiredPackages_; }
 
   BNameBlock();
   BNameBlock(const BText& fullName, const BText& localName);
