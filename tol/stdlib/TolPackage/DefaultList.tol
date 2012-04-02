@@ -1,5 +1,8 @@
 [[
   // Name,         Require
-  StdLib         = [[ 1 ]]/*;
-                            GuiTools       = [[ 0 ]]*/
+  /* */
+  GuiTools       = [[ 0 ]];
+  /* */
+  StdLib         = [[ 1 ]]
+  /* */
 ]]
