@@ -205,7 +205,7 @@ Text GetVersionFromTolProject(Text branch)
       });
       Real ok = If(check==0, 1,
       {
-        Text If(!cannot_connect,
+        Set If(!cannot_connect,
           Set Tcl_EvalEx( [[ "tk_messageBox",
                              "-title", "Check TOL Release",
                              "-message", msg,
