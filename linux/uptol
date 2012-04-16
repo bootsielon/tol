@@ -6,7 +6,7 @@
 . ./shflags
 
 # define a 'prefix' command-line string flag
-DEFINE_string 'prefix' '/usr/local/tol31' 'location to install' 'p'
+DEFINE_string 'prefix' '/usr/local/tol32' 'location to install' 'p'
 DEFINE_string 'withtcl' '/usr/lib/tcl8.4' 'location of tclConfig.sh' 't'
 
 # parse the command-line
@@ -30,7 +30,10 @@ popd
 
 pushd ../tolsh
 ./build.sh
-sudo cp Linux/tolsh3.1 ${FLAGS_prefix}/bin/tolsh
+sudo cp Linux/tolsh3.2 ${FLAGS_prefix}/bin/tolsh
 popd
 
+# first execution of TOL under current user is to create tolcore.oza
+${FLAGS_prefix}/bin/tolsh -c "Real 1"
+# this execution is to download last version of default packages
 sudo ${FLAGS_prefix}/bin/tolsh -c "TolPackage::Client::DefaultFetch(?)"
