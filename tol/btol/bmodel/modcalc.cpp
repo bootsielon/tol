@@ -32,6 +32,7 @@
 #include <tol/tol_bprdist.h>
 #include <tol/tol_bsparse.h>
 #include <tol/tol_bsvdsep.h>
+#include <tol/tol_bar.h>
 
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_nan.h>
@@ -1002,8 +1003,8 @@ void BModel::GetParameter()
 //TRZ(ar_);TRZ(ma_);
   for(i=0; i<arma_.factor_.Size(); i++)
   {
-    bool arOk = arma_.factor_(i).ar_.IsStationary();
-    bool maOk = arma_.factor_(i).ma_.IsStationary();
+    bool arOk = IsStationary(arma_.factor_(i).ar_);
+    bool maOk = IsStationary(arma_.factor_(i).ma_);
     Std(BText("\nStationary?[")<<(arOk?"YES":"NOT")<<"] AR("<<arma_.factor_(i).s_<<")="<<arma_.factor_(i).ar_.Name());
     Std(BText("\nStationary?[")<<(maOk?"YES":"NOT")<<"] MA("<<arma_.factor_(i).s_<<")="<<arma_.factor_(i).ma_.Name());
   }
@@ -1103,8 +1104,8 @@ void BModel::PutParameter(const BArray<BDat>& p)
 //TRZ(ar_);TRZ(ma_);
   for(i=0; i<arma_.factor_.Size(); i++)
   {
-    bool arOk = arma_.factor_(i).ar_.IsStationary();
-    bool maOk = arma_.factor_(i).ma_.IsStationary();
+    bool arOk = IsStationary(arma_.factor_(i).ar_);
+    bool maOk = IsStationary(arma_.factor_(i).ma_);
     Std(BText("\nStationary?[")<<(arOk?"YES":"NOT")<<"] AR("<<arma_.factor_(i).s_<<")="<<arma_.factor_(i).ar_.Name());
     Std(BText("\nStationary?[")<<(maOk?"YES":"NOT")<<"] MA("<<arma_.factor_(i).s_<<")="<<arma_.factor_(i).ma_.Name());
   }
@@ -1296,7 +1297,7 @@ BPolStationaryFunction::BPolStationaryFunction(BPolyn<BDat>& pol,
 BDat BPolStationaryFunction::GetValue()
 //--------------------------------------------------------------------
 {
-  BDat y = p_.StationaryValue(BTRUE);
+  BDat y = StationaryValue(p_);
 //Std(BText("\nS(")+p_.Name()+")="+(y-1));
   return(y-1);
 };

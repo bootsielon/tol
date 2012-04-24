@@ -103,7 +103,7 @@ BBool InverseNonStationaryRoots(BPolyn<BDat>& p,
     }
     else
     {
-	ok = p.IsStationary();
+	ok = IsStationary(p);
     }
     if(changed && name.HasName())
     {
@@ -179,7 +179,7 @@ BDat ProbUnitRoot(const BArray <BDat>& z,
 	rNU = choCOV*r;
 	rAr[0].PutCoef(1);
 	for(i=0; i<q-d; i++) { rAr[i+1].PutCoef(-(rNU(i,0)+NU(i,0))); }
-	if(rAr.IsStationary()) { prob+=1; }
+	if(IsStationary(rAr)) { prob+=1; }
     }
     detChoCOV = 1;
     for(i=0; i<q-d; i++) { detChoCOV *= choCOV(i,i); }

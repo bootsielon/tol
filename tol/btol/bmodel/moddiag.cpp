@@ -32,6 +32,7 @@
 #include <tol/tol_bprdist.h>
 #include <tol/tol_bmultvar.h>
 #include <tol/tol_bsetgra.h>
+#include <tol/tol_bar.h>
 
 //--------------------------------------------------------------------
 // INICIALIZATION
@@ -467,7 +468,7 @@ BInt BModel::UnitRootsProbTest(BInt n)
 	{ factors[j][k].PutCoef(-simula(0,i)); }
 //	  Std(BText("\nFactor[")+j+"]"+factors[j].Name() +
 //		  " Stationary = " + factors[j].Stationary());
-	if(!(factors[j].IsStationary())) { unarys[j]+=1; }
+	if(!(IsStationary(factors[j]))) { unarys[j]+=1; }
       }
     }
     x = 0;

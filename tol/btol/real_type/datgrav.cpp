@@ -39,6 +39,7 @@
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bdtegra.h>
 #include <tol/tol_bnameblock.h>
+#include <tol/tol_bar.h>
 #ifdef __USE_TC__
 #  include <tol/tol_bctmigra.h>
 #  include <tol/tol_bctmsgra.h>
@@ -1310,8 +1311,8 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
 
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatIsStationary);
-  DefExtOpr(1, BDatIsStationary, "IsStationary", 1, 1, "Polyn",
-  "(Polyn pol)",
+  DefExtOpr(1, BDatIsStationary, "IsStationary", 1, 2, "Polyn Real",
+  "(Polyn pol [, Real tolerance=MachineEpsilon])",
   I2("Returns true if all the roots of the polynomial are would be of the "
      "unit circle.",
      "Devuelve verdadero si todas las raíces del polinomio están fuera del "
@@ -1320,9 +1321,10 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
   void BDatIsStationary::CalcContens()
 //--------------------------------------------------------------------
 {
-  BPol p = Pol(Arg(1));
-  p.Aggregate();
-  contens_ = p.IsStationary();
+  BPol& p = Pol(Arg(1));
+  BDat t;
+  if(Arg(2)) { t = Dat(Arg(2)); }
+  contens_ = IsStationary(p,t);
 }
 
 
@@ -1338,13 +1340,14 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
   void BDatPolPeriod::CalcContens()
 //--------------------------------------------------------------------
 {
-  contens_ = Pol(Arg(1)).Period();
+  BPol& p = Pol(Arg(1));
+  contens_ = p.Period();
 }
 
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatStationaryValue);
-  DefExtOpr(1, BDatStationaryValue, "StationaryValue", 1, 1, "Polyn",
-  "(Polyn pol)",
+  DefExtOpr(1, BDatStationaryValue, "StationaryValue", 1, 2, "Polyn Real",
+  "(Polyn pol [, Real tolerance=MachineEpsilon])",
   I2("Returns a measure of the distence to the unit circle of the "
      "polynomial roots .",
      "Devuelve una medida de la distancia al círculo unidad de las raíces de "
@@ -1353,7 +1356,12 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
   void BDatStationaryValue::CalcContens()
 //--------------------------------------------------------------------
 {
-  contens_ = Pol(Arg(1)).StationaryValue(BFALSE);
+  BPol& p = Pol(Arg(1));
+  BDat toleranceBase;
+  BDat tolerance;
+  if(Arg(2)) { toleranceBase = Dat(Arg(2)); }
+  bool isStationary;
+  contens_ = StationaryValue(p,toleranceBase,tolerance,isStationary);
 }
 
 
@@ -1412,7 +1420,7 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
       pk -= BMonome<BDat>(Pk(i,0),i+1);
     }
     pk.Aggregate();
-    BInt ok = pk.IsStationary();
+    BInt ok = IsStationary(pk);
 //  Std(BText("\n")+(ok?" OK   ":" FAIL ")+pk.Name());
     sumOk += ok;
   }

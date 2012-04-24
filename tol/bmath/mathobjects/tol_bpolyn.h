@@ -97,10 +97,6 @@ public:
   void Aggregate();
   void ChangeBF(const BPolyn<Any>& pol);
   void InverseRoots(const BPolyn<Any>& pol);
-  BPolyn<Any> NextSchur() const;
-  Any    Schur(BBool complete) const;
-  Any    StationaryValue(BBool complete) const;
-  BBool IsStationary() const;
 
   BBool IsKnown() const {
       for(int i=0; i<this->Size(); i++)
@@ -347,63 +343,6 @@ void BPolyn<Any>::InverseRoots(const BPolyn<Any>& pol)
   }
 }
 
-//--------------------------------------------------------------------
-template <class Any>
-BPolyn<Any> BPolyn<Any>::NextSchur() const
-//--------------------------------------------------------------------
-{
-//Std(BText("\nTRACE  NextSchur 1 this=")+Name());
-  BInt n = Degree();
-  BArray<Any> a(n+1); 
-  int k;
-  for(k=0; k<=n; k++) { a[k] = Coef(k); }
-  Any a0  = a[0];
-  Any an  = a[n];
-  Any c;
-//Std(BText("\na[0]: ")+a0.Name()+"; a[n]:"+an.Name());
-  BPolyn<Any> next;
-  next.ReallocBuffer(n);
-  for(k=0; k<n; k++)
-  {
-    c = an*a[k+1] - a0*a[n-k-1];
-    next(k).PutCoef(c);
-    next(k).PutDegree(k);
-  //Std(BText("\na[k+1]: ")+a[k+1].Name()+"; a[n-k-1]:"+a[n-k-1].Name()+"; next(i-1):"+c.Name());
-  }
-//Std(BText("\nTRACE NextSchur 2 next=")+next.Name());
-  next.Aggregate();
-//Std(BText("\nNextSchur 3 next=")+next.Name());
-//if(next.Degree()>0) { next /= next.Coef(next.Degree()); }
-//Std(BText("\nTRACE NextSchur 4 next=")+next.Name());
-  return(next);
-}
-
-
-//--------------------------------------------------------------------
-template <class Any>
-Any BPolyn<Any>::Schur(BBool complete) const
-
-/*! Returns a value great than 1 if there are no roots out of
- *  the unit circle
- */
-//--------------------------------------------------------------------
-{
-//Std(BText("\nTRACE  Schur : ")+Name()); 
-  int s = this->Size();
-  int n = this->Degree();
-  if(s==1) { return(2); }
-  Any a0 = Abs(this->Coef(0));
-  Any an = Abs(this->Coef(n));
-  Any v = 1.0+(an-a0)/(an+a0);
-  if((!complete && (v<=1)) || (s==2))
-  {
-    return(v);
-  } 
-  else 
-  {
-    return(NextSchur().Schur(complete));
-  }
-}
 
 //--------------------------------------------------------------------
 template <class Any>
@@ -420,57 +359,6 @@ BInt BPolyn<Any>::Period() const
     if(deg) { gcd = boost::math::gcd(gcd,deg); }
   }
   return(gcd);
-}
-
-//--------------------------------------------------------------------
-template <class Any>
-Any BPolyn<Any>::StationaryValue(BBool complete) const
-
-/*! Returns a value great than 1 if there are no roots inside
- *  the unit circle
- */
-//--------------------------------------------------------------------
-{
-//Std(BText("\nTRACE  StationaryValue : ")+Name());
-  int s = this->Size();
-  int n = this->Degree();
-  if(s==1)
-  {
-    if(n==0) { return(2); }
-    else     { return(0); }
-  }
-  int i, j;
-  int deg;
-  Any coef;
-  BPolyn sym;
-  int gcd = Period();
-//Std(BText("\nTRACE  StationaryValue  gcd=")+gcd);
-  int m = n/gcd;
-  sym.ReallocBuffer(s);
-  for(i=0; i<s; i++)
-  {
-    j = s-1-i;
-    deg  = (*this)(i).Degree();
-    coef = (*this)(i).Coef();
-    sym(j).PutDegree(m-deg/gcd);
-    sym(j).PutCoef(coef);
-  }
-  return(sym.Schur(complete));
-}
-
-
-//--------------------------------------------------------------------
-template <class Any>
-BBool BPolyn<Any>::IsStationary() const
-
-/*! Returns true if all roots in this polyn are outside of the unit
- *  circle
- */
-//--------------------------------------------------------------------
-{
-  if(this->Size  ()==0) { return(BFALSE); }
-  if(this->Degree()==0) { return(BTRUE); }
-  else { return(this->StationaryValue(BFALSE)>1); }
 }
 
 

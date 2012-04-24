@@ -66,5 +66,15 @@ void IdentifyAutoRegIntegrated(const BArray <BDat>& z,
 			       BPolyn<BDat>&  ar,
 			       BInt	     period=1);
 
+BDat StationaryValue(
+  const BPolyn<BDat>& pol, 
+  BDat toleranceBase, 
+  BDat& tolerance, 
+  bool& isStationary);
+bool IsStationary(const BPolyn<BDat>& pol, BDat& tolerance);
+BDat StationaryValue(const BPolyn<BDat>& pol);
+bool IsStationary(const BPolyn<BDat>& pol);
+
+
 
 #endif	// TOL_BAR_H

@@ -297,3 +297,121 @@ void IdentifyAutoRegIntegrated(const BArray <BDat>& z,
     BArray<BDat>	w;
     IdentifyAutoRegIntegrated(z,err,s,sw,w,dif,ar,period);
 }
+
+//--------------------------------------------------------------------
+BArray<BDat> NextSchur(const BArray<BDat>& pol)
+//--------------------------------------------------------------------
+{
+  int k, s = pol.Size();
+  BArray<BDat> b(s-1);
+  b.AllocBuffer(s-1);
+  double* B  = (double*)b.GetBuffer();
+  const double* A  = (const double*)pol.Buffer();
+  const double* A_ = (const double*)pol.Buffer()+s-1;
+  double a = *A; 
+  double a_ = *A_;
+  double c = a / a_;
+/* * /
+  Std(BText("\nNextSchur a0=")+a+" an="+a_+" c="+c);
+  if(BDat(c).IsUnknown())
+   printf("");
+/* */
+  A++;
+  A_--;
+  for(k=0; k<s-1; k++, A++, A_--, B++)
+  {
+    *B = (*A - c * *A_);
+  }
+  return(b);
+}
+
+//--------------------------------------------------------------------
+BDat SchurValue(const BArray<BDat>& a, BDat toleranceBase, BDat& tolerance, bool &isSchur)
+//--------------------------------------------------------------------
+{
+  int sld = sizeof(long double);
+  int s = a.Size();
+  BDat a0 = Abs(a[0]);
+  BDat an = Abs(a[s-1]);
+  BDat sv = (2*an)/(an+a0);
+  isSchur = an-a0 > tolerance;
+/* * /
+//Std(BText("\nSchurValue a=")); for(int k=0; k<s; k++) { Std(BText("|")+a[k]); }
+  Std(BText("\nSchurValue tolerance=")+tolerance+" a0=")+a0+" an="+an+" sv="+sv+" isSchur="+isSchur);
+/* */
+  if(!isSchur || (s==2))
+  {
+    return(sv);
+  } 
+  else 
+  {
+    tolerance += toleranceBase*(1+2*(s-1));
+    return(SchurValue(NextSchur(a),toleranceBase,tolerance,isSchur));
+  }
+}
+
+
+//--------------------------------------------------------------------
+BDat StationaryValue(
+  const BPolyn<BDat>& pol, 
+  BDat toleranceBase, 
+  BDat& tolerance, 
+  bool& isStationary)
+//--------------------------------------------------------------------
+{
+  
+  if(toleranceBase.IsUnknown() || toleranceBase<0) { toleranceBase = DEpsilon(); }
+  tolerance = toleranceBase;
+  int i,j, deg;
+  BDat coef;
+  int s = pol.Size();
+  int n = pol.Degree();
+  if(s==1)
+  {
+    if(n==0) { isStationary=true;  return(2); }
+    else     { isStationary=false; return(0); }
+  }
+  int gcd = pol.Period();
+  int m = n/gcd;
+  BArray<BDat> a(BDat(0),m+1);
+  for(i=0; i<s; i++)
+  {
+    j = s-1-i;
+    deg  = pol(i).Degree();
+    coef = pol(i).Coef();
+    a[m-deg/gcd] = coef;
+  }
+  BDat sv = SchurValue(a,toleranceBase,tolerance,isStationary);
+  if(sv.IsUnknown())
+  {
+    Warning("StationaryValue returns unknown value.");
+  }
+  return(sv);  
+}
+
+//--------------------------------------------------------------------
+bool IsStationary(const BPolyn<BDat>& pol, BDat& tolerance)
+//--------------------------------------------------------------------
+{
+  bool isStationary;
+  BDat toleranceBase = tolerance;
+  BDat sv = StationaryValue(pol,toleranceBase,tolerance,isStationary); 
+  return(isStationary);
+}
+
+//--------------------------------------------------------------------
+BDat StationaryValue(const BPolyn<BDat>& pol)
+//--------------------------------------------------------------------
+{
+  BDat tolerance, toleranceBase = BDat::Unknown();
+  bool isStationary;
+  return(StationaryValue(pol,toleranceBase,tolerance,isStationary));
+}
+
+//--------------------------------------------------------------------
+bool IsStationary(const BPolyn<BDat>& pol)
+//--------------------------------------------------------------------
+{
+  BDat tolerance = BDat::Unknown();
+  return(IsStationary(pol,tolerance));
+}

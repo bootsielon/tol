@@ -34,6 +34,7 @@
 #include <tol/tol_butil.h>
 #include <tol/tol_bvmat.h>
 #include <tol/tol_bratgra.h>
+#include <tol/tol_bar.h>
 
 //--------------------------------------------------------------------
 // static variables
@@ -329,7 +330,7 @@ void ARMABackastingHist(const BRational <BDat>& R,
   MatForwardDifEq  (Q, E,     ZEROm, Z<<ZF, ZB);
   MatBackwardDifEq (R, ZEROp, ZB<<Z, ZEROq, A0A);
 
-  if(ar.IsStationary() && ma.IsStationary())
+  if(IsStationary(ar) && IsStationary(ma))
   {
     BMatrix<BDat> oldA0A;
     BDat maxDif = 0;
@@ -699,7 +700,7 @@ BSymMatrix<BDat> ARMAAutoCovarianze(const BPolyn<BDat> ar,
 {
   int i, j;
   BArray<BDat> gn;
-//BBool isStationary = ar.IsStationary() && ma.IsStationary();
+//BBool isStationary = IsStationary(ar) && IsStationary(ma);
   ARMAAutoCovarianzeVector(gn, ar, ma, n0, sigma);
   BSymMatrix<BDat> G(n0);
   for(i=0; i<n0; i++)
@@ -1282,8 +1283,8 @@ void BARIMA::OutputDataUpdated()
   {
     BPolyn<BDat> ar_i = factor_(i).ar_; ar_i.Aggregate();
     BPolyn<BDat> ma_i = factor_(i).ma_; ma_i.Aggregate();
-    arOk = arOk && ar_i.IsStationary();
-    maOk = maOk && ma_i.IsStationary();
+    arOk = arOk && IsStationary(ar_i);
+    maOk = maOk && IsStationary(ma_i);
   }
   bool ok = arOk && maOk;
   if(!ok)
@@ -1296,8 +1297,8 @@ void BARIMA::OutputDataUpdated()
       BPolyn<BDat> ma_i = factor_(i).ma_;
       ar_i.Aggregate();
       ma_i.Aggregate();
-      bool arOk = ar_i.IsStationary()!=0;
-      bool maOk = ma_i.IsStationary()!=0;
+      bool arOk = IsStationary(ar_i)!=0;
+      bool maOk = IsStationary(ma_i)!=0;
       Std(BText("\nStationary?[")<<(arOk?"YES":"NOT")<<"] AR("<<factor_(i).s_<<")="<<factor_(i).ar_.Name());
       Std(BText("\nStationary?[")<<(maOk?"YES":"NOT")<<"] MA("<<factor_(i).s_<<")="<<factor_(i).ma_.Name());
     }
