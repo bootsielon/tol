@@ -1372,7 +1372,8 @@ static void _covACF_Bartlett(BMat& cov, const BMat& rho, int n, int T, int s_)
   BArray<BDat> bf(n);
   for(s=s_; s>=n+1; s--)
   {
-    if(Abs(rho.Data()(s-1))>1.E-6) { break; }
+    BDat r = _getACF(rho,s);
+    if(Abs(r)>1.E-6) { break; }
   }
   for(i=0; i<n; i++)
   {
