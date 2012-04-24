@@ -162,6 +162,7 @@
 #pragma include_alias(<tol/tol_spamat.hpp>, <tol_spamat.hpp>)
 #pragma include_alias(<tol/tol_symmat.hpp>, <tol_symmat.hpp>)
 #pragma include_alias(<tol/tol_utrimat.hpp>, <tol_utrimat.hpp>)
+#pragma include_alias(<tol/tol_fftw.h>, <tol_fftw.h>)
 
 //------------------------------------------
 // Includes for TC: Continuous Time Project
