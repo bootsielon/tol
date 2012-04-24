@@ -55,6 +55,7 @@
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_statistics.h>
 #include <gsl/gsl_math.h>
+#include <tol/tol_fftw.h>
 
 #include "gsl_ext.h"
 
@@ -3216,16 +3217,22 @@ void BMatConcatCol::CalcContens()
   }
   contens_.Alloc(numRow, numCol);
   if(contens_.Rows()!=numRow) { return; }
+  double* c = (double*)contens_.GetData().GetBuffer();
   for(i=1; i<=numMat; i++)
   {
     DMat& Mi = dMat(Arg(i));
-    if(Mi.Columns() && (Mi.Rows()==numRow))
+    int aRow = Mi.Rows();
+    int aCol = Mi.Columns();
+    if(aCol && (aRow==numRow))
     {
-      for(j=0; j < Mi.Columns(); j++, k++)
+      const double* a = Mi.Data().Buffer();
+      for(j=0; j < aCol; j++, k++)
       {
-        for(l=0; l < numRow; l++)
+        double* ck = c+k;
+        const double* aj = a+j;
+        for(l=0; l < numRow; l++, ck+=numCol, aj+=aCol)
         {
-          b2dMat(contens_)(l,k)=Mi(l,j);
+          *ck = *aj;
         }
       }
     }
@@ -3267,7 +3274,9 @@ void BMatConcatRow::CalcContens()
   for(i=1; i<=numMat; i++)
   {
     BMat& Mi = Mat(Arg(i));
-    if(Mi.Rows() && (Mi.Columns()!=numCol))
+    int aRow = Mi.Rows();
+    int aCol = Mi.Columns();
+    if(aRow && (aCol!=numCol))
     {
       Error(I2("Wrong number of columns for ConcatRows ( or << "
                "operator ) in argument number ",
@@ -3280,11 +3289,19 @@ void BMatConcatRow::CalcContens()
   }
   contens_.Alloc(numRow, numCol);
   if(contens_.Rows()!=numRow) { return; }
+  double* c = (double*)contens_.GetData().GetBuffer();
   for(i=1; i <= numMat; i++) 
   {
     DMat& Mi = dMat(Arg(i));
-    if(Mi.Rows() && (Mi.Columns()==numCol))
+    int aRow = Mi.Rows();
+    int aCol = Mi.Columns();
+    if(aRow && (aCol==numCol))
     {
+      const double* a = Mi.Data().Buffer();
+      int aLen = aRow*aCol;
+      memcpy(c,a,aLen*sizeof(double));
+      c+=aLen;
+/*
       for(j=0; j < Mi.Rows(); j++, k++) 
       {
         for(l=0; l < numCol; l++) 
@@ -3292,6 +3309,7 @@ void BMatConcatRow::CalcContens()
           b2dMat(contens_)(k,l)=Mi(j,l); 
         } 
       }
+*/
     }
   }
 }
@@ -4424,6 +4442,33 @@ void BMatSeriesStatistic::PutArgs(BSyntaxObject* ser,
     fin_=fin;
 }
 
+
+//--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatMatAutoCor);
+DefExtOpr(1, BMatMatAutoCor,   "MatAutoCor", 2, 2, "Matrix Real",
+  "(Matrix M, Real n)",
+  I2("Returns the sample autocorrelations vector of dimension n of a vector.",
+     "Devuelve el vector de autocorrelaciones muestrales de dimension n de "
+     "un vector."),
+    BOperClassify::Statistic_);
+//--------------------------------------------------------------------
+void BMatMatAutoCor::CalcContens()
+//--------------------------------------------------------------------
+{
+  const BMat& M = Mat(Arg(1));
+  BInt  order = (BInt)Real(Arg(2));
+  contens_.Alloc(order,3);
+  if(contens_.Rows()!=order) { return; }
+  BDat sigma = 1/Sqrt(M.Data().Size());
+  BArray<BDat> c(order);
+  AutoCor(M.Data(), c, order, 1);
+  for(BInt i=0; i<order; i++)
+  {
+    contens_(i,0)=i+1;
+    contens_(i,1)=c(i);
+    contens_(i,2)=sigma;
+  }
+}
 
 //--------------------------------------------------------------------
 DeclareMatSeriesStatisticClass(BMatAutoCov);
@@ -7181,3 +7226,72 @@ void BMatReplace::CalcContens()
 }
 
 
+//--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMat_fftw_dft_1d);
+DefExtOpr(1, BMat_fftw_dft_1d, "fftw_dft_1d", 2, 2, 
+  "Matrix Real",
+  "(Matrix data, Real sign)",
+  I2("API for fast Fourier transformation routines over free size complex "
+  "data from FFTW library.\n"
+  "Argument <data> has two columns storing real and imaginary parts "
+  "respectively.\n"
+  "Argument <sign> can be 1 for direct transform or -1 for inverse transform\n"
+  "See more on:\n",
+  "API para las rutinas de la librería GSL para la transformada rápida de "
+  "Fourier sobre datos reales de cualquier tamaño.\n" 
+  "El argumento <data> tiene dos columnas que almacenan la parte real y la "
+  "imaginaria respectivamente.\n"
+  "El argumento <sign> puede ser 1 para la transformación directa ó -1 para la inversa \n"
+  "Ver más en:\n")+
+  "http://www.gnu.org/software/gsl/manual/html_node/"
+     "Mixed-radix FFT routines for complex data.html",
+  BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BMat_fftw_dft_1d::CalcContens()
+//--------------------------------------------------------------------
+{
+  BMat& data = Mat(Arg(1));
+  int sign = (int)Real(Arg(2));
+  tol_fftw_dft_1d(data,contens_, sign);
+};
+
+
+//--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatComplexProdByCell);
+DefExtOpr(1, BMatComplexProdByCell, "ComplexProdByCell", 2, 2, 
+  "Matrix Matrix",
+  "(Matrix A, Matrix B)",
+  I2(
+  "Computes cell by cell complex product of two real matrices.\n"
+  "Argument <A> and <B> have two columns storing real and imaginary parts "
+  "respectively.\n",
+  "Calcula el producto complejo celda a celda de dos matrices reales.\n"
+  "Los argumentos <> y <B> tienen dos columnas que almacenan la parte real "
+  "y la imaginaria respectivamente.\n"),
+  BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BMatComplexProdByCell::CalcContens()
+//--------------------------------------------------------------------
+{
+  DMat& A = dMat(Arg(1));
+  DMat& B = dMat(Arg(2));
+  int i,n=A.Rows();
+  contens_.Alloc(n,2);
+  double* a = A.GetData().GetBuffer();
+  double* b = B.GetData().GetBuffer();
+  double* c = (double*)contens_.GetData().GetBuffer();
+  for(i=0; i<n; i++)
+  {
+    double &aR = *(a++);
+    double &aI = *(a++);
+    double &bR = *(b++);
+    double &bI = *(b++);
+    double &cR = *(c++);
+    double &cI = *(c++);
+    cR = aR*bR-aI*bI;
+    cI = aR*bI+aI*bR;
+  }
+}
+
+
+/* */
