@@ -822,39 +822,47 @@ void AutoCov(const BArray<BDat>& vec,
  */
 //--------------------------------------------------------------------
 {
-  BInt i,t;
+  BInt i,t,m=vec.Size();
   cov.ReallocBuffer(order);
+  const BDat* vec_ = vec.Buffer();
+  const BDat* vec_t;
+  const BDat* vec_ti;
+  BDat* cov_ = cov.GetBuffer();
   if(vec.Size()>1)
   {
     if(demean==1)
     {
 	    BDat avr = Average(vec);
-      for(i = 0; i<order; i++)
+      for(i = 0; i<order; i++, cov_++)
 	    {
-	      cov(i)=0;
-	      for(t=i; t<vec.Size(); t++)
+	      *cov_=0;
+        vec_t = vec_+i;
+        vec_ti = vec_;
+	      for(t=i; t<vec.Size(); t++, vec_t++, vec_ti++)
 	      {
-		      if(vec(t).IsKnown()&&vec(t-i).IsKnown()) 
+		      if(vec_t->IsKnown()&&vec_ti->IsKnown()) 
 		      {
-		        cov(i)+= (vec(t)-avr)*(vec(t-i)-avr); 
+		        *cov_+= (*vec_t-avr)*(*vec_ti-avr); 
 		      }
 	      }
-	      cov(i)/=BDat(vec.Size());
+	      *cov_/=m;
 	    }
     }
     else
     {
-	    for(i = 0; i<order; i++)
+	    for(i = 0; i<order; i++, cov_++)
 	    {
-	      cov(i)=0;
-	      for(t=i; t<vec.Size(); t++)
+	      *cov_=0;
+        vec_t = vec_+i;
+        vec_ti = vec_;
+	      for(t=i; t<vec.Size(); t++, vec_t, vec_ti)
 	      {
-		      if(vec(t).IsKnown()&&vec(t-i).IsKnown()) 
+		      if(vec_t->IsKnown()&&vec_ti->IsKnown()) 
 		      {
-		        cov(i)+= vec(t)*vec(t-i); 
+		        *cov_+= *vec_t * *vec_ti; 
 		      }
 	      }
-	      cov(i)/=BDat(vec.Size());
+	      *cov_/=m;
 	    }
 	  }
   }
