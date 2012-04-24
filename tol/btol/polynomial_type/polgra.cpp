@@ -476,17 +476,18 @@ DefExtOpr(1, BPolMatPol, "MatPol", 1, 1, "Matrix",
 void BPolMatPol::CalcContens()
 //--------------------------------------------------------------------
 {
-    BMat& M = Mat(Arg(1));
-    BInt	c = M.Columns();
-    BInt	i;
-    contens_.ReallocBuffer(c-1);
-    contens_.ReallocBuffer(0);
-    contens_ = BPol::Zero();
-    for(i=0; i<c; i++)
-    {
-	if(M(0,i)!=0) { contens_ += BMonome<BDat>(M(0,i),i); }
-    }
-    contens_.Aggregate();
+  BMat& M = Mat(Arg(1));
+  BInt c = M.Columns();
+  BInt i;
+  contens_.ReallocBuffer(c);
+  BMonome<BDat>* p = contens_.GetBuffer();
+  const BDat* m = M.Data().Buffer();
+  for(i=0; i<c; i++, m++, p++)
+  {
+    (*p).PutDegree(i);
+    (*p).PutCoef(*m);
+  }
+  contens_.Aggregate();
 }
 
 
