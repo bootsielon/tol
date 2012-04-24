@@ -1,0 +1,35 @@
+Real m = 3000;
+Real n = 100;
+
+Matrix x = Gaussian(m+n,1,0,1);
+
+Matrix Zero.m = Constant(m-1,1,0);
+Matrix Zero.mn1 = Constant(n+m-1,1,0);
+
+
+Polyn VPol = F^n*MatPol(Tra(x));
+Matrix V = SubCol(PolMat(VPol,m,n+1),Range(1,n+1,1));
+Matrix Y = SubCol(V,[[1]]);
+Matrix X = SubCol(V,Range(2,n+1,1));
+
+Matrix b = Rand(n,1,-2,2);
+Matrix Z = X*b;
+
+
+Matrix c = Sub(x,n,1,m,1)<<Sub(x,1,1,n-1,1);
+Matrix ci = c | Zero.mn1;
+Matrix c.fft = fftw_dft_1d(ci, -1);
+
+
+Matrix b_ = b << Zero.m;
+Matrix bi = b_ | Zero.mn1;
+
+Matrix b.fft = fftw_dft_1d(bi, -1);
+Matrix bc.fft = ComplexProdByCell(c.fft,b.fft);
+Matrix z.fft = fftw_dft_1d(bc.fft, 1)*1/(m+n-1);
+
+Matrix Z.fft = Sub(z.fft,1,1,m,1);
+
+Real quality = 1-MatMax(Abs(Z-Z.fft));
+
+/* */
