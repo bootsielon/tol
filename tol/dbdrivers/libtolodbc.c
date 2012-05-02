@@ -60,6 +60,37 @@
 
 #define TRACE_DEEP 1
 
+#ifdef _MSC_VER
+
+#define snprintf c99_snprintf
+
+int c99_vsnprintf(char* str, size_t size, const char* format, va_list ap)
+{
+    int count = -1;
+
+    if (size != 0)
+        count = _vsnprintf_s(str, size, _TRUNCATE, format, ap);
+    if (count == -1)
+        count = _vscprintf(format, ap);
+
+    return count;
+}
+
+int c99_snprintf(char* str, size_t size, const char* format, ...)
+{
+    int count;
+    va_list ap;
+
+    va_start(ap, format);
+    count = c99_vsnprintf(str, size, format, ap);
+    va_end(ap);
+
+    return count;
+}
+
+#endif // _MSC_VER
+
+
 typedef struct odbcdx {
   //  char *alias;
   //  char *user;
@@ -84,7 +115,7 @@ void extract_error(
     SQLHANDLE handle,
     SQLSMALLINT type)
 {
-    SQLINTEGER   i = 0;
+    SQLSMALLINT   i = 0;
     SQLINTEGER   native;
     SQLCHAR      state[ 7 ];
     SQLCHAR      text[256];
@@ -522,7 +553,8 @@ DLLEXPORT(int) odbc_GetAsReal(odbcd *dbd, int nfield, long double *realval)
   SQLSMALLINT _smallint;       // for SQL_SMALLINT
   TOLSQL_BIGINT _bigint;       // for SQL_BIGINT
   SQLINTEGER _integer;         // for SQL_INTEGER
-  SQLCHAR *_decimal;           // for SQL_DECIMAL SQL_NUMERIC
+  //SQLCHAR *_decimal;           // for SQL_DECIMAL SQL_NUMERIC
+  SQLCHAR   szNumeric[256];    // for SQL_DECIMAL SQL_NUMERIC SQL_BIGINT
   SQLDOUBLE _double;           // for SQL_DOUBLE, SQL_FLOAT
   SQLREAL _real;               // for SQL_REAL
 
@@ -530,7 +562,7 @@ DLLEXPORT(int) odbc_GetAsReal(odbcd *dbd, int nfield, long double *realval)
   SQLPOINTER pointer;
   SQLINTEGER pcbValue;
   int size;
-  char *errmsg;
+  char szErrMsg[256];
   SQLSMALLINT targetType = SQL_C_DEFAULT;
   SQLSMALLINT type = dbd->typeList[nfield];
 
@@ -546,21 +578,28 @@ DLLEXPORT(int) odbc_GetAsReal(odbcd *dbd, int nfield, long double *realval)
     case SQL_SMALLINT:
       size=sizeof(SQLSMALLINT); pointer=&_smallint; 
       break;
+/*
     case SQL_BIGINT:
+printf( "case SQL_BIGINT:\n" );
+
       size=sizeof(TOLSQL_BIGINT); pointer=&_bigint; 
       targetType = SQL_C_SBIGINT;
       break;
+*/
     case SQL_INTEGER:
       size=sizeof(SQLINTEGER); pointer=&_integer; 
       break;
-    case SQL_DECIMAL: case SQL_NUMERIC:
-      size=64; 
+    case SQL_DECIMAL: case SQL_NUMERIC: case SQL_BIGINT:
+      /*size=64; 
       _decimal=(SQLCHAR *)calloc(size, sizeof(SQLCHAR)); 
       if(_decimal==NULL) { 
 	stdOutWriter("Out of memory\n"); 
 	return 0; 
       }
-      pointer=_decimal;
+      pointer=_decimal;*/
+      pointer = (SQLPOINTER)szNumeric;
+      size = sizeof( szNumeric );
+      targetType = SQL_C_CHAR;
       break;
     case SQL_DOUBLE: case SQL_FLOAT:
       size=sizeof(SQLDOUBLE); pointer=&_double;
@@ -569,18 +608,15 @@ DLLEXPORT(int) odbc_GetAsReal(odbcd *dbd, int nfield, long double *realval)
       size=sizeof(SQLREAL); pointer=&_real;
       break;
     default:
-      errmsg = (char *)calloc(45, sizeof(char));
-      if(errmsg==NULL) {
-	stdOutWriter("Out of memory\n");
-      } else {
-	sprintf(errmsg, "Wrong numeric data type at SQL field:%i\n", nfield+1);
-	stdOutWriter(errmsg);
-      }
+      snprintf( szErrMsg, sizeof( szErrMsg ) - 1,
+                "Wrong numeric data type at SQL field: %i\n", nfield + 1 );
+      stdOutWriter( szErrMsg );
       return 0;
     }
 
   // retrieve data from DDBB
-  status = SQLGetData(dbd->hstmt, nfield+1, targetType, pointer, size, &pcbValue);
+  status = SQLGetData( dbd->hstmt, nfield+1, targetType, pointer, size,
+                       &pcbValue );
   if(!checkSQLRet(status, dbd, __LINE__, GET_DIAG_STMT)) { return 0; }
 
   /* pcbValue must be the length of the data available to return.
@@ -597,12 +633,14 @@ DLLEXPORT(int) odbc_GetAsReal(odbcd *dbd, int nfield, long double *realval)
       *realval = (long double)(_sqlchar); break;
     case SQL_SMALLINT:
       *realval = (long double)(_smallint); break;
+    /*
     case SQL_BIGINT:
-      *realval = (long double)_bigint; break;
+      *realval = (long double)_bigint; break; */
     case SQL_INTEGER:
       *realval = (long double)(_integer); break;
-    case SQL_DECIMAL: case SQL_NUMERIC:
-      sscanf((char *)_decimal, "%Lf", realval); break;
+    case SQL_DECIMAL: case SQL_NUMERIC: case SQL_BIGINT:
+      //sscanf((char *)_decimal, "%Lf", realval); break;
+      sscanf( szNumeric, "%Lf", realval); break;
     case SQL_DOUBLE: case SQL_FLOAT:
       *realval = (long double)(_double); break;
     case SQL_REAL:
