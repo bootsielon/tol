@@ -75,6 +75,26 @@ Text GetUrlContents.sys.wget(Text url)
 };
 
 //////////////////////////////////////////////////////////////////////////////
+Text GetUrlContents.tcom.iexplore(Text url) 
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set eval = Tcl_Eval("
+    package require tcom
+    set iexplore [::tcom::ref createobject InternetExplorer.Application]
+    $iexplore Navigate2 {"<<url<<"}
+    while {[$iexplore Busy]} {
+      after 100
+    }
+    set html [[[$iexplore Document] body] innerHTML]
+    $iexplore Quit
+    set html
+  ");
+  If(eval[2], eval[1], {
+    Error(eval[1]); ""
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
 Text GetUrlContents(Text url)
 //////////////////////////////////////////////////////////////////////////////
 {
@@ -83,6 +103,7 @@ Text GetUrlContents(Text url)
   method=="tcl:uri",  GetUrlContents.tcl.uri (url),
   method=="tcl:curl", GetUrlContents.tcl.curl(url),
   method=="sys:wget", GetUrlContents.sys.wget(url),
+  method=="tcom:iexplore", GetUrlContents.tcom.iexplore(url),
   1==1, {
     WriteLn("[GetUrlContents] Invalid option value at "
     "TolConfigManager::Config::ExternalTools::UrlDownloader=\""+method+"\"\n"+
