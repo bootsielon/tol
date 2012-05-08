@@ -8,6 +8,8 @@ configure lib : lapack_atlas ;
 configure lib : lapack : <needs>lapack_atlas <search>/usr/lib/sse2 ;
 configure lib : cholmod : <prefix>/usr/local/cholmod ;
 
+configure lib : fftw : <name>fftw3 ;
+
 configure lib 
           : Cint_headers 
           : <include>/home/jsperez/TOL/ExternalLibs/cint/cint/inc ;
