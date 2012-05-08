@@ -40,7 +40,10 @@ template class TOL_API BGraContensBase < BPol >;
 template class TOL_API BGraContens     < BPol >;
 
 TOL_API BPol EvalPolyn(const BText& expr, const BPol&  defVal); 
-TOL_API BPol RandStationary(BInt degree, BInt period);
+TOL_API BPol RandStationary(
+  BInt degree, 
+  BInt period, 
+  BDat maxInvRootModule=.999999);
 
 
 //--------------------------------------------------------------------
