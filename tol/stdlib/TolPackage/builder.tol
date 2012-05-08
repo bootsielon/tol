@@ -5,25 +5,39 @@
 //////////////////////////////////////////////////////////////////////////////
 
 Text _.autodoc.member.Builder= 
-"Herramienta constructora de paquetes TOL";
-
+  "Herramienta constructora de paquetes TOL";
 //////////////////////////////////////////////////////////////////////////////
-NameBlock Builder =
+@LocalBlock Builder =
 //////////////////////////////////////////////////////////////////////////////
 [[
-  ////////////////////////////////////////////////////////////////////////////
-  Struct @TolPackageSource
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Text name;
-    Text type;
-    Text source
-  };
+  // [API]
+  // [Source] Orígenes de código (SVN) y su uso
+  //    * Real FindSource(Text name)
+  //    * Set GetSource(Text name)
+  //    * Set GetSources(Real void)
+  //    * Real AppendSource(Text name, Text type, Text source)
+  //    * Real RemoveSource(Text name)
+  //  * Real DownloadPackage(Text package, Text source, Real revision)
+  //  * Real RemoveDownloadedPackage(Text package)
+  //  * Text BuildDownloadedPackage(Text package)
+  //  * Text BuildLocalPackage(Text package, Text localRoot)
+  //  * Real RemoveBuildedPackage(Text identifier)
+  // [Repository] Repositorios de paquetes (DB) y su uso.
+  //    * Real FindRepository(Text name)
+  //    * NameBlock GetRepository(Text name)
+  //    * Set GetRepositories(Real void)
+  //    * Real AppendRepository(Text name, NameBlock repository)
+  //    * Real RemoveRepository(Text name)
+  //  * Real UploadPackage(Text identifier, Text repository, Real overwrite)
+  //  * Real DestroyPackage(Text identifier, Text repository)
+  // [Others]
+  //  * Real ProducePackage(Text package, Text source, Real revision, 
+  //      Text repository, Real overwrite)
+  //  * Set GetSourcePackages(Text source)
 
-  Text _.localPath = Server::_.localRoot;
+  Text _.localRoot = _.localRoot<<"Builder/";
   Set _.sources = Copy(Empty);
   Set _.repositories = Copy(Empty);
-  NameBlock _Server = Server;
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.FindSource = 
@@ -36,7 +50,7 @@ NameBlock Builder =
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.GetSource = 
-    "Devuelve la información de un origen de código (@TolPackageSource) "
+    "Devuelve la información de un origen de código (@PackageSource) "
     "a partir de su nombre.";
   Set GetSource(Text name)
   ////////////////////////////////////////////////////////////////////////////
@@ -51,7 +65,7 @@ NameBlock Builder =
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.GetSources = 
     "Devuelve la información de todos los orígenes de código "
-    "(@TolPackageSource) añadidos al Builder.";
+    "(@PackageSource) añadidos al Builder.";
   Set GetSources(Real void)
   ////////////////////////////////////////////////////////////////////////////
   {
@@ -67,7 +81,7 @@ NameBlock Builder =
   {
     Real index = FindIndexByName(_.sources, name);
     If(index, 0, {
-      Set source = @TolPackageSource(name, type, source);
+      Set source = @PackageSource(name, type, source);
       Set Append(_.sources, [[
         PutName(name, source)
       ]], True);
@@ -87,10 +101,10 @@ NameBlock Builder =
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.DownloadPackage_Source = 
+  Text _.autodoc.member.DownloadPackage = 
     "Descarga el código de un paquete desde un origen determinado y para"
     "una revisión determinada al directorio asignado por defecto.";
-  Real DownloadPackage_Source(Text package, Text source, Real revision)
+  Real DownloadPackage(Text package, Text source, Real revision)
   ////////////////////////////////////////////////////////////////////////////
   {
     Real nErr0 = Copy(NError);
@@ -112,18 +126,18 @@ NameBlock Builder =
   {
     Real nErr0 = Copy(NError);
     Text svnPath = GetSource(source)->source;
-    Real OSDirMake(_.localPath);
-    Real OSDirRemove(_.localPath<<package<<"/");
+    Real OSDirMake(_AsOSDir(_.localRoot));
+    Real OSDirRemove(_.localRoot<<package);
     // Se descarga el código
     Text revisionId = If(IsUnknown(revision), "HEAD", ""<<revision);
     Real OSCmdWait("svn --force co -r "<<revisionId<<" "<<svnPath
-      <<package<<"/ "<<_.localPath<<package<<"/");
+      <<package<<"/ "<<_.localRoot<<package<<"/");
     Real nErr1 = Copy(NError);
     If(nErr1>nErr0, {
       WriteLn("El paquete '"<<package<<"' no ha podido descargarse.", "E");
     0}, {
       WriteLn("El paquete '"<<package<<"' se ha descargado en:\n  "
-        <<_.localPath<<package<<"/");
+        <<_.localRoot<<package<<"/");
     1})
   };
 
@@ -134,7 +148,7 @@ NameBlock Builder =
   Real RemoveDownloadedPackage(Text package)
   ////////////////////////////////////////////////////////////////////////////
   {
-    OSDirRemove(_.localPath<<package<<"/")
+    OSDirRemove(_.localRoot<<package)
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -144,17 +158,17 @@ NameBlock Builder =
   Text BuildDownloadedPackage(Text package)
   ////////////////////////////////////////////////////////////////////////////
   {
-    _BuildPackage_Path(package, _.localPath)
+    _BuildPackage_Path(package, _.localRoot)
   };
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.BuildLocalPackage = 
     "Construye un paquete (.zip) a partir del código situado en una ruta "
     "determinada. Devuelve el nombre y versión del paquete construido.";
-  Text BuildLocalPackage(Text package, Text localPath)
+  Text BuildLocalPackage(Text package, Text localRoot)
   ////////////////////////////////////////////////////////////////////////////
   {
-    _BuildPackage_Path(package, localPath)
+    _BuildPackage_Path(package, localRoot)
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -165,8 +179,8 @@ NameBlock Builder =
     If(DirExist(path<<package), {
       Set If(FileExist(path<<package<<"/_pre_"<<package<<".tol"), 
         IncludeTOL(path<<package<<"/_pre_"<<package<<".tol"));
-      Text packageZip = _Server::BuildPackage(package, path, 
-        _.localPath, True);
+      Set package. = Packager::CompilePackage(package, path);
+      Text packageZip = Packager::BuildZip(package.[1], path, _.localRoot);
       Real nErr2 = Copy(NError);
       If(nErr2>nErr1, {
        WriteLn("El paquete '"<<package<<"' no se ha construido "
@@ -174,7 +188,7 @@ NameBlock Builder =
          ""
       }, {
         WriteLn("El paquete '"<<package<<"' se ha construido correctamente.");
-        Real If(path!=_.localPath, {
+        Real If(path!=_.localRoot, {
           Write("Tenga en cuenta que NO es recomendable subir un paquete "
             <<"creado con código local.", "W");
         1});
@@ -188,13 +202,13 @@ NameBlock Builder =
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.RemoveBuildedPackageXX = 
+  Text _.autodoc.member.RemoveBuildedPackage = 
     "Elimina un paquete (.zip) construido previamente en el directorio por "
     "defecto a partir de su nombre y versión.";
-  Real RemoveBuildedPackageXX(Text package.X.X)
+  Real RemoveBuildedPackage(Text identifier)
   ////////////////////////////////////////////////////////////////////////////
   {
-    OSFilRemove(_.localPath<<package.X.X<<".zip")
+    OSFilRemove(_.localRoot<<identifier<<".zip")
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -260,16 +274,16 @@ NameBlock Builder =
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.UploadPackageXX = 
+  Text _.autodoc.member.UploadPackage = 
     "Sube un paquete ya construido (indicando nombre y versión) a un "
     "repositorio. Si el modo (tercer argumento) es True se borrará "
     "un paquete previo que pudier existir. Esto es necesario para updates.";
-  Real UploadPackageXX(Text package.X.X, Text repository, Real mode)
+  Real UploadPackage(Text identifier, Text repository, Real overwrite)
   ////////////////////////////////////////////////////////////////////////////
   {
-    WriteLn("UploadPackageXX" << package.X.X << " " << repository );
+    WriteLn("UploadPackage" << identifier << " " << repository );
     Real nErr1 = Copy(NError);
-    Text packageZip = _.localPath<<package.X.X<<".zip";
+    Text packageZip = _.localRoot<<identifier<<".zip";
     If(FileExist(packageZip), {
       NameBlock repository.db = GetRepository(repository);
       WriteLn( "repository.db = " << repository.db );
@@ -279,28 +293,26 @@ NameBlock Builder =
           "E");
       0}, {
         // Se elimina el que hay en el repositorio
-        Real If(mode==1, {
-          Set names = Tokenizer(package.X.X, ".");
-          Real _Server::RemovePackageVersion(names[1], 
-            Eval(names[2]), Eval(names[3]), repository.db);
+        Real If(overwrite==1, {
+          Real Server::DB.DeletePackage(repository.db, identifier);
         1}, 0);
         // Se sube el paquete al repositorio
-        Real _Server::UploadPackage(repository.db, packageZip);
+        Real Server::DB.UploadPackage(repository.db, packageZip);
         Real nErr3 = Copy(NError);
         If(nErr3>nErr2, { 
-          WriteLn("El paquete "<<package.X.X<<" no se ha subido al "
+          WriteLn("El paquete "<<identifier<<" no se ha subido al "
             <<"repositorio correctamente.", "E");
         0}, 1)
       })
     }, {
-      WriteLn("No se encuentra el paquete '"<<package.X.X<<"'", "E");
+      WriteLn("No se encuentra el paquete '"<<identifier<<"'", "E");
     0})
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.DestroyPackageXX = 
+  Text _.autodoc.member.DestroyPackage = 
     "Destruye un paquete subido a un repositorio.";
-  Real DestroyPackageXX(Text package.X.X, Text repository)
+  Real DestroyPackage(Text identifier, Text repository)
   ////////////////////////////////////////////////////////////////////////////
   {
     Real nErr1 = Copy(NError);
@@ -310,36 +322,51 @@ NameBlock Builder =
       WriteLn("No se puede conectar con el repositorio '"<<repository<<"'", 
         "E");
     0}, {
-      Set names = Tokenizer(package.X.X, ".");
-      Real _Server::RemovePackageVersion(names[1], 
-        Eval(names[2]), Eval(names[3]), repository.db)
+      If(Card(parts)==3, {
+        Server::DB.DeletePackage(repository.db, identifier)
+      }, {
+        WriteLn("No se puede destruir sin indicar específicamente "
+          <<"su versión.", "E");
+      0})
     })
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.BuildPackage = 
-    "Descarga el código más actual, construye y sube un paquete a un "
-    "repositorio. El modo (segundo argumento) indica si ha de destruirse "
-    "un posible paquete previo. Necesario para updates";
-  Real BuildPackage(Text package, Real mode, Text source, Text repository)
+  Real BuildPackage(Text package, Real overwrite, Text source, 
+    Text repository)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    // OBSOLETA
+    WriteLn("[Obsoleto] Utilize en su lugar la función ProducePackage.", "W");
+    ProducePackage(package, source, ?, repository, overwrite)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.ProducePackage = 
+    "Descarga el código, construye y sube un paquete a un repositorio. "
+    "Para descargar el código actual indique ? en el argumento revision. "
+    "El argumento overwrite indica si ha de destruirse un posible paquete "
+    "ya existente. Necesario para updates";
+  Real ProducePackage(Text package, Text source, Real revision, 
+    Text repository, Real overwrite)
   ////////////////////////////////////////////////////////////////////////////
   {
     Real nErr0 = Copy(NError);
     // [1] Se descarga el código
-    Real DownloadPackage_Source(package, source, ?);
+    Real DownloadPackage(package, source, revision);
     Real nErr1 = Copy(NError);
     If(nErr1>nErr0, {
       WriteLn("El paquete no ha podido descargarse", "E");
     0}, {
       // [2] Se construye el paquete
-      Text packageXX = BuildDownloadedPackage(package);
+      Text identifier = BuildDownloadedPackage(package);
       Real nErr2 = Copy(NError);
       If(nErr2>nErr1, {
         WriteLn("El paquete no se ha construido correctamente", "E");
       0}, {
-        UploadPackageXX(packageXX, repository, mode)
+        UploadPackage(identifier, repository, overwrite)
       });
-      RemoveBuildedPackageXX(packageXX)
+      RemoveBuildedPackage(identifier)
     });
     RemoveDownloadedPackage(package)
   };
@@ -367,25 +394,24 @@ NameBlock Builder =
 
   ////////////////////////////////////////////////////////////////////////////
   // Función auxiliar para poder interaccionar con el sistema.
-  // !! Válida sólo para Windows. Véase #1118
   Text _AnsSystem(Text cmd)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Text batFile = TmpDir<<"ans.bat";
-    Text ansFile = TmpDir<<"ans.txt";
-    Text errFile = TmpDir<<"ans.err.txt";
-    Real FileDelete(batFile);
-    Real FileDelete(ansFile);
-    Real FileDelete(errFile);
-    Text WriteFile(batFile, cmd<<" > "<<Qt(ansFile)<<" 2> "<<Qt(errFile));
-    Real WinSystem(batFile, False, True);
-    Text ans = ReadFile(ansFile);
-    Text err = ReadFile(errFile);
-    If(TextLength(err), Write("[AnsSystem] "<<err,"E"));
-    Real FileDelete(batFile);
-    Real FileDelete(ansFile);
-    Real FileDelete(errFile);
-    ans
+    Set answer = PExec([[cmd]]);
+    If(answer[3], answer[1], {
+      Error(answer[2]); 
+    ""})
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Función auxiliar para poder interaccionar con el sistema.
+  Text _AnsSystem2(Set cmd)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set answer = PExec( cmd );
+    If(answer[3], answer[1], {
+      Error(answer[2]); 
+    ""})
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -393,7 +419,7 @@ NameBlock Builder =
   ////////////////////////////////////////////////////////////////////////////
   {
     Text svnPath = GetSource(source)->source;
-    Text ls0 = _AnsSystem("svn ls "<<svnPath);
+    Text ls0 = _AnsSystem2( [[ "svn", "ls", svnPath ]] );
     Select(EvalSet(Tokenizer(ls0, "\n"), Text (Text t) {
       Real length = TextLength(t);
       If(Text Sub(t, length, length) == "/", Text Sub(t, 1, length-1), "")
