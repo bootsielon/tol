@@ -19,6 +19,7 @@
    USA.
  */
 
+
 #if defined(_MSC_VER)
 #include <win_tolinc.h>
 #endif
@@ -26,6 +27,19 @@
 #include <tol/tol_bar.h>
 #include <tol/tol_bstat.h>
 #include <tol/tol_bfibonac.h>
+
+//#define USE_MPREAL 
+
+#ifdef USE_MPREAL
+#include "mpreal.h"
+using namespace mpfr;
+typedef mpreal b_real;
+#define b_real2double(X) (X.toDouble())
+
+#else
+typedef double b_real;
+#define b_real2double(X) X
+#endif
 
 BTraceInit("ar.cpp");
 
@@ -298,19 +312,20 @@ void IdentifyAutoRegIntegrated(const BArray <BDat>& z,
     IdentifyAutoRegIntegrated(z,err,s,sw,w,dif,ar,period);
 }
 
+
 //--------------------------------------------------------------------
-BArray<BDat> NextSchur(const BArray<BDat>& pol)
+BArray<b_real> NextSchur(const BArray<b_real>& pol)
 //--------------------------------------------------------------------
 {
   int k, s = pol.Size();
-  BArray<BDat> b(s-1);
+  BArray<b_real> b(s-1);
   b.AllocBuffer(s-1);
-  double* B  = (double*)b.GetBuffer();
-  const double* A  = (const double*)pol.Buffer();
-  const double* A_ = (const double*)pol.Buffer()+s-1;
-  double a = *A; 
-  double a_ = *A_;
-  double c = a / a_;
+  b_real* B  = (b_real*)b.GetBuffer();
+  const b_real* A  = (const b_real*)pol.Buffer();
+  const b_real* A_ = (const b_real*)pol.Buffer()+s-1;
+  b_real a = *A; 
+  b_real a_ = *A_;
+  b_real c = a / a_;
 /* * /
   Std(BText("\nNextSchur a0=")+a+" an="+a_+" c="+c);
   if(BDat(c).IsUnknown())
@@ -326,28 +341,37 @@ BArray<BDat> NextSchur(const BArray<BDat>& pol)
 }
 
 //--------------------------------------------------------------------
-BDat SchurValue(const BArray<BDat>& a, BDat toleranceBase, BDat& tolerance, bool &isSchur)
+b_real SchurValue(
+  const BArray<b_real>& a, 
+  b_real toleranceBase, 
+  b_real& tolerance, 
+  bool &isSchur)
 //--------------------------------------------------------------------
 {
-  int sld = sizeof(long double);
   int s = a.Size();
-  BDat a0 = Abs(a[0]);
-  BDat an = Abs(a[s-1]);
-  BDat sv = (2*an)/(an+a0);
-  isSchur = an-a0 > tolerance;
-/* * /
-//Std(BText("\nSchurValue a=")); for(int k=0; k<s; k++) { Std(BText("|")+a[k]); }
-  Std(BText("\nSchurValue tolerance=")+tolerance+" a0=")+a0+" an="+an+" sv="+sv+" isSchur="+isSchur);
-/* */
-  if(!isSchur || (s==2))
+  static b_real _0 = 0.0;
+  static b_real _1 = 1.0;
+  static b_real _2 = 2.0;
+  b_real _s = s;
+  b_real a0 = fabs(a[0]);
+  b_real an = fabs(a[s-1]);
+  b_real sv = an / a0;
+  if(s==2)
   {
+    isSchur = (an-a0 > tolerance);
+  //isSchur = (sv-1 > tolerance);
     return(sv);
-  } 
-  else 
-  {
-    tolerance += toleranceBase*(1+2*(s-1));
-    return(SchurValue(NextSchur(a),toleranceBase,tolerance,isSchur));
   }
+  else
+  {
+    isSchur = (an-a0 > tolerance);
+  //isSchur = (sv-1 > tolerance);
+    if(!isSchur) { return(sv); } 
+  }
+//Std(BText("\nSchurValue a=")); for(int k=0; k<s; k++) { Std(BText("|")+a[k]); }
+//Std(BText("\nSchurValue tb=")+toleranceBase+" tv="+tolerance+" s="+s+" a0="+a0+" an="+an+" sv="+sv+" isSchur="+isSchur);
+  tolerance += toleranceBase*(_2*_s-_1);
+  return(SchurValue(NextSchur(a),toleranceBase,tolerance,isSchur));
 }
 
 
@@ -359,9 +383,10 @@ BDat StationaryValue(
   bool& isStationary)
 //--------------------------------------------------------------------
 {
-  
-  if(toleranceBase.IsUnknown() || toleranceBase<0) { toleranceBase = DEpsilon(); }
-  tolerance = toleranceBase;
+  #ifdef USE_MPREAL
+  mpreal::set_default_prec(128);  
+//mpreal::set_default_rnd();
+  #endif
   int i,j, deg;
   BDat coef;
   int s = pol.Size();
@@ -373,20 +398,31 @@ BDat StationaryValue(
   }
   int gcd = pol.Period();
   int m = n/gcd;
-  BArray<BDat> a(BDat(0),m+1);
+  BArray<b_real> a(b_real(0),m+1);
   for(i=0; i<s; i++)
   {
     j = s-1-i;
     deg  = pol(i).Degree();
     coef = pol(i).Coef();
-    a[m-deg/gcd] = coef;
+    a[m-deg/gcd] = coef.Value();
   }
-  BDat sv = SchurValue(a,toleranceBase,tolerance,isStationary);
-  if(sv.IsUnknown())
+  b_real tb;
+  if(toleranceBase.IsUnknown() || toleranceBase<0) 
+  { 
+    #ifdef USE_MPREAL
+    tb = machine_epsilon();
+    #else
+    tb = DEpsilon(); 
+    #endif
+  }
+  else
   {
-    Warning("StationaryValue returns unknown value.");
+    tb = toleranceBase.Value();
   }
-  return(sv);  
+  b_real tv = tb;
+  b_real sv = SchurValue(a,tb,tv,isStationary);
+  tolerance.PutValue(b_real2double(tv));
+  return(b_real2double(sv));  
 }
 
 //--------------------------------------------------------------------
