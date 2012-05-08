@@ -55,6 +55,7 @@
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_statistics.h>
 #include <gsl/gsl_math.h>
+#include <gsl/gsl_poly.h>
 #include <tol/tol_fftw.h>
 
 #include "gsl_ext.h"
@@ -7294,4 +7295,66 @@ void BMatComplexProdByCell::CalcContens()
 }
 
 
-/* */
+struct complex
+{
+  double x;
+  double y;
+};
+
+//--------------------------------------------------------------------
+BInt ComplexRootCmp(const void* v1, const void* v2)
+
+/*! Compairs two BParam receiving the pointers.
+ */
+//--------------------------------------------------------------------
+{
+  complex& z1 = *((complex*)v1);
+  complex& z2 = *((complex*)v2);
+  double z1m = z1.x*z1.x+z1.y*z1.y;
+  double z2m = z2.x*z2.x+z2.y*z2.y;
+  if(z1m < z2m) { return(-1); }
+  if(z1m > z2m) { return( 1); }
+  if(z1.x<z2.x) { return(-1); }
+  if(z1.x>z2.x) { return( 1); }
+  if(z1.y<z2.y) { return(-1); }
+  if(z1.y>z2.y) { return( 1); }
+  return(0);
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMat_gsl_poly_complex_solve);
+DefExtOpr(1, BMat_gsl_poly_complex_solve, "gsl_poly_complex_solve", 1, 1, 
+  "Polyn",
+  "(Polyn a)",
+  I2(
+  "Returns complex roots of given polynomial in a real matrix with "
+  "two columns",
+  "Devuelve las raíces complejas de un polinomio en una matriz real "
+  "de dos columnas"),
+  BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BMat_gsl_poly_complex_solve::CalcContens()
+//--------------------------------------------------------------------
+{
+  BPol& pol = Pol(Arg(1));
+  int n = pol.Degree();
+  int s = pol.Size();
+  BArray<double> a(n+1);
+  contens_.Alloc(n,2);
+  double* z = (double*)contens_.GetData().GetBuffer();
+  int k, d;
+  for(k=0; k<s; k++)
+  {
+    d = pol[k].Degree();
+    a[d] = pol[k].Coef().Value();
+  }
+  gsl_poly_complex_workspace * w = gsl_poly_complex_workspace_alloc (n+1);
+  gsl_poly_complex_solve (a.Buffer(), n+1, w, z);
+  BArray<complex> row;
+  row.AllocBuffer(n);
+  memcpy(row.GetBuffer(),z,sizeof(double)*n*2);
+  row.Sort(ComplexRootCmp);
+  memcpy(z,row.Buffer(),sizeof(double)*n*2);
+  gsl_poly_complex_workspace_free(w);
+}
+/* */ 
