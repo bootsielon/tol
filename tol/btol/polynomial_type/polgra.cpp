@@ -492,36 +492,69 @@ void BPolMatPol::CalcContens()
 
 
 //--------------------------------------------------------------------
-BPol RandStationary(BInt degree, BInt period)
+BPol RandStationary(
+  BInt degree, 
+  BInt period, 
+  BDat maxInvRootModule)
 //--------------------------------------------------------------------
 {
   BInt n2 = degree/2;
   BInt n1 = degree-2*n2;
   BPol p1 = BPol::One();
   BPol p2 = BPol::One();
-  BUniformDist u(-1+2*DEpsilon(),1-2*DEpsilon());
-  BDat a, b;
+  BUniformDist u(-1,1);
+  BDat a, b, d, m1, m2;
+  BPol B0 = BPol::One();
   BPol BP = BPol::X() ^ period;
+  BPol factor;
+  if(maxInvRootModule>1-2*DEpsilon()) { maxInvRootModule = 1-2*DEpsilon(); }
+  else if(maxInvRootModule<0) { maxInvRootModule = 0; }
   if(n1)
   {
-    p1 = BPol::One()-u.Random()*BP;
+    a = maxInvRootModule*u.Random();
+    factor = B0-a*BP;
+  //Std(BText("\nRandStationary(")+degree+","+period+","+maxInvRootModule+") monome a="+a+"; factor="+factor.Name());
+    p1 = factor;
   };
   for(BInt k=0; k<n2; k++)
   {
+    bool ok = false;
+    int iter = 0;
     do
     {
+      iter++;
       a = u.Random();
-      b = u.Random()*2;
-    } while ( (a>=1-b) || (a>=1+b) );
-    p2 *= (BPol::One()-b*BP-a*(BP^2));
+      b = (1-a)*(2*u.Random()-1);
+      d = b*b+4*a;
+      if(d>=0)
+      {
+        m1 = Sqrt(Abs(2*a/(-b+Sqrt(d))));
+        m2 = Sqrt(Abs(2*a/(-b-Sqrt(d))));
+      }
+      else
+      {
+        m1 = m2 = Sqrt(Abs(a));
+      } 
+      ok = (a<1-b) &&
+           (a<1+b) &&
+           (m1<maxInvRootModule) &&
+           (m2<maxInvRootModule);
+      if(ok) 
+      { 
+        factor = B0-b*BP-a*(BP^2);
+      //Std(BText("\nRandStationary(")+degree+","+period+","+maxInvRootModule+") binome["+k+"] a="+a+" b="+b+" d="+d+" m1="+m1+" m2="+m2+" iter="+iter+"; factor="+factor.Name()); 
+      }
+    } while (!ok);
+    p2 *= factor;
   }
   return(p1 * p2);
 }
 
 //--------------------------------------------------------------------
 DeclareContensClass(BPol, BPolTemporary, BPolRandStationary);
-DefExtOpr(1, BPolRandStationary, "RandStationary", 1, 2, "Real Real",
-  "(Real d [, Real p = 1])",
+DefExtOpr(1, BPolRandStationary, "RandStationary", 1, 3, 
+  "Real Real Real",
+  "(Real d [, Real p = 1, Real maxInvRootModule = 0.999999])",
   I2("Returns a random stationary polinomial as \n",
      "Devuelve un polinomio estacionario aleatorio de la forma \n") +
      " 1 - C1 * B^p - C2 * B^(2*p) - ... - Cd * B^(d*p).",
@@ -532,8 +565,10 @@ void BPolRandStationary::CalcContens()
 {
   BInt degree = (BInt)Real(Arg(1));
   BInt period = 1;
+  BDat maxInvRootModule = .999999;
   if(Arg(2)) { period = (BInt)Real(Arg(2)); }
-  contens_ = RandStationary(degree, period);
+  if(Arg(3)) { maxInvRootModule = Dat(Arg(3)); }
+  contens_ = RandStationary(degree, period, maxInvRootModule);
 }
 
 
