@@ -4,26 +4,33 @@
 // PURPOSE: Defines NameBlock TolPackage
 //////////////////////////////////////////////////////////////////////////////
 
-NameBlock TolPackage = [[
-Text _.autodoc.description = "Utilidades para el manejo de paquetes TOL: "
-"instalación, actualización, borrado, consulta de estado, etc.\n"
-".";
+//////////////////////////////////////////////////////////////////////////////
+NameBlock TolPackage = 
+//////////////////////////////////////////////////////////////////////////////
+[[
+  Text _.autodoc.name = "TolPackage";
+  Text _.autodoc.description = "Utilidades para el manejo de paquetes TOL: "
+    "instalación, actualización, borrado, consulta de estado, etc.";
+  Set _.autodoc.keys = [["TOL", "Package", "Repository", "Modularity"]];
+  Set _.autodoc.authors = [["vdebuen@tol-project.org", "pgea@bayesinf.com"]];
+  Real _.autodoc.version.high = 2;
+  Real _.autodoc.version.low = 1;
 
-Set _.autodoc.keys = [["TOL","Package","Repository","Modularity"]];
-Set _.autodoc.authors = [["vdebuen@tol-project.org"]];
+  Text _.version = ""<<_.autodoc.version.high<<"."<<_.autodoc.version.low;
+  // Se usa la version alta para todas las rutas locales
+  Text _.localRoot = Replace(TolAppDataPath+"TolPackage."
+    <<_.autodoc.version.high<<"/","\\","/");
 
-Text _.version = "1.2";
+  Class @Catalog;
+  Class @LocalBlock;
 
-Text _.localRoot = 
-  Replace(TolAppDataPath+"TolPackage/"+TolPackage::_.version+"/","\\","/");
-
-#Embed "common.tol";
-#Embed "client.tol";
-#Embed "server.tol";
-#Embed "builder.tol"
-
+  #Embed "common.tol";
+  #Embed "def_localblock.tol";
+  #Embed "def_catalog.tol";
+  #Embed "TolVersion.tol";
+  #Embed "client.tol";
+  #Embed "server.tol";
+  #Embed "packager.tol";
+  #Embed "builder.tol"
 ]];
-
-//Sólo en version de pruebas
-//Real TolPackage::Client::Initialize(0);
-
+//////////////////////////////////////////////////////////////////////////////

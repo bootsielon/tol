@@ -1,447 +1,310 @@
 /* -*- mode: C++ -*- */
 //////////////////////////////////////////////////////////////////////////////
 // FILE   : server.tol
-// PURPOSE: TolPackage server side tools
+// PURPOSE: TolPackage server tools
 //////////////////////////////////////////////////////////////////////////////
 
-Text _.autodoc.member.Server= 
-"Sistema servidor de gestión de paquetes TOL";
-
+Text _.autodoc.member.Server = 
+  "Sistema servidor de paquetes TOL desde repositorios  remotos.";
 //////////////////////////////////////////////////////////////////////////////
-NameBlock Server = [[
+@LocalBlock Server =
 //////////////////////////////////////////////////////////////////////////////
-
-Text _.localRoot = TolPackage::_.localRoot +"Server/";
-
-Set _.supportedPlatforms =
 [[
-  "Windows_x86_32",
-  "Linux_x86_32"
-]];
+  // [API]
+  //  * @Catalog GetCatalog(Real void)
+  //  * Real UpdateCatalog(Real void)
+  //  * Text DownloadPackage(Text identifier)
+  //  * Text DownloadCompatible(Text pattern, Text tolVersion, Date date)
+  //  * Text DownloadLastCompatible(Text pattern)
+  //  * Text DownloadPackageAt(Text identifier, Text path)
+  //  * Real Initialize(Real void)
+  // [API DB]
+  //  * Real DB.DeletePackage(NameBlock repository.db, Text identifier)
+  //  * Real DB.IdentifyRepository(NameBlock repository.db, Text url)
+  //  * Real DB.UploadPackage(NameBlock repository.db, Text pkg.path.zip)
+  // [API antigua]
+  //  * Text _.localRoot;
+  //  - Set _.supportedPlatforms
+  //  * Real Initialize(Real void)
+  //  - Text FormatSet(Set set)
+  //    => _SqlFormatSet
+  //  - Text FormatSetOfText(Set set)
+  //    => _SqlFormatSetOfText
+  //  - Text BuildPackage(Text name, Text sourceRoot, Text destination, 
+  //      Real removeDir)
+  //    => Builder::BuildPackage
+  //  - Real UploadPackage(NameBlock repository.db, Text pkg.path.zip)
+  //    => Builder::UploadPackageXX -> DB.UploadPackage
+  //  - Real BuildAndUploadPackage
+  //  - Real RemovePackageVersion(Text name, Real nu_version_high,
+  //      Real nu_version_low, NameBlock repository.db)
+  //    => Builder::DestroyPackageXX -> DB.DeletePackage
+  //  - Real Set CheckTolDependencies(NameBlock repository.db, Real fix)
+  // <notas>
+  //  + Se mueven las funciones de construcción de paquetes a Builder
+  //  + Se incorporan las funciones de acceso y consulta de los repositorios
 
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.Initialize = 
-"Inicializa el servidor del servicio de paquetes TOL";
-Real Initialize(Real void)
-//////////////////////////////////////////////////////////////////////////////
-{
-  Real OSDirMake(_.localRoot);
-  Set EvalSet(_.supportedPlatforms, Real(Text platform)
+  Text _.localRoot = _.localRoot<<"Server/";
+  Set _.catalog = Copy(Empty);
+
+  ////////////////////////////////////////////////////////////////////////////
+  @Catalog GetCatalog(Real void)
+  ////////////////////////////////////////////////////////////////////////////
   {
-    Real OSDirMake(_.localRoot+platform)
-  });
-  True
-};
-
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.FormatSet=
-"Builds the TOL expression of a Set";
-Text FormatSet(Set set)
-//////////////////////////////////////////////////////////////////////////////
-{
-  Text bl = " ";
-  Text name = Name(set);
-  "Set { "+If(name=="","",Name(set)+" = ")+bl+
-  If(!Card(set),"Copy(Empty)",
-  {
-    "[["+bl+
-    SetSum(For(1,Card(set),Text(Real k)
-    {
-      Text gk = Grammar(set[k]);
-      Text nk = Name(set[k]);
-      Text dec = "  "+gk+" { "+If(nk=="","",nk+" = ");
-      If(k>1,","+bl,"")+
-      Case(
-      gk=="Text", dec+"\""+set[k]+"\" } ",
-      gk=="Real", dec<<set[k]+" } ",
-      gk=="Date", dec<<set[k]+" } ",
-      gk=="Set",  FormatSet(set[k]),
-      1==1,
-      {
-        WriteLn("[TolPackage::Server::FormatSet] "
-        " Unexpected object "+If(nk,nk+" ","")+"of invalid type "+gk,"E"),
-        ""
-      })
-    }))+bl+"]]"
-  })+
-  " }"
-};
-
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.SqlFormatSetOfText =
-"Builds the SQL expression of a Set of texts without quotes nor brackets";
-Text SqlFormatSetOfText(Set set)
-//////////////////////////////////////////////////////////////////////////////
-{
-  If(!Card(set),"",
-  {
-    SetSum(For(1,Card(set),Text(Real k)
-    {
-      Text gk = Grammar(set[k]);
-      If(k>1,",","")+
-      Case(
-      gk=="Text", set[k],
-      1==1,
-      {
-        Text nk = Name(set[k]);
-        WriteLn("[TolPackage::Server::SqlFormatSetOfText] "
-        " Unexpected object "+If(nk,nk+" ","")+"of invalid type "+gk,"E"),
-        ""
-      })
-    }))
-  })
-};
-
-
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.BuildPackage = 
-"Construye el archivo comprimido correspondiente a un paquete TOL a partir "
-"del código situado en el directorio fuente:\n"
-"  \"<sourceRoot>/<name>\"\n"
-"\n"
-"El resultado se almacena en el directorio de destino con el nombre de "
-"la versión específica que conste en el NameBlock del paquete:"
-"\n"
-"  \"<destination>/<name>.<high>.<low>.zip\"\n"
-"\n";
-Text BuildPackage(
-  Text name,         //Nombre del paquete (sin versión)
-  Text sourceRoot,   //Directorio raíz del código fuente
-  Text destination,  //Directorio de destino del paquete
-  Real removeDir)    //Si es cierto se borra el directorio descomprimido
-//////////////////////////////////////////////////////////////////////////////
-{
-  Date release.gmt = Copy(NowGmt);
-  Text _MID = "[BuildPackage] ";
-  Set pkgCnt = If( ObjectExist( "NameBlock", name ), [[ NameBlock Eval( name ) ]], {
-        WriteLn(_MID+sourceRoot+name+" -> "+destination);
-        Set Eval("Set IncludeTOL(\""+
-                 sourceRoot+name+"/"+name+".tol\",True)")
-      } );
-  NameBlock pkg = pkgCnt[1];
-  Text name.version = name+"."<<
-    pkg::_.autodoc.version.high+"."<<pkg::_.autodoc.version.low;
-
-  Text minTolVersion = If(!ObjectExist("Text","pkg::_.autodoc.minTolVersion"),
-   "v000000000000000000",  pkg::_.autodoc.minTolVersion);
-  Text maxTolVersion = If(!ObjectExist("Text","pkg::_.autodoc.maxTolVersion"),
-   "v999999999999999999",  pkg::_.autodoc.maxTolVersion);
-
-  Real okTolVersion = And(
-    Compare.VersionString(minTolVersion,TolPackage::_.currentTolVersion)<=0,
-    Compare.VersionString(maxTolVersion,TolPackage::_.currentTolVersion)>=0);
-  Real If(!okTolVersion, 
-  {
-    Error("[TolPackage::Server::BuildPackage] cannot create package "<<name.version+
-    "with current TOL version "<<Version+". It requires a version in interval "+
-    "["<<pkg::_.autodoc.minTolVersion+","<<pkg::_.autodoc.maxTolVersion+"]");
-    Real Stop
-  });
-  Text ppRoot_ = destination+name.version;
-  Text ppRoot = ppRoot_+"/";
-  Real TolPackage::PackageInfo.Build(pkgCnt[1],ppRoot,release.gmt);
-  Set nonTolResources = pkg::_.autodoc.nonTolResources;
-
-
-  Real OSDirMake(ppRoot);
-  Real Ois.Store(pkgCnt,ppRoot+name.version+".oza");
-
-  Real cleanResource(Text dest)
-  {
-    Set dir = GetDir(dest);
-    Set sub = dir[2];
-    Set EvalSet(sub,Real(Text s)
-    {
-      Text dest_new = dest+"/"+s;
-      Text ls = ToLower(s);
-      If(Or(ls==".svn",ls=="svn",ls=="cvs",ls==".cvs"),
-        OSDirRemove(dest_new),
-        cleanResource(dest_new))
-    });
-    True
+    Real Initialize(?);
+    If(Card(_.catalog), _.catalog[1])
   };
 
-  Real processResourceText(Text resource)
+  ////////////////////////////////////////////////////////////////////////////
+  Real UpdateCatalog(Real void)
+  ////////////////////////////////////////////////////////////////////////////
   {
-    Text orig = sourceRoot+"/"+name+"/"+resource;
-    Text dest = ppRoot+"/"+resource;
-    Real OSDirMake(dest);
-    If(OSUnix, OSDirRemove(dest));
-  //WriteLn("TRACE dir copy '"+orig+"' -> '"+dest+"'");
-    Real OSDirCopy(orig,dest);
-    cleanResource(dest)
+    If(Card(_.catalog), {
+      @Catalog catalog = GetCatalog(?);
+      catalog::Update(?)
+    }, {
+      // Si no existía no se rehace
+      @Catalog catalog = GetCatalog(?);
+    1})
   };
-  Real processResourceSet(Set resourceSet)
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text DownloadPackage(Text identifier)
+  ////////////////////////////////////////////////////////////////////////////
   {
-    Set EvalSet(resourceSet, processResourceText);
-    True
+    DownloadPackageAt(identifier, _.localRoot)
   };
-  Set EvalSet(nonTolResources, Real (Anything res)
-  {
-    Text gra = Grammar(res);
-    WriteLn(_MID+"Processing resource "+gra+" "<<res);
-    Eval("processResource"+gra+"(res)")
-  });
-  Text ppr = ReplaceSlash(ppRoot_); 
-  Real PackArchive::PackFull("ZipArchive", ppr, removeDir);
-  ppRoot_+".zip"
-};
 
+  ////////////////////////////////////////////////////////////////////////////
+  Text DownloadCompatible(Text pattern, Text tolVersion, Date date)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @Catalog catalog = GetCatalog(?);
+    Text compatibleId = catalog::ObtainIdentifier(pattern, tolVersion, 
+      date);
+    If(TextLength(compatibleId), DownloadPackage(compatibleId), "")
+  };
 
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.UploadPackage = 
-"Sube al repositorio remoto un paquete desde el archivo local comprimido "
-"creado con TolPackage::Server::BuildPackage y dado por el argumento:\n"
-"  Text pkg.path.zip = \"<directory>/<name>.<high>.<low>.zip\"\n";
-Real UploadPackage(NameBlock repository.db, Text pkg.path.zip)
-//////////////////////////////////////////////////////////////////////////////
-{
-  Text _MID = "[UploadPackage] ";
-  Text root = GetFilePath(pkg.path.zip);
-  Text pkg.name.zip = GetFileName(pkg.path.zip);
-  Text pkg.name = Replace(pkg.name.zip,".zip","");
-  Set name.tok = Tokenizer(pkg.name,".");
-  Real nu_version_high = Eval(name.tok[2]);
-  Real nu_version_low = Eval(name.tok[3]);
-  Real PackArchive::UnpackFull("ZipArchive",root+pkg.name,False);
-  Text oza = root+pkg.name+"/info.oza";
-  Set pkg = Include(oza);
-  Text name = pkg::_.autodoc.name;
-  Real If(pkg::_.autodoc.version.high!=nu_version_high,
+  ////////////////////////////////////////////////////////////////////////////
+  Text DownloadLastCompatible(Text pattern)
+  ////////////////////////////////////////////////////////////////////////////
   {
-    WriteLn("Wrong version high number "<<
-      nu_version_high+"!="<<pkg::_.autodoc.version.high,"W");
-    Real pkg::_.autodoc.version.high := nu_version_high
-  });
-  Real If(pkg::_.autodoc.version.low!=nu_version_low,
-  {
-    WriteLn("Wrong version low number "<<
-      nu_version_low+"!="<<pkg::_.autodoc.version.low,"W");
-    Real pkg::_.autodoc.version.low := nu_version_low
-  });
-  Real repository.db::Open(0);
-  Real DBExecQuery("set client_encoding to '""latin1""'");
-  Text repository.query = "
-  SELECT 
-    id_repository, co_repository, ds_repository, 
-    co_access, co_version_control, te_url
-  FROM 
-    repository_d_def AS D,
-    repository_d_access AS A,
-    repository_d_version_control AS V
-  WHERE 
-      A.id_access          = D.id_access
-  AND V.id_version_control = D.id_version_control
-  AND (    te_url          = '"+pkg::_.autodoc.url+"' 
-        OR te_url          = '"+pkg::_.autodoc.url+"repository.php' ) 
-  ";
-//WriteLn("TRACE "+_MID+"repository.query=\n"+repository.query);
-  Set repository = DBTable(repository.query);
-  If(!Card(repository), 
-  {
-    WriteLn(_MID+"Unknown repository '"+pkg::_.autodoc.url+"'","E");
-    False
-  },
-  {
-    Set dep = pkg::_.autodoc.dependencies;
-    Set aut = pkg::_.autodoc.authors;
-    Set key = pkg::_.autodoc.keys;
-    Set res = pkg::_.autodoc.nonTolResources;
-    Text verCnt = ReplaceTable(pkg::_.autodoc.versionControl,[[
-      [["\n","<BR>"]],
-      [["'","\""]] ,
-      [[";",","]] ]]);
-    Text bl_contents = EncodeBase64FromFile(pkg.path.zip);
-    Real nu_bytes = FileBytes(pkg.path.zip);
-    Real id_format = 1;
-    Text te_max_tol_version = pkg::_.autodoc.maxTolVersion;
-    Text te_extra_info = "";
-  //Text exist.query = 
-    Text insert.query = "
-    INSERT INTO package_f_contents(
-      id_repository, co_name, nu_version_high, nu_version_low, 
-      te_brief, te_description, 
-      te_keys, te_authors, te_min_tol_version, dh_release_date,  
-      te_dependencies, te_non_tol_resources, te_version_control,
-      bl_contents, nu_bytes, id_format, te_max_tol_version, te_extra_info)
-    VALUES (
-     "<<(repository[1])::id_repository+", "+
-     "'"+name+"', \n"+
-     ""<<pkg::_.autodoc.version.high+", \n"+
-     ""<<pkg::_.autodoc.version.low+", \n"+
-     "'"<<pkg::_.autodoc.brief+"', \n"+
-     "'"+Replace(pkg::_.autodoc.description,"\n","<BR>")+"', \n"+
-     "'"<<TolPackage::Server::SqlFormatSetOfText(pkg::_.autodoc.keys)+"', \n"+
-     "'"<<TolPackage::Server::SqlFormatSetOfText(pkg::_.autodoc.authors)+"', \n"+
-     "'"<<pkg::_.autodoc.minTolVersion+"', \n"+
-     "'"<<FormatDate(pkg::_.autodoc.releaseDate,"%c%Y-%m-%d %h:%i:%s")+"', \n"+
-     "'"<<TolPackage::Server::SqlFormatSetOfText(dep)+"', \n"+
-     "'"<<TolPackage::Server::FormatSet(res)+"', \n"+
-     "E'"<<verCnt+"', \n"+
-     "decode('"<<bl_contents+"','base64'), \n"+
-     ""<<nu_bytes+", \n"+
-     ""<<id_format+", \n"+
-     "'"<<te_max_tol_version+"', \n"+
-     "'"<<te_extra_info+"' \n"+
-    ");";
-  //WriteLn("TRACE "+_MID+"insert.query=\n" + insert.query);
+    DownloadCompatible(pattern, Version, UnknownDate)
+  };
 
-    Real num_reg = DBExecQuery(insert.query);
-    If(!num_reg, WriteLn(_MID+
-      "Package is already in the repository. Please upgrade the "
-      "version numbers or delete the register of existent package.","E"));
-    Real repository.db::Close(0);
-    num_reg
-  })
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.BuildAndUploadPackage = 
-"Construye el archivo comprimido correspondiente a un paquete TOL a partir "
-"del código situado en el directorio fuente:\n"
-"  \"<sourceRoot>/<name>\"\n"
-"\n"
-"y luego lo sube al repositorio remoto.\n"
-"La copia temporal del archivo comprimido del paquete se queda en el "
-"directorio del servidor a efectos de depuración si surgen problemas "
-"pero se puede borrar si se desea.\n"
-"Por último se chequeará la instalación según lo indicado:"
-"  Si checkInstallMode = \"local\" se usa la copia local comprimida.\n"
-"  Si checkInstallMode = \"remote\" se instala desde el repositorio.\n"
-"  En otro caso no se instala nada.\n"
-"Devuelve un código que indica en qué fase ha habido problemas:\n"
-"  0 todo parece haber ido bien\n"
-"  1 hubo fallos en la construcción (entonces la subida no se intenta)\n"
-"  2 no hubo fallos en la construcción pero sí en la subida (la instalación no se intenta)\n"
-"  3 no hubo fallos en la construcción ni en la subida pero la instalación ha dado errores\n";
-Real BuildAndUploadPackage(
-  Text name,                //Nombre del paquete (sin versión)
-  Text sourceRoot,          //Directorio raíz del código fuente
-  Text repository.url,      //URL del repositorio
-  NameBlock repository.db,  //Conexión a la base de datos
-  Text checkInstallMode)    //Modo de chequeo de la instalación
-//////////////////////////////////////////////////////////////////////////////
-{
-  Real nErr0 = Copy(NError);
-  Text tmp = _.localRoot;
-  Real OSDirMake(tmp);
-  Text pkg.path.zip = TolPackage::Server::BuildPackage(
-    name, sourceRoot, tmp, True);
-  Real nErr1 = Copy(NError);
-  If(nErr1>nErr0, 
-  { 
-    WriteLn("Es posible que no se haya podido construir el paquete correctamente","W");
-    1
-  },
+  ////////////////////////////////////////////////////////////////////////////
+  Text DownloadPackageAt(Text identifier, Text path)
+  ////////////////////////////////////////////////////////////////////////////
   {
-    Real TolPackage::Server::UploadPackage( 
-      repository.db, pkg.path.zip);
-    Real nErr2 = Copy(NError);
-    If(nErr2>nErr1, 
-    { 
-      WriteLn("Es posible que no se haya podido enviar el paquete al repositorio","W");
-      2
-    },
-    {
-      Text pkg.name = Replace(GetFileName(pkg.path.zip),".zip","");
-      Real ok = Case(
-      ToLower(checkInstallMode) == "remote",
-      {
-        TolPackage::Client::RemoteInstallPackage(repository.url, pkg.name, True)
-      },
-      ToLower(checkInstallMode) == "local",
-      {
-        Real TolPackage::Client::LocalInstallPackage(pkg.path.zip)
-      },
-      1==1,True);
-      Real nErr3 = Copy(NError);
-      If(And(ok,nErr3==nErr2), 0,
-      { 
-        WriteLn("La instalación en modo '"+checkInstallMode+"' ha dado problemas","W");
-        3
-      })
+    @Catalog catalog = GetCatalog(?);
+    Set record = catalog::GetRecord(identifier);
+    If(Card(record), {
+      Text encoded = GetUrlContents(record::repository
+        <<"?tol_package_version=1.1"
+        <<"&action=download&format=base64"
+        <<"&package="<<identifier);
+      Real OSDirMake(_AsOSDir(path));
+      Text zipFile = path<<identifier<<".zip";
+      Real DecodeBase64ToFile(zipFile, encoded);
+      zipFile      
+    }, {
+      WriteLn("No se encuentra el paquete '"<<identifier<<"'.", "E");
+      ""
     })
-  })
-}; 
+  };
 
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.RemovePackageVersion = 
-"Borra una versión de un paquete del repositorio.\n"
-"Esta función no es reversible, así que debe usarse con mucho cuidado.\n"
-;
-Real RemovePackageVersion(
-  Text name,                //Nombre del paquete (sin versión)
-  Real nu_version_high,     //Primer número de versión
-  Real nu_version_low,      //Segundo número de versión
-  NameBlock repository.db)  //Conexión a la base de datos
-//////////////////////////////////////////////////////////////////////////////
-{
-  Real repository.db::Open(0);
-  Real reg = DBExecQuery(
-  "DELETE FROM package_f_contents\n"
-  "WHERE \n"
-  "  co_name = '"+name+"' AND\n"
-  "  nu_version_high = "<<nu_version_high+" AND\n"
-  "  nu_version_low = "<<nu_version_low+";\n");
-  Real repository.db::Close(0);
-  reg
-};
+  // [DB] Funciones para la interacción con la base de datos 
 
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.CheckTolDependencies = 
-"Comprueba que las versiones mínima y máxima especificadas para cada "
-"paquete son coherentes con las especificadas por los paquetes requeridos "
-"directa o indirectamente.\n";
-Set CheckTolDependencies(NameBlock repository.db, Real fix)
-//////////////////////////////////////////////////////////////////////////////
-{
-  Text url=TolPackage::_.official+"action=checkTolDependencies&filter=False";
-  Text pkgInfo = GetUrlContents(url);
-  Set pkgLst = IncludeText(pkgInfo);
-  Real repository.db::Open(0);
-  Set EvalSet(pkgLst,Real(TolPackage::@TolVerReqChk chk)
+  ////////////////////////////////////////////////////////////////////////////
+  Real DB.DeletePackage(NameBlock repository.db, Text identifier)
+  //[OLD] Server::RemovePackageVersion
+  ////////////////////////////////////////////////////////////////////////////
   {
-    If(Not(chk->min_ok),
-    {
-      Text msg = "Minimum specified TOL version for package "<<
-        chk->co_name_version+" is "+chk->te_min_tol_version +
-        "lesser than indirectly recommended "+chk->te_min_tol_version_deep+"\n";
-      Real If(fix,
-      {
-        Text msg := msg + "Fixing field package_f_contents."
-          "te_min_tol_version to '"+chk->te_min_tol_version_deep+"' in database of repository.";
-        DBExecQuery("UPDATE package_f_contents "
-        "SET te_min_tol_version='"+chk->te_min_tol_version_deep+"'")
-      });
-      WriteLn(msg+"Please, fix it if posible in your TOL code by settting \n"+
-      "Text "+chk->co_name_version+"::te_min_tol_version = \""+
-      chk->te_min_tol_version_deep+"\";\n","W")
-    });
-    If(Not(chk->max_ok),
-    {
-      Text msg = "Maximum specified TOL version for package "<<
-        chk->co_name_version+" is "+chk->te_max_tol_version +
-        "greater than indirectly recommended "+chk->te_max_tol_version_deep+"\n";
-      Real If(fix,
-      {
-        Text msg := msg + "Fixing field package_f_contents."
-          "te_max_tol_version to '"+chk->te_max_tol_version_deep+"' in database of repository.";
-        DBExecQuery("UPDATE package_f_contents "
-        "SET te_max_tol_version='"+chk->te_max_tol_version_deep+"'")
-      });
-      WriteLn(msg,"W")
-    });
-    True
-  });
-  Real repository.db::Close(0);
-  pkgLst
-}  
-  
+    Set parts = Tokenizer(identifier, ".");
+    If(Card(parts)==3, {
+      Real repository.db::Open(0);
+      Text delete.query = "
+        DELETE FROM package_f_contents
+        WHERE co_name = '"<<parts[1]<<"'
+          AND nu_version_high = "<<parts[2]<<"
+          AND nu_version_low = "<<parts[3]<<"
+      ";
+      Real reg = DBExecQuery(delete.query);
+      Real repository.db::Close(0);
+      reg
+    }, 0)
+  };
 
+  ////////////////////////////////////////////////////////////////////////////
+  Real DB.IdentifyRepository(NameBlock repository.db, Text url)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real repository.db::Open(0);
+    Real DBExecQuery("set client_encoding to '""latin1""'");
+    Text repository.query = "
+      SELECT id_repository, co_repository, ds_repository, 
+        co_access, co_version_control, te_url
+      FROM repository_d_def AS D,
+        repository_d_access AS A,
+        repository_d_version_control AS V
+      WHERE A.id_access          = D.id_access
+        AND V.id_version_control = D.id_version_control
+        AND (    te_url          = '"<<url<<"' 
+              OR te_url          = '"<<url<<"repository.php' ) 
+    ";
+    Set repository = DBTable(repository.query);
+    (repository[1])::id_repository
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real DB.UploadPackage(NameBlock repository.db, Text pkg.path.zip)
+  //[OLD] Server::UploadPackage
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Text _MID = "[UploadPackage] ";
+    Text root = GetFilePath(pkg.path.zip);
+    Text pkg.name.zip = GetFileName(pkg.path.zip);
+    Text pkg.name = Replace(pkg.name.zip,".zip","");
+    Set name.tok = Tokenizer(pkg.name,".");
+    Real nu_version_high = Eval(name.tok[2]);
+    Real nu_version_low = Eval(name.tok[3]);
+    Real PackArchive::UnpackFull("ZipArchive",root+pkg.name,False);
+    Text oza = root+pkg.name+"/info.oza";
+    Set pkg = Include(oza);
+    Text name = pkg::_.autodoc.name;
+    Real If(pkg::_.autodoc.version.high!=nu_version_high,
+    {
+      WriteLn("Wrong version high number "<<
+        nu_version_high+"!="<<pkg::_.autodoc.version.high,"W");
+      Real pkg::_.autodoc.version.high := nu_version_high
+    });
+    Real If(pkg::_.autodoc.version.low!=nu_version_low,
+    {
+      WriteLn("Wrong version low number "<<
+        nu_version_low+"!="<<pkg::_.autodoc.version.low,"W");
+      Real pkg::_.autodoc.version.low := nu_version_low
+    });
+    Real repId = DB.IdentifyRepository(repository.db, pkg::_.autodoc.url);
+    If(Not(repId), {
+      WriteLn(_MID+"Unknown repository '"+pkg::_.autodoc.url+"'","E");
+      False
+    }, {
+      Text bl_contents = EncodeBase64FromFile(pkg.path.zip);
+      Real nu_bytes = FileBytes(pkg.path.zip);
+      Real id_format = 1;
+      Text te_max_tol_version = pkg::_.autodoc.maxTolVersion;
+      Text te_extra_info = "";
+      Text insert.query = "
+        INSERT INTO package_f_contents (
+          id_repository, co_name, nu_version_high, nu_version_low, 
+          te_brief, te_description, 
+          te_keys, te_authors, te_min_tol_version, dh_release_date,  
+          te_dependencies, te_non_tol_resources, te_version_control,
+          bl_contents, nu_bytes, id_format, te_max_tol_version, te_extra_info)
+        VALUES (
+          "<<repId<<",
+          '"<<pkg::_.autodoc.name<<"',
+          "<<pkg::_.autodoc.version.high<<",
+          "<<pkg::_.autodoc.version.low<<",
+          '"<<pkg::_.autodoc.brief<<"',
+          '"<<Replace(pkg::_.autodoc.description, "\n", "<BR>")<<"',
+          '"<<_SqlFormatSetOfText(pkg::_.autodoc.keys)<<"',
+          '"<<_SqlFormatSetOfText(pkg::_.autodoc.authors)<<"',
+          '"<<pkg::_.autodoc.minTolVersion<<"',
+          '"<<_SqlFormatDate(pkg::_.autodoc.releaseDate)<<"',
+          '"<<_SqlFormatSetOfText(pkg::_.autodoc.dependencies)<<"',
+          '"<<_SqlFormatSet(pkg::_.autodoc.nonTolResources)<<"',
+          E'"<<_SqlFormatVersionControl(pkg::_.autodoc.versionControl)<<"',
+          decode('"<<bl_contents<<"', 'base64'),
+          "<<nu_bytes<<",
+          "<<id_format<<",
+          '"<<pkg::_.autodoc.maxTolVersion<<"',
+          '"<<te_extra_info<<"'
+        )
+      ";
+      Real num_reg = DBExecQuery(insert.query);
+      If(!num_reg, WriteLn(_MID+
+        "Package is already in the repository. Please upgrade the "
+        "version numbers or delete the register of existent package.","E"));
+      Real repository.db::Close(0);
+      num_reg
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _SqlFormatSet(Set set)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Text bl = " ";
+    Text name = Name(set);
+    "Set { "+If(name=="", "", Name(set)<<" = ")+bl+If(Card(set), {
+      "[["+bl+SetSum(For(1, Card(set), Text (Real k) {
+        Text gk = Grammar(set[k]);
+        Text nk = Name(set[k]);
+        Text dec = "  "+gk+" { "+If(nk=="","",nk+" = ");
+        If(k>1,","+bl,"")+Case(
+          gk=="Text", dec+"\""+set[k]+"\" } ",
+          gk=="Real", dec<<set[k]+" } ",
+          gk=="Date", dec<<set[k]+" } ",
+          gk=="Set",  _SqlFormatSet(set[k]),
+          True, {
+            WriteLn("[TolPackage::Server::_SqlFormatSet] "
+            " Unexpected object "+If(nk,nk+" ","")+"of invalid type "+gk,"E"),
+            ""}
+        )
+      }))+bl+"]]"
+    }, "Copy(Empty)")<<" }"
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _SqlFormatSetOfText(Set set)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(Card(set), {
+      SetSum(For(1, Card(set), Text (Real k) {
+        Text gk = Grammar(set[k]);
+        If(k>1, ",", "") << If(gk=="Text", set[k], {
+          Text nk = Name(set[k]);
+          WriteLn("[TolPackage::_SqlFormatSetOfText] "
+            " Unexpected object "+If(nk,nk+" ","")+"of invalid type "+gk,"E"),
+          ""
+        })
+      }))
+    }, "")
+  };
+ 
+  ////////////////////////////////////////////////////////////////////////////
+  Text _SqlFormatDate(Date date)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    FormatDate(date,"%c%Y-%m-%d %h:%i:%s")
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _SqlFormatVersionControl(Text versionControl)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    ReplaceTable(versionControl, [[ [["\n", "<BR>"]], [["'", "\""]], //\"
+      [[";", ","]] ]])
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real _initialized = False;
+  ////////////////////////////////////////////////////////////////////////////
+  Real Initialize(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(_initialized, 0, {
+      Real _initialized := True;
+      Real OSDirMake(_AsOSDir(_.localRoot));
+      // [A] Se construye el catálogo remoto
+      Real t1 = Copy(Time);
+      Set _.catalog := [[ @Catalog::Remote(TolConfigManager::Config
+        ::Upgrading::TolPackage::Repositories) ]];
+      Real t2 = Copy(Time);
+      Real t21 = Round((t2 -t1)*100)/100;
+      WriteLn("[TolPackage::Server] Catalog "<<t21<<" s.");
+    1})
+  }
 ]];
-
-/* */
+//////////////////////////////////////////////////////////////////////////////

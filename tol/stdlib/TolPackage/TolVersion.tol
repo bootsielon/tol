@@ -1,0 +1,96 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : TolVersion.tol
+// PURPOSE: TOL version related funcions
+//////////////////////////////////////////////////////////////////////////////
+
+Text _.autodoc.member.TolVersion = 
+  "Módulo de funciones para la gestión de versiones de TOL.";
+//////////////////////////////////////////////////////////////////////////////
+@LocalBlock TolVersion =
+//////////////////////////////////////////////////////////////////////////////
+[[
+  //////////////////////////////////////////////////////////////////////////////
+  Set ObtainIntegers(Text version)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Text v = Sub(version, 1, 1);
+    If(v!="v", {
+      If(False, ?)
+    }, {
+      Real firstEnd = TextFind(version, ".", 2)-1;
+      Real If(firstEnd<0, firstEnd:=TextLength(version));
+      Real v1 = Eval(Text Sub(version, 2, firstEnd));
+      If(v1<=2, {
+        Text versionM = Replace(Sub(version, 2, TextLength(version)), 
+          ".", " ");
+        EvalSet(Select(Tokenizer(versionM, " "), _IsIntegerText), 
+          Real (Text it) { Eval(it) })
+      }, {
+        Text versionM = Replace(Replace(
+          Replace(Sub(version, 2, TextLength(version)), ".", " "), 
+          " p", " 1 "), " b", " 0 ");
+        EvalSet(Select(Tokenizer(versionM, " "), _IsIntegerText), 
+          Real (Text it) { Eval(it) })
+      })
+    })
+  };
+    
+  ////////////////////////////////////////////////////////////////////////////
+  Real CompareVersions(Text version1, Text version2)
+  ////////////////////////////////////////////////////////////////////////////
+  { _CompareVersions_Sign(version1, version2, 0) };
+  
+  ////////////////////////////////////////////////////////////////////////////
+  Real Compare_Short(Text version1, Text version2)
+  ////////////////////////////////////////////////////////////////////////////
+  { _CompareVersions_Sign(version1, version2, 1) };
+  
+  ////////////////////////////////////////////////////////////////////////////
+  Real Compare_Long(Text version1, Text version2)
+  ////////////////////////////////////////////////////////////////////////////
+  { _CompareVersions_Sign(version1, version2, -1) };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real _CompareVersions_Sign(Text version1, Text version2, Real sign)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _SetCompare_Sign(ObtainIntegers(version1), ObtainIntegers(version2), sign)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real _SetCompare_Sign(Set set1, Set set2, Real sign)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real len1 = Card(set1);
+    Real len2 = Card(set2);
+    Real len = Min(len1, len2);
+    Real i = 1;
+    Real compare = 0;
+    Real While(i<=len & Not(compare), {
+      Real compare := Compare(set1[i], set2[i]);
+      Real i := i+1 
+    });
+    If(i>len & Not(compare), Compare(len1, len2) * sign, compare)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real _IsIntegerText(Text integer)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real length = TextLength(integer);
+    If(length==0, 0, {
+      Real isInteger = True;
+      Real position = 1;
+      While(isInteger & position<=length, {
+        Real ascii = ASCII(Sub(integer, position, position));
+        If(ascii>=48 & ascii<=57, {
+          Real position := position + 1
+        }, {
+          Real isInteger := False
+        })
+      });
+      isInteger
+    })
+  }
+]];
+//////////////////////////////////////////////////////////////////////////////

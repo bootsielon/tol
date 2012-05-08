@@ -1,243 +1,253 @@
-/* -*- mode: C++ -*- */
-//////////////////////////////////////////////////////////////////////////////
-// FILE   : common.tol
-// PURPOSE: TolPackage common tools
-// Funciones y estructuras comunes al lado de servidor y cliente
-//////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////
-//Información de un paquete que es relevante para la sincronización de las 
-//copias locales con el repositorio remoto.
-  Struct @VersionSynchro {
-//////////////////////////////////////////////////////////////////////////////
-  Text te_url,                  //URL of repository
-  Text co_name,                 //Generic name of package
-  Text co_name_version,         //Name of versioned package 
-  Text te_extra_info,           //Extra information
-  Text te_min_tol_version,      //Minimum compatible TOL version
-  Text te_max_tol_version,      //maximum compatible TOL version
-  Text te_dependencies,         //Required packages
-  Date dh_release_date_remote,  //Publication date in remote repository
-  Date dh_release_date_local,   //Local installing date
-  Real nu_bytes                 //Size of remote compressed archive
-};
+  // [API útil]
+  //  * Text _.autodoc.get.identifier(NameBlock package)
+  //  * NameBlock Require(Text identifier)
+  //  * Real AddRepository(Text url)
+  // [API Client+Server]
+  //  * Real InstallPackage(Text identifier)
+  //  * Real InstallCompatible(Text pattern, Text tolVersion, Date date)
+  //  * Real InstallLastCompatible(Text pattern)
+  //  * Real UpdateAll(Real void)
+  //  * Real UpgradeAll(Real void)
+  // [API compatibilidad]
+  //  % Set _.GetVersSyncInfo(Real void) 
+  //  % Set _.GetPackSyncInfo(Text tolVersion)
+  //  % Set GetInstallationList(Set packages)
+  //  * Set AtListA(Text listId)
+  // <Leyenda>
+  //  %: Utilizados en la GUI de TolPackage.
 
-//////////////////////////////////////////////////////////////////////////////
-//Información de un paquete que es relevante para la sincronización de las 
-//copias locales con el repositorio remoto.
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.get.identifier(NameBlock package)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    package::_.autodoc.name<<"."
+      <<package::_.autodoc.version.high<<"."<<package::_.autodoc.version.low
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  NameBlock Require(Text identifier)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real Eval("Real {
+      #Require "<<identifier<<";
+    1}");
+    Eval(Tokenizer(identifier, ".")[1])
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.AddRepository = 
+    "Añade un repositorio a la lista de configuración del usuario:\n"
+    "  Set TolConfigManager::Config::Upgrading::TolPackage::Repositories\n";
+  Real AddRepository(Text url)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set TolConfigManager::Config::Upgrading::TolPackage::Repositories :=
+      Unique(TolConfigManager::Config::Upgrading::TolPackage::Repositories <<
+      [[url]]);
+    TolConfigManager::SaveConfig(TolConfigManager::Config)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _AsOSDir(Text dir)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    // OSDir* utiliza direcciones no acabadas en /
+    Real length = TextLength(dir);
+    If(Text Sub(dir, length, length)=="/", Sub(dir, 1, length-1), dir)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real InstallPackage(Text identifier)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real Server::Initialize(?);
+    Text file = Server::DownloadPackage(identifier);
+    Real If(TextLength(file), {
+      Real Client::InstallZip(file);
+      Real Client::UpdateCatalog(?);
+    1}, 0)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real InstallCompatible(Text pattern, Text tolVersion, Date date)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real Server::Initialize(?);
+    Text file = Server::DownloadCompatible(pattern, tolVersion, date);
+    Real If(TextLength(file), {
+      Real Client::InstallZip(file);
+      Real Client::UpdateCatalog(?);
+    1}, 0)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real InstallLastCompatible(Text pattern)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real Server::Initialize(?);
+    Text file = Server::DownloadLastCompatible(pattern);
+    Real If(TextLength(file), {
+      Real Client::InstallZip(file);
+      Real Client::UpdateCatalog(?);
+    1}, 0)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real UpdateAll(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @Catalog client = Client::GetCatalog(?);
+    @Catalog server = Server::GetCatalog(?);
+    Set updateList = server::ObtainUpdateList(client, Version, UnknownDate);
+    If(Card(updateList), SetSum(EvalSet(updateList, Real (Set record) {
+      WriteLn("[UpdateAll] Se actualiza "<<record::identifier);
+      InstallPackage(record::identifier)
+    })), 0)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real UpgradeAll(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @Catalog client = Client::GetCatalog(?);
+    @Catalog server = Server::GetCatalog(?);
+    Set upgradeList = server::ObtainUpgradeList(client, Version, UnknownDate);
+    If(Card(upgradeList), SetSum(EvalSet(upgradeList, Real (Set record) {
+      WriteLn("[UpgradeAll] Se mejora a "<<record::identifier);
+      InstallPackage(record::identifier)
+    })), 0)
+  };
+
+  // Estructuras
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Para la gestión de orígenes de código. (Builder)
+  Struct @PackageSource
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Text name;
+    Text type;
+    Text source
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Para la transmisión de información desde los repositorios. (Server)
+  // Información de un paquete que es relevante para la sincronización de las 
+  // copias locales con el repositorio remoto.
+  Struct @VersionSynchro
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Text te_url,                  //URL of repository
+    Text co_name,                 //Generic name of package
+    Text co_name_version,         //Name of versioned package 
+    Text te_extra_info,           //Extra information
+    Text te_min_tol_version,      //Minimum compatible TOL version
+    Text te_max_tol_version,      //Maximum compatible TOL version
+    Text te_dependencies,         //Required packages
+    Date dh_release_date_remote,  //Publication date in remote repository
+    Date dh_release_date_local,   //Local installing date
+    Real nu_bytes                 //Size of remote compressed archive
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Para la transmisión de información desde los repositorios. (Server)
+  // Información de un paquete que es relevante para la sincronización de las 
+  // copias locales con el repositorio remoto.
   Struct @PackageSynchro {
-//////////////////////////////////////////////////////////////////////////////
-  Text te_url,                  //URL of repository
-  Text co_name,                 //Generic name of package
-  Text te_brief,                //Brief description of package 
-  Text te_extra_info,           //Extra information
-  Text te_min_tol_version,      //Minimum compatible TOL version
-  Text te_max_tol_version,      //maximum compatible TOL version
-  Text co_last_version_remote,  //Name of last remote version
-  Text co_last_version_local,   //Name of last local version
-  Date dh_release_date_remote,  //Publication date in remote repository
-  Date dh_release_date_local,   //Local installing date
-  Real nu_bytes                 //Size of compressed file
-};
+  ////////////////////////////////////////////////////////////////////////////
+    Text te_url,                  //URL of repository
+    Text co_name,                 //Generic name of package
+    Text te_brief,                //Brief description of package 
+    Text te_extra_info,           //Extra information
+    Text te_min_tol_version,      //Minimum compatible TOL version
+    Text te_max_tol_version,      //Maximum compatible TOL version
+    Text co_last_version_remote,  //Name of last remote version
+    Text co_last_version_local,   //Name of last local version
+    Date dh_release_date_remote,  //Publication date in remote repository
+    Date dh_release_date_local,   //Local installing date
+    Real nu_bytes                 //Size of compressed file
+  };
 
-//////////////////////////////////////////////////////////////////////////////
-//Información de chequeo de dependencias de un paquete
-  Struct @TolVerReqChk {
-//////////////////////////////////////////////////////////////////////////////
-  Text co_name_version,
-  Text te_min_tol_version,
-  Text te_max_tol_version,
-  Text te_min_tol_version_deep,
-  Text te_max_tol_version_deep,
-  Real min_ok,
-  Real max_ok,
-  Real all_ok
-};
+  // Lists
 
-//////////////////////////////////////////////////////////////////////////////
-Text _.official = 
-  "http://packages.tol-project.org/OfficialTolArchiveNetwork/repository.php";
-//////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////
+  Set _.GetVersSyncInfo(Real void) // Compatibilidad GUI
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @Catalog client = Client::GetCatalog(?);
+    @Catalog server = Server::GetCatalog(?);
+    SetConcat(EvalSet(server::_.records, Set (Set list) {
+      EvalSet(list, Set (Set record) {
+        Text dependencies = If(Card(record::freeDependencies), {
+          SetSum([[ record::freeDependencies[1] ]]
+            << For(2, Card(record::freeDependencies), Text (Real i) { 
+              ", "<<record::freeDependencies[i] 
+          }))
+        }, "");
+        Text localIdentifier = client::ObtainIdentifier_Show(record::name, 
+          Version, UnknownDate, 0);
+        Date localRelease = If(TextLength(localIdentifier), {
+          Set localRecord = client::GetRecord(localIdentifier);
+          localRecord::release
+        }, TheBegin);
+        @VersionSynchro(record::repository, record::name, record::identifier,
+          "<...>", record::minTolVersion, record::maxTolVersion, 
+          dependencies, record::release, localRelease, ?)
+      })
+    }))
+  };
 
-Set _.currentTolVersionTokens = Copy(Empty);
-Text _.currentTolVersion = "";
-Date _.currentTolReleaseDate = UnknownDate;
+  ////////////////////////////////////////////////////////////////////////////
+  Set _.GetPackSyncInfo(Text tolVersion) // Compatibilidad GUI
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @Catalog client = Client::GetCatalog(?);
+    @Catalog server = Server::GetCatalog(?);
+    EvalSet(server::GetCompatibleList(tolVersion, UnknownDate), 
+      Set (Set record) {
+      Text localIdentifier = client::ObtainIdentifier_Show(record::name, 
+        Version, UnknownDate, 0);
+      Date localRelease = If(TextLength(localIdentifier), {
+        Set localRecord = client::GetRecord(localIdentifier);
+        localRecord::release
+      }, TheBegin);
+      @PackageSynchro(record::repository, record::name, "<...>", "<...>", 
+        record::minTolVersion, record::maxTolVersion, record::identifier,
+        localIdentifier, record::release, localRelease, ?)
+    })
+  };
 
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.Initialize = 
-"Inicializa el servicio de paquetes TOL";
-Real Initialize(Real void)
-//////////////////////////////////////////////////////////////////////////////
-{
-  If(Card(_.currentTolVersionTokens),False,
+  ////////////////////////////////////////////////////////////////////////////
+  Set GetInstallationList(Set patterns) // GUI
+  ////////////////////////////////////////////////////////////////////////////
   {
-    Set _.currentTolVersionTokens := Tokenizer(Version," ");
-    Text _.currentTolVersion := 
-    {
-     _.currentTolVersionTokens[1]+" "+_.currentTolVersionTokens[2] 
-    };
-    Date _.currentTolReleaseDate := 
-    {
-      TextToDate(
-       _.currentTolVersionTokens[3]+" "+_.currentTolVersionTokens[4],
-      "%Y-%m-%d %h:%i:%s") 
-   };
-   True
- })
-};
+    TolPackage::@Catalog catalog = TolPackage::Server::GetCatalog(?);
+    Set deepDs = Unique(SetConcat(EvalSet(patterns, Set (Text pattern) {
+      [[pattern]]<<catalog::GetDeepDependencies(pattern, Version, UnknownDate)
+    })));
+    Set catalog::IdentifyPackages(deepDs, Version, UnknownDate)
+  };
 
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.GetCurrentNameVersion =
-"Devuelve el nombre de versión actual de un paquete ya cargado";
-  Text GetCurrentNameVersion(Text packageName, Real specificVersion)
-//////////////////////////////////////////////////////////////////////////////
-{
-  NameBlock p = Eval(Tokenizer(packageName,".")[1]);
-  Text name.version = If(!specificVersion,packageName,
-    packageName+"."<<p::_.autodoc.version.high+"."<<p::_.autodoc.version.low)
-};
+  ////////////////////////////////////////////////////////////////////////////
+  Set _ListA = Ois.Load(GetAbsolutePath("listA.oza"))[1];
+  ////////////////////////////////////////////////////////////////////////////
+  Set AtListA(Text listId)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real index = FindIndexByName(_ListA, listId);
+    If(index, _ListA[index], {
+      Set parts = Tokenizer(listId, ".");
+      Real index2 = FindIndexByName(_ListA, parts[1]);
+      If(index2, {
+        Set info = DeepCopy(_ListA[index2]);
+        Real info::_.autodoc.version.high := Eval(parts[2]);
+        Real info::_.autodoc.version.low := Eval(parts[3]);
+        Text identifier = parts[1]<<"."<<parts[2]<<"."<<parts[3];
+        PutName(identifier, info)
+      }, Copy(Empty))
+    })
+  };
 
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.GetDeepDependencies =
-"Devuelve la lista de dependencias directas e indirectas de un paquete ya "
-"cargado";
-Set GetDeepDependencies(Text packageName, Real specificVersion)
-//////////////////////////////////////////////////////////////////////////////
-{
-//WriteLn("TRACE GetDeepDependencies 1");
-  NameBlock p = Eval(Tokenizer(packageName,".")[1]);
-  Set dep = If(!ObjectExist("Set","p::_.autodoc.dependencies"),Empty,
-   p::_.autodoc.dependencies); 
-//WriteLn("TRACE GetDeepDependencies 2");
-//WriteLn("TRACE GetDeepDependencies 3");
-  If(!Card(dep), Copy(Empty),
-  {
-    Set aux=EvalSet(dep, Set(Text r)
-    {
-      Text name.version = 
-        TolPackage::GetCurrentNameVersion(r, specificVersion);
-      [[name.version]] <<
-      TolPackage::GetDeepDependencies(r,specificVersion)
-    });
-    Unique(SetConcat(aux))
-  }) 
-};
 
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.PackageInfo.Extract = 
-"Extrae la información documental de un paquete.";
-Set PackageInfo.Extract(NameBlock pkg)
-//////////////////////////////////////////////////////////////////////////////
-{
-  Set info = [[
-    Text _.autodoc.name            = pkg::_.autodoc.name;
-    Text _.autodoc.brief           = pkg::_.autodoc.brief;
-    Text _.autodoc.description     = pkg::_.autodoc.description;
-    Text _.autodoc.url             = pkg::_.autodoc.url;
-    Set  _.autodoc.keys            = pkg::_.autodoc.keys;
-    Set  _.autodoc.authors         = pkg::_.autodoc.authors;
-    Text _.autodoc.minTolVersion   = pkg::_.autodoc.minTolVersion;
-    Text _.autodoc.maxTolVersion   = pkg::_.autodoc.maxTolVersion;
-    Real _.autodoc.version.high    = pkg::_.autodoc.version.high;
-    Real _.autodoc.version.low     = pkg::_.autodoc.version.low;
-    Date _.autodoc.releaseDate     = pkg::_.autodoc.releaseDate;
-    Set  _.autodoc.dependencies    = pkg::_.autodoc.dependencies;
-    Set  _.autodoc.nonTolResources = pkg::_.autodoc.nonTolResources;
-    Text _.autodoc.versionControl  = pkg::_.autodoc.versionControl;
-    Text _.autodoc.extra_info      = pkg::_.autodoc.extra_info
-  ]];
-  Real SetIndexByName(info);
-  info
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.PackageInfo.AutoFill = 
-"Rellena automaticamente algunos campos de información documental del "
-"paquete añadiendo los miembros que falten y cambiando su valor si es "
-"necesario.";
-Set PackageInfo.AutoFill(NameBlock pkg, Date releaseDate)
-//////////////////////////////////////////////////////////////////////////////
-{
-  Text name = Name(pkg);
-  Text name.version = name+"."<<
-    pkg::_.autodoc.version.high+"."<<pkg::_.autodoc.version.low;
-  Set dep = TolPackage::GetDeepDependencies(name, True);
-
-  Real If(!ObjectExist("Text", "pkg::_.autodoc.name"),
-  {
-    AddMember(pkg,{Text _.autodoc.name = name })
-  },
-  {
-    Text pkg::_.autodoc.name := name;
-    True
-  });
-  Real If(!ObjectExist("Set", "pkg::_.autodoc.dependencies"),
-  {
-    AddMember(pkg,{Set _.autodoc.dependencies = dep })
-  },
-  {
-    Set pkg::_.autodoc.dependencies := dep;
-    True
-  });
-  Real If(!ObjectExist("Date","pkg::_.autodoc.releaseDate"),
-  {
-    Real AddMember(pkg,{Date _.autodoc.releaseDate = releaseDate})
-  },
-  {
-    Date pkg::_.autodoc.releaseDate := releaseDate;
-    True
-  });
-  Real If(!ObjectExist("Set", "pkg::_.autodoc.authors"),
-  {
-    AddMember(pkg,{Set _.autodoc.authors = Copy(Empty) })
-  });
-  Real If(!ObjectExist("Set", "pkg::_.autodoc.keys"),
-  {
-    AddMember(pkg,{Set _.autodoc.keys = Copy(Empty) })
-  });
-  Real If(!ObjectExist("Set", "pkg::_.autodoc.nonTolResources"),
-  {
-    AddMember(pkg,{Set _.autodoc.nonTolResources = Copy(Empty) })
-  });
-  Real If(!ObjectExist("Text", "pkg::_.autodoc.versionControl"),
-  {
-    AddMember(pkg,{Text _.autodoc.versionControl = "" })
-  });
-  Real If(!ObjectExist("Text", "pkg::_.autodoc.maxTolVersion"),
-  {
-    Real AddMember(pkg,{Text _.autodoc.maxTolVersion = "v999999999999999999" })
-  });
-  Real If(!ObjectExist("Text", "pkg::_.autodoc.extra_info"),
-  {
-    Real AddMember(pkg,{Text _.autodoc.extra_info = "" })
-  });
-  PackageInfo.Extract(pkg)
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.PackageInfo.Build = 
-"Builds the info.oza file with documental information about a loaded "
-"package.";
-Real PackageInfo.Build(NameBlock pkg, Text dirPath, Date releaseDate_)    
-//////////////////////////////////////////////////////////////////////////////
-{
-  Date releaseDate = Date If(""<<releaseDate_!="Unknown",
-  {
-    releaseDate_
-  },
-  {
-    Text name = Name(pkg);
-    Text name.version = name+"."<<
-     pkg::_.autodoc.version.high+"."<<pkg::_.autodoc.version.low;
-    Date gmt = Copy(NowGmt);
-    Date loc = Copy(Now);
-    Real lag = Round(DateDif(S(0),loc,gmt)/10)*10;
-    Text oza = dirPath+name.version+".oza";
-    Date local = FileTime(oza);
-    Succ(local,S(0),lag)
-  });
-  Set info = PackageInfo.AutoFill(pkg,releaseDate);
-  Real OSDirMake(dirPath);
-  Real Ois.Store(info,dirPath+"info.oza")
-};
-
+  ////////////////////////////////////////////////////////////////////////////

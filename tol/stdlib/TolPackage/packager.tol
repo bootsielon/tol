@@ -1,0 +1,205 @@
+
+Text _.autodoc.member.Packager = 
+  "Herramienta empaquetadora de paquetes TOL";
+//////////////////////////////////////////////////////////////////////////////
+@LocalBlock Packager =
+//////////////////////////////////////////////////////////////////////////////
+[[
+  // [API]
+  //  * NameBlock CompilePackage(Text name, Text sourceRoot)
+  //    * Real TestAutodoc(NameBlock package, Date release)
+  //    * Real TestTolVersion(NameBlock package)
+  //  * Text BuildZip(NameBlock package, Text sourceRoot, Text destination)
+  //    * Set ObtainAutodoc(NameBlock package)
+  //    * Real ProcessResource(Anything resource, Text source, 
+  //        Text destination)
+
+  ////////////////////////////////////////////////////////////////////////////
+  Set CompilePackage(Text name, Text sourceRoot)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Date releaseGMT = Copy(NowGmt);
+    Set package. = IncludeTOL(sourceRoot<<name<<"/"<<name<<".tol", True);
+    Case(TestAutodoc(package.[1], releaseGMT), {
+      WriteLn("No pudo generarse el paquete.", "E");
+      If(False, ?)
+    }, TestTolVersion(package.[1]), {
+      WriteLn("No pudo generarse el paquete.", "E");
+      If(False, ?)
+    }, True, {
+      package.
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real TestAutodoc(NameBlock package, Date release)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    // [Devuelve 0 si no hubo problemas]
+    // Se imponen los siguientes campos de autodocumentación oligatorios  
+    // que han de estar construidos tras compilar el paquete:
+    //  * Text _.autodoc.name
+    //  * Text _.autodoc.brief
+    //  * Text _.autodoc.description
+    //  * Text _.autodoc.url
+    //  * Set  _.autodoc.authors
+    //  * Real _.autodoc.version.high
+    //  * Real _.autodoc.version.low
+    //  * Set  _.autodoc.dependencies
+    // Los siguientes campos son opcionales y se completan por defecto:
+    //  * Set  _.autodoc.keys
+    //  * Text _.autodoc.minTolVersion
+    //  * Text _.autodoc.maxTolVersion
+    //  * Set  _.autodoc.nonTolResources
+    //  * Text _.autodoc.versionControl
+    //  * Text _.autodoc.extra_info
+    // El campo siguiente se espera que esté sin construir:
+    //  * Date _.autodoc.releaseDate
+    Set mandatory = [["name", "brief", "description", "url", "authors", 
+      "version.high", "version.low", "dependencies"]];
+    Real errors = SetSum(EvalSet(mandatory, Real (Text attribute) {
+      _TestAutodocAttribute_Mandatory(package, attribute)
+    }));
+    Real If(errors, errors, {
+      Set optional = [[ [["keys", Empty]], [["minTolVersion", "v2"]], 
+        [["maxTolVersion", "v999"]], [["nonTolResources", Empty]], 
+        [["versionControl", ""]], [["extra_info", ""]] ]];
+      Set forced = [[ [["releaseDate", release]] ]];
+      SetSum(EvalSet(optional, Real (Set name.value) {
+        _TestAutodocAttribute_Optional(package, name.value)
+      }) << EvalSet(forced, Real (Set name.value) {
+        _TestAutodocAttribute_Forced(package, name.value)
+      }))
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real _TestAutodocAttribute_Mandatory(NameBlock package, Text name)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    // [Devuelve 0 si no hubo problemas]
+    Real nError = Copy(NError);
+    Real If(ObjectExist("Anything", "package::_.autodoc."<<name), 0, {
+      WriteLn("El atributo _.autodoc."<<name<<" es obligatorio", "E");
+    1});
+    NError-nError
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real _TestAutodocAttribute_Optional(NameBlock package, Set name.value)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    // [Devuelve 0 si no hubo problemas]
+    Real nError = Copy(NError);
+    Text name = name.value[1];
+    Anything value = name.value[2];
+    Real If(ObjectExist("Anything", "package::_.autodoc."<<name), 0, {
+      AddMember(package, { Eval("Anything _.autodoc."<<name<<" = value") })
+    });
+    NError-nError
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real _TestAutodocAttribute_Forced(NameBlock package, Set name.value)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    // [Devuelve 0 si no hubo problemas]
+    Real nError = Copy(NError);
+    Text name = name.value[1];
+    Anything value = name.value[2];
+    Real If(ObjectExist("Anything", "package::_.autodoc."<<name), {
+      // Se obvia la consideración de sólo lectura del attributo
+      Anything Eval("package::_.autodoc."<<name<<" := value");
+    1}, {
+      AddMember(package, { Eval("Anything _.autodoc."<<name<<" = value") })
+    });
+    NError-nError
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real TestTolVersion(NameBlock package)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    // [Devuelve 0 si no hubo problemas]
+    Real nError = Copy(NError);
+    // Para pasar a un paquete con la información autodoc completa
+    Text identifier = _.autodoc.get.identifier(package);
+    Text minTolVersion = package::_.autodoc.minTolVersion;
+    Text maxTolVersion = If(TextLength(package::_.autodoc.maxTolVersion), 
+      package::_.autodoc.maxTolVersion, "v999");
+    Real ok = Case(TolVersion::CompareVersions(minTolVersion, Version)>0, {
+      False
+    }, TolVersion::CompareVersions(Version, maxTolVersion)>0, {
+      False
+    }, True, True);
+    Real If(ok, 0, {
+      WriteLn("[TolPackage::Builder::TestTolVersion] Cannot create package '"
+        <<identifier<<"' with current TOL version "<<Version+".\n"
+        <<"It requires a version in interval ["<<minTolVersion+", "
+        <<maxTolVersion<<"]", "E");
+      // Real Stop
+    1});
+    NError-nError
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text BuildZip(NameBlock package, Text sourceRoot, Text destination)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Text name = package::_.autodoc.name;
+    Text identifier = _.autodoc.get.identifier(package);
+    Text source = sourceRoot<<name<<"/";
+    Text packagePath = destination<<identifier<<"/";
+    Real OSDirMake(_AsOSDir(packagePath));
+    Real Ois.Store(Set { [[
+      PutName(name, package)
+    ]] }, packagePath<<identifier+".oza");
+    Real Ois.Store(ObtainAutodoc(package), packagePath<<"info.oza");
+    Set EvalSet(package::_.autodoc.nonTolResources, Real (Anything resource) {
+      ProcessResource(resource, source, packagePath)
+    });
+    Real PackArchive::PackFull("ZipArchive", ReplaceSlash(packagePath), True);
+    _AsOSDir(packagePath)<<".zip"
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Set ObtainAutodoc(NameBlock package)    
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    EvalSet(Select(Members(package), 
+      Real (Set member) { TextMatch(member->Name, "_.autodoc.*") }),
+      Anything (Set member) { Eval(member->Type<<" package::"<<member->Name) }
+    )
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real ProcessResource(Anything resource, Text source, Text destination)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Case(Grammar(resource)=="Text", {
+      Real OSDirMake(destination<<"/"<<resource);
+      Real If(OSUnix, OSDirRemove(destination<<"/"<<resource));
+      Real OSDirCopy(source<<""<<resource, destination<<""<<resource);
+      _CleanResource(destination<<"/"<<resource)
+    }, Grammar(resource)=="Set", {
+      Set EvalSet(resource, Real (Anything element) {
+        ProcessResource(element, source, destination)
+      });
+    1})
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real _CleanResource(Text resourcePath)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set EvalSet(GetDir(resourcePath)[2], Real (Text s) {
+      Text resourcePath2 = resourcePath+"/"+s;
+      Text ls = ToLower(s);
+      If(Or(ls==".svn", ls=="svn", ls=="cvs", ls==".cvs"),
+        OSDirRemove(resourcePath2),
+        _CleanResource(resourcePath2))
+    });
+    True
+  }
+]];
+//////////////////////////////////////////////////////////////////////////////
