@@ -4,8 +4,7 @@ namespace eval ::TolPkg {
 
 proc ::TolPkg::UpdateRepositoryInfo { } {
   tol::console eval {
-    Real TolPackage::Client::RemoteUpdatePackSyncInfo(False);
-    Real TolPackage::Client::RemoteUpdateVersSyncInfo(False);
+    Real TolPackage::Server::UpdateCatalog(?);
   }
   return
 }
@@ -26,15 +25,16 @@ if { 0 } {
 
 proc ::TolPkg::GetLocalRoot { } {
   return [ file normalize \
-               [ lindex [ toltcl::eval { Text TolPackage::_.localRoot } ] 0 ] ]
+    [ lindex [ toltcl::eval { Text TolPackage::_.localRoot } ] 0 ] ]
 }
 
-proc ::TolPkg::GetClientPath { } {
-  return [ file join [ GetLocalRoot ] "Client" ]
+proc ::TolPkg::GetClientRoot { } {
+  return [ file normalize \
+    [ lindex [ toltcl::eval { Text TolPackage::Client::_.localRoot } ] 0 ] ]
 }
 
 proc ::TolPkg::GetPkgDirectory { p } {
-  return [ file join [ GetClientPath ] $p ]
+  return [ file join [ GetClientRoot ] $p ]
 }
 
 proc ::TolPkg::BackupPackage { p {delete 0}} {
@@ -73,13 +73,15 @@ proc ::TolPkg::DeleteBackup { p } {
 }
 
 proc ::TolPkg::GetPkgSyncInfo { } {
-  set oza [ file join [ GetClientPath ] "PackSyncInfo.oza" ]
-  if { ![ file exists $oza ] || ![ file readable $oza ] } {
-    return {}
-  }
-  set tolScript [ string map [ list "%O" $oza ] {
-    Set { Ois.Load( "%O" )[1] }
-  } ]
+  # set oza [ file join [ GetClientRoot ] "PackSyncInfo.oza" ]
+  # if { ![ file exists $oza ] || ![ file readable $oza ] } {
+  #   return {}
+  # }
+  # set tolScript [ string map [ list "%O" $oza ] {
+  #   Set { Ois.Load( "%O" )[1] }
+  # } ]
+
+  set tolScript { Set TolPackage::_.GetPackSyncInfo(Version) }
   # return a dictionary
   set dict {}
   foreach p [ lindex [ toltcl::eval $tolScript ] 0 ] {
@@ -112,13 +114,15 @@ if { 0 } {
 }
 
 proc ::TolPkg::GetVersSyncInfo { } {
-  set oza [ file join [ GetClientPath ] "VersSyncInfo.oza" ]
-  if { ![ file exists $oza ] || ![ file readable $oza ] } {
-    return {}
-  }
-  set tolScript [ string map [ list "%O" $oza ] {
-    Set { Ois.Load( "%O" )[1] }
-  } ]
+  # set oza [ file join [ GetClientRoot ] "VersSyncInfo.oza" ]
+  # if { ![ file exists $oza ] || ![ file readable $oza ] } {
+  #   return {}
+  # }
+  # set tolScript [ string map [ list "%O" $oza ] {
+  #   Set { Ois.Load( "%O" )[1] }
+  # } ]
+
+  set tolScript { Set TolPackage::_.GetVersSyncInfo(?) }
   # return a dictionary
   set dict {}
   foreach p [ lindex [ toltcl::eval $tolScript ] 0 ] {
@@ -140,7 +144,7 @@ proc ::TolPkg::GetVersSyncInfo { } {
 }
 
 proc ::TolPkg::GetLocalPackages { } {
-  set clientRoot [ GetClientPath ]
+  set clientRoot [ GetClientRoot ]
   set dirs [ glob -nocomplain -tail -dir $clientRoot -types {d r} * ]
   set pkgsInfo {}
   foreach d $dirs {
@@ -151,7 +155,7 @@ proc ::TolPkg::GetLocalPackages { } {
 
 proc ::TolPkg::GetLocalPackageInfo { p } {
   set tolScript [ string map [ list %p $p ] {
-    Set TolPackage::Client::LocalInfo( "%p" );
+    Set TolPackage::Client::GetPackageInfo( "%p" );
   } ]
   return [ lindex [ toltcl::eval $tolScript -named 1 ] 1 ]
 }
@@ -201,6 +205,7 @@ proc ::TolPkg::GetPackageInfoFromOZA { oza } {
 proc ::TolPkg::GetRepositoryInfo { repo } {
   set ask "${repo}?action=general_information"
   set result [ toltcl::eval [ string map [ list %A $ask ] {
+    # No se usa?
     Set TolPackage::Client::GetRepositoryInfo( "%A" )
   } ] ]
   return [ lindex $result 0 ]
@@ -208,7 +213,7 @@ proc ::TolPkg::GetRepositoryInfo { repo } {
 
 proc ::TolPkg::AddRepository { url } {
   set tolexpr [ string map [ list %u $url ] {
-    Real TolPackage::Client::AddRepository( "%u" );
+    Real TolPackage::AddRepository( "%u" );
   } ]
   toltcl::eval $tolexpr
 }
@@ -216,23 +221,23 @@ proc ::TolPkg::AddRepository { url } {
 proc ::TolPkg::ZipInstall { pkg.zip } {
   puts "::TolPkg::ZipInstall ${pkg.zip}"
   set tolexpr [ string map [ list %p ${pkg.zip} ] {
-    Real TolPackage::Client::LocalInstallPackage( "%p" )
+    Real TolPackage::Client::InstallZip( "%p" )
   } ]
   return [ toltcl::eval $tolexpr ]
 }
 
 proc ::TolPkg::RemovePackage { pkg } {
   set tolexpr [ string map [ list %p ${pkg} ] {
-    Real TolPackage::Client::LocalClean( "%p" )
+    Real TolPackage::Client::UninstallPackage( "%p" )
   } ]
   return [ toltcl::eval $tolexpr ]
 }
 
 proc ::TolPkg::RemoteInstall { pkg repo } {
-  puts "::TolPkg::RemoteInstall $pkg $repo"
+  puts "::TolPkg::InstallLastCompatible $pkg"
   BackupPackage $pkg 1
   set tolexpr [ string map [ list %p $pkg %r $repo ] {
-    Real TolPackage::Client::RemoteInstall( "%r", "%p", 1 )
+    Real TolPackage::InstallLastCompatible("%p")
   } ]
   if { [ catch  { toltcl::eval $tolexpr } result ] } {
     set result 0
@@ -248,7 +253,7 @@ proc ::TolPkg::RemoteInstall { pkg repo } {
 proc ::TolPkg::ExportPackage { pkg dest } {
   puts "::TolPkg::ExportPackage $pkg to $dest"
   set tolexpr [ string map [ list %p $pkg %d $dest ] {
-    Real TolPackage::Client::LocalExportPackage( "%p", "%d/" )
+    Real TolPackage::Client::ExportPackage( "%p", "%d/" )
   } ]
   return [ toltcl::eval $tolexpr ]
 }
@@ -259,7 +264,7 @@ proc ::TolPkg::CheckPackagesToInstall { pkgs } {
     lappend members \"${p}\"
   }
   set tolexpr [ string map [ list %s "\[\[ [ join $members , ] \]\]" ] {
-    Set TolPackage::Client::GetDeepDependencies.all.last( %s );
+    TolPackage::GetInstallationList(%s);
   } ]
   return [ lindex [ toltcl::eval $tolexpr ] 0 ]
 }
@@ -282,7 +287,7 @@ proc ::TolPkg::GetKnownRepositories { } {
 }
 
 proc ::TolPkg::GetPackagesInfo { } {
-  return [ lindex [ toltcl::eval { Set TolPackage::Client::_.packSyncInfo } ] 0 ]
+  return [ lindex [ toltcl::eval { Set TolPackage::_.GetPackSyncInfo(Version) } ] 0 ]
 }
 
 proc ::TolPkg::test_00 { } {
