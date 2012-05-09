@@ -471,10 +471,10 @@ BDate BTsrDatingChange::FirstDate() const
     BDate f = ser->FirstDate(); 
     if(!f.IsTheBegin()) 
     { 
-      f = Dating()->FirstNoLess(ser->FirstDate()); 
+      f = Dating()->FirstNoGreat(ser->FirstDate()); 
       if(f.IsTheBegin()) 
       {
-        f = Dating()->FirstNoGreat(ser->FirstDate()); 
+        f = Dating()->FirstNoLess(ser->FirstDate()); 
       }
     }
     NCDate(firstDate_) = f;
