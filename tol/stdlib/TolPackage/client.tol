@@ -68,6 +68,13 @@ Text _.autodoc.member.Client =
   // Métodos Local* y Remote* mantenidos por compatibilidad
 
   //||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||//
+  Real LocalClean(Text package)
+  //||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||//
+  {
+    Real UninstallPackage( package )
+  };
+  
+  //||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||//
   Text LocalLastCompatible(Text package)
   //||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||//
   {
@@ -136,12 +143,12 @@ Text _.autodoc.member.Client =
   {
     // Se trata el hecho de que pueda haberse indicado la ruta del archivo
     Text pattern = Replace(GetFileName(package), ".zip", "");
-    Text parts = Tokenizer(pattern, ".")[3];
-    Set parts := parts << For(1, 3-Card(parts), Text (Real i) { "*" });
+    Set parts = Tokenizer(pattern, ".");
+    Set Append( parts, For( Card(parts) + 1, 3, Text (Real i) { "*" } ) );
     Text txtPattern = parts[1]<<"."<<parts[2]<<"."<<parts[3];
     Set dir = GetDir(_.localRoot)[2];
     Set sel = EvalSet(GetDir(_.localRoot)[2], Real (Text subdir) {
-      If(TextMatch(sub ,txtPattern), OSDirRemove(_.localRoot<<subdir), 0)
+      If(TextMatch(subdir ,txtPattern), OSDirRemove(_.localRoot<<subdir), 0)
     });
     If(Card(sel), SetSum(sel), 0)
   };
