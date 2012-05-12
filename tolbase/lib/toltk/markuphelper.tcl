@@ -57,6 +57,14 @@ namespace eval ::MarkupHelper {
     return [ string map {\n \n<br>} $text ]
   }
 
+  proc Preformatted { text } {
+    variable markup
+
+    append markup "#pre\n"
+    append markup "${text}\n"
+    append markup "#unpre\n"
+  }
+
   proc Escape { text } {
     set specialChars {
       [  &lb;
@@ -287,13 +295,19 @@ namespace eval ::MarkupHelper {
       set _content $content
     }
     BR
-    LabelValue "Content" [ Verbatim [ Escape $_content ] ]
-    if {$path ne ""} {
+    if { $grammar eq "Text" } {
+      Text "Content:" -tags b
+      CR
+      Preformatted $_content
+    } else {
+      LabelValue "Content" [ Verbatim [ Escape $_content ] ]
       BR
+    }
+    if {$path ne ""} {
       LabelValue "Path" $path
+      BR
     }
     if {$desc ne ""} {
-      BR
       Text "Description:" -tags b -br 1
       Text \
           [ Preprocess [ string trimright $desc ] ]
