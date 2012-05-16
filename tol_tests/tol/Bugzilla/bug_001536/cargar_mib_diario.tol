@@ -1,0 +1,50 @@
+#Require TolExcel;
+
+// abro el excel
+TolExcel::@WorkBook xls = TolExcel::@WorkBook::Open("mib diario.xls");
+
+// activo la hoja 1
+Real xls::ActivateWS(1);
+
+// Leo las series temporales mediante la función GetFullSeriesByCol,
+// esta función lee todo el rango de datos reconocido al activar la
+// hoja. Existe otra función que permite leer las series desde un
+// rango concreto: ReadSeriesByCol. En esta llamada se ha especificado
+// en el primer argumento TimeSet Diario lo cual se interpreta como
+// que la primera columna contiene las fechas en Diario, en este caso
+// se ignora el encabezamiento "Fecha" de la celda A1. Si el primer
+// argumento es W entonces las fechas se leen como pertenecientes al
+// fechado especificado en la primera celda del encabezamiento de los
+// datos. El segundo argumento (igual a "") indica que la columna de
+// fecha (la primera del rango de datos) debe leerse o como fecha
+// nativa de excel o como fecha nativa de TOL. En el archivo
+// "mid diario.xls" la fecha aparece como fecha nativa de excel.
+Set series = xls::GetFullSeriesByCol( TimeSet Diario, Text "" );
+
+// series contiene una serie aux sin datos, es un error conocido y
+// todavía no resuelto en TolExcel
+Serie mib_diario = series[1];
+
+Real xls::Close(?);
+
+Date fst1 = First(mib_diario);
+Date lst1 = Last (mib_diario);
+Date fst2 = fst1-100;
+Date lst2 = lst1+100;
+
+
+Serie unknownAt = IsUnknown( mib_diario );
+TimeSet unknownTS   = SerTms( unknownAt );
+
+Set dates.1   = Dates(C,           fst1, lst1);
+Set dates.2.1 = Dates(  unknownTS, fst2, lst2);
+Set dates.2.2 = Dates(C-unknownTS, fst2, lst2);
+Set dates.2.3 = Dates(C,           fst2, lst2);
+
+Real ok.1 = Card(dates.2.2) < Card(dates.1);
+Real ok.2 = Card(dates.2.3) == Card(dates.2.1)+Card(dates.2.2);
+
+/* */
+Serie mib_diario_kn = DatCh( mib_diario, C - unknownTS,FirstS);
+
+/* */
