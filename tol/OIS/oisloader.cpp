@@ -1406,13 +1406,14 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           else                
           { result = x; }
           BUserTimeSerie* ser = (BUserTimeSerie*)result;
-          if(dating!=ser->Dating())
+          BTimeSet* serDating = ser->Dating();  
+          if(dating!=serDating)
           {
-            if(forceStoredTimeSet_!=0)
+            if(!serDating || (forceStoredTimeSet_!=0))
             {
               ser->PutDating(dating);
             }
-            if(!dating->IsCompatibleWith(*(ser->Dating()),beginCache,endCache))
+            if(serDating && !dating->IsCompatibleWith(*serDating,beginCache,endCache))
             {
               Warning(BText("Dating of loaded Serie ")+name+"="+expr+
                             "is not compatible with original dating "+
