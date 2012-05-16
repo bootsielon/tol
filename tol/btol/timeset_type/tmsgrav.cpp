@@ -2468,14 +2468,14 @@ BBool BTmsOfSerie::Includes(const BDate& dte) const
   BDate BTmsOfSerie::CalcInf() const 
 //--------------------------------------------------------------------
 { 
-  return(Tsr(Arg(1))->FirstDate()); 
+  return(BDate::Begin()); 
 }
 
 //--------------------------------------------------------------------
   BDate BTmsOfSerie::CalcSup() const 
 //--------------------------------------------------------------------
 { 
-  return(Tsr(Arg(1))->LastDate ()); 
+  return(BDate::End()); 
 }
 
 //--------------------------------------------------------------------
@@ -2528,7 +2528,7 @@ BDate BTmsOfSerie::SafeSuccessor(const BDate& dte_) const
     }
   	dte += tms;
     if(Contain(dte)) { return(dte); }
-    if(dte>ser->LastDate()) { return(BDate::End()); }
+  //if(dte>ser->LastDate()) { return(BDate::End()); }
   }
   AbortMessageMaxIter("BTmsOfSerie::Successor",dte_,dte,1);
   return(BDate::End());
@@ -2568,7 +2568,7 @@ BDate BTmsOfSerie::SafePredecessor(const BDate& dte_) const
     }
   	dte -= tms;
     if(Contain(dte)) { return(dte); }
-    if(dte>ser->LastDate()) { return(BDate::End()); }
+//  if(dte>ser->LastDate()) { return(BDate::End()); }
   }
   AbortMessageMaxIter("BTmsOfSerie::Predecessor",dte_,dte,-1);
   return(BDate::Begin());
