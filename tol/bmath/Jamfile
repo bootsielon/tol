@@ -1,6 +1,6 @@
 ln-H [ glob tol_*.h ] ;
 
-subdirs = barith bfunct blinalg bprdist bstat dcdflib gsl_ext mathobjects ;
+subdirs = barith bfunct blinalg bprdist bstat dcdflib gsl_ext mathobjects fftw ;
 
 for dir in $(subdirs)
 {
