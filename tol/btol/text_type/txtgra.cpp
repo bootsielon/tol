@@ -592,6 +592,40 @@ void BTxtSetSum::CalcContens()
   }
 }
 
+//--------------------------------------------------------------------
+DeclareContensClass(BText, BTxtTemporary, BTxtJoinWith);
+DefExtOpr(1, BTxtJoinWith, "TextJoinWith", 2, 2, "Set Text",
+	  I2("(Set texts, Text separator)",
+	     "(Set textos, Text separador)"),
+	  I2("Concatenates all the elements of a set of texts, "
+         "using the specified separator between each element.",
+	     "Concatena todos los elementos de un conjunto de textos "
+         "usando el separador indicado entre ellos."),
+	  BOperClassify::Text_);
+
+//--------------------------------------------------------------------
+void BTxtJoinWith::CalcContens()
+//--------------------------------------------------------------------
+{
+  BSet& set = Set(Arg(1));
+  BText& separator = Text(Arg(2));
+  contens_ = "";
+  bool ok = true;
+  for(BInt n=1; n<=set.Card(); n++)
+  {
+    if(n>1) { contens_ += separator; };
+	if(set[n]->Grammar()==GraText()) { contens_ += Text(set[n]); }
+    else { ok = false; }
+  }
+  if(!ok) 
+  { 
+    Error(I2("There are non Text objects in the set argument of "
+             "function Text TextJoinWith",
+             "Hay objetos de tipo distinto de Text en el conjunto "
+             "argumento de la llamada a la función Text TextJoinWith"));
+    contens_ = "";
+  }
+}
 
 //--------------------------------------------------------------------
 DeclareContensClass(BText, BTxtTemporary, BTxtConcat);
@@ -872,7 +906,7 @@ DefExtOpr(1, BTxtSubString, "Sub", 3, 3, "Text Real Real",
 	  I2("(Text txt, Real from, Real until)",
 	     "(Text txt, Real desde, Real hasta)"),
 	  I2("Returns the substring of a text between two bounds, both included.",
-	     "Devueve la subcadena comprendida entre dos límites ambos incluídos."),
+	     "Devueve la subcadena comprendida entre dos límites, ambos incluidos."),
 	  BOperClassify::Text_);
 
 //--------------------------------------------------------------------
@@ -882,6 +916,27 @@ void BTxtSubString::CalcContens()
     contens_.Copy(Text(Arg(1)),(BInt)Real(Arg(2))-1,(BInt)Real(Arg(3))-1);
 }
 
+//--------------------------------------------------------------------
+DeclareContensClass(BText, BTxtTemporary, BTxtSub);
+DefExtOpr(1, BTxtSub, "TextSub", 3, 3, "Text Real Real",
+	  I2("(Text txt, Real from, Real until)",
+	     "(Text txt, Real desde, Real hasta)"),
+	  I2("Returns the substring of a text between two bounds, both included. "
+         "Negative character positions count from the end of the text.",
+	     "Devueve la subcadena comprendida entre dos límites, ambos incluidos."
+         "Las posiciones negativas cuentan desde el final del texto."),
+	  BOperClassify::Text_);
+
+//--------------------------------------------------------------------
+void BTxtSub::CalcContens()
+//--------------------------------------------------------------------
+{
+    BInt	m   = (BInt)Real(Arg(2));
+    BInt	n   = (BInt)Real(Arg(3));
+    if(m<0) { m += 1+Text(Arg(1)).Length(); };
+    if(n<0) { n += 1+Text(Arg(1)).Length(); };
+    contens_.Copy(Text(Arg(1)),m-1,n-1);
+}
 
 //--------------------------------------------------------------------
 DeclareContensClass(BText, BTxtTemporary, BFirstTxtToUpper);
@@ -906,8 +961,25 @@ void BFirstTxtToUpper::CalcContens()
   }
 }
 
+//--------------------------------------------------------------------
+DeclareContensClass(BText, BTxtTemporary, BFirstTxtToLower);
+DefExtOpr(1, BFirstTxtToLower, "FirstToLower", 1, 1, "Text",
+	  "(Text txt)",
+	  I2("Changes the first character of a text to lower case.",
+	     "Cambia el primer caracter a minúsculas."),
+	  BOperClassify::Text_);
 
-
+//--------------------------------------------------------------------
+void BFirstTxtToLower::CalcContens()
+//--------------------------------------------------------------------
+{
+  contens_=Text(Arg(1));
+  char ch = contens_.Get(0);
+  if(ch)
+  {
+    contens_.PutChar(0,(BChar)tolower(ch));
+  }
+}
 
 //--------------------------------------------------------------------
 DeclareContensClass(BText, BTxtTemporary, BTxtToUpper);
@@ -2108,6 +2180,24 @@ void BTxtPeriodicNull::CalcContens()
     }
 }
 
+//--------------------------------------------------------------------
+DeclareContensClass(BSet, BSetTemporary, BCharacters);
+DefExtOpr(1, BCharacters, "Characters", 1, 1,  "Text", "(Text txt)",
+	  I2("Returns a set with the characters of the text.",
+       "Devuelve un conjunto con los caracteres del texto."),
+	  BOperClassify::System_);
+
+//--------------------------------------------------------------------
+void BCharacters::CalcContens()
+//--------------------------------------------------------------------
+{
+  BText& txt = Text(Arg(1));
+  contens_.PrepareStore(txt.Length());
+  for(BInt i=0; i<txt.Length(); i++)
+  {
+    contens_.AddElement(new BContensText(txt.SubString(i, i)));
+  }
+}
 
 //--------------------------------------------------------------------
 void Tokenizer(BSet& set, const BText& txt, BChar sep)
