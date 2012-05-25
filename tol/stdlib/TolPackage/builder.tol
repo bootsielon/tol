@@ -322,10 +322,11 @@ Text _.autodoc.member.Builder=
       WriteLn("No se puede conectar con el repositorio '"<<repository<<"'", 
         "E");
     0}, {
+      Set parts = Tokenizer(identifier, ".");
       If(Card(parts)==3, {
         Server::DB.DeletePackage(repository.db, identifier)
       }, {
-        WriteLn("No se puede destruir sin indicar específicamente "
+        WriteLn("No se puede destruir un paquete sin indicar específicamente "
           <<"su versión.", "E");
       0})
     })

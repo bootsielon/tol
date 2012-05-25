@@ -65,11 +65,22 @@ Text _.autodoc.member.Client =
     @Catalog::FormatRecord_Autodoc(record)
   };
 
+  ////////////////////////////////////////////////////////////////////////////
+  // Por compatibilidad a las llamadas recomendadas en:
+  //   https://www.tol-project.org/wiki/TolPackageRulesAndComments
+  Real AddRepository(Text url)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    WriteLn("Método obsoleto. Utilize en su lugar: "
+      <<"TolPackage::AddRepository.");
+    TolPackage::AddRepository(url)
+  };
+
   // Métodos Local* y Remote* mantenidos por compatibilidad
 
-  //||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||//
+  ////////////////////////////////////////////////////////////////////////////
   Real LocalClean(Text package)
-  //||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||//
+  ////////////////////////////////////////////////////////////////////////////
   {
     Real UninstallPackage( package )
   };
