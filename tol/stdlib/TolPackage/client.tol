@@ -100,9 +100,12 @@ Text _.autodoc.member.Client =
   Real RemoteInstall(Text repository, Text package, Real showError)
   //||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||//
   {
+    Real length = TextLength(package);
+    Text packageWP = If(Text Sub(package, length, length)==".", 
+      Text Sub(package, 1, length-1), package); // Se elimina el punto final
     WriteLn("[TolPackage::Client] Se intentará descargar el paquete '"
-      <<package<<"'.");
-    InstallLastCompatible(package)
+      <<packageWP<<"'.");
+    InstallLastCompatible(packageWP)
   };
 
   ////////////////////////////////////////////////////////////////////////////
