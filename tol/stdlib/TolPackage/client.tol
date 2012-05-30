@@ -89,8 +89,11 @@ Text _.autodoc.member.Client =
   Text LocalLastCompatible(Text package)
   //||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||//
   {
+    Real length = TextLength(package);
+    Text packageWP = If(Text Sub(package, length, length)==".", 
+      Text Sub(package, 1, length-1), package); // Se elimina el punto final
     @Catalog catalog = GetCatalog(?);
-    AvoidErr.NonDecAct(catalog::ObtainLastCompatible(package))
+    AvoidErr.NonDecAct(catalog::ObtainLastCompatible(packageWP))
   };
 
   //||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||//
