@@ -299,8 +299,7 @@ Text _.autodoc.member.Server =
       Real OSDirMake(_AsOSDir(_.localRoot));
       // [A] Se construye el catálogo remoto
       Real t1 = Copy(Time);
-      Set _.catalog := [[ @Catalog::Remote(TolConfigManager::Config
-        ::Upgrading::TolPackage::Repositories) ]];
+      Set _.catalog := [[ @Catalog::Remote(Empty) ]];
       Real t2 = Copy(Time);
       Real t21 = Round((t2 -t1)*100)/100;
       WriteLn("[TolPackage::Server] Catalog "<<t21<<" s.");
