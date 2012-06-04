@@ -135,7 +135,9 @@ Text _.autodoc.member.Client =
     Text folder = _.localRoot<<packageName;
     Real OSDirRemove(folder);
     Real PackArchive::UnpackFull("ZipArchive", folder, True);
-    FileExist(folder<<"/"<<packageName+".oza")
+    If(FileExist(folder<<"/"<<packageName+".oza"), {
+      Real UpdateCatalog(?);
+    1}, 0)
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -165,9 +167,14 @@ Text _.autodoc.member.Client =
     Text txtPattern = parts[1]<<"."<<parts[2]<<"."<<parts[3];
     Set dir = GetDir(_.localRoot)[2];
     Set sel = EvalSet(GetDir(_.localRoot)[2], Real (Text subdir) {
-      If(TextMatch(subdir ,txtPattern), OSDirRemove(_.localRoot<<subdir), 0)
+      If(TextMatch(subdir ,txtPattern), {
+        Real OSDirRemove(_.localRoot<<subdir);
+      1}, 0)
     });
-    If(Card(sel), SetSum(sel), 0)
+    If(Card(sel), {
+      Real UpdateCatalog(?);
+      SetSum(sel)
+    }, 0)
   };
 
   // Métodos CppTools
