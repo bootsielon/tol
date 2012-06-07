@@ -1356,7 +1356,7 @@ proc ::TolConsole::IncludeCmd {{path ""} } {
 #/////////////////////////////////////////////////////////////////////////////        
   variable data
   set types {
-    {{Tol Files}  {.tol .bst .bsi .bst .bdt}}
+    {{Tol Files}  {.tol .bst .bsi .bst .bdt .oza}}
     {{Text Files}  {.txt}}
     {{All Files}  *}
   }
