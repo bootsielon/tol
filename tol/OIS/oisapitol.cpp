@@ -970,13 +970,18 @@ static const char* aliasSpanishDescription_ =
     {
       contens_.AddElement(data);
     }
-    BGrammar::DestroyStackUntil(stackPos, data);    
+    BGrammar::DestroyStackUntil(stackPos, data);
   }
   if(needsClean)
   {
     EvalReal(BText("OSDirRemove(\"")+root+"\")",0);
   }
-}  
+}
+
+BSyntaxObject *NewBSetOisLoad( BList *args )
+{
+  return new BSetOisLoad(args);
+}
 
 //--------------------------------------------------------------------
   DeclareContensClass(BText, BTxtTemporary, BTextOisAutoPath);

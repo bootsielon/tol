@@ -729,6 +729,8 @@ public:
 	return( BText::Compare(&obj1->value_, &obj2->value_));
 }
 
+BSyntaxObject *NewBSetOisLoad( BList *args );
+
 #endif // TOL_OIS_H
 
 
