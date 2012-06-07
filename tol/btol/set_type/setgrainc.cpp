@@ -148,8 +148,10 @@ BDat BSetIncludeBDT::fillValue_    = 0;
     statusTable_.ReallocBuffer(size*2);
     statusTable_.ReallocBuffer(size);
   }
+#ifndef NDEBUG
   int pos = statusTable_.FindSorted(this, StatusTableCmp);
   assert(pos<0);
+#endif
   statusTable_.AddSorted(this,StatusTableCmp);
 }
 
@@ -272,8 +274,8 @@ BSetFromFile::BSetFromFile(BList* arg)
 : BSetTemporary (arg), 
   file_         (), 
   busy_         (false), 
-  curSourcePath_(NULL), 
   oldSourcePath_(NULL),
+  curSourcePath_(NULL), 
   makeGlobal_(NULL)
 {
   TRACE_MEMORY_SHOW(this,"BSetFromFile::BSetFromFile");
@@ -283,6 +285,7 @@ BSetFromFile::BSetFromFile(BList* arg)
   PutName(tolPath_);
   PutDescription(tolPath_);
 #endif
+  // std::cout << "BSetFromFile::BSetFromFile :" << tolPath_ << "," << BGrammar::Level() <<"\n";
   if(BGrammar::Level()==0)
   {
     nSetFromFileGlobal_++;
@@ -301,8 +304,8 @@ BSetFromFile::BSetFromFile(const BText& path)
 : BSetTemporary (NULL), 
   file_         (), 
   busy_         (false), 
-  curSourcePath_(NULL), 
   oldSourcePath_(NULL),
+  curSourcePath_(NULL), 
   makeGlobal_(NULL)
 {
   TRACE_MEMORY_SHOW(this,"BSetFromFile::BSetFromFile");
@@ -330,6 +333,7 @@ BSetFromFile::~BSetFromFile()
  */
 //--------------------------------------------------------------------
 {
+  // std::cout << "BSetFromFile::~BSetFromFile: \n";
   TRACE_MEMORY_SHOW(this,"BSetFromFile::~BSetFromFile");
   BinWrite();
   nSetFromFile_--;
@@ -905,7 +909,7 @@ void BSetIncludePRJ::CalcContens()
     ReadAllTokens(block, section, ']');
     BArray<BText> expression;
     ReadAllTokens(section[section.Size()-1], expression, ';');
-    BSyntaxObject* object;
+    BSyntaxObject* object = NULL;
     BGrammar* gra = NIL;
     BGrammar::PutLast(GraSet());
     for(n=0; (n<expression.Size())&&!Terminate(); n++)
@@ -991,6 +995,31 @@ void BSetIncludeTOL::CalcContens()
     BinRead();
 }
 
+//--------------------------------------------------------------------
+DeclareContensClass(BSet, BSetFromFile, BSetIncludeOZA);
+DefExtOpr(1, BSetIncludeOZA, "IncludeOZA", 1, 1, "Text",
+	  I2("(Text fileName)", 
+             "(Text nombreFichero)"),
+	  I2("Load an oza file, returning a Set with the elements "
+             "contained in the oza file."
+	     ,
+	     "Cargar un archivo oza, retornando un Set con los "
+             "elementos contenidos en el archivo oza.Devuelve el "
+             "conjunto de todos los objetos de un fichero TOL."),
+	  BOperClassify::FileIncluding_);
+//--------------------------------------------------------------------
+void BSetIncludeOZA::CalcContens()
+//--------------------------------------------------------------------
+{
+  const BText &name = Text(Arg(1));
+  BSyntaxObject *oisload = GraSet()->EvaluateExpr(BText("Ois.Load(\"")+name+"\")[1]");
+  if ( oisload ) {
+    const BSet &_oisdata = Set(oisload);
+    contens_.Copy( _oisdata );
+    DESTROY( oisload );
+    contens_.PutSourcePath(curSourcePath_);
+  }
+}
 
 //--------------------------------------------------------------------
 static bool ReadHeaderToken(BText&	tok, const BText& header,
@@ -1481,7 +1510,7 @@ void BSetIncludeBDC::CalcContens()
 	}
 	GetLine(File(), line, MaxLineLength, '\n');
 	firstDate = format.TextToDate(line.Compact());
-	if(dating=Tms(GraTimeSet()->EvaluateExpr(datingName)))
+	if((dating=Tms(GraTimeSet()->EvaluateExpr(datingName))))
 	{
 	    if(!firstDate.HasValue() || !dating->Contain(firstDate))
 	    {
@@ -1592,7 +1621,7 @@ void BSetIncludeBST::CalcContens()
   BStruct* str;
   BInt n;
   BInt numLine=0;
-  BBool lastComma = BFALSE;
+  //BBool lastComma = BFALSE;
   BText errMsg=BST;
   BText txt(MaxLineLength,' ');
 
@@ -1876,66 +1905,47 @@ BSyntaxObject* IncludeEvaluator(BList* arg)
   }
   BText extension = ToLower(GetFileExtension(name));
   BText autoPath = BOis::AutoPath(name);
-  BBool isOis = false;
-  if(extension=="")
-  {
-    isOis = CheckIsFile(autoPath+"/header.xml");
-  }
-  else if(extension=="oza")
-  {
-    isOis = CheckIsFile(autoPath);
-  }
-  if(isOis) 
-  { 
-    result=GraSet()->EvaluateExpr(BText("Ois.Load(\"")+name+"\")[1]"); 
-  }
-  if(!result && (BGrammar::Level()==0)) 
-  { 
-    result = (BSyntaxObject*)BSetFromFile::FindCompiled(name); 
-    if(result && (result->Level()>0)) { result = NULL; }
-  }
-  if( result) { DESTROY(arg); }
-  else
-  {
-   	     if(extension=="prj") { result=new BSetIncludePRJ(arg); }
-	  else if(extension=="in")  { result=new BSetIncludeTOL(arg); }
-	  else if(extension=="tol") { result=new BSetIncludeTOL(arg); }
-	  else if(extension=="bst") { result=new BSetIncludeBST(arg); }
-	  else if(extension=="bdt") { result=new BSetIncludeBDT(arg); }
-	  else if(extension=="bdc") { result=new BSetIncludeBDC(arg); }
-	  else if(extension=="bsi") { result=new BSetIncludeBSI(arg); }
-	  else if(extension=="bmt") { result=new BSetIncludeBMT(arg); }
-	  else if(BDir(name).IsDir())	   
-    { 
+
+  BBool isDir = BDir(name).IsDir();
+  if(extension=="prj") { result=new BSetIncludePRJ(arg); }
+  else if(extension=="in")  { result=new BSetIncludeTOL(arg); }
+  else if(extension=="tol") { result=new BSetIncludeTOL(arg); }
+  else if(extension=="bst") { result=new BSetIncludeBST(arg); }
+  else if(extension=="bdt") { result=new BSetIncludeBDT(arg); }
+  else if(extension=="bdc") { result=new BSetIncludeBDC(arg); }
+  else if(extension=="bsi") { result=new BSetIncludeBSI(arg); }
+  else if(extension=="bmt") { result=new BSetIncludeBMT(arg); }
+  else if(extension=="oza" || (isDir && CheckIsFile(autoPath+"/header.xml"))) { result= new BSetIncludeOZA(arg); }
+  else if( isDir )	   
+    {
       result=new BSetIncludeDIR(arg);
     }
-	  else			           
+  else			           
     { 
       Error(I2("Unknown file type ","Tipo de fichero desconocido ")+"\""+name+"\"");
       DESTROY(arg); 
     }
-    BText p;
-    BText ok = I2("Included","Ha sido incluido");
-	  if(result)
-	  {
-      double tm1 = (double)time(0);
-	    p = result->TolPath();
-	    Set(result);
+  BText p;
+  BText ok = I2("Included","Ha sido incluido");
+  if(result)
+    {
+      //double tm1 = (double)time(0);
+      p = result->TolPath();
+      Set(result);
       if(!CheckIsFile(p) && !BDir::CheckIsDir (p)) 
-      {
-        ok = I2("NOT included","No ha sido incluido");
-      }
-	  }
-    else
+        {
+          ok = I2("NOT included","No ha sido incluido");
+        }
+    }
+  else
     {
       p = name;
       ok = I2("NOT included","No ha sido incluido");
     }
-    if(show_msg_included)
+  if(show_msg_included)
     {
       Std(ok+I2(" file ", " el fichero ")+p+" ["+BDat((double)tm.MSec()/1000.0).Format("%.3lf")+" sec.]\n");
     }
-  }
   int nErr1 = (int)TOLErrorNumber().Value();
   BSetFromFile* sff = (BSetFromFile*)result;
   if(sff && (!sff->Contens().Card()) && (nErr1>nErr0))
