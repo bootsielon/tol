@@ -2672,11 +2672,11 @@ DeclareContensClass(BMat, BMatTemporary, BMatGradient);
 DefExtOpr(1, BMatGradient, "Gradient", 2, 2,
   "Code Matrix",
   "(Code function, Matrix point)",
-  I2("Determines the gradient vector of a function evaluated in a given point.  \n"
+  I2("Calculates the numerical gradient vector of a function evaluated in a given point.  \n"
      "Arguments:                                                                \n" 
      "function ---> function to be analyzed,                                    \n"
      "point    ---> point where the gradient is calculated                      \n",
-     "Determina el gradiente de una funcion evaluada en un punto dado.          \n"
+     "Calcula el gradiente numérico de una funcion evaluada en un punto dado.          \n"
      "Argumentos:                                                               \n" 
       "function ---> funcion a analizar,                                         \n"
      "point    ---> punto de calculo del gradiente                              \n"
@@ -2687,18 +2687,43 @@ void BMatGradient::CalcContens()
 //--------------------------------------------------------------------
 {
   BCode& code = Code(Arg(1));
-  BMat&  p_   = Mat (Arg(2));
-  BInt   n    = p_.Rows(); 
-  BArray<BDat> p(n), G; 
-  BDat d;
-  BInt i;
-  for (i=0; i<n; i++) { p[i] =  p_(i, 0); }
+  BMat&  x    = Mat (Arg(2));
+  BInt   n    = x.Rows(); 
   contens_.Alloc(n,1);
   if(contens_.Rows()!=n) { return; }
   BRnRCode f(n, code);
   /* OPT! : puede pasarse el buffer de contens_? */
-  f.Gradient(p, G);
-  for (i=0; i<n; i++) contens_(i,0)= G[i];
+  f.Gradient(x.Data(), contens_.GetData());
+}
+
+  
+//--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatHessian);
+DefExtOpr(1, BMatHessian, "Hessian", 2, 2,
+  "Code Matrix",
+  "(Code function, Matrix point)",
+  I2("Calculates the numerical hessian matrix of a function evaluated in a "
+     "given point.  \n"
+     "Arguments:                                                                \n" 
+     "function ---> function to be analyzed,                                    \n"
+     "point    ---> point where the hessian is calculated                       \n",
+     "Calcula el hessiano numéico de una funcion evaluada en un punto dado.     \n"
+     "Argumentos:                                                               \n" 
+      "function ---> funcion a analizar,                                        \n"
+     "point    ---> punto de calculo del hessiano                               \n"
+     ),
+    BOperClassify::NumericalAnalysis_);
+//--------------------------------------------------------------------
+void BMatHessian::CalcContens()
+//--------------------------------------------------------------------
+{
+  BCode& code = Code(Arg(1));
+  BMat&  x    = Mat (Arg(2));
+  BInt   n    = x.Rows(); 
+  contens_.Alloc(n,1);
+  if(contens_.Rows()!=n) { return; }
+  BRnRCode f(n, code);
+  f.Hessian(x.Data(), contens_);
 }
 
   

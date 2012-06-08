@@ -96,6 +96,7 @@ public:
 
   // Operations:
   virtual void Gradient (const BArray<BDat>&  x, BArray<BDat>&  G);
+  virtual void Hessian(const BArray<BDat>& x, BMatrix<BDat>& H);
   virtual BDat Dimension();
 };
 

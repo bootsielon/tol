@@ -85,28 +85,71 @@ BArray <BDat> arrayBDatDeclaration_;
 void BRnRFunction::Gradient (const BArray<BDat>& x, BArray<BDat>& G)
 
 /*! Returns the numerical Gradient vector of this function in a point
- *	    calculated as
- *
- *		(f(x+h)-f(x))/h
  */
 //--------------------------------------------------------------------
 {
   G.ReallocBuffer(n_);
-  BDat fxh1, fxh_1, fxh2, fxh_2; 
-  for(BInt i=0; i<n_; i++)
+  BDat f1, f_1, f2, f_2; 
+  BDat h = Distance();
+  int i;
+  for(i=0; i<n_; i++)
   {
-    x[i]+=Distance();
-	(*this).Evaluate(fxh1, x);
-    x[i]+=Distance();
-	(*this).Evaluate(fxh2, x);
-    x[i]-=3*Distance();
-    (*this).Evaluate(fxh_1, x);
-    x[i]-=Distance();
-	(*this).Evaluate(fxh_2, x);
-    G[i]=(fxh_2-8*fxh_1+8*fxh1-fxh2)/(12*Distance());
-    x[i]+=2*Distance();
+    x[i]+=h;
+    (*this).Evaluate(f1, x);
+    x[i]+=h;
+    (*this).Evaluate(f2, x);
+    x[i]-=3*h;
+    (*this).Evaluate(f_1, x);
+    x[i]-=h;
+    (*this).Evaluate(f_2, x);
+    G[i]=(f_2-8*f_1+8*f1-f2)/(12*h);
+    x[i]+=2*h;
   }
 }
+
+
+//--------------------------------------------------------------------
+void BRnRFunction::Hessian(const BArray<BDat>& x, BMatrix<BDat>& H)
+
+/*! Returns the numerical Hessian vector of this function in a point
+ */
+//--------------------------------------------------------------------
+{
+  H.Alloc(n_,n_);
+  double h = Distance().Value();
+  double h2_144 = 144*h*h;
+  int i,j,ih,jh;
+  BDat f0, f1, f_1, f2, f_2, fijh; 
+  const double c[4][4] = {
+    {+ 1, - 8, + 8, - 1},
+    {- 8, +64, -64, + 8},
+    {+ 8, -64, +64, - 8},
+    {- 1, + 8, - 8, + 1} };
+  const double dh[4] = 
+    {+ 2, + 1, - 1, - 2};
+  for(i=0; i<n_; i++)
+  {
+    for(j=0; j<=i; j++)
+    {
+      BDat dij=0;
+      for(jh=0; jh<4; jh++)
+      {  
+        x[j]+=dh[jh]*h;
+        for(ih=0; ih<4; ih++)
+        {
+          x[i]+=dh[ih]*h;
+          (*this).Evaluate(fijh, x);
+          dij += c[jh][ih]*fijh;
+          x[i]-=dh[ih]*h;
+        }
+        x[j]-=dh[jh]*h;
+      }
+      H(i,j)=H(j,i)=dij/h2_144;
+    }
+  }
+
+}
+
 
 //--------------------------------------------------------------------
 BDat BRnRFunction::Dimension ()
