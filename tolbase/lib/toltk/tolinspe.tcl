@@ -2120,6 +2120,43 @@ proc TolGui_GetMenuEntries { selection idx } {
   set menu_info
 }
 
+proc TolGui_StoreSetElementsInOZA { object } {
+  set saveIn [ tk_getSaveFile -defaultextension .oza \
+                   -parent . -title [ mc "Store OZA" ] \
+                   -filetypes {{oza {.oza}}} ]
+
+  if { $saveIn ne "" } {
+    set addr [ tol::info address $object ]
+    set tolexpr [ string map [ list %a $addr %f $saveIn ] {
+      Real Ois.Store( GetObjectFromAddress( "%a" ), "%f" );
+    } ]
+    toltcl::eval $tolexpr
+  }
+}
+
+proc TolGui_StoreSelectionInOZA { selection } {
+  set saveIn [ tk_getSaveFile -defaultextension .oza \
+                   -parent . -title [ mc "Store OZA" ] \
+                   -filetypes {{oza {.oza}}} ]
+  if { $saveIn ne "" } {
+    set lst_addr {}
+    foreach r $selection {
+      set a [ tol::info address $r ]
+      lappend lst_addr \"$a\"
+    }
+    set set_addr "\[\[ [join $lst_addr ,] \]\]"
+    set tolexpr [ string map [ list %L $set_addr %f $saveIn ] {
+      Real {
+        Set items = EvalSet( %L, Anything( Text addr ) {
+          Anything GetObjectFromAddress( addr )
+        } );
+        Real Ois.Store( items, "%f" )
+      }
+    } ]
+    toltcl::eval $tolexpr
+  }
+}
+
 proc TolGui_InsertEntriesFromMenuManager { targetMenu selection } {
   set addrList [ list ]
   foreach obj_info $selection {
@@ -2212,6 +2249,7 @@ proc ::TolInspector::PostVariable { x y } {
   ::TolInspector::ReadUserFunctions
 
   array unset options_selected
+  set all_objects {}
 
   foreach it [array names data_menu] {
     $data_menu($it) delete 0 end
@@ -2234,7 +2272,7 @@ proc ::TolInspector::PostVariable { x y } {
         #puts "OBJECT=$objName, PATH=$path"
         if { $InRootPool } {
           set object $data(pool,variables,$itemid)
-		} else {
+        } else {
           if {[llength $aryData(Reference)]} {
             #set object [lindex $aryData(Reference) 0]
             set object [lrange $aryData(Reference) 0 end]
@@ -2252,6 +2290,7 @@ proc ::TolInspector::PostVariable { x y } {
             }
           }
         }
+        lappend all_objects $object
         #puts "PostVariable: OBJECT=$object OBJNAME=$objName TOLSET=$tolset PATH=$path GRAMMAR=$grammar"
         switch -- $grammar {
           Code    -
@@ -2533,13 +2572,27 @@ proc ::TolInspector::PostVariable { x y } {
             $data_menu(main) add cascade -label [mc "View %1\$s's definition" $grammar] \
                -menu $data_menu($grammar,File)
             foreach objInfo $options_selected($grammar) {
-              $data_menu($grammar,File) add command -label [lindex $objInfo 1]\
-              -command [list ::TolInspector::ViewDefinition\
-                              [lindex $objInfo 1] [lindex $objInfo 2] $grammar]
+              $data_menu($grammar,File) add command -label [lindex $objInfo 1] \
+                  -command [list ::TolInspector::ViewDefinition\
+                                [lindex $objInfo 1] [lindex $objInfo 2] $grammar]
             }
           }
           $data_menu(main) add separator
         } ;#end del foreach
+
+        # Store selection in oza
+        if { [ llength $all_objects ] > 1 || [ lindex $grammar_selected 0 ] ne "Set" } {
+          $data_menu(main) add command -label [mc "Store selection in OZA"]... \
+              -command [ list TolGui_StoreSelectionInOZA $all_objects ]
+        } else {
+          $data_menu(main) add command -label [mc "Store Set in OZA"]... \
+              -command [ list TolGui_StoreSelectionInOZA $all_objects ]
+          $data_menu(main) add command -label [mc "Store elements in OZA"]... \
+              -command [ list TolGui_StoreSetElementsInOZA [ lindex $all_objects 0 ] ]
+        }
+        $data_menu(main) add separator
+        # Store selection in oza
+
         if { $InRootPool } {
           $data_menu(main) add command -label [mc "Remove from spool"] \
             -command [list ::TolInspector::RemoveFromSpool $ht_vars]
