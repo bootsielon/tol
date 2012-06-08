@@ -66,7 +66,6 @@
 #include <errno.h>
 #include <gsl/gsl_errno.h>
 #include <tol/tol_bnameblock.h>
-#include <contrib/cint/tolCint.h>
 
 #include <time.h>
 
@@ -132,7 +131,7 @@ static BSystemText*   tolSdkPath_                 = NULL;
 TOL_API void  InitCint ()
 //--------------------------------------------------------------------
 {
-  Cint_initialize(""); 
+//  Cint_initialize(""); 
 }
 
 //--------------------------------------------------------------------
@@ -474,13 +473,11 @@ BBool InitGrammars(char* calledProgram)
 //--------------------------------------------------------------------
 {
   static BBool initGrammars_ = BFALSE;
-  TRACE_CINT_DECIMAL;
 
-  InitCint();
+//InitCint();
   if(initGrammars_)  { return(false); }
 
   signal_assign();
-  TRACE_CINT_DECIMAL;
 
   initGrammars_=BTRUE;
   BStandardOperator::evaluatingFunctionArgument_ = false;
@@ -491,42 +488,34 @@ BBool InitGrammars(char* calledProgram)
   TrcIGSL(BText("Output logging ")+BOut::DumpFile());
   TrcIGSL("LC_NUMERIC=C");
   setlocale( LC_NUMERIC, "C");
-  TRACE_CINT_DECIMAL;
 
   TrcIG("System tools: ");
 # if defined(_MSC_VER) && (_MSC_VER>=1300)
   int sbh = defaultSBH_;
   TrcIGS(BText("Small Block Heap=")<<sbh);
   _set_sbh_threshold(sbh);
-  TRACE_CINT_DECIMAL;
 # endif
 # if defined(__USE_GBLA__)
   //------------------------------
   // GBLA Initialization:
   TrcIGS("GBLA");
   if(!BLAPI_Init()) return false;
-  TRACE_CINT_DECIMAL;
   //------------------------------
 # endif
   TrcIGS("GSL");
   GslInitialize();
-  TRACE_CINT_DECIMAL;
   TrcIGS("Parser");
   BParser::InitDefaultParser();
-  TRACE_CINT_DECIMAL;
   TrcIGS("Global Hashed Table");
   BGrammar::Initialize();
-  TRACE_CINT_DECIMAL;
   TrcIGS("Local Stack Manager");
   BStackManager::Initialize();
-  TRACE_CINT_DECIMAL;
 
   TrcIG("System types: ");
   //--------------------------------------------------
     TrcIGS("Anything");
   //--------------------------------------------------
   BAnyGrammar::InitGrammar();
-  TRACE_CINT_DECIMAL;
 
   //--------------------------------------------------
     TrcIGS("Real");
@@ -545,7 +534,6 @@ BBool InitGrammars(char* calledProgram)
      "Ejemplo :\nReal x = 192.3\n"),
             BCopyContens<BDat>::New,
             BFunArgContens<BDat>::NewLocal);
-  TRACE_CINT_DECIMAL;
 
   //--------------------------------------------------
     TrcIGS("Text");
@@ -562,7 +550,6 @@ BBool InitGrammars(char* calledProgram)
       "Ejemplo :\nText txt = \"Hola mundo\"\n\n"),
            BCopyContens<BText>::New,
            BFunArgContens<BText>::NewLocal);
-  TRACE_CINT_DECIMAL;
 
   //--------------------------------------------------
     TrcIGS("Date");
@@ -579,7 +566,6 @@ BBool InitGrammars(char* calledProgram)
       "Ejemplo :\nDate dte =y1995m2d11\n"),
             BCopyContens<BDate>::New,
             BFunArgContens<BDate>::NewLocal);
-  TRACE_CINT_DECIMAL;
 
   //--------------------------------------------------
     TrcIGS("Complex");
@@ -854,7 +840,6 @@ BBool InitGrammars(char* calledProgram)
     BOperClassify::InitInstances();
     TrcIGS("Special functions");
     BSpecialFunction::Initialize();
-  TRACE_CINT_DECIMAL;
 
     TrcIG("Built-in objects: ");
     TrcIGS("Code");
@@ -896,10 +881,8 @@ BBool InitGrammars(char* calledProgram)
     TrcIG("Sub-systems:");
     TrcIGSL("AIA: Automatic Intervention Analisis");
   	BAia::StaticInit();	
-  TRACE_CINT_DECIMAL;
     TrcIGSL("OIS: Objects Indexed Serialization");
     BOis::Initialize();
-  TRACE_CINT_DECIMAL;
     BGrammar::PutLast(GraSet());
 #   if defined(USE_DELAY_INIT)
     TrcIG("Delayed static objects");
@@ -908,7 +891,6 @@ BBool InitGrammars(char* calledProgram)
 
     TrcIGS("Methods");
     BuildMethodFunctions();
-  TRACE_CINT_DECIMAL;
 
   //initializing tools 
     BysSparseReg::Initialize();
@@ -922,12 +904,10 @@ BBool InitGrammars(char* calledProgram)
 	      "Contiene la información sobre la URL y el número de revisión del "
         "SVN desde el que se ha generado la presente versión de TOL."));
 
-  Cint_initialize_tol_variables();
+//Cint_initialize_tol_variables();
 
-  TRACE_CINT_DECIMAL;
     int BTolOprProfiler_Init();
     BTolOprProfiler_Init();
-  TRACE_CINT_DECIMAL;
 
   _tolVersion_ = TOLVersion();
   version_=new BSystemText("Version", _tolVersion_,
@@ -1268,11 +1248,9 @@ const char * TOLContribAcknowledgements()
 void LoadInitLibrary(int loadInitProject)
 //--------------------------------------------------------------------
 {
-  TRACE_CINT_DECIMAL;
   static bool done_ = false;
   if(done_) { return; }
   else      { done_ = true; }
-  TRACE_CINT_DECIMAL;
 
   BDir initTolPath = InitTolPath();
   if (initTolPath.Exist()) 
@@ -1284,7 +1262,6 @@ void LoadInitLibrary(int loadInitProject)
       InitProject(initProject.Name());
     }
   }
-  TRACE_CINT_DECIMAL;
 }
 
 //--------------------------------------------------------------------
@@ -1496,7 +1473,7 @@ static void ChangeVerboseMode(const char* vmode)
 void InitTolKernel(char* calledProgram, int lang, const char* vmode ) 
 //--------------------------------------------------------------------
 {
-  InitCint();
+//InitCint();
   if(lang>=0) { BText::PutLanguage(lang); }
   InitVerboseMode();
   /* Aqui hay que particionar vmode e iterar invocando

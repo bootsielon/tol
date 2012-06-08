@@ -169,7 +169,8 @@ int Cint_init_cint (G__CONST char* command)
     Cint_not_linked_message("Cint_init_cint"); 
     return(-1); 
   } 
-  return((*G__init_cint_ptr)(command));
+  int res = (*G__init_cint_ptr)(command);
+  return(res);
 }
 
 //--------------------------------------------------------------------
