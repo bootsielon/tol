@@ -2417,14 +2417,14 @@ proc ::TolInspector::PostVariable { x y } {
                   -command [list ::TolInspector::TableMatrix $object]
                 $data_menu(Matrix,Export) add command -label "BDT" \
                   -command [list ::TolInspector::ExportBDTMatrix $object]
-                $data_menu(main) add command -label [mc "Draw matrix"] \
+                $data_menu(main) add command -label [mc "Draw matrix"]... \
                   -command [list ::TolInspector::DrawMatrix $object]
               } else {
                 $data_menu(main) add cascade -label [mc "Table matrix"] \
                   -menu $data_menu(Matrix,Table)
                 $data_menu(Matrix,Export) add cascade -label "BDT" \
                   -menu $data_menu(Matrix,Export,BDT)
-                $data_menu(main) add cascade -label [mc "Draw matrix"] \
+                $data_menu(main) add cascade -label [mc "Draw matrix"]... \
                   -menu $data_menu(Matrix,Draw)
                 foreach objInfo $options_selected(Matrix) {
                   $data_menu(Matrix,Table) add command -label [lindex $objInfo 1]\
@@ -2434,13 +2434,13 @@ proc ::TolInspector::PostVariable { x y } {
                   $data_menu(Matrix,Draw) add command -label [lindex $objInfo 1] \
                     -command [list ::TolInspector::DrawMatrix [lindex $objInfo 0]]
                 }
-                if { $grammar eq "Matrix" } {
-                  set all_matrix {}
-                  foreach m $options_selected(Matrix) {
-                    lappend all_matrix [ lindex $m 0 ]
-                  }
-                  TolGui_InsertEntriesMatrixChart $data_menu(main) $all_matrix
+              }
+              if { $grammar eq "Matrix" } {
+                set all_matrix {}
+                foreach m $options_selected(Matrix) {
+                  lappend all_matrix [ lindex $m 0 ]
                 }
+                TolGui_InsertEntriesMatrixChart $data_menu(main) $all_matrix
               }
             }
             Serie   {
