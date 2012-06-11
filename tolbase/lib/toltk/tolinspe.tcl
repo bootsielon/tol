@@ -2157,6 +2157,69 @@ proc TolGui_StoreSelectionInOZA { selection } {
   }
 }
 
+proc TolGui_InsertEntriesMatrixChart { mm selection } {
+  if {  ![ llength $selection ] } {
+    return 0
+  }
+  set lst_addr {}
+  foreach r $selection {
+    set a [ tol::info address $r ]
+    lappend lst_addr \"$a\"
+  }
+  set set_addr "\[\[ [join $lst_addr ,] \]\]"
+  set tolexpr [ string map [ list %L $set_addr ] {
+    Real {
+      Set all_mat = EvalSet( %L, Matrix( Text addr ) {
+        GetObjectFromAddress( addr )
+      } );
+      Real R = Rows( all_mat[1] );
+      Set st = EvalSet( all_mat, Real( Matrix it ) {
+        Real EQ( R, Rows( it ) )
+      } );
+      Real BinGroup( "And", st )
+    }
+  } ]
+  set couldChart [ toltcl::eval $tolexpr ]
+  if { $couldChart } {
+    $mm add command -label [ mc "Draw matrix selection (natural)" ] \
+        -command [ list TolGui_ChartMatrix $selection ]
+  }
+}
+
+proc TolGui_ChartMatrix { selection } {
+  set lst_addr {}
+  foreach r $selection {
+    set a [ tol::info address $r ]
+    lappend lst_addr \"$a\"
+  }
+  set set_addr "\[\[ [join $lst_addr ,] \]\]"
+  set tolexpr [ string map [ list %L $set_addr ] {
+    Real {
+      Set all_mat = EvalSet( %L, Matrix( Text addr ) {
+        GetObjectFromAddress( addr )
+      } );
+      Set names = Copy( Empty );
+      Set For( 1, Card( all_mat ), Real( Real k ) {
+        Text _n = Name( all_mat[ k ] );
+        Text n = If( _n == "", "unamed", _n );
+        Set Append( names, If( Columns( all_mat[ k ] ) == 1, [[ n ]], {
+          Set For( 1, Columns( all_mat[ k ] ), Text( Real k ) {
+            Text n << "[" << k << "]"
+          } )
+        } ) );
+        Real 1
+      } );
+      Matrix groupMat = BinGroup( "|", all_mat );
+      Text TclChartMatrix( groupMat, 
+                           SetOfSet (
+                                     @TclArgSt("-title",    "Matrix Chart" ),
+                                     @TclArgSt("-type"    , "2"            ),
+                                     @TclArgSt("-names",    TxtListTcl(names) ) ) )
+    }
+  } ]
+  toltcl::eval $tolexpr
+}
+
 proc TolGui_InsertEntriesFromMenuManager { targetMenu selection } {
   set addrList [ list ]
   foreach obj_info $selection {
@@ -2370,6 +2433,13 @@ proc ::TolInspector::PostVariable { x y } {
                     -command [list ::TolInspector::ExportBDTMatrix [lindex $objInfo 0]]
                   $data_menu(Matrix,Draw) add command -label [lindex $objInfo 1] \
                     -command [list ::TolInspector::DrawMatrix [lindex $objInfo 0]]
+                }
+                if { $grammar eq "Matrix" } {
+                  set all_matrix {}
+                  foreach m $options_selected(Matrix) {
+                    lappend all_matrix [ lindex $m 0 ]
+                  }
+                  TolGui_InsertEntriesMatrixChart $data_menu(main) $all_matrix
                 }
               }
             }
