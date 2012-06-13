@@ -17,13 +17,15 @@
 
   Serie sr = SubSer(Step(y2005m09d01, Diario), y2005m08d21, y2005m10d01);
   Date firstDate = First(sr);
+  TimeSet SerTms(sr);
+  Set dates = Dates(SerTms(sr), First(sr), Last(sr));
   Serie srDatChAutoDating = DatCh(sr, SerTms(sr), FirstS);
   Date firstDateAutoDating = First(srDatChAutoDating);
   
 //Extented information about test behaviour
   Set partialResults_ = 
   [[
-    Real ok = firstDateAutoDating == y2005m09d01
+    Real ok = firstDateAutoDating == y2005m08d20
   ]];
 
 //This is a messure of the success of the test 
