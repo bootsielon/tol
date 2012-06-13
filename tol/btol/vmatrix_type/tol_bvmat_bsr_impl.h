@@ -927,7 +927,7 @@ public:
       }
       else
       {
-        err = BVMat::CholeskiFactor(cov,Lf,BVMat::ECFO_XtX,true,true,true);
+        err = BVMat::CholeskiFactor(cov,Lf,BVMat::ECFO_X,true,true,true);
         if(err) 
         { 
           Error(BSR()+"Non symmetric positive definite covariance matrix "+expr+
@@ -998,7 +998,7 @@ public:
       }
       else
       {
-        err = BVMat::CholeskiFactor(covi,Litf,BVMat::ECFO_XtX,true,true,true);
+        err = BVMat::CholeskiFactor(covi,Litf,BVMat::ECFO_X,true,true,true);
         if(err) 
         { 
           Error(BSR()+"Non symmetric positive definite inverse covariance matrix "+expr+
@@ -1078,7 +1078,7 @@ public:
         else
         {
           L = Lf;
-          err = BVMat::CholeskiFactor(L,Lf,BVMat::ECFO_X,true,true,true);
+          err = BVMat::CholeskiFactor(L,Lf,BVMat::ECFO_XtX,true,true,true);
           if(err) 
           { 
             Error(BSR()+"Non valid Choleski decomposition covariance matrix "+expr+
@@ -1160,7 +1160,7 @@ public:
         {
           Lit = Litf;
           Li = Li.T();
-          err = BVMat::CholeskiFactor(Lit,Litf,BVMat::ECFO_X,true,true,true);
+          err = BVMat::CholeskiFactor(Lit,Litf,BVMat::ECFO_XtX,true,true,true);
           if(err) 
           { 
             Error(BSR()+"Non valid Choleski inverse decomposition covariance matrix "+expr+
