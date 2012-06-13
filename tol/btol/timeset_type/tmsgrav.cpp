@@ -344,8 +344,8 @@ static BDate& NCDate(const BDate& dte)
             I2(" has been aborted ",
                " ha sido abortado ")+id+
             I2(" operating between dates "," operando entre las fechas [")+d1+","+d2+"]"+"\n"+
-            I2("Probably this is an expression of empty time set.",
-               "Probablemente se trata de una expresión del conjunto temporal vacío."));
+            I2("Probably this is an expression of empty or bounded time set.",
+               "Probablemente se trata de una expresión de conjunto temporal vacío o acotado."));
     ((BTmsAbortable*)(this))->abortedMessageSended_ = true;
   }
   AbortSaveInfo(d1,d2, sign);
@@ -369,7 +369,7 @@ static BDate& NCDate(const BDate& dte)
                " ha sido abortado porque se ha salido del rango de cálculo ")+id+
             I2(" operating between dates "," operando entre las fechas [")+d1+","+d2+"]"+"\n"+
             I2("Probably this is an expression of empty time set.",
-               "Probablemente se trata de una expresión del conjunto temporal vacío."));
+               "Probablemente se trata de una expresión del conjunto temporal vacío o acotado."));
     ((BTmsAbortable*)(this))->abortedMessageSended_ = true;
   }
   AbortSaveInfo(d1,d2,sign);
