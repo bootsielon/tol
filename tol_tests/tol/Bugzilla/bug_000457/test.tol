@@ -18,7 +18,7 @@
   Serie s1 = SubSer(CalInd(WD(7),Diario),y2003m07d12,y2004m01d31);
   TimeSet tms = SerTms(s1);
   Set dates = Dates(tms, y2003, y2005);
-  Set View(dates<<[["\n"]],"");
+//Set View(dates<<[["\n"]],"");
   Serie s2 = DatCh(s1,tms,SumS);
 
 //Extented information about test behaviour
@@ -33,7 +33,7 @@
   (
     NError   == numErr0, 
     NWarning == numWar0, 
-    first == y2003m07d13, 
+    first == y2003m07d11, 
     last  == y2004m01d25
   );
 
