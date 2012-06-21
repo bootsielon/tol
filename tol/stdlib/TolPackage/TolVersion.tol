@@ -8,10 +8,32 @@ Text _.autodoc.member.TolVersion =
 //////////////////////////////////////////////////////////////////////////////
 @LocalBlock TolVersion =
 //////////////////////////////////////////////////////////////////////////////
-[[
-  //////////////////////////////////////////////////////////////////////////////
+[[    
+  ////////////////////////////////////////////////////////////////////////////
+  Real CompareVersions(Text version1, Text version2)
+  ////////////////////////////////////////////////////////////////////////////
+  { _CompareVersions_Sign(version1, version2, 0) };
+  
+  ////////////////////////////////////////////////////////////////////////////
+  Real CompareVersions_Short(Text version1, Text version2)
+  ////////////////////////////////////////////////////////////////////////////
+  { _CompareVersions_Sign(version1, version2, 1) };
+  
+  ////////////////////////////////////////////////////////////////////////////
+  Real CompareVersions_Long(Text version1, Text version2)
+  ////////////////////////////////////////////////////////////////////////////
+  { _CompareVersions_Sign(version1, version2, -1) };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real _CompareVersions_Sign(Text version1, Text version2, Real sign)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _SetCompare_Sign(ObtainIntegers(version1), ObtainIntegers(version2), sign)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
   Set ObtainIntegers(Text version)
-  //////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////
   {
     Text v = Sub(version, 1, 1);
     If(v!="v", {
@@ -34,27 +56,100 @@ Text _.autodoc.member.TolVersion =
       })
     })
   };
-    
-  ////////////////////////////////////////////////////////////////////////////
-  Real CompareVersions(Text version1, Text version2)
-  ////////////////////////////////////////////////////////////////////////////
-  { _CompareVersions_Sign(version1, version2, 0) };
-  
-  ////////////////////////////////////////////////////////////////////////////
-  Real Compare_Short(Text version1, Text version2)
-  ////////////////////////////////////////////////////////////////////////////
-  { _CompareVersions_Sign(version1, version2, 1) };
-  
-  ////////////////////////////////////////////////////////////////////////////
-  Real Compare_Long(Text version1, Text version2)
-  ////////////////////////////////////////////////////////////////////////////
-  { _CompareVersions_Sign(version1, version2, -1) };
 
   ////////////////////////////////////////////////////////////////////////////
-  Real _CompareVersions_Sign(Text version1, Text version2, Real sign)
+  Real ComparePackages(Anything package1, Anything package2)
+  ////////////////////////////////////////////////////////////////////////////
+  { _ComparePackages_Sign(package1, package2, 0) };
+  
+  ////////////////////////////////////////////////////////////////////////////
+  Real ComparePackages_Short(Anything package1, Anything package2)
+  ////////////////////////////////////////////////////////////////////////////
+  { _ComparePackages_Sign(package1, package2, 1) };
+  
+  ////////////////////////////////////////////////////////////////////////////
+  Real ComparePackages_Long(Anything package1, Anything package2)
+  ////////////////////////////////////////////////////////////////////////////
+  { _ComparePackages_Sign(package1, package2, -1) };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real _ComparePackages_Sign(Anything package1, Anything package2, Real sign)
   ////////////////////////////////////////////////////////////////////////////
   {
-    _SetCompare_Sign(ObtainIntegers(version1), ObtainIntegers(version2), sign)
+    _SetCompare_Sign(ObtainPackageVersion(package1), 
+      ObtainPackageVersion(package2), sign)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Set ObtainPackageVersion(Anything package) // Text o NameBlock
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Case(Grammar(package)=="NameBlock", {
+      [[ Text name = package::_.autodoc.name;
+         Real high = package::_.autodoc.version.high;
+         Real low = package::_.autodoc.version.low
+      ]]
+    }, Grammar(package)=="Text", {
+      Set parts = Tokenizer(Replace(package, "*", ""), ".");
+      If(Card(parts), {
+        // Sigo si tiene nombre
+        [[ Text parts[1] ]] << If(Card(parts)>=2, {
+          If(TextLength(parts[2]), {
+            // Sigo si tiene versión alta
+            [[ Real Eval(parts[2]) ]] << If(Card(parts)>=3, {
+              If(TextLength(parts[3]), {
+                // Sigo si tiene versión baja
+                [[ Real Eval(parts[3]) ]]
+              }, Copy(Empty))
+            }, Copy(Empty))
+          }, Copy(Empty))
+        }, Copy(Empty))
+      }, Copy(Empty))
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real TestPackageVersion(Text package, Text mode)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    // mode:
+    //  * MIN: La versión indicada es la mínima admitida
+    //  * MAX: La versión indicada es la máxima admitida
+    //  * EQ: La versión indicada es la única admitida
+    Text name = Tokenizer(package, ".")[1];
+    Real Case(Not(ObjectExist("NameBlock", name)), {
+      WriteLn("[TestPackageVersion] El paquete indicado '"<<name
+        <<"' no está cargado.", "E");
+    0}, mode=="MIN", {
+      Real lower = ComparePackages_Short(Eval(name), package);
+      // Si lower<0 la versión cargada es menor que la indicada
+      If(lower<0, {
+        WriteLn("[TestPackageVersion] La versión de '"<<name
+          <<"' cargada es menor que la mínima requerida: "<<package, "E");
+      0}, 1)
+    }, mode=="MAX", {
+      Real upper = ComparePackages_Long(Eval(name), package);
+      // Si upper>0 la versión cargada es mayor que la indicada
+      If(upper>0, {
+        WriteLn("[TestPackageVersion] La versión de '"<<name
+          <<"' cargada es mayor que la máxima requerida: "<<package, "E");
+      0}, 1)
+    }, mode=="EQ", {
+      Real lower = ComparePackages_Short(Eval(name), package);
+      Real upper = ComparePackages_Long(Eval(name), package);
+      // Si lower<0 la versión cargada es menor que la indicada
+      // Si upper>0 la versión cargada es mayor que la indicada
+      Case(lower<0, {
+        WriteLn("[TestPackageVersion] La versión de '"<<name
+          <<"' cargada es menor que la requerida: "<<package, "E");
+      0}, upper>0, {
+        WriteLn("[TestPackageVersion] La versión de '"<<name
+          <<"' cargada es mayor que la requerida: "<<package, "E");
+      0}, True, 1)
+    }, True, {
+      WriteLn("[TestPackageVersion] Modo '"<<mode<<"' no admitido, "
+        "indíquese uno de los siguientes: 'MAX', 'MIN' y 'EQ'.", "E");
+    0})
   };
 
   ////////////////////////////////////////////////////////////////////////////

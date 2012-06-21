@@ -273,6 +273,43 @@ Class @Catalog
   };
 
   ////////////////////////////////////////////////////////////////////////////
+  Set ObtainLowUpgradeList(@Catalog reference, Text tolVersion, Date date)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set records = RegroupRecords(GetCompatibleRecords(tolVersion, date));
+    Set refRecords = 
+      RegroupRecords(reference::GetCompatibleRecords(tolVersion, date));
+    SetConcat(EvalSet(refRecords, Set (Set refSubrecords) {
+      Real index = FindIndexByName(records, Name(refSubrecords));
+      If(index, {
+        Set subrecords = records[index];
+        // Se buscan todos los archivos que necesiten ser actualizados
+        // (o mejorados) por otra versión (con distintos números de versión).
+        Set lastRecord = subrecords[1];
+        Set refLastRecord = refSubrecords[1];
+        If(lastRecord::high > refLastRecord::high, {
+          [[ PutName(lastRecord::identifier, lastRecord) ]]
+        }, {
+          If(lastRecord::low > refLastRecord::low, {
+            [[ PutName(lastRecord::identifier, lastRecord) ]]
+          }, Empty)
+        })
+      }, Empty)
+    }))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Set ObtainFullUpgradeList(@Catalog reference, Text tolVersion, Date date)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set fullList = ObtainUpgradeList(reference, tolVersion, date)
+      << ObtainLowUpgradeList(reference, tolVersion, date);
+    EvalSet(Classify(fullList, Real (Set r1, Set r2) { 
+      Compare(Name(r1), Name(r2))
+    }), Set (Set group) { group[1] })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
   Static @Catalog Local(Text path)
   ////////////////////////////////////////////////////////////////////////////
   {
@@ -335,35 +372,41 @@ Class @Catalog
   Static Set BuildRecords_Remote(Set repositories)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Set repositories_ = If(Card(repositories), repositories,
-      TolConfigManager::Config::Upgrading::TolPackage::Repositories);
-    Set rows = SetConcat(EvalSet(repositories_, Set (Text repository) {
-      Text urlAnswer = GetUrlContents(repository
-        <<"?tol_package_version=1.1&action=versions");
-      If(Text Sub(urlAnswer, 1, 3)=="Set", IncludeText(urlAnswer), {
-        Error("El repositorio '"<<repository
-          <<"' no está respondiendo adecuadamente.");
-        Empty
-      })
-    }));
-    Set records = EvalSet(rows, Set (Set row) {
-      Set pkgInfo = Tokenizer(row[3], ".");
-      Set freeDeps = Unique(Select(EvalSet(Tokenizer(row[7], ","),
-        Text (Text t) { Tokenizer(t, ".")[1] }), TextLength));
-      Set pkgRecord =  [[ 
-        Text identifier = row[3];
-        Text name = pkgInfo[1];
-        Real high = Eval(pkgInfo[2]);
-        Real low = Eval(pkgInfo[3]);
-        Text repository = row[1];
-        Date release = row[8];
-        Text minTolVersion = row[5]; 
-        Text maxTolVersion = row[6];
-        Set freeDependencies = freeDeps
-      ]];
-      PutName(row[3], pkgRecord)
-    });
-    @Catalog::ClassifyRecords(records)
+    If(TolConfigManager::Config::Upgrading::TolPackage::LocalOnly, {
+      // Si la configuración está a local-only, no se accede al catálogo
+      // Podría plantearse una caché para trabajar sin conexión
+      Copy(Empty)
+    }, {
+      Set repositories_ = If(Card(repositories), repositories,
+        TolConfigManager::Config::Upgrading::TolPackage::Repositories);
+      Set rows = SetConcat(EvalSet(repositories_, Set (Text repository) {
+        Text urlAnswer = GetUrlContents(repository
+          <<"?tol_package_version=1.1&action=versions");
+        If(Text Sub(urlAnswer, 1, 3)=="Set", IncludeText(urlAnswer), {
+          Error("El repositorio '"<<repository
+            <<"' no está respondiendo adecuadamente.");
+          Empty
+        })
+      }));
+      Set records = EvalSet(rows, Set (Set row) {
+        Set pkgInfo = Tokenizer(row[3], ".");
+        Set freeDeps = Unique(Select(EvalSet(Tokenizer(row[7], ","),
+          Text (Text t) { Tokenizer(t, ".")[1] }), TextLength));
+        Set pkgRecord =  [[ 
+          Text identifier = row[3];
+          Text name = pkgInfo[1];
+          Real high = Eval(pkgInfo[2]);
+          Real low = Eval(pkgInfo[3]);
+          Text repository = row[1];
+          Date release = row[8];
+          Text minTolVersion = row[5]; 
+          Text maxTolVersion = row[6];
+          Set freeDependencies = freeDeps
+        ]];
+        PutName(row[3], pkgRecord)
+      });
+      @Catalog::ClassifyRecords(records)
+    })
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -422,6 +465,22 @@ Class @Catalog
     });
     Real SetIndexByName(hierCatalog);
     hierCatalog
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Set RegroupRecords(Set records)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    SetConcat(EvalSet(records, Set (Set subrecords) {  
+      EvalSet(Classify(subrecords, Real (Set rec1, Set rec2) {
+        Compare(rec1::high, rec2::high)
+      }), Set (Set class) { 
+        Set class2 = Sort(class, Real (Set rec1, Set rec2) { 
+          Compare(rec2::low, rec1::low) 
+        });
+        PutName(class[1]["name"]<<"."<<class[1]["high"], class2) 
+      })
+    }))
   }
 };
 //////////////////////////////////////////////////////////////////////////////

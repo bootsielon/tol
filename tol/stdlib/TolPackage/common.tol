@@ -95,30 +95,87 @@
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Real UpdateAll(Real void)
+  Real _Improve(Text mode, Text pattern)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set parts = Tokenizer(pattern, ".");
+    Set parts := parts << For(1, 3-Card(parts), Text (Real i) { "*" });
+    Text txtPattern = parts[1]<<"."<<parts[2]<<"."<<parts[3];
+    @Catalog client = Client::GetCatalog(?);
+    @Catalog server = Server::GetCatalog(?);
+    Code obtainList = Eval("server::Obtain"<<mode<<"List");
+    Set improveList = obtainList(client, Version, UnknownDate);
+    Set selImproveList = Select(improveList, Real (Set record) {
+      TextMatch(Name(record), txtPattern)
+    });
+    If(Card(selImproveList), {
+      Set record = selImproveList[1];
+      Real If(mode=="Update", {
+        WriteLn("[Update] Se actualiza "<<record::identifier);
+      1}, {
+        WriteLn("["<<mode<<"] Se mejora a "<<record::identifier);
+      1});
+      InstallPackage(record::identifier)
+    }, 0)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real Update(Text pattern)
+  ////////////////////////////////////////////////////////////////////////////
+  { _Improve("Update", pattern) };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real Upgrade(Text pattern)
+  ////////////////////////////////////////////////////////////////////////////
+  { _Improve("Upgrade", pattern) };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real LowUpgrade(Text pattern)
+  ////////////////////////////////////////////////////////////////////////////
+  { _Improve("LowUpgrade", pattern) };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real FullUpgrade(Text pattern)
+  ////////////////////////////////////////////////////////////////////////////
+  { _Improve("FullUpgrade", pattern) };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real _ImproveAll(Text mode)
   ////////////////////////////////////////////////////////////////////////////
   {
     @Catalog client = Client::GetCatalog(?);
     @Catalog server = Server::GetCatalog(?);
-    Set updateList = server::ObtainUpdateList(client, Version, UnknownDate);
-    If(Card(updateList), SetSum(EvalSet(updateList, Real (Set record) {
-      WriteLn("[UpdateAll] Se actualiza "<<record::identifier);
+    Code obtainList = Eval("server::Obtain"<<mode<<"List");
+    Set improveList = obtainList(client, Version, UnknownDate);
+    If(Card(improveList), SetSum(EvalSet(improveList, Real (Set record) {
+      Real If(mode=="Update", {
+        WriteLn("[UpdateAll] Se actualiza "<<record::identifier);
+      1}, {
+        WriteLn("["<<mode<<"All] Se mejora a "<<record::identifier);
+      1});
       InstallPackage(record::identifier)
     })), 0)
   };
 
   ////////////////////////////////////////////////////////////////////////////
+  Real UpdateAll(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  { _ImproveAll("Update") };
+
+  ////////////////////////////////////////////////////////////////////////////
   Real UpgradeAll(Real void)
   ////////////////////////////////////////////////////////////////////////////
-  {
-    @Catalog client = Client::GetCatalog(?);
-    @Catalog server = Server::GetCatalog(?);
-    Set upgradeList = server::ObtainUpgradeList(client, Version, UnknownDate);
-    If(Card(upgradeList), SetSum(EvalSet(upgradeList, Real (Set record) {
-      WriteLn("[UpgradeAll] Se mejora a "<<record::identifier);
-      InstallPackage(record::identifier)
-    })), 0)
-  };
+  { _ImproveAll("Upgrade") };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real LowUpgradeAll(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  { _ImproveAll("LowUpgrade") };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real FullUpgradeAll(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  { _ImproveAll("FullUpgrade") };
 
   // Estructuras
 
