@@ -478,6 +478,12 @@ void BPolMatPol::CalcContens()
 {
   BMat& M = Mat(Arg(1));
   BInt c = M.Columns();
+  BInt r = M.Rows();
+  if(!c || !r)
+  {
+    Error("Cannot apply MatPol to empty matrix");
+    return;
+  }
   BInt i;
   contens_.ReallocBuffer(c);
   BMonome<BDat>* p = contens_.GetBuffer();
