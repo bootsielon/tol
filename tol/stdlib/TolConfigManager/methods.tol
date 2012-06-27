@@ -143,23 +143,41 @@ Real LoadConfig(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
 //WriteLn("TRACE [LoadConfig] 1");
-  Text lastPath = If(FileExist(_.path),_.path,
+  Set tolApp = GetDir(TolAppDataPath);
+  Text lastPath = Case(
+  FileExist(_.path),
   {
-    Set tolAppFiles = GetDir(TolAppDataPath)[1];
+  //WriteLn("TRACE [LoadConfig] 1.1");
+    _.path
+  },
+  !Card(tolApp), 
+  {
+  //WriteLn("TRACE [LoadConfig] 1.2");
+    "::,$?"
+  },
+  1==1,
+  {
+  //WriteLn("TRACE [LoadConfig] 1.3");
+    Set tolAppFiles = tolApp[1];
+  //WriteLn("TRACE [LoadConfig] 1.3.1");
     Set tolAppConfig = Select(tolAppFiles,Real(Text fName)
     {
       TextBeginWith(fName,".tolConfig.") &
       TextEndAt    (fName,".tol")
     });
+  //WriteLn("TRACE [LoadConfig] 1.3.2");
     Set versions = EvalSet(tolAppConfig,Text(Text fName)
     {
       Replace(Replace(fName,".tolConfig.",""),".tol","")
     });
+  //WriteLn("TRACE [LoadConfig] 1.3.3");
     Set versions.sort = Sort(versions, Real(Text a, Text b)
     {
       Compare.VersionString(b,a)
     });
-    TolAppDataPath+".tolConfig."+versions.sort[1]+".tol"
+  //WriteLn("TRACE [LoadConfig] 1.3.4");
+    If(!Card(versions.sort),"::,$??",
+    TolAppDataPath+".tolConfig."+versions.sort[1]+".tol")
   });
 //WriteLn("TRACE [LoadConfig] 2 _.path='"+_.path+"'");
 //WriteLn("TRACE [LoadConfig] 3 lastPath='"+lastPath+"'");
