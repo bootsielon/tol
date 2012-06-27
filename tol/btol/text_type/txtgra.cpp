@@ -2549,19 +2549,19 @@ DefExtOpr(1, BTxtGetAbsolutePath, "GetAbsolutePath",	 1, 1, "Text",
 	     "(Text caminoFichero)"),
 	  I2("Returns the absolute path of the owner directory of a file.\n"
 	     "Sample: \n"
-	     "GetFileName(\"c:/windows/notepad.exe\") \n"
+	     "GetAbsolutePath(\"c:/windows/notepad.exe\") \n"
 	     "returns \n"
 	     "\"c:/windows\"\n"
-	     "GetFileName(\"../../notepad.exe\") \n"
+	     "GetAbsolutePath(\"../../notepad.exe\") \n"
 	     "returns \n"
 	     "\"c:/windows\"\n",
 	     "Devuelve el camino absoluto del directorio en el que se encuentra un "
 	     "fichero.\n"
 	     "Ejemplo: \n"
-	     "GetFileName(\"c:/windows/notepad.exe\") \n"
+	     "GetAbsolutePath(\"c:/windows/notepad.exe\") \n"
 	     "devuelve \n"
 	     "\"c:/windows\"\n"
-	     "GetFileName(\"../../notepad.exe\") \n"
+	     "GetAbsolutePath(\"../../notepad.exe\") \n"
 	     "devuelve \n"
 	     "\"c:/windows\"\n"),
 	  BOperClassify::System_);
