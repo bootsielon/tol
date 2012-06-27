@@ -1,0 +1,13 @@
+Class @A {
+  Real value1
+};
+
+NameBlock Module = [[
+  Class @A {
+    Real value2
+  }
+]];
+
+Module::@A object = [[ 
+  Real value2 = 1
+]];
