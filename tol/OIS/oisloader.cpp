@@ -987,9 +987,10 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           int r,c;
           ERead(r, matrix_);
           ERead(c, matrix_);
-          BMat x(r,c);
+          result = new BContensMat("", BMat(0,0), description);
+          BMat& x = Mat(result);
+          x.Alloc(r,c);
           Ensure(Read(x.GetData().GetBuffer(),r*c,matrix_));
-          result = new BContensMat("", x, description);
           result=PutVariableName(result,name,is_referenceable);
         }
         else if(tol_type == BGI_VMatrix) 
