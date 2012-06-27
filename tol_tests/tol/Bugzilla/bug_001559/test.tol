@@ -1,0 +1,30 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 1559;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Clases en módulos: Clases derivadas";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  #Embed "check.tol";
+
+  Real numErr1 = Copy(NError);
+
+  Set partialResults_ = [[ numErr0,numErr1  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = ( numErr1 == numErr0 );
+
+//Return the results 
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_

@@ -1,0 +1,20 @@
+NameBlock Module = [[
+  Class @A {
+    Real a 
+  };
+  Class @A2 : @A {
+    Text n
+  }
+]];
+
+Module::@A ej1 = [[
+  Real a = 1
+]];
+
+Module::@A2 ej2 = [[
+  Real a = 2;
+  Text n = "E"
+]];
+
+Module::@A ej2 := ej1;
+
