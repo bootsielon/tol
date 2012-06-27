@@ -1,0 +1,16 @@
+
+NameBlock Module = [[
+  Class @A {
+    Real value
+  };
+  Class @C {
+    Module::@A object
+  }
+]];
+
+Module::@C test = [[
+  Module::@A object = [[ 
+    Real value = 1
+  ]]
+]];
+
