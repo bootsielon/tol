@@ -1,0 +1,23 @@
+Set compatibleRecords = Ois.Load("compatibleRecords.oza")[1];
+
+Set records = compatibleRecords[2];
+Set refRecords = compatibleRecords[1];
+Set resultCheck = SetConcat(EvalSet(refRecords, Set (Set refSubrecords) {
+  Real index = FindIndexByName(records, Name(refSubrecords));
+  If(index, {
+    Set subrecords = records[index];
+    // Se buscan todos los paquetes que necesiten ser actualizados
+    // (manteniendo los números de versión) por otra versión más reciente. 
+    Set Select(EvalSet(refSubrecords, Set (Set refRecord) {
+      Real index2 = FindIndexByName(subrecords, Name(refRecord));
+      If(index2, {
+        Set record = subrecords[index2];
+        /*
+        WriteLn("es "<<refRecord::release<<" < "<<record::release<<" : "
+                     <<(Real refRecord::release<record::release));*/
+        If(refRecord::release<record::release, record, Empty)
+      }, Empty)
+    }), Card)
+  }, Empty)
+}))
+
