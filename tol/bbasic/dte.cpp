@@ -212,6 +212,23 @@ void   BDate::PutDefaultLast (const BDate& l)
     BDate::defaultLast_  = l;
 }
 
+//#define TRACE_COMPARE
+BInt BDate::Compare(const BDate* dte1, const BDate* dte2) {
+#ifdef TRACE_COMPARE
+  std::cout << "Compare: " <<  std::endl;
+  std::cout << "Hash(dte1) = " <<  dte1->Hash() << std::endl;
+  std::cout << "Hash(dte2) = " <<  dte2->Hash() << std::endl;    
+#endif
+  BReal h1 = dte1->Hash();
+  BReal h2 = dte2->Hash();
+  BReal dif = h1 - h2;
+#ifdef TRACE_COMPARE
+  std::cout << "dif: " << dif << std::endl;
+  std::cout << "h1 < h2: " << (h1<h2) << std::endl;
+#endif
+  BReal dif0 = fabs( dif );
+  return dif < -1.0e-7 ? -1 : ( dif0 > 1.0e-7 ? 1 : 0 );
+}
 
 //--------------------------------------------------------------------
 BDate::BDate()

@@ -328,10 +328,7 @@ public:
    * \param dte2 BDate object to compare
    * \return Value indicating the lexicographical relation between the dates.
    */
-  static BInt Compare(const BDate* dte1, const BDate* dte2) {
-      BReal dif = dte1->Hash() - dte2->Hash();
-      return dif>0 ? 1 : (dif<0 ? -1 : 0);
-  }
+  static BInt Compare(const BDate* dte1, const BDate* dte2);
 
   // Support to algebraical operations: dtealgeb.cpp
   //! Returns the number of days that rest until the year's end
