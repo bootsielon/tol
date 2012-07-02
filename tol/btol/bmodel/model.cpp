@@ -149,7 +149,7 @@ static void ModelInitialize()
     BModel::testTitle_[ 6] = I2("Fisher's Distance to Normal",
 				  "Distancia a la normal de Fisher");
     BModel::testTitle_[ 7] = I2("Minimum Signification of Parameters",
-				"Máxima Significación de los Parámetros");
+				"Mínima Significación de los Parámetros");
     BModel::testTitle_[ 8] = I2("Maximum Correlation of Parameters",
 				"Máxima Correlación de los Parámetros");
     BModel::testTitle_[ 9] = I2("Mixed Signification and Correlation",
@@ -171,7 +171,8 @@ BModel::BModel(const BText& outName, const BText& foreFile, BInt period)
      constant_(BDat::Unknown()),
      nonLinFun_(NIL), 
      nonLinPar_(),
-     DI_(NULL)
+     DI_(NULL),
+     aCorNum_(0)
 {
     ModelInitialize();
     outName_	 = outName;
@@ -187,6 +188,7 @@ BModel::BModel(const BText& outName, const BText& foreFile, BInt period)
     diagQualify_.ReallocBuffer(testTitle_.Size());
     testAccept_ .ReallocBuffer(testTitle_.Size());
     testRefuse_ .ReallocBuffer(testTitle_.Size());
+    
 }
 
 
@@ -207,7 +209,8 @@ BModel::BModel(	      BUserTimeSerie* output,
 //--------------------------------------------------------------------
 : aborted_(BFALSE),
   constant_(BDat::Unknown()),
-  DI_(NULL)
+  DI_(NULL),
+  aCorNum_(0)
 {
   inData_ .AddList  (inputSeries);
   outData_.AddSerie(output),
@@ -244,7 +247,8 @@ BModel::BModel(	      BUserTimeSerie* output,
  */
 BModel::BModel(BSet& set)
 //--------------------------------------------------------------------
-    : aborted_(BFALSE), constant_(BDat::Unknown()), DI_(NULL)
+    : aborted_(BFALSE), constant_(BDat::Unknown()), DI_(NULL),
+     aCorNum_(0)
 {
     ModelInitialize();
     BStruct* strInput  = FindStruct("@InputDef");
@@ -757,12 +761,12 @@ void BModel::CopyInfToSet(BSet& set)
   LstFastAppend(lsta,auxa,tmp=NewFND(BDate,LastDate,lastDate_));
   LstFastAppend(lsta,auxa,tmp=NewFND(BDat,DataNumber,N_));
   LstFastAppend(lsta,auxa,tmp=NewFND(BDat,VarNumber,param_.Size()));
-  LstFastAppend(lsta,auxa,tmp=NewFND(BDat,Average,Average(residuous_)));
+  LstFastAppend(lsta,auxa,tmp=NewFND(BDat,Average,Average(A_.Data())));
   LstFastAppend(lsta,auxa,tmp=NewFND(BDat,RSS,rss));
   LstFastAppend(lsta,auxa,tmp=NewFND(BDat,Variance,var));
   LstFastAppend(lsta,auxa,tmp=NewFND(BDat,Sigma,standardError_));
-  LstFastAppend(lsta,auxa,tmp=NewFND(BDat,Asymmetry,AsymmetryCoefficient(residuous_)));
-  LstFastAppend(lsta,auxa,tmp=NewFND(BDat,Kurtosis,Kurtosis(residuous_)));
+  LstFastAppend(lsta,auxa,tmp=NewFND(BDat,Asymmetry,AsymmetryCoefficient(A_.Data())));
+  LstFastAppend(lsta,auxa,tmp=NewFND(BDat,Kurtosis,Kurtosis(A_.Data())));
   LstFastAppend(lsta,auxa,tmp=NewFND(BDat,Pearson,pearson));
   LstFastAppend(lsta,auxa,tmp=NewFND(BDat,R2,r2));
   LstFastAppend(lsta,auxa,tmp=NewFND(BDat,Swartz,SwartzInfo_));

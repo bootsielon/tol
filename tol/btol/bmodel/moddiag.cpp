@@ -58,36 +58,37 @@ BInt BModel::Qualify(BInt n, BDat x, BBool necessary)
  */
 //--------------------------------------------------------------------
 {
-    if(necessary)
+  if(necessary)
+  {
+    if(testAccept_(n) <   testRefuse_(n))
     {
-	if(testAccept_(n) <	 testRefuse_(n))
-	{
-	    if     (x<=testAccept_(n)) { diagQualify_(n) = BDIAGGOOD;	}
-	    else if(x<=testRefuse_(n)) { diagQualify_(n) = BDIAGACCEPT; }
-	    else		       { diagQualify_(n) = BDIAGREFUSE; }
-	}
-	else
-	{
-	    if     (x>=testAccept_(n)) { diagQualify_(n) = BDIAGGOOD;	}
-	    else if(x>=testRefuse_(n)) { diagQualify_(n) = BDIAGACCEPT; }
-	    else		       { diagQualify_(n) = BDIAGREFUSE; }
-	}
-	diagPunct_(n) = x;
+      if     (x<=testAccept_(n)) { diagQualify_(n) = BDIAGGOOD;  }
+      else if(x<=testRefuse_(n)) { diagQualify_(n) = BDIAGACCEPT; }
+      else                       { diagQualify_(n) = BDIAGREFUSE; }
     }
     else
     {
-	diagQualify_(n) = BDIAGUNNECESSARY;
-	diagPunct_	 (n) = 0;
+      if     (x>=testAccept_(n)) { diagQualify_(n) = BDIAGGOOD;  }
+      else if(x>=testRefuse_(n)) { diagQualify_(n) = BDIAGACCEPT; }
+      else                       { diagQualify_(n) = BDIAGREFUSE; }
     }
-    return(diagQualify_(n));
+    diagPunct_(n) = x;
+  }
+  else
+  {
+    diagQualify_(n) = BDIAGUNNECESSARY;
+    diagPunct_   (n) = 0;
+  }
+  return(diagQualify_(n));
 }
 
 //--------------------------------------------------------------------
 static BDat AbsNormal(BDat x)
 //--------------------------------------------------------------------
 {
-    return(2*BNormalDist::Dist01(Abs(x)) - BDat(1));
+  return(2*BNormalDist::Dist01(Abs(x)) - BDat(1));
 }
+
 
 //--------------------------------------------------------------------
 BInt BModel::FstRegAutCorTest(BInt n)
@@ -96,12 +97,13 @@ BInt BModel::FstRegAutCorTest(BInt n)
  */
 //--------------------------------------------------------------------
 {
-    diagValue_(n) = resACor_.Get(0,1);
-    BDat y = diagValue_(n)*Sqrt(N_);
-    BDat x = AbsNormal(y);
-//Std(BText("\nFirst regular autocorrelation = ")+y.Name());
-//Std(BText("\nProbability		     = ")+x.Name());
-    return(Qualify(n,x,BTRUE));
+  Std(BText("\nTRACE FstRegAutCorTest "));
+  BInt m = 1;
+  BDat x,y;
+  if(m<resACor_.Rows()) { y = resACor_(m-1,1)*Sqrt(N_); }
+  diagValue_(n) = y;
+  x = AbsNormal(y);
+  return(Qualify(n,x,BTRUE));
 }
 
 //--------------------------------------------------------------------
@@ -111,17 +113,17 @@ BInt BModel::FstSeaAutCorTest(BInt n)
  */
 //--------------------------------------------------------------------
 {
-    BDat x;
-    BBool necessary = (periodicity_>1);
-    if(necessary)
-    {
-	diagValue_(n) = resACor_.Get(periodicity_-1,1);
-	BDat y = diagValue_(n)*Sqrt(N_);
-	x = AbsNormal(y);
-//  Std(BText("\nFirst seasonal autocorrelation = ")+y.Name());
-//  Std(BText("\nProbability			= ")+x.Name());
-    }
-    return(Qualify(n,x,necessary));
+  Std(BText("\nTRACE FstSeaAutCorTest "));
+  BInt m = periodicity_;
+  BDat x,y;
+  BBool necessary = (periodicity_>1);
+  if(necessary)
+  {
+    if(m<resACor_.Rows()) { y = resACor_(m-1,1)*Sqrt(N_); }
+    diagValue_(n) = y;
+    x = AbsNormal(y);
+  }
+  return(Qualify(n,x,necessary));
 }
 
 //--------------------------------------------------------------------
@@ -131,12 +133,13 @@ BInt BModel::SndRegAutCorTest(BInt n)
  */
 //--------------------------------------------------------------------
 {
-    diagValue_(n) = resACor_.Get(1,1);
-    BDat y = diagValue_(n)*Sqrt(N_);
-    BDat x = AbsNormal(y);
-//Std(BText("\nSecond regular autocorrelation = ")+y.Name());
-//Std(BText("\nProbability		      = ")+x.Name());
-    return(Qualify(n,x,BTRUE));
+  Std(BText("\nTRACE SndRegAutCorTest "));
+  BInt m = 2;
+  BDat x,y;
+  if(m<resACor_.Rows()) { y = resACor_(m-1,1)*Sqrt(N_); }
+  diagValue_(n) = y;
+  x = AbsNormal(y);
+  return(Qualify(n,x,BTRUE));
 }
 
 //--------------------------------------------------------------------
@@ -146,18 +149,17 @@ BInt BModel::SndSeaAutCorTest(BInt n)
  */
 //--------------------------------------------------------------------
 {
-    BDat x;
-    BBool necessary = (periodicity_>1);
-    if(necessary)
-    {
-	BInt m = Minimum(2*periodicity_-1,resACor_.Rows()-1);
-	BDat y = resACor_(m,1)*Sqrt(N_);
-	diagValue_(n) = y;
-	x = AbsNormal(y);
-//  Std(BText("\nSecond seasonal autocorrelation = ")+y.Name());
-//  Std(BText("\nProbability			 = ")+x.Name());
-    }
-    return(Qualify(n,x,necessary));
+  Std(BText("\nTRACE SndSeaAutCorTest "));
+  BInt m = 2*periodicity_;
+  BDat x,y;
+  BBool necessary = (periodicity_>1);
+  if(necessary)
+  {
+    if(m<resACor_.Rows()) { y = resACor_(m-1,1)*Sqrt(N_); }
+    diagValue_(n) = y;
+    x = AbsNormal(y);
+  }
+  return(Qualify(n,x,necessary));
 }
 
 
@@ -169,16 +171,23 @@ BInt BModel::RegBoxPierceLjungTest(BInt n)
  */
 //--------------------------------------------------------------------
 {
-    BInt	m = aCorNum_;
-    BInt	p = arParam_;
-    BInt	q = maParam_;
-    RegularBoxPierceLjung_ = BoxPierceLjung(residuous_, m, p, q);
-    BChiSquareDist Chi(m-p-q);
-    diagValue_(n) = RegularBoxPierceLjung_;
-    BDat x =  Chi.Dist(RegularBoxPierceLjung_);
+  Std(BText("\nTRACE RegBoxPierceLjungTest "));
+  BInt  m = aCorNum_;
+  BInt  p = arParam_;
+  BInt  q = maParam_;
+  Std(BText("\nTRACE RegBoxPierceLjungTest N=")+A_.Data().Size());
+  Std(BText("\nTRACE RegBoxPierceLjungTest m=")+m);
+  Std(BText("\nTRACE RegBoxPierceLjungTest p=")+p);
+  Std(BText("\nTRACE RegBoxPierceLjungTest q=")+q);
+  RegularBoxPierceLjung_ = BoxPierceLjung(A_.Data(), m, p, q);
+  Std(BText("\nTRACE RegBoxPierceLjungTest RegularBoxPierceLjung_=")+RegularBoxPierceLjung_);
+  BChiSquareDist Chi(m-p-q);
+  diagValue_(n) = RegularBoxPierceLjung_;
+  BDat x =  Chi.Dist(RegularBoxPierceLjung_);
+  Std(BText("\nTRACE RegBoxPierceLjungTest x=")+x);
 //Std(BText("\nRegular Box-Pierce-Ljung = ")+RegularBoxPierceLjung_.Name());
-//Std(BText("\nProbability		= ")+x.Name());
-    return(Qualify(n,x,BTRUE));
+//Std(BText("\nProbability    = ")+x.Name());
+  return(Qualify(n,x,BTRUE));
 }
 
 //--------------------------------------------------------------------
@@ -189,36 +198,33 @@ BInt BModel::SeaBoxPierceLjungTest(BInt n)
  */
 //--------------------------------------------------------------------
 {
-    BBool necessary = (periodicity_ > 1) &&
-	(residuous_.Size()/periodicity_ > 2);
-    BDat x;
-    if(necessary)
+  Std(BText("\nTRACE SeaBoxPierceLjungTest "));
+  BBool necessary = (periodicity_ > 1) &&
+  (A_.Data().Size()/periodicity_ > 2);
+  BDat x;
+  if(necessary)
+  {
+    int j = arFactors_.Size()-1;
+    BInt  m = aCorNum_/periodicity_;
+    BInt  p = arFactors_[j].Size()-1;
+    BInt  q = maFactors_[j].Size()-1;
+    BArray<BDat> seaRes(N_/periodicity_);
+    for(int i=0; i<seaRes.Size(); i++)
     {
-	BInt  m = aCorNum_/periodicity_;
-	BInt  p = arFactors_[1].Size()-1;
-	BInt  q = maFactors_[1].Size()-1;
-	BArray<BDat> seaRes(N_/periodicity_);
-/*
-  Std(BText("\nm = ")+m);
-  Std(BText("\np = ")+p);
-  Std(BText("\nq = ")+q);
-*/
-	for(BInt i=0; i<seaRes.Size(); i++)
-	{
-	    seaRes[i] = residuous_[i*periodicity_];
-//    Std(BText("\nseaRes[")+i+"]="+seaRes[i]);
-	}
-	SeasonalBoxPierceLjung_ = BoxPierceLjung(seaRes, m, p, q);
-	diagValue_(n) = SeasonalBoxPierceLjung_;
-	BChiSquareDist Chi(m-p-q);
-	x =	 Chi.Dist(SeasonalBoxPierceLjung_);
-/*
-  Std(BText("\nSeasonal Box-Pierce-Ljung = ")+
-  SeasonalBoxPierceLjung_.Name());
-  Std(BText("\nProbability		   = ")+x.Name());
-*/
+      seaRes[i] = A_.Data()[i*periodicity_];
+  //  Std(BText("\nseaRes[")+i+"]="+seaRes[i]);
     }
-    return(Qualify(n,x,necessary));
+    SeasonalBoxPierceLjung_ = BoxPierceLjung(seaRes, m, p, q);
+    diagValue_(n) = SeasonalBoxPierceLjung_;
+    BChiSquareDist Chi(m-p-q);
+    x = Chi.Dist(SeasonalBoxPierceLjung_);
+  /*
+    Std(BText("\nSeasonal Box-Pierce-Ljung = ")+
+    SeasonalBoxPierceLjung_.Name());
+    Std(BText("\nProbability       = ")+x.Name());
+  */
+  }
+  return(Qualify(n,x,necessary));
 }
 
 //--------------------------------------------------------------------
@@ -228,13 +234,14 @@ BInt BModel::KullbackLeiblerDistanceTest(BInt n)
  */
 //--------------------------------------------------------------------
 {
+  Std(BText("\nTRACE KullbackLeiblerDistanceTest "));
   static BReal paso = 0.25;
   static BDat  KullbackLeiblerAvr  = -5.349629861;
   static BDat  KullbackLeiblerStDs =  3*0.544121702;
 
-  BArray<BDat> res01 = residuous_;
-  BInt	       i,j;
-  BDat	       max=0;
+  BArray<BDat> res01 = A_.Data();
+  BInt         i,j;
+  BDat         max=0;
   for(i=0; i<res01.Size(); i++)
   {
     res01[i] /= standardError_;
@@ -254,7 +261,7 @@ BInt BModel::KullbackLeiblerDistanceTest(BInt n)
 //BDat from  = 0;
   for(j=0; j<numInterv; j++)
   {
-    BReal from	= paso*j;
+    BReal from  = paso*j;
     BReal until = paso*(j+1);
     BDat pt    = 2*(BNormalDist::Dist01(until)-BNormalDist::Dist01(from));
     BDat pe    = freq01[j]/res01.Size();
@@ -265,9 +272,9 @@ BInt BModel::KullbackLeiblerDistanceTest(BInt n)
   BDat x = (Log(epsilon)-KullbackLeiblerAvr)/KullbackLeiblerStDs;
   x = AbsNormal(x);
 
-//Std(BText("\nNumber of intervals	 = ")+numInterv);
+//Std(BText("\nNumber of intervals   = ")+numInterv);
 //Std(BText("\nKullback-Leibler Distance = ")+epsilon.Name());
-//Std(BText("\nProbability		 = ")+x.Name());
+//Std(BText("\nProbability     = ")+x.Name());
   return(Qualify(n,x,BTRUE));
 }
 
@@ -278,36 +285,37 @@ BInt BModel::FisherDistanceTest(BInt n)
  */
 //--------------------------------------------------------------------
 {
-    BInt numInterv = BInt(Sqrt(N_));
+  Std(BText("\nTRACE FisherDistanceTest "));
+  BInt numInterv = BInt(Sqrt(N_));
 //Std(BText("\nnumInterv=")+numInterv);
-    
-    BChiSquareDist Chi(numInterv);
-    BArray<BDat>	res01  = residuous_;
-    BMatrix<BDat> freq01;
-    BInt	       i,j;
-    for(i=0; i<res01.Size(); i++) { res01[i] = res01[i]/standardError_; }
-    Frequency(res01, freq01, numInterv);
-    BDat epsilon = 0;
-    BDat from    = 0;
-    for(j=0; j<numInterv; j++)
-    {
-	BDat until = 1;
-	if(j!=numInterv-1) { until = BNormalDist::Dist01(freq01(j,0)); }
-	BDat ft    = res01.Size()*(until-from);
-	BDat fe    = freq01(j,1);
-	BDat d     = ((fe-ft)*(fe-ft))/ft;
-	if(d.IsKnown()) { epsilon += d; }
+  
+  BChiSquareDist Chi(numInterv);
+  BArray<BDat>  res01  = A_.Data();
+  BMatrix<BDat> freq01;
+  BInt         i,j;
+  for(i=0; i<res01.Size(); i++) { res01[i] = res01[i]/standardError_; }
+  Frequency(res01, freq01, numInterv);
+  BDat epsilon = 0;
+  BDat from    = 0;
+  for(j=0; j<numInterv; j++)
+  {
+    BDat until = 1;
+    if(j!=numInterv-1) { until = BNormalDist::Dist01(freq01(j,0)); }
+    BDat ft    = res01.Size()*(until-from);
+    BDat fe    = freq01(j,1);
+    BDat d     = ((fe-ft)*(fe-ft))/ft;
+    if(d.IsKnown()) { epsilon += d; }
 //  Std(BText("\nj=")+j+"\td="+d.Name());
-	from  = until;
-    }
-    diagValue_(n) = epsilon;
+    from  = until;
+  }
+  diagValue_(n) = epsilon;
 //Std(BText("\nepsilon")=epsilon.Name());
-    BDat x;
-    if(epsilon.IsKnown()) { x = Chi.Dist(epsilon); }
+  BDat x;
+  if(epsilon.IsKnown()) { x = Chi.Dist(epsilon); }
 //Std(BText("\nNumber of intervals = ")+numInterv);
-//Std(BText("\Fisher Distance	   = ")+epsilon.Name());
-//Std(BText("\nProbability	   = ")+x.Name());
-    return(Qualify(n,x,BTRUE));
+//Std(BText("\Fisher Distance     = ")+epsilon.Name());
+//Std(BText("\nProbability     = ")+x.Name());
+  return(Qualify(n,x,BTRUE));
 }
 
 
@@ -318,22 +326,28 @@ BInt BModel::MinSignificationTest(BInt n)
  */
 //--------------------------------------------------------------------
 {
-    static BTStudentDist T(1);
-    BInt	i;
-    BDat	min=1000000;
-    for(i=0; i<param_.Size(); i++)
+  Std(BText("\nTRACE MinSignificationTest "));
+  BTStudentDist T(N_-numParam_);
+  BInt i;
+  BDat min=BDat::PosInf();
+  for(i=0; i<numParam_; i++)
+  {
+    BDat t = Abs(param_[i]/paramSD_[i]);
+    if(!t.IsKnown())
     {
-	BDat t = Abs(param_[i]/paramSD_[i]);
-	if(t.IsKnown() && (min > t))
-	{
-	    min = t;
-	    diagValue_(n) = param_[i]/paramSD_[i];
-	}
+      diagValue_(n) = t;
+      return(Qualify(n,1,BTRUE));
     }
-    BDat x = 2*(1-T.Dist(min));
+    else if(min > t)
+    {
+      min = t;
+      diagValue_(n) = min;
+    }
+  }
+  BDat refuseProb = 2*(1-T.Dist(min)); 
 //Std(BText("\nMinimum signification = ")+min.Name());
-//Std(BText("\nProbability	   = ")+x.Name());
-    return(Qualify(n,x,BTRUE));
+//Std(BText("\nProbability     = ")+x.Name());
+  return(Qualify(n,refuseProb,BTRUE));
 }
 
 //--------------------------------------------------------------------
@@ -343,26 +357,27 @@ BInt BModel::MaxCorrelationTest(BInt n)
  */
 //--------------------------------------------------------------------
 {
-    BDat	max=0;
-    BInt	N = paramCor_.Rows();
-    for(BInt i=0; i<N; i++)
+  Std(BText("\nTRACE MaxCorrelationTest "));
+  BInt  N = paramCor_.Rows();
+  if(!N || !paramCor_.Columns())
+  {
+    diagValue_(n) = BDat::Unknown();
+    return(Qualify(n,1,BTRUE));
+  }
+  BDat  max=0;
+  for(BInt i=0; i<N; i++)
+  {
+    for(BInt j=0; j<i; j++)
     {
-	for(BInt j=0; j<i; j++)
-	{
-	    BDat c = Abs(paramCor_(i,j));
-	    if(max < c)
-	    {
-		diagValue_(n) = paramCor_(i,j);
-		max = c;
-	    }
-	}
+      BDat c = Abs(paramCor_(i,j));
+      if(max < c)
+      {
+        diagValue_(n) = c;
+        max = c;
+      }
     }
-//BDat t = Sqrt(N-2)*max/Sqrt(1-(max^2));
-//BTStudentDist T(N-2);
-//BDat x = 1-2*T.Dist(Abs(t));
-//Std(BText("\nMaximum correlation = ")+max.Name());
-//Std(BText("\nProbability	   = ")+x.Name());
-    return(Qualify(n,max,BTRUE));
+  }
+  return(Qualify(n,max,BTRUE));
 }
 
 //--------------------------------------------------------------------
@@ -372,33 +387,40 @@ BInt BModel::MixedSignCorrTest(BInt n)
  */
 //--------------------------------------------------------------------
 {
-    static BTStudentDist T(1);
-    BBool necessary = (diagQualify_[7] != BDIAGREFUSE) &&
-	(diagQualify_[8] != BDIAGREFUSE);
-    BDat maxMixed = 0;
-    if(necessary)
+  Std(BText("\nTRACE MixedSignCorrTest "));
+  BTStudentDist T(N_-numParam_);
+  BBool necessary = (diagQualify_[7] != BDIAGREFUSE) &&
+                    (diagQualify_[8] != BDIAGREFUSE);
+  BDat maxMixed = 0;
+  if(necessary)
+  {
+    if(!paramCor_.Rows() || !paramCor_.Columns())
     {
-	for(BInt i=0; i<paramCor_.Rows(); i++)
-	{
-	    BDat	corr=0;
-	    for(BInt j=0; j<paramCor_.Rows(); j++)
-	    {
-		if(i!=j)
-		{
-		    BDat c = Abs(paramCor_(i,j));
-		    if(corr < c) { corr = c; }
-		}
-	    }
-	    BDat sign	 = 2*(1-T.Dist(Abs(param_[i]/paramSD_[i])));
-	    BDat mixed = Sqrt(Abs(sign*corr));
-	    if(maxMixed<mixed) { maxMixed = mixed; }
-	}
-	diagValue_(n) = maxMixed;
-//  Std(BText("\nMaximum mixed correlation-signification = ")+
-//	maxMixed.Name());
+      diagValue_(n) = BDat::Unknown();
+      return(Qualify(n,1,BTRUE));
     }
-    return(Qualify(n,maxMixed,necessary));
+    for(BInt i=0; i<paramCor_.Rows(); i++)
+    {
+      BDat  corr=0;
+      for(BInt j=0; j<paramCor_.Rows(); j++)
+      {
+        if(i!=j)
+        {
+          BDat c = Abs(paramCor_(i,j));
+          if(corr < c) { corr = c; }
+        }
+      }
+      BDat sign   = 2*(1-T.Dist(Abs(param_[i]/paramSD_[i])));
+      BDat mixed = Sqrt(Abs(sign*corr));
+      if(maxMixed<mixed) { maxMixed = mixed; }
+    }
+    diagValue_(n) = maxMixed;
+//  Std(BText("\nMaximum mixed correlation-signification = ")+
+//  maxMixed.Name());
+  }
+  return(Qualify(n,maxMixed,necessary));
 }
+
 
 
 //--------------------------------------------------------------------
@@ -408,71 +430,71 @@ BInt BModel::UnitRootsProbTest(BInt n)
  */
 //--------------------------------------------------------------------
 {
-//Std("\nBModel::UnitRootsProbTest");
-  BDat			 x = 0;
-  BInt			 num = arParam_+maParam_;
-  BBool necessary = 0; /*num!=0; */
+  Std(BText("\nTRACE UnitRootsProbTest "));
+  BDat x = 0;
+  BInt num = arParam_+maParam_;
+  BBool necessary = num!=0; 
   if(necessary)
   {
+    if(!paramCor_.Rows() || !paramCor_.Columns())
+    {
+      diagValue_(n) = BDat::Unknown();
+      return(Qualify(n,1,BTRUE));
+    }
 //  Std(BText("\nARMA Parameters Number = ")+num);
-    BInt		   m   = paramCor_.Rows() - num;
+    int facNum = arFactors_.Size();
+    BInt m = paramCor_.Rows() - num;
 //  Std(BText("\nNON ARMA Parameters Number = ")+m);
-    BInt		   i, j, k, iter;
-    BSymMatrix<BDat>	   cov (num);
-    BMatrix<BDat>	   param(num,1);
-    BArray<BDat>	   unarys(4);
-    BArray<BPol>	   factors(4);
+    BInt i, j, k, iter;
+    BSymMatrix<BDat> cov (num);
+    BMatrix<BDat> param(num,1);
+    BArray<BDat> unarys(2*facNum);
+    BArray<BPol> factors(2*facNum);
 
-    factors[0] = arFactors_[0];
-    factors[1] = arFactors_[1];
-    factors[2] = maFactors_[0];
-    factors[3] = maFactors_[1];
-    unarys [0] = 0;
-    unarys [1] = 0;
-    unarys [2] = 0;
-    unarys [3] = 0;
+    for(j=0;j<facNum;j++)
+    {
+      factors[j]        = arFactors_[j];
+      factors[j+facNum] = maFactors_[j];
+      unarys [j]        = 0;
+      unarys [j+facNum] = 0;
+    };
 
     i=0;
 //  Std(BText("\nFactors =\n"));
-    for(i=j=0; j<4; j++)
+    for(i=j=0; j<2*facNum; j++)
     {
 //    Std(factors[j].Name());
       for(k=1; k<factors[j].Size(); k++)
       {
-	param(i++,0)=-factors[j][k].Coef();
+        param(i++,0)=-factors[j][k].Coef();
       }
     }
-
-
 //  Std(BText("\nParam =\n")+param.Name());
-
     for(i=0; i<num; i++)
     {
       cov(i,i) = paramSD_(m+i)*paramSD_(m+i);
       for(j=0; j<i; j++)
       {
-	cov(i,j) = paramSD_(m+i)*paramSD_(m+j)*paramCor_.Get(m+i,m+j);
+        cov(i,j) = paramSD_(m+i)*paramSD_(m+j)*paramCor_.Get(m+i,m+j);
       }
     }
 
     BNormalDist n01(0,1);
     BMultivarDist dist(&n01,param,cov);
 
-    BInt maxIter = 100;
+    BInt maxIter = 1000;
     for(iter=1; iter<=maxIter; iter++)
     {
       BMatrix<BDat> simula = dist.Random();
-      for(i=j=0; j<4; j++)
+      for(i=j=0; j<2*facNum; j++)
       {
-	for(k=1; k<factors[j].Size(); k++,i++)
-	{ factors[j][k].PutCoef(-simula(0,i)); }
-//	  Std(BText("\nFactor[")+j+"]"+factors[j].Name() +
-//		  " Stationary = " + factors[j].Stationary());
-	if(!(IsStationary(factors[j]))) { unarys[j]+=1; }
+        for(k=1; k<factors[j].Size(); k++,i++)
+        { factors[j][k].PutCoef(-simula(0,i)); }
+        if(!(IsStationary(factors[j]))) { unarys[j]+=1; }
       }
     }
     x = 0;
-    for(j=0; j<4; j++)
+    for(j=0; j<2*facNum; j++)
     {
   //  Std(BText("unarys[")+j+"] = " + unarys[j]);
       unarys[j] /= maxIter;
@@ -498,21 +520,21 @@ BInt BModel::RunTest(BInt n)
 //--------------------------------------------------------------------
 {
 //Std(Out()+"\n\nRunning test "+n+" " +testTitle_(n));
-    switch(n)
-    {
-	case  0 : return(FstRegAutCorTest	   (n));
-	case  1 : return(FstSeaAutCorTest	   (n));
-	case  2 : return(SndRegAutCorTest	   (n));
-	case  3 : return(SndSeaAutCorTest	   (n));
-	case  4 : return(RegBoxPierceLjungTest     (n));
-	case  5 : return(SeaBoxPierceLjungTest     (n));
-	case  6 : return(FisherDistanceTest	   (n));
-	case  7 : return(MinSignificationTest      (n));
-	case  8 : return(MaxCorrelationTest	   (n));
-	case  9 : return(MixedSignCorrTest	   (n));
-	case 10 : return(UnitRootsProbTest	   (n));
-	default : return(-1);
-    }
+  switch(n)
+  {
+    case  0 : return(FstRegAutCorTest     (n));
+    case  1 : return(FstSeaAutCorTest     (n));
+    case  2 : return(SndRegAutCorTest     (n));
+    case  3 : return(SndSeaAutCorTest     (n));
+    case  4 : return(RegBoxPierceLjungTest     (n));
+    case  5 : return(SeaBoxPierceLjungTest     (n));
+    case  6 : return(FisherDistanceTest     (n));
+    case  7 : return(MinSignificationTest      (n));
+    case  8 : return(MaxCorrelationTest     (n));
+    case  9 : return(MixedSignCorrTest     (n));
+    case 10 : return(UnitRootsProbTest     (n));
+    default : return(-1);
+  }
 }
 
 static BDat doDiagnostics_ = 1;
@@ -532,15 +554,15 @@ void BModel::Diagnostics()
   if(!uBounds)
   {
     Error(I2("Cannot find Set DiagnosticsBounds.",
-	     "No se encuentra el conjunto DiagnosticsBounds."));
+             "No se encuentra el conjunto DiagnosticsBounds."));
     return;
   }
   BSet& set = Set(uBounds);
   if(testTitle_.Size()!=set.Card())
   {
     Error(I2("Wrong number of elements in Set DiagnosticsBounds.",
-	     "Error en el número de elementos del conjunto "
-	     "DiagnosticsBounds."));
+             "Error en el número de elementos del conjunto "
+             "DiagnosticsBounds."));
     return;
   }
   qualification_ = 0;
@@ -548,33 +570,35 @@ void BModel::Diagnostics()
   for(BInt n = 0; n<testTitle_.Size(); n++)
   {
     BSet& s = Set(set[n+1]);
-    diagValue_	(n) = BDat::Unknown();
-    diagPunct_	(n) = 0;
+    diagValue_  (n) = BDat::Unknown();
+    diagPunct_  (n) = 0;
     testAccept_ (n) = Dat(s[1]);
     testRefuse_ (n) = Dat(s[2]);
     diagQualify_(n) = RunTest(n);
     if(qualification_<diagQualify_(n)) { qualification_=diagQualify_(n); }
-    BDat x0 = BDat(1)/3;
-    BDat y0 = BDat(2)/3;
+    BDat x0 = 1.0/3.0;
+    BDat y0 = 2.0/3.0;
     BDat x  = testAccept_ (n);
     BDat y  = testRefuse_ (n);
-    BDat a  = (y0-x0)/(y-x);
-    BDat b  = x0 - a*x;
-    BDat q  = a*diagPunct_(n)+b;
+    BDat p  = diagPunct_(n);
+    BDat q;
+         if(p<=x) { q = p * x0/x; }
+    else if(p<=y) { q = x0 + (p-x) * (y0-x0)/(y-x); }
+    else          { q = y0 + (p-y) * ( 1-y0)/(1-y); }
     arithmeticQualification_ += q;
 /*
-    Std( BText("\nBounds[")	+ testAccept_ (n) +
-	       ", "		+ testRefuse_ (n) +
-	       "]; Value   = "	+ diagValue_  (n) +
-	       "; Prob	 = "	+ diagPunct_  (n) +
-	       "; Qualify = "	+ qualifTitle_[diagQualify_ (n)] +";"+
-	       "; Qualify(1/3,2/3) = " + q.Name() +";\n");
+    Std( BText("\nBounds[")  + testAccept_ (n) +
+         ", "    + testRefuse_ (n) +
+         "]; Value   = "  + diagValue_  (n) +
+         "; Prob   = "  + diagPunct_  (n) +
+         "; Qualify = "  + qualifTitle_[diagQualify_ (n)] +";"+
+         "; Qualify(1/3,2/3) = " + q.Name() +";\n");
 */
   }
   if(periodicity_>1) { arithmeticQualification_ /= testTitle_.Size(); }
-  else		     { arithmeticQualification_ /= (testTitle_.Size()-3); }
+  else               { arithmeticQualification_ /= (testTitle_.Size()-3); }
 /*
   Std(BText("\nModel Average Qualify(1/3, 2/3) = ") +
-	    arithmeticQualification_.Name() +";\n");
+      arithmeticQualification_.Name() +";\n");
 */
 }

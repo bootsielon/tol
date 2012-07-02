@@ -2030,54 +2030,56 @@ void BModel::Statistics()
 //  for(i=0; i<n; i++) { paramSD_[i]*=standardError_; }
   }
 
-  //-------------------------------------------------------
-  // Autocorrelation Matrix and Box-Pierce-Ljung Statistics
-  //-------------------------------------------------------
-  aCorNum_ = N/4;
-  BData acor(aCorNum_), pacor(aCorNum_);
+  Std(BText("\nTRACE BModel::Statistics() N_=")+N_);
+  aCorNum_ = N_/4;
+  Std(BText("\nTRACE BModel::Statistics() aCorNum_=")+aCorNum_);
+  if(periodicity_>0)
   {
-//  BTimer tm("Autocorrelation Matrix and Box-Pierce-Ljung Statistics");
-    if(periodicity_>0)
-    {
-      if(aCorNum_< 3*periodicity_) { aCorNum_ =	 3*periodicity_; }
-      if(aCorNum_>10*periodicity_) { aCorNum_ = 10*periodicity_; }
-    }
-    else
-    {
-      if(aCorNum_>100) { aCorNum_ = 100; }
-    }
-    if(aCorNum_>N/2) { aCorNum_ = N/2; }
-    resACor_ = BMat(4,aCorNum_);
-    BInt  p = arParam_;
-  //BInt  q = maParam_;
-    AutoCor(residuous_,acor,aCorNum_);
-    BDat Q = 0;
-    for(i=0; i<aCorNum_; i++)
-    {
-      resACor_(0,i)=i+1;
-      resACor_(1,i)=acor(i);
-      resACor_(2,i)=sigma;
-      Q += ((resACor_(1,i)^2)/BDat(N-i-1));
-      resACor_(3,i)=Q*BDat(N*(N+2));
-    }
+    if(aCorNum_< 2*periodicity_+4) { aCorNum_ =	 2*periodicity_+4; }
+    Std(BText("\nTRACE BModel::Statistics() aCorNum_=")+aCorNum_);
   }
+  if(aCorNum_<N_/2) { aCorNum_ = N_/2; }
+  Std(BText("\nTRACE BModel::Statistics() aCorNum_=")+aCorNum_);
 
-  //-------------------------------------------------------
-  // Partial Autocorrelation Matrix
-  //-------------------------------------------------------
+  if(aCorNum_>0)
   {
-//  BTimer tm("Partial Autocorrelation Matrix");
-    resPACor_=BMat(3,aCorNum_);
-    PartAutoCor(acor,pacor);
-
-    for(i=0; i<aCorNum_; i++)
+    resACor_.Alloc(aCorNum_,4);
+    resPACor_.Alloc(aCorNum_,3);
+    BData acor, pacor; 
+    //-------------------------------------------------------
+    // Autocorrelation Matrix and Box-Pierce-Ljung Statistics
+    //-------------------------------------------------------
     {
-      resPACor_(0,i)=i+1;
-      resPACor_(1,i)=pacor(i);;
-      resPACor_(2,i)=sigma;
+    //BTimer tm("Autocorrelation Matrix and Box-Pierce-Ljung Statistics");
+      BInt  p = arParam_;
+    //BInt  q = maParam_;
+    //Std(BText("\nA_.Data()=\n")+Name(A_.Data())+"\n");
+      AutoCor(A_.Data(),acor,aCorNum_);
+    //Std(BText("\nacor=\n")+Name(acor)+"\n");
+      BDat Q = 0;
+      for(i=0; i<aCorNum_; i++)
+      {
+        resACor_(i,0)=i+1;
+        resACor_(i,1)=acor(i);
+        resACor_(i,2)=sigma;
+        Q += ((acor(i)^2)/BDat(N-i-1));
+        resACor_(i,3)=Q*BDat(N*(N+2));
+      }
     }
 
-    resACor_  = resACor_ .T();
-    resPACor_ = resPACor_.T();
+    //-------------------------------------------------------
+    // Partial Autocorrelation Matrix
+    //-------------------------------------------------------
+    {
+    //BTimer tm("Partial Autocorrelation Matrix");
+      PartAutoCor(acor,pacor);
+      for(i=0; i<aCorNum_; i++)
+      {
+        resPACor_(i,0)=i+1;
+        resPACor_(i,1)=pacor(i);;
+        resPACor_(i,2)=sigma;
+      }
+
+    }
   }
 }

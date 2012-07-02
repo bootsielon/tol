@@ -187,7 +187,7 @@ BBool BEstimation::Marquardt()
 
     M_->IntegrateMissingValues();
     M_->Statistics();
-    //M_->Diagnostics();
+    M_->Diagnostics();
   }
   return(ok_);
 }
@@ -1456,8 +1456,10 @@ static BDat ARMAACFBartlettLLH_Theorical(
   _covACF_Bartlett(cov,rho,n,T,s);
 
   res = TolLapack::dpotrf(CblasLower,cov,L);
+  if(!res) { return(BDat::NegInf()); }
   res = TolBlas::dtrsm(CblasLeft,CblasLower,CblasNoTrans,CblasNonUnit,alpha,
                            L,dif,eps);
+  if(!res) { return(BDat::NegInf()); }
   const BDat* eps_i = eps.Data().Buffer();
   BDat eps_sumSqr = 0;
   BDat log_det = 0;
@@ -1561,6 +1563,7 @@ void BMatARMAACFBartlettLLHRandStationary::CalcContens()
   int n = acf.Data().Size();
   int s = T*2;
   contens_.Alloc(sampleSize,1);
+  contens_.GetData().Replicate(BDat::NegInf(),sampleSize);
   int k;
   int res;
   BPol ar, ma;
@@ -1569,6 +1572,7 @@ void BMatARMAACFBartlettLLHRandStationary::CalcContens()
   {
     _covACF_Bartlett(cov,acf,n,T,s);
     res = TolLapack::dpotrf(CblasLower,cov,L);
+    if(res) { return; }
   };
   for(k=0; k<sampleSize; k++)
   {
