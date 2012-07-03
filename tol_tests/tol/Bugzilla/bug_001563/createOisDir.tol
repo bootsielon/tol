@@ -1,0 +1,7 @@
+  Set justOneBigMat = [[
+    Matrix Rand(11000, 10000, 0, 1)
+  ]];
+  
+// El tamaño del conjunto quizá puede depender de la RAM del equipo
+  Real Ois.Store(justOneBigMat, "justOneBigMat");
+
