@@ -855,7 +855,7 @@ void AutoCov(const BArray<BDat>& vec,
 	      *cov_=0;
         vec_t = vec_+i;
         vec_ti = vec_;
-	      for(t=i; t<vec.Size(); t++, vec_t, vec_ti)
+	      for(t=i; t<vec.Size(); t++, vec_t++, vec_ti++)
 	      {
 		      if(vec_t->IsKnown()&&vec_ti->IsKnown()) 
 		      {
