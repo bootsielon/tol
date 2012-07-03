@@ -586,12 +586,18 @@ BInt ArrayARIMAFactorCmp(const void* v1, const void* v2)
     BVMat ms, As, Ls, gps;
     As.DMat2sparse((const BMatrix<double>&)A);
     ms.DMat2sparse((const BMatrix<double>&)m);
-    BVMat::CholeskiFactor(As,Ls,"XtX",true,false,true);
-    BVMat::CholeskiSolve(Ls,(ms.T()*As).T(),gps,"PtLLtP");
-    gps.GetDMat((BMatrix<double>&)gp);
-    test = A*gp-m;
-    err  = test.FrobeniusNorm();
-
+    BVMat::CholeskiFactor(As,Ls,"XtX",true,false,false);
+    if(Ls.Code()==BVMat::ESC_undefined)
+    {
+      err  = BDat::Unknown();
+    }
+    else
+    {
+      BVMat::CholeskiSolve(Ls,(ms.T()*As).T(),gps,"PtLLtP");
+      gps.GetDMat((BMatrix<double>&)gp);
+      test = A*gp-m;
+      err  = test.FrobeniusNorm();
+    }
     bool closeToNonStationary = false;
     if(err.IsUnknown()  || (err>Sqrt((1+p)*DEpsilon()))) 
     {
