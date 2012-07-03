@@ -136,35 +136,32 @@ void BSpecialFunction::GetArg(BSet& set,
                    BGrammar* graParam[], 
                    int numParam)
     
-/*! Returns true if the number of branch in a tree is correct
+/*! Returns true if the number and types of branches in a tree is correct
  */
 //--------------------------------------------------------------------
 {
   BList* lst = NIL;
   BList* aux = NIL;
-  BInt n = BSpecialFunction::NumBranches(tre);
-  if(numParam)
+  BInt n = numParam;
+  for(BInt i=0; i<n; i++)
   {
-    for(BInt i=0; i<n; i++)
+    BInt j = Minimum(i, numParam-1);
+    BGrammar* gra = graParam[j];
+    assert(gra);
+    List* branch = Branch(tre,i+1);
+    assert(branch);
+    BSyntaxObject* arg = gra->EvaluateTree(branch);
+    if(arg && ((gra==GraAnything()) || (arg->Grammar()==gra)))
     {
-      BInt j = Minimum(i, numParam-1);
-      BGrammar* gra = graParam[j];
-      assert(gra);
-      List* branch = Branch(tre,i+1);
-      assert(branch);
-      BSyntaxObject* arg = gra->EvaluateTree(branch);
-      if(arg)
-      {
-        LstFastAppend(lst,aux,arg);
-      }
-      else
-      {
-        Error(BParser::Unparse(branch)+
-              I2(BText(" is not a ") + gra->Name() + " object.",
-              BText(" no es un objeto de tipo ") + gra->Name()));
-        DESTROY(lst);
-        break;
-      }
+      LstFastAppend(lst,aux,arg);
+    }
+    else
+    {
+      Error(BParser::Unparse(branch)+
+            I2(BText(" is not a ") + gra->Name() + " object.",
+            BText(" no es un objeto de tipo ") + gra->Name()));
+      DESTROY(lst);
+      return;
     }
   }
   set.RobElement(lst);
@@ -518,90 +515,102 @@ static BSyntaxObject* EvGroup(BGrammar* gra, const List* tre, BBool left)
 //--------------------------------------------------------------------
 {
   static BText _name_ = "Group";
-  static BGrammar* graParam[2] = 
+  static BGrammar* graParam[3] = 
   { 
     GraText(),
-    GraSet()
+    GraSet(),
+    GraAnything()
   };
-  BSet args; BSpecialFunction::GetArg(args, tre, graParam, 2);
   BSyntaxObject* result = NIL;
-  BSyntaxObject* uTxt  = NIL;
-  BSyntaxObject* uSet  = NIL;
-  if(gra==GraAnything())
-  {
-    Error(I2("Cannot eval Group returning an object of type Anything.",
-             "No se puede evaluar Group para devolver un objeto de tipo Anything."));
+
+  BInt nb = BSpecialFunction::NumBranches(tre);
+  BSet args; 
+  if(BSpecialFunction::TestNumArg(_name_, 2, nb, 3))
+  {  
+    BSpecialFunction::GetArg(args, tre, graParam, nb);
   }
-  else
+  if(args.Card()==nb)
   {
-    if(args.Card()>=2)
+    BSyntaxObject* uTxt  = NIL;
+    BSyntaxObject* uSet  = NIL;
+    if(gra==GraAnything())
     {
-	    uTxt = args[1];
-	    uSet = args[2];
-      
-	    if(uTxt && uSet)
-	    {
+      Error(I2("Cannot eval Group returning an object of type Anything.",
+               "No se puede evaluar Group para devolver un objeto de tipo Anything."));
+    }
+    else
+    {
+      uTxt = args[1];
+      uSet = args[2];
+      if(uTxt && uSet)
+      {
         BSet& set = Set(uSet);
-	      BText txt	= uTxt->Dump();
-				txt = txt.SubString(1,txt.Length()-2);
-	      BStandardOperator* ope = (BStandardOperator*)gra->FindOperator(txt);
-	      if(ope)
-	      {
-		      if(set.Card()==0) 
+        BText txt  = uTxt->Dump();
+        txt = txt.SubString(1,txt.Length()-2);
+        BStandardOperator* ope = (BStandardOperator*)gra->FindOperator(txt);
+        if(ope)
+        {
+          if(set.Card()==0) 
           {
-            if(args.Card()==3)
+            if(nb==3)
             {
-	            result = args[3];
+              if(gra==args[3]->Grammar()) { result = gra->New("",args[3]); }
+              else
+              {
+                Error(I2("Group default value type should be ",
+                         "El valor por defecto de Group debería ser de tipo ")+gra->Name()+
+                      I2(" instead of "," en lugar de ")+args[3]->Grammar()->Name());
+              }
             }
             else
             {
               Error(I2("Cannot evaluate Group over empty set without "
                        "a default value.",
-				               "No sepuede evaluar Group sobre un conjunto vacío "
+                       "No se puede evaluar Group sobre un conjunto vacío "
                        "sin valor por defecto."));
             }
           }
           else  
           {
-		        BBool ok = BTRUE;
+            BBool ok = BTRUE;
             BGrammar* g;
-		        for(BInt n=1; ok&&(n<=set.Card()); n++) 
+            for(BInt n=1; ok&&(n<=set.Card()); n++) 
             {
               g = set[n]->Grammar();
-			        if((gra!=GraAnything()) && 
-			           !(ok = (g==gra))) 
+              if((gra!=GraAnything()) && 
+                 !(ok = (g==gra))) 
               {
-			          Error(I2("An element for Group function is not an"
-				                 " object of type ",
-				                 "Algún elemento para la funcion Group no"
+                Error(I2("An element for Group function is not an"
+                         " object of type ",
+                         "Algún elemento para la funcion Group no"
                          " es un objeto de tipo ")+ gra->Name()+":\n"+
                          set[n]->LexInfo());
-			        }
-		        }
-		        if(ok) 
+              }
+            }
+            if(ok) 
             {
-			        if(set.Card()==1) 
+              if(set.Card()==1) 
               {
-			          result = gra->New("",set[1]);
+                result = gra->New("",set[1]);
               //result = set[1];
-			        } 
+              } 
               else 
               {
               //VBR: reverse list to pass arguments to Evaluator
                 BList* arg = Set(args[2]).ToReversedList();
               //Std(BText("\nGroup(")+uTxt->Dump()+",[["+set.Name()+"]])");
-			          result = ope->Evaluator(arg);
-			        }
-		        }
-		      }
-	      }
-	      else
-	      {
-		      Error(BText("Group : ") +txt +
-		            I2(" is not a " + gra->Name() + " operator.",
-			          " no es un operador de tipo " + gra->Name()));
-	      }
-	    }
+                result = ope->Evaluator(arg);
+              }
+            }
+          }
+        }
+        else
+        {
+          Error(BText("Group : ") +txt +
+                I2(" is not a " + gra->Name() + " operator.",
+                " no es un operador de tipo " + gra->Name()));
+        }
+      }
     }
   }
   result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BTRUE);
@@ -1997,7 +2006,8 @@ static BSyntaxObject* EvMemberArg
         {
           unb = (BUserNameBlock*)result;
         }
-        if(!unb || (unb->Contens().Class()!=cls))
+        const BClass* unbCls = (!unb)?NULL:unb->Contens().Class();
+        if(!unb || !unbCls->InheritesFrom(cls))
         {
           errMsg = I2("It was expected an instance of Class ",
                    "Se esperaba una instancia de Class ") +cls->Name();

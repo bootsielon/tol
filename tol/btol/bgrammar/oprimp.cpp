@@ -1353,12 +1353,25 @@ BSyntaxObject* BStandardOperator::Evaluate(const List* argTrees)
           else if(cls && (gra==GraNameBlock())) 
           {
             BNameBlock& nb = ((BUserNameBlock*)var)->Contens();
+            if(cls->Name()=="@BsrMaster")
+              printf(""); 
 		        if(!nb.IsInstanceOf(cls)) 
             {
 			        BText bText = BParser::Unparse(b);
+              BText but = "";
+              if(nb.Class())
+              {
+                but = I2(" but it's an instance of ",
+                         " sino de " )+nb.Class()->FullName();
+              }
+              else
+              {
+                but = I2(" nor any other class.",
+                         " ni de ninguna otra clase.");
+              } 
 			        Error(bText + I2(" is not a NameBlock instance of ",
 					                     " no es un NameBlock instancia de ") +
-			              cls->FullName());
+			              cls->FullName()+but);
 			        DESTROY(var);
 		        } 
 		      }
@@ -1598,6 +1611,8 @@ BBool BUserFunction::Compile()
     List*     rest = NIL;
     BStruct*  str  = NIL;
     BClass*   cls  = NIL;
+    structs_ [n] = NIL;
+    classes_ [n] = NIL;
     bool carIsList = dec->car()->IsListClass();
     List* decLst = carIsList?Tree::treNode((List*) dec):(List*)dec;
     BGrammar* gra  = GetLeft
@@ -1613,6 +1628,8 @@ BBool BUserFunction::Compile()
       grammars_[n][0] = gra;
       structs_ [n] = str;
       classes_ [n] = cls;
+      if(str) { str->IncNRefs(); }
+      if(cls) { cls->IncNRefs(); }
       dec = dec->cdr();
     } 
     else 
@@ -1874,6 +1891,11 @@ void BUserFunction::Clean()
   DESTROY(definition_);
   declare_     = "";
   define_      = "";
+  for(int n = 0; n<maxArg_; n++)
+  {
+    if(classes_[n]) { classes_[n]->DecNRefs(); }
+    if(structs_[n]) { structs_[n]->DecNRefs(); }
+  }
 }
 
 

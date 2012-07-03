@@ -33,6 +33,7 @@
 class TOL_API BMember;
 class TOL_API BMemberOwner;
 class TOL_API BClass;
+class TOL_API BStruct;
 struct TOL_API BMbrNum;
 
 class TOL_API BAutoDocInf
@@ -63,6 +64,7 @@ struct TOL_API BMbrNum
   int      position_; //Appearing order
 };
 
+
 //--------------------------------------------------------------------
 class TOL_API BMember
 //! User defined Class member
@@ -82,6 +84,9 @@ class TOL_API BMember
   BSyntaxObject* method_;       //!< Store for Class member
   BSyntaxObject* static_;       //!< Store for Class static member or method
   BText          description_;  //!< Store for Class member description
+  BGrammar*      type_;
+  BStruct*       struct_;
+  BClass*        class_;
  public:
   // Constructors and destructors: bgrammar\class.cpp
   BMember();
@@ -101,6 +106,8 @@ class TOL_API BMember
   BText FullExpression() const;
   int BuildMethod();
   int BuildStatic();
+  int BuildType();
+  int BuildAll();
 	BText	Dump () const;
   void PutDescription(const BText& desc);
   DeclareClassNewDelete(BMember);
@@ -245,8 +252,10 @@ public:
   void PutDestroy(BSyntaxObject* destroy);
   bool DestroyInstance(BNameBlock* instance);
   //! Evaluates a parsed tree with a Class declaration
-  static BClass* PredeclareClass(const BText&name, BClass*&old, bool &ok);
-  static BClass* PredeclareClass(const BText&name);
+  static BClass* GetClassIfExist(const BText& name);
+  static BClass* PredeclareClassIfNeeded(const BText& name);
+  static BClass* PredeclareNewClass(const BText&name, BClass*&old, bool &ok);
+  static BClass* PredeclareNewClass(const BText&name);
   static BSyntaxObject* Evaluate(const List* tree);
   BSyntaxObject* FindMethod(const BText& memberName, bool fullAccess) const;
   BSyntaxObject* FindStatic(const BText& memberName, bool fullAccess) const;

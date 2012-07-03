@@ -65,7 +65,10 @@ BMember::BMember()
   deleteBranch_(false),
   isStatic_    (false),
   static_      (NULL),
-  description_ ("") 
+  description_ (""),
+  type_        (NULL),
+  class_       (NULL),
+  struct_      (NULL)
 {
 }
 
@@ -84,10 +87,27 @@ BMember::BMember(const BMember& mbr)
   deleteBranch_(false),
   isStatic_    (false),
   static_      (NULL),
-  description_ ("") 
+  description_ (""),
+  type_        (NULL),
+  class_       (NULL),
+  struct_      (NULL) 
 { 
   Copy(mbr); 
 }
+
+
+//--------------------------------------------------------------------
+  void CleanLeftAndRightChar(BText& expression, char begin, char end)
+//--------------------------------------------------------------------
+{
+  int fst = 0;
+  int lst = expression.Length()-1;
+  while(expression[fst]==begin) { fst++; }
+  while(expression[lst]==end  ) { lst--; }
+  expression = expression.SubString(fst,lst);
+}
+
+
 //--------------------------------------------------------------------
 BMember::BMember(BMemberOwner* parent, List* branch)
 //--------------------------------------------------------------------
@@ -103,7 +123,10 @@ BMember::BMember(BMemberOwner* parent, List* branch)
   deleteBranch_(false),
   isStatic_    (false),
   static_      (NULL),
-  description_ ("") 
+  description_ (""),
+  type_        (NULL),
+  class_       (NULL),
+  struct_      (NULL) 
 {
   List* cdr;
   BCore* car;
@@ -158,7 +181,7 @@ BMember::BMember(BMemberOwner* parent, List* branch)
       }
       else if(expression[0]=='{')
       {
-        expression = expression.SubString(1,expression.Length()-2);
+        CleanLeftAndRightChar(expression,'{','}');
       }
       int posEq = expression.Find("=");
       int posSp = expression.Find(" ");
@@ -264,14 +287,12 @@ BMember::BMember(BMemberOwner* parent, List* branch)
         if(p0+1<p1-1)
         {
           name_ = simpleDec.SubString(p0+1,p1-1);
+          CleanLeftAndRightChar(name_,'{','}');
         }
       }
     } 
     //Cleaning open and close parenthesis
-    if(declaration_[0]=='{')
-    {
-      declaration_=declaration_.SubString(1,declaration_.Length()-2);
-    }
+    CleanLeftAndRightChar(declaration_,'{','}');
   }
   //Checking mandatory information: name and declaration. 
   //Definition is optional
@@ -292,11 +313,7 @@ BMember::BMember(BMemberOwner* parent, List* branch)
             BParser::Unparse(branch_,"","\n")+
             I2(" of Class ", " de Class ")+parent->getFullName());
   }
-  if(parent->OwnerType()==BMemberOwner::BCLASS)
-  {
-    BuildMethod();
-    BuildStatic();
-  }
+  BuildAll();
 }
 
 //--------------------------------------------------------------------
@@ -359,6 +376,9 @@ BMember::~BMember()
   method_       = mbr.method_; 
   isStatic_     = mbr.isStatic_; 
   static_       = mbr.static_; 
+  type_         = mbr.type_; 
+  class_        = mbr.class_; 
+  struct_       = mbr.struct_; 
   if(method_) { method_->IncNRefs(); }
   if(static_) { static_->IncNRefs(); }
   deleteBranch_ = true;
@@ -482,6 +502,55 @@ BMember::~BMember()
     return(-1);
   }
 }
+
+//--------------------------------------------------------------------
+  int BMember::BuildType()
+//! Builds type information
+//--------------------------------------------------------------------
+{
+  if(isMethod_) { type_ = GraCode(); }
+  else
+  {
+    BText typeDec = declaration_+" ";
+    typeDec.Replace(BText(" ")+name_+" ","");
+    typeDec.Compact();
+    class_ = FindClass(typeDec,-1);
+    if(class_) { type_ = GraNameBlock(); }
+    else
+    {
+      struct_ = FindStruct(typeDec);
+      if(struct_) { type_ = GraSet(); }
+      else
+      {
+        type_ = BGrammar::FindByName(typeDec,false);
+        if(!type_)
+        {
+          isGood_ = false;
+          Error(I2("Unknown type declaration of member ",
+                   "Tipo descponocido en declaración de miembro ")+
+          BParser::Unparse(branch_,"","\n")+
+          I2(" of Class ", " de Class ")+parent_->getFullName() );
+          return(-1);
+        }
+      }
+    }
+  }
+  return(0);
+}
+
+//--------------------------------------------------------------------
+  int BMember::BuildAll()
+//--------------------------------------------------------------------
+{
+  if(parent_->OwnerType()==BMemberOwner::BCLASS)
+  {
+    BuildMethod();
+    BuildStatic();
+  }
+  BuildType();
+  return(0);
+}
+
 //--------------------------------------------------------------------
   bool BMember::HasDefVal() const 
 //! True if member has default value
@@ -746,7 +815,14 @@ int MbrNumCmp(const void* v1, const void* v2)
 {
   if(!parent) { return(false); }
   if(this==parent) { return(true); }
-  return(InheritesFrom(parent->getFullNameRef()));
+  BClassByNameHash::const_iterator iterA;
+  BClassByNameHash& ah = *ascentHash_;
+  for(iterA=ah.begin(); iterA!=ah.end(); iterA++)
+  {
+    if(iterA->second==parent) { return(true); }
+  }
+  return(false); 
+//return(InheritesFrom(parent->getFullNameRef()));
 //return(InheritesFrom(parent->Name()));
 }
 
@@ -818,9 +894,9 @@ bool BMemberOwner::AddAutodocMember(
 //--------------------------------------------------------------------
 {
   if(!isGood_) { return(false); }
-  const BText& dec  = newMember->declaration_;
+  const BText* dec  = &(newMember->declaration_);
   const BText& name = newMember->name_;
-  assert(name.HasName()&& dec.HasName());
+  assert(name.HasName()&& dec->HasName());
 
   if(OwnerType()==BCLASS)
   {
@@ -846,10 +922,23 @@ bool BMemberOwner::AddAutodocMember(
   //Searches for existant member with same name
   BMbrNum* mbrNum = FindMbrNum(name);
   BMember* member = (mbrNum)?mbrNum->member_:NULL;
+  if(member)
+  {
+    if(member->type_ == newMember->type_)
+    {
+      if( ((member->type_==GraSet())&&member->struct_&&(member->struct_==newMember->struct_))
+          ||
+          ((member->type_==GraNameBlock())&&member->class_&&(member->class_==newMember->class_)) )
+      {
+        dec = &(member->declaration_);
+      }
+    } 
+  }
   //Searches for existant member with same declaration but no default value
-  BMember* mbrDec = FindDecMember(dec);
+  BMember* mbrDec = FindDecMember(*dec);
   //Searches for existant member with same declaration and with default value
-  BMember* mbrDef = FindDefMember(dec);
+  BMember* mbrDef = FindDefMember(*dec);
+
   bool isMethod = newMember->isMethod_;
   if(!member)
   {
@@ -857,8 +946,8 @@ bool BMemberOwner::AddAutodocMember(
     //to members map hashed by name
     (*memberHash_)[name] = newMbrNum;
     //It's also added to correspondent map hashed by declaration
-    if(hasDefVal) { (*mbrDefHash_)[dec] = newMember; }
-    else          { (*mbrDecHash_)[dec] = newMember; }
+    if(hasDefVal) { (*mbrDefHash_)[*dec] = newMember; }
+    else          { (*mbrDecHash_)[*dec] = newMember; }
     if(isMethod && !hasDefVal) { notImplementedMethods_++; }
   }
   else if(member->parent_==this)
@@ -894,10 +983,10 @@ bool BMemberOwner::AddAutodocMember(
     //newMbrNum->position_ = mbrNum->position_;
       memberHash_->erase(name);
       assert(!FindMember(name));
-      mbrDefHash_->erase(dec);
-      assert(!FindDefMember(dec));
+      mbrDefHash_->erase(*dec);
+      assert(!FindDefMember(*dec));
       (*memberHash_)[name] = newMbrNum;
-      (*mbrDefHash_)[dec ] = newMember;
+      (*mbrDefHash_)[*dec] = newMember;
       newMember->firstParent_ = mbrDef->firstParent_;
     }
     else if(mbrDec)
@@ -906,10 +995,10 @@ bool BMemberOwner::AddAutodocMember(
     //newMbrNum->position_ = mbrNum->position_;
       memberHash_->erase(name);
       assert(!FindMember(name));
-      mbrDecHash_->erase(dec);
-      assert(!FindDecMember(dec));
-      (*memberHash_)[name]= newMbrNum;
-      (*mbrDefHash_)[dec] = newMember;
+      mbrDecHash_->erase(*dec);
+      assert(!FindDecMember(*dec));
+      (*memberHash_)[name] = newMbrNum;
+      (*mbrDefHash_)[*dec] = newMember;
       if(isMethod) 
       { 
         assert(notImplementedMethods_>0);
@@ -952,7 +1041,7 @@ bool BMemberOwner::AddAutodocMember(
   Std(BText("\nBMemberOwner::AddMember ")+
   " \n  class:"+Name()+
   " \n  member name:"+name+
-  " \n  member declaration:"+dec+"\n");
+  " \n  member declaration:"+*dec+"\n");
 */
   return(ok);
 }
@@ -1192,6 +1281,8 @@ BClass::BClass(const BText& name)
   fullName_(""),
   __destroy(NULL)
 {
+  if(name=="@BsrMaster")
+    printf(""); 
   CreateMemberHashes();
   CreateParentHashes();
   PutName(name);
@@ -1664,44 +1755,201 @@ static BInt MemberCmp(const void* v1, const void* v2)
 };
 
 //--------------------------------------------------------------------
-  BClass* BClass::PredeclareClass(
+static BClass* FindClassInNameBlock(
+  const BText& name,
+  BUserNameBlock*& unb )
+//--------------------------------------------------------------------
+{
+  BClass* cls = NULL;
+  BSyntaxObject* obj;
+  int pos = name.Find("::",0);
+  if(pos>=0)
+  {
+    BText prefix;
+    BText suffix;
+    prefix = name.SubString(0,pos-1);
+    suffix  = name.SubString(pos+2,name.Length());
+    if(!unb)
+    {
+      obj = GraNameBlock()->FindOperand(prefix,false);
+      if(obj && obj->Grammar()==GraNameBlock())
+      {
+        unb = (BUserNameBlock*)obj;
+      }
+    }
+    else
+    {
+      BNameBlock& nb = unb->Contens();
+      obj = nb.Member(prefix);
+      if(obj && obj->Grammar()==GraNameBlock())
+      {
+        unb = (BUserNameBlock*)obj;
+      }
+      else
+      {
+        unb = NULL;
+      }
+    }
+    if(unb) 
+    {
+      cls = FindClassInNameBlock(suffix, unb);         
+    }
+  }
+  else if(unb)
+  {
+    BNameBlock& nb = unb->Contens();
+    obj = nb.Member(name);
+    if(obj && obj->Mode()==BCLASSMODE)
+    {
+      cls = (BClass*)obj;
+    }
+  }
+  return(cls); 
+}
+
+
+//--------------------------------------------------------------------
+static BClass* FindNonMemberClass(const BText& name, int defined)
+
+/*! Searches a user class wich name is name and returns it.
+ *  If itsn't exists returns NIL.
+ */
+//--------------------------------------------------------------------
+{
+  BClass* cls = BStackManager::FindClass(name);
+  if(!cls)
+  {
+    BObjClassify oc(GraAnything(),BCLASSMODE);
+    cls= (BClass*)BGrammar::SymbolTable().Search(oc, name);
+  }
+  return(cls);
+}
+
+//--------------------------------------------------------------------
+BClass* FindClass(const BText& name, int defined)
+
+/*! Searches a user class wich name is name and returns it.
+ *  If itsn't exists returns NIL.
+ */
+//--------------------------------------------------------------------
+{
+  BSyntaxObject* result = NULL;
+  BUserNameBlock* unb = NULL;
+  BClass* cls = FindClassInNameBlock(name, unb);
+  if(!cls && BNameBlock::Current())
+  {
+    result = BNameBlock::Current()->Member(name);
+    if(result && (result->Mode()==BCLASSMODE))
+    {
+      cls = (BClass*)result;
+    }
+  }
+  if(!cls)
+  {
+    cls = BStackManager::FindClass(name);
+  }
+  if(!cls)
+  {
+    result = BNameBlock::LocalMember(name);
+    if(result && (result->Mode()==BCLASSMODE))
+    {
+      cls = (BClass*)result;
+    }
+  }
+  if(!cls) 
+  {
+    BObjClassify oc(GraAnything(),BCLASSMODE);
+    cls= (BClass*)BGrammar::SymbolTable().Search(oc, name);
+  }
+  if(!cls) 
+  {
+    result = BNameBlock::UsingMember(name);
+    if(result && (result->Mode()==BCLASSMODE))
+    {
+      cls = (BClass*)result;
+    }
+  }
+  if(cls && (defined>=0) && (cls->isDefined_!=(defined!=0)))
+  {
+    cls = NULL;
+  }
+  return(cls);
+}
+
+//--------------------------------------------------------------------
+  BClass* BClass::GetClassIfExist(const BText& name)
+//--------------------------------------------------------------------
+{
+  if(name=="@BsrMaster")
+    printf(""); 
+  BClass* old = NULL;
+  if(name.HasName())
+  {
+    BUserNameBlock* bnbP = BNameBlock::Building();
+    if(bnbP)
+    {
+      old = BStackManager::FindClass(name);
+      if(old && (old->Level()!=BGrammar::Level()))
+      {
+        old = NULL;
+      }
+    }
+    else
+    {
+      old = FindClass(name,-1);
+    }  
+  }
+  return(old); 
+}
+
+//--------------------------------------------------------------------
+  BClass* BClass::PredeclareClassIfNeeded(const BText& name)
+//--------------------------------------------------------------------
+{
+  BClass* class_ = BClass::GetClassIfExist(name);
+  if(!class_) 
+  {
+    class_ = new BClass(name);
+  }
+  return(class_);
+};
+
+
+//--------------------------------------------------------------------
+  BClass* BClass::PredeclareNewClass(
      const BText& name,
      BClass*& old,
      bool& ok)
 //--------------------------------------------------------------------
 {
-  old = NULL;
+  old = BClass::GetClassIfExist(name);
   BClass* class_ = NULL;
-  if(name.HasName())
+  //Checking existent class with the same name
+  if(old && old->isDefined_)
   {
-    old = FindClass(name,-1);
-    //Checking existent class with the same name
-    if(old && old->isDefined_)
-    {
-      ok = false;
-      Error(BText("Class '") + name +
-        I2("' is already defined as ",
-           "' ya fue definida como \"") + old->Dump() + "\"\n");
-    }
-    else if(old) 
-    {
-      class_ = old;
-    }
-    else
-    {
-      class_ = new BClass(name);
-    }
+    ok = false;
+    Error(BText("Class '") + name +
+      I2("' is already defined as ",
+         "' ya fue definida como \"") + old->Dump() + "\"\n");
+  }
+  else if(old) 
+  {
+    class_ = old;
+  }
+  else
+  {
+    class_ = new BClass(name);
   }
   return(class_);
 };
 
 //--------------------------------------------------------------------
-  BClass* BClass::PredeclareClass(const BText& name)
+  BClass* BClass::PredeclareNewClass(const BText& name)
 //--------------------------------------------------------------------
 {
-  BClass* old;
+  BClass* class_;
   bool ok;
-  return(PredeclareClass(name, old, ok));
+  return(PredeclareNewClass(name, class_, ok));
 };
 
 //--------------------------------------------------------------------
@@ -1732,7 +1980,7 @@ BSyntaxObject* BClass::Evaluate(const List* _tree)
     if(!cdr)
     {
       name = tok->Name();
-      class_ = PredeclareClass(name, old, ok);
+      class_ = PredeclareNewClass(name, old, ok);
       ok = (class_!=NULL);
       memberLst=NULL;
     }
@@ -1741,7 +1989,7 @@ BSyntaxObject* BClass::Evaluate(const List* _tree)
       //Class with inheriting clause
       tok = (BToken*)((List*)(cdr->car()))->car();
       name = tok->Name();
-      class_ = PredeclareClass(name, old, ok);
+      class_ = PredeclareNewClass(name, old, ok);
       ok = (class_!=NULL);
       cdr = cdr->cdr();
       BText owner = "";
@@ -1823,7 +2071,7 @@ BSyntaxObject* BClass::Evaluate(const List* _tree)
     {
       //Class without inheriting clause
       name = tok->Name();
-      class_ = PredeclareClass(name, old, ok);
+      class_ = PredeclareNewClass(name, old, ok);
       ok = (class_!=NULL);
       memberLst = cdr;
       if(cdr && cdr->car() && cdr->car()->IsListClass())
@@ -1868,109 +2116,6 @@ BSyntaxObject* BClass::Evaluate(const List* _tree)
   return(class_);
 }
 
-//--------------------------------------------------------------------
-static BClass* FindClassInNameBlock(
-  const BText& name,
-  BUserNameBlock*& unb )
-//--------------------------------------------------------------------
-{
-  BClass* cls = NULL;
-  BSyntaxObject* obj;
-  int pos = name.Find("::",0);
-  if(pos>=0)
-  {
-    BText prefix;
-    BText suffix;
-    prefix = name.SubString(0,pos-1);
-    suffix  = name.SubString(pos+2,name.Length());
-    if(!unb)
-    {
-      obj = GraNameBlock()->FindOperand(prefix,false);
-      if(obj && obj->Grammar()==GraNameBlock())
-      {
-        unb = (BUserNameBlock*)obj;
-      }
-    }
-    else
-    {
-      BNameBlock& nb = unb->Contens();
-      obj = nb.Member(prefix);
-      if(obj && obj->Grammar()==GraNameBlock())
-      {
-        unb = (BUserNameBlock*)obj;
-      }
-      else
-      {
-        unb = NULL;
-      }
-    }
-    if(unb) 
-    {
-      cls = FindClassInNameBlock(suffix, unb);         
-    }
-  }
-  else if(unb)
-  {
-    BNameBlock& nb = unb->Contens();
-    obj = nb.Member(name);
-    if(obj && obj->Mode()==BCLASSMODE)
-    {
-      cls = (BClass*)obj;
-    }
-  }
-  return(cls); 
-}
-
-//--------------------------------------------------------------------
-BClass* FindClass(const BText& name, int defined)
-
-/*! Searches a user class wich name is name and returns it.
- *  If itsn't exists returns NIL.
- */
-//--------------------------------------------------------------------
-{
-  BSyntaxObject* result = NULL;
-  BUserNameBlock* unb = NULL;
-  BClass* cls = FindClassInNameBlock(name, unb);
-  if(!cls && BNameBlock::Current())
-  {
-    result = BNameBlock::Current()->Member(name);
-    if(result && (result->Mode()==BCLASSMODE))
-    {
-      cls = (BClass*)result;
-    }
-  }
-  if(!cls)
-  {
-    cls = BStackManager::FindClass(name);
-  }
-  if(!cls)
-  {
-    result = BNameBlock::LocalMember(name);
-    if(result && (result->Mode()==BCLASSMODE))
-    {
-      cls = (BClass*)result;
-    }
-  }
-  if(!cls) 
-  {
-    BObjClassify oc(GraAnything(),BCLASSMODE);
-    cls= (BClass*)BGrammar::SymbolTable().Search(oc, name);
-  }
-  if(!cls) 
-  {
-    result = BNameBlock::UsingMember(name);
-    if(result && (result->Mode()==BCLASSMODE))
-    {
-      cls = (BClass*)result;
-    }
-  }
-  if(cls && (defined>=0) && (cls->isDefined_!=(defined!=0)))
-  {
-    cls = NULL;
-  }
-  return(cls);
-}
 
 //--------------------------------------------------------------------
 static bool checkNonPrivate(

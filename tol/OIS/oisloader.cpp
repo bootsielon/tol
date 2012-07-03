@@ -509,8 +509,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
       mbr->isMethod_ = isMethod!=0;
       mbr->isStatic_ = isStatic!=0;
       mbr->isGood_ = true;
-      mbr->BuildMethod();
-      mbr->BuildStatic();
+      mbr->BuildAll();
     }
     else
     {
@@ -841,7 +840,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
     }
     else if(mode==BCLASSMODE) 
     { 
-      BClass* cls = BClass::PredeclareClass(name);
+      BClass* cls = BClass::PredeclareClassIfNeeded(name);
       Ensure(cls);
       Ensure(Read(*cls,object_));
     //Std(BText("\nBOisLoader::ReadNextObject Reading Class ")+cls->Name()+" "+cls->FullName());
@@ -1040,7 +1039,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
               BText className;
               ERead(className, set_);
             //Std(BText("\nBOisLoader::ReadNextObject Predeclared Class ")+className);
-              BClass::PredeclareClass(className);
+              BClass::PredeclareClassIfNeeded(className);
             }
           }
 
@@ -1089,7 +1088,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
               BText className;
               ERead(className, set_);
             //Std(BText("\nBOisLoader::ReadNextObject Predeclared Class ")+className);
-              BClass::PredeclareClass(className);
+              BClass::PredeclareClassIfNeeded(className);
             }
           }
           BSyntaxObject* r=NULL;
@@ -1154,6 +1153,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           }
           ERead(offset, object_);
           set_->SetPos(offset);
+          BGrammar::IncLevel();
           if(control_.oisEngine_.oisVersion_>="02.15")
           {
             int classForwardDeclarations = 0;
@@ -1163,7 +1163,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
               BText className;
               ERead(className, set_);
             //Std(BText("\nBOisLoader::ReadNextObject Predeclared Class ")+className);
-              BClass::PredeclareClass(className);
+              BClass::PredeclareClassIfNeeded(className);
             }
           }
           ERead(s, set_);  
@@ -1204,7 +1204,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
             {
               BText className;
               ERead(className, set_);
-              BClass::PredeclareClass(className);
+              BClass::PredeclareClassIfNeeded(className);
             }
           }
           BSyntaxObject* mem=NULL; 
@@ -1223,7 +1223,6 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
 /* */
           BSyntaxObject* r=NULL;
           x.Set().PrepareStore(s);
-          BGrammar::IncLevel();
           for(n=1; n<=s; n++)
           {
             ERead(offset, set_);
