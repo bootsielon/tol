@@ -1571,26 +1571,10 @@ static void PkgStartActions(
       }
       else
       {
-        BSys::Remove(path);
-        if(retry)
-        {
-          Error(I2("Corrupted package ",
-                   "El paquete corrupto ")+package_version+
-                I2(" has been locally removed ",
-                   " ha sido eliminado localmente ")+
-                I2("and will be reinstalled.",
-                   "y será reinstalado."));
-          return(Load(package_version, false));
-        } 
-        else
-        {
-          Error(I2("Corrupted package ",
-                   "El paquete corrupto ")+package_version+
-                I2(" has been locally removed ",
-                   " ha sido eliminado localmente ")+
-                I2("and it will not be reinstalled again.",
-                   "y no será reinstalado de nuevo."));
-        }  
+        Error(I2("The package ",
+                 "El paquete ")+package_version+
+              I2(" seems to be corrupted and must be reinstalled.",
+                 " parece estar corrupto y debe ser reinstalado."));
       } 
       load = I2("NOT loaded","No ha sido cargado");
       help = help_;
