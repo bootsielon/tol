@@ -49,9 +49,19 @@ Real Apply(Real unused)
     TolConfigManager::Config::Time::LastDate);
   Text TolConfigManager::Config::Various::Language := 
     ToUpper(TolConfigManager::Config::Various::Language);
-  Text PutLanguage(TolConfigManager::Config::Various::Language);
-  Text WriteFile(GetFilePath(TOLSessionPath)+"language.txt",""<<If( 
-    TolConfigManager::Config::Various::Language=="CASTELLANO",1,0));
+  Real langId = Case(
+    TolConfigManager::Config::Various::Language=="ENGLISH", 0,
+    TolConfigManager::Config::Various::Language=="INGLES", 0,
+    TolConfigManager::Config::Various::Language=="INGLÉS", 0,
+    TolConfigManager::Config::Various::Language=="SPANISH", 1,
+    TolConfigManager::Config::Various::Language=="CASTELLANO", 1,
+    TolConfigManager::Config::Various::Language=="ESPAÑOL", 1,
+    1==1,-1);
+  Text LANGUAGE = If(langId==1,"CASTELLANO","ENGLISH"); 
+  Text TolConfigManager::Config::Various::Language := LANGUAGE;
+  Text PutLanguage(LANGUAGE);
+  Text WriteFile(TolAppDataPath+"language.txt",""<<langId);
+  Text WriteFile(GetFilePath(TOLSessionPath)+"language.txt",""<<langId);
   Real ShowStackAtError := 
     TolConfigManager::Config::Various::Verbose::ShowStackAtError;
   Real ShowStackAtWarning := 
