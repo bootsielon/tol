@@ -13,8 +13,8 @@ BysMcmc::@Config bsr.config = Include("model/master.bsr.config.oza")[1];
 Set bsr.parsed = BSR.Parse("model/master.bsr","master");
 
 Real bsr.config::mcmc.cacheLength := 100;
-Real bsr.config::mcmc.burnin := 500;
-Real bsr.config::mcmc.sampleLength := 2000;
+Real bsr.config::mcmc.burnin := 0;
+Real bsr.config::mcmc.sampleLength := 200;
 
 Real bsr.config::do.report := bsr.config::mcmc.sampleLength>=2000;
 Real bsr.config::do.eval := bsr.config::do.report;
