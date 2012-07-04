@@ -5,7 +5,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 //Sets the bugzilla identifier number, your e-mail and the bug´s summary
-Real bugNum_ =  1445;
+Real bugNum_ =  1451;
 Text email_ = "vdebuen@tol-project.com"; 
 Text summary_="Unparse";
 Text link_ = GetTolBugzillaLink(bugNum_);
@@ -28,7 +28,7 @@ Set partialResults_ = [[
 
 //This is a messure of the success of the test 
 Real quality_ = And(
-  numWar0 <  numWar1,
+  numWar0 <= numWar1,
   numErr0 == numErr1,
   numWar1 == numWar2,
   numErr1 == numErr2);
@@ -40,7 +40,7 @@ Set resultStr_ =
                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
                  email_);
 WriteLn(""<<resultStr_);
-resultStr_;
+resultStr_
 
 /* */
 
