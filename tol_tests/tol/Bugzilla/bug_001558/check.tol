@@ -4,7 +4,7 @@ NameBlock Module = [[
     Real value
   };
   Class @C {
-    Module::@A object
+    @A object
   }
 ]];
 
