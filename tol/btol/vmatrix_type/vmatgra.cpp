@@ -2417,7 +2417,7 @@ void BVMatMinimumResidualsSolve::CalcContens()
   void BDatVMatKurtosis::CalcContens()
 //--------------------------------------------------------------------
 {
-  contens_ = VMat(Arg(1)).Asymmetry();
+  contens_ = VMat(Arg(1)).Kurtosis();
 }
 
 //--------------------------------------------------------------------
