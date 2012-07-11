@@ -290,7 +290,7 @@ BDat AsymmetryCoefficient(const BArray<BDat>& vec)
 //--------------------------------------------------------------------
 {
     if(!vec.Size()) { return(BDat::Unknown()); }
-    return(CenterMoment(vec,3)/(Varianze(vec)^(3/2)));
+    return(CenterMoment(vec,3)/(Varianze(vec)^(1.5)));
 }
 
 
