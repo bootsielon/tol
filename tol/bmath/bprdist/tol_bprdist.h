@@ -872,7 +872,7 @@ class TOL_API BBinomialDist : public BDiscreteDist
 //--------------------------------------------------------------------
 {
 private:
-  BInt N_;
+  BDat N_;
   BDat p_;
   BDat q_;
   BDat logp_;
@@ -881,7 +881,7 @@ private:
 
 public:
   // contructors and destructors:
-  BBinomialDist(BInt N, BDat p);
+  BBinomialDist(BDat N, BDat p);
 
     // Implementation: prd.cpp
   BDat Average	();
@@ -900,7 +900,7 @@ class TOL_API BNegBinomialDist : public BDiscreteDist
 //--------------------------------------------------------------------
 {
 private:
-  BInt N_;
+  BDat N_;
   BDat p_;
   BDat q_;
   BDat P_;
@@ -911,7 +911,7 @@ private:
 
 public:
   // contructors and destructors:
-  BNegBinomialDist(BInt N, BDat P);
+  BNegBinomialDist(BDat N, BDat P);
 
   // Implementation: prd.cpp
   BDat Average	();
@@ -958,6 +958,33 @@ public:
   BDat Inverse (BDat prob, BDat tolerance = 0.1);
 };
 
+//--------------------------------------------------------------------
+class TOL_API BGenCountDist : public BDiscreteDist
+
+/*! Generic counting probability distribution definition.
+ */
+//--------------------------------------------------------------------
+{
+private:
+  BDat a_; //average
+  BDat v_; //variance
+  int subType_;
+  BDiscreteDist* cd_;
+  BDat m_;
+  BDat p_;
+
+public:
+  // contructors and destructors:
+  BGenCountDist(BDat a, BDat v);
+ ~BGenCountDist();
+
+  // Implementation: prd.cpp
+  BDat Average	() { return(a_); }
+  BDat Varianze () { return(v_); }
+  BDat Dist	(BDat x);
+  BDat Dens	(BDat x);
+  BDat Inverse  (BDat prob, BDat tolerance = 0.1);
+};
 
 //--------------------------------------------------------------------
 class TOL_API BHypergeometricDist : public BDiscreteDist

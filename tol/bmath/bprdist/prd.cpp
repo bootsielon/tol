@@ -2414,7 +2414,7 @@ BDat BDiscreteUniformDist::Inverse(BDat prob, BDat tolerance)
 
 
 //--------------------------------------------------------------------
-BBinomialDist::BBinomialDist(BInt N, BDat p)
+BBinomialDist::BBinomialDist(BDat N, BDat p)
 
 /*! Creates an object aimed to work whith a binomial distribution. 
  *  A binomial distribution counts the number of successes from a 
@@ -2429,7 +2429,7 @@ BBinomialDist::BBinomialDist(BInt N, BDat p)
     max_ = N;
     logp_ = Log(p_);
     logq_ = Log(q_);
-    logGammaN_ = LogFact(N_);
+    logGammaN_ = LogGamma(1+N_);
     if((N_<=0)||(p_<0)||(p_>1))
     {
 	wrongParameter_ = BTRUE;
@@ -2450,7 +2450,7 @@ BDat BBinomialDist::Dens(BDat x)
     if(wrongParameter_ || x.IsUnknown()) { return(BDat::Unknown()); }
     BInt k = (BInt)Floor(x).Value();
     if((k<0)||(k>N_)) { return(0); }
-    return(Exp(logGammaN_-LogFact(N_-k)-LogFact(k)+k*logp_+(N_-k)*logq_));
+    return(Exp(logGammaN_-LogGamma(1+N_-k)-LogFact(k)+k*logp_+(N_-k)*logq_));
 }
 
 
@@ -2470,7 +2470,7 @@ BDat BBinomialDist::Dist(BDat x)
 	double p, q, s, xn, pr, ompr, bound;
 	
 	s = k;
-	xn = N_;
+	xn = N_.Value();
 	pr = p_.Value();
 	ompr = 1 - pr;
 	which = 1;
@@ -2493,7 +2493,7 @@ BDat BBinomialDist::Inverse(BDat x, BDat tolerance)
     //Using dcdflib 
     p = x.Value();
     q = 1-p;
-    xn = (double) N_;
+    xn = N_.Value();
     pr = p_.Value();
     ompr = 1-pr;
     which = 2;
@@ -2541,11 +2541,11 @@ BDat BBinomialDist::Varianze ()
 
 
 //--------------------------------------------------------------------
-BNegBinomialDist::BNegBinomialDist(BInt N, BDat P)
+BNegBinomialDist::BNegBinomialDist(BDat N, BDat P)
 
 /*! Creates an object aimed to work whith a negative binomial distribution. 
- *  A negative binomial distribution counts the number of failures
- *  before a fixed number of successes whith a fixed success probability.
+ *  A negative binomial distribution counts the number of successes
+ *  before a fixed number of failures whith a fixed success probability.
  * \param N Number of succeses.
  * \param P Success probability.
  */
@@ -2575,21 +2575,16 @@ BNegBinomialDist::BNegBinomialDist(BInt N, BDat P)
 BDat BNegBinomialDist::Dens(BDat x)
 
 /*! Returns NegBinomial(x,N_,P_) 
- *  = prob of getting x failures before the N_-th success
+ *  = prob of getting x succeses before the N_-th failures
  *
  *    ALGORITHM: NB(x,N_,P_) = P_ * DensBinomial(N_-1,k+N_-1,P_)
  *    DensBinomial uses a correct & efficient algorithm.
  */
 //--------------------------------------------------------------------
 {
-    if(wrongParameter_ || x.IsUnknown()) { return(BDat::Unknown()); }
-    BInt k = (BInt)Floor(x).Value();
-    if((k<0)) { return(0); }
-    if((k==0)&&(N_==1)){return P_;}
-    else{
-	BBinomialDist b(k+N_-1,P_);
-	return(b.Dens(N_-1)*P_);    
-    } 
+  if(wrongParameter_ || x.IsUnknown()) { return(BDat::Unknown()); }
+  BInt k = (BInt)Floor(x).Value();
+  return(gsl_ran_negative_binomial_pdf(k,P_.Value(),N_.Value()));
 }
 
 
@@ -2600,10 +2595,15 @@ BDat BNegBinomialDist::Dist(BDat x)
  */
 //--------------------------------------------------------------------
 {
+  if(wrongParameter_ || x.IsUnknown()) { return(BDat::Unknown()); }
+  BInt k = (BInt)Floor(x).Value();
+//return(1-gsl_sf_beta_inc (k+1, N_.Value(), 1-P_.Value()));
+//return(gsl_cdf_negative_binomial_P(k,P_.Value(),N_.Value()));
+/* */
     double p, q, s, xn, pr, ompr, bound;
     int which, status; 
     s = x.Value();
-    xn = (double) N_;
+    xn = N_.Value();
     pr = P_.Value();
     ompr = 1-pr;
     which = 1;
@@ -2612,6 +2612,7 @@ BDat BNegBinomialDist::Dist(BDat x)
 	return(p);
     else
 	return(BDat::Unknown());
+/* */
 }
 
 //--------------------------------------------------------------------
@@ -2622,11 +2623,13 @@ BDat BNegBinomialDist::Inverse(BDat x, BDat tolerance)
 //--------------------------------------------------------------------
 {
   if(wrongParameter_ || x.IsUnknown()) { return(BDat::Unknown()); }
+//return(BDiscreteDist::Inverse(x,tolerance));
+
     double p, q, s, xn, pr, ompr, bound;
     int which, status; 
     p = x.Value();
     q = 1-p;
-    xn = (double) N_;
+    xn = N_.Value();
     pr = P_.Value();
     ompr = 1-pr;
     which = 2;
@@ -2640,11 +2643,11 @@ BDat BNegBinomialDist::Inverse(BDat x, BDat tolerance)
 	double fx1 ;
 	
 	cumnbn(&x0,&xn,&pr,&ompr,&fx0,&q);
-	/* may be, there is an incremental way */
 	cumnbn(&x1,&xn,&pr,&ompr,&fx1,&q);
 	int K1 = 1;
 	return fabs(fx1-p)<=spmpar(&K1) ? x1 : x0;
     }
+
 }
 
 
@@ -2777,6 +2780,7 @@ BDat BPoissonDist::Inverse(BDat p, BDat tolerance)
  */
 //--------------------------------------------------------------------
 {
+  if(wrongParameter_ || p.IsUnknown()) { return(BDat::Unknown()); }
   return(BDiscreteDist::Inverse(p,tolerance));
 /*
   if(wrongParameter_|| x.IsUnknown()) { return(BDat::Unknown());}
@@ -2863,6 +2867,82 @@ BDat BPoissonDist::Varianze  ()
     return(fi_);
 }
 
+
+
+
+//--------------------------------------------------------------------
+BGenCountDist::BGenCountDist(BDat a, BDat v)
+
+/*! Creates an object aimed to deal with a Generic Counting distribution
+ *  depending just in average and variance parameters and that could be 
+ *    - Binomial:                 average>variance
+ *    - Poisson:                  average=variance
+ *    - Negative Binomial:        average<variance
+ */
+//--------------------------------------------------------------------
+:  BDiscreteDist(), a_(a), v_(v), 
+   cd_(NULL), m_(BDat::Unknown()), p_(BDat::Unknown())
+{
+  subType_ = Sign(a_-v_).Value();
+  m_ = a_*a_/Abs(a_-v_);
+  p_ = 1.0 - min(v_/a_,a_/v_);
+  if(subType_==1)
+  {
+    cd_ = new BBinomialDist(m_.Value(),p_);
+  }
+  else if(subType_==0)
+  {
+    cd_ = new BPoissonDist(a_);
+  }
+  if(subType_==-1)
+  {
+    cd_ = new BNegBinomialDist(m_.Value(),1-p_);
+  }
+}
+
+//--------------------------------------------------------------------
+ BGenCountDist::~BGenCountDist()
+//--------------------------------------------------------------------
+{
+  if(cd_) { delete cd_; }
+}
+
+//--------------------------------------------------------------------
+BDat BGenCountDist::Dens(BDat x)
+
+/*! Returns PDF
+ */
+//--------------------------------------------------------------------
+{
+  BDat d;
+  if(cd_) { d = cd_->Dens(x); }
+  return(d);
+}
+
+
+//--------------------------------------------------------------------
+BDat BGenCountDist::Dist(BDat x)
+
+/*! Returns CDF
+ */
+//--------------------------------------------------------------------
+{
+  BDat d;
+  if(cd_) { d = cd_->Dist(x); }
+  return(d);
+}
+
+//--------------------------------------------------------------------
+BDat BGenCountDist::Inverse(BDat p, BDat tolerance)
+
+/*! Returns the maximum x matching Poisson(x,fi) <= p
+ */
+//--------------------------------------------------------------------
+{
+  BDat i;
+  if(cd_) { i = cd_->Inverse(p,tolerance); }
+  return(i);
+}
 
 //--------------------------------------------------------------------
 BHypergeometricDist::BHypergeometricDist(BInt N, BInt P, BInt n)
