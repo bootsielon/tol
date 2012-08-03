@@ -1785,6 +1785,101 @@ void BDatRandGamma::CalcContens()
   contens_ = BHypergeometricDist(N,P,n).GetDens(x);
 }
 
+//--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatGenCountDens);
+  DefIntOpr(1, BDatGenCountDens, "ProbGenCount", 3, 3,
+  "(Real k, Real a>0, Real v>0)",
+  I2("Probability function for generic counting distribution of average "
+     "a and variance v, that may be \n"
+     " * Binomial(N,p) if a>v, \n"
+     " * Poisson(a) if a=v, \n"
+     " * Negative Binomial(N,P) if a<v, \n"
+     "where \n"
+     "  N=a^2/|a-v| \n"
+     "  p=1-min{N/v,v/N} \n"
+     "If k is not an integer number it will be truncated.",
+     "Función de probabilidad de la distribución genérica de conteo de "
+     "media a>0 y varianza v>0, que puede ser \n"
+     " * Binomial(N,p) si a>v, \n"
+     " * Poisson(a) si a=v, \n"
+     " * Binomial Negativa(N,p) si a<v, \n"
+     "donde \n"
+     "  N=a^2/|a-v| \n"
+     "  p=1-min{N/v,v/N} \n"
+     "Si k no es entero se toma su parte entera."),
+  BOperClassify::Probability_);
+  void BDatGenCountDens::CalcContens()
+//--------------------------------------------------------------------
+{
+  BDat x = Dat (Arg(1));
+  BDat a = Dat (Arg(2));
+  BDat v = Dat (Arg(3));
+  contens_ = BGenCountDist(a,v).GetDens(x);
+}
+
+
+//--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatGenCountDist);
+  DefIntOpr(1, BDatGenCountDist, "DistGenCount", 3, 3,
+  "(Real k, Real a, Real v)",
+  I2("Cumulative probability function for generic counting distribution "
+     "of average a>0 and variance v>0, that may be \n"
+     " * Binomial(N,p) if a>v, \n"
+     " * Poisson(a) if a=v, \n"
+     " * Negative Binomial(N,P) if a<v, \n"
+     "where \n"
+     "  N=a^2/|a-v| \n"
+     "  p=1-min{N/v,v/N} \n"
+     "If k is not an integer number it will be truncated.",
+     "Función de probabilidad acumulada de la distribución genérica de "
+     "conteo de media a>0 y varianza v>0, que puede ser \n"
+     " * Binomial(N,p) si a>v, \n"
+     " * Poisson(a) si a=v, \n"
+     " * Binomial Negativa(N,p) si a<v, \n"
+     "donde \n"
+     "  N=a^2/|a-v| \n"
+     "  p=1-min{N/v,v/N} \n"
+     "Si k no es entero se toma su parte entera."),
+  BOperClassify::Probability_);
+  void BDatGenCountDist::CalcContens()
+//--------------------------------------------------------------------
+{
+  BDat x = Dat (Arg(1));
+  BDat a = Dat (Arg(2));
+  BDat v = Dat (Arg(3));
+  contens_ = BGenCountDist(a,v).GetDist(x);
+}
+
+
+//--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatGenCountInv);
+  DefIntOpr(1, BDatGenCountInv, "DistGenCountInv", 3, 3,
+  "(Real y, Real a, Real v)",
+  I2("Inverse cumulative probability function for generic counting "
+     "distribution of average a>0 and variance v>0, that may be \n"
+     " * Binomial(N,p) if a>v, \n"
+     " * Poisson(a) if a=v, \n"
+     " * Negative Binomial(N,P) if a<v, \n"
+     "where \n"
+     "  N=a^2/|a-v| \n"
+     "  p=1-min{a/v,v/a} \n",
+     "Inversa de la función de probabilidad acumulada de la distribución "
+     "genérica de conteo de media a>0 y varianza v>0, que puede ser \n"
+     " * Binomial(N,p) si a>v, \n"
+     " * Poisson(a) si a=v, \n"
+     " * Binomial Negativa(N,p) si a<v, \n"
+     "donde \n"
+     "  N=a^2/|a-v| \n"
+     "  p=1-min{N/v,v/N} \n"),
+  BOperClassify::Probability_);
+  void BDatGenCountInv::CalcContens()
+//--------------------------------------------------------------------
+{
+  BDat y = Dat (Arg(1));
+  BDat a = Dat (Arg(2));
+  BDat v = Dat (Arg(3));
+  contens_ = Floor(BGenCountDist(a,v).Inverse(y));
+}
 
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatHypergeometricDist);
