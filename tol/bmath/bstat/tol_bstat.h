@@ -87,8 +87,8 @@ TOL_API void InverseAutoCor       (const BArray<BDat>& cor,
                                          BArray<BDat>& p);
 TOL_API void InvPartAutoCor       (const BArray<BDat>& cor, 
                                          BArray<BDat>& p);
-TOL_API BDat BoxPierceLjung       (const BArray<BDat>& vec,
-		       	                             BInt m, BInt p, BInt q);
+TOL_API BDat BoxPierceLjung       (const BArray<BDat>& vec, BInt m);
+TOL_API BDat BoxPierceLjungACF    (const BArray<BDat>& acf, BInt m, BInt s);
 
 //! To obtine the exponent of the best Box-Cox exponential transformation of a 
 //! vector and the number needed add to the series to be positive 

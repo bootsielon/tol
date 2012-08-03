@@ -1029,20 +1029,37 @@ void InvPartAutoCor(const BArray<BDat>& cor, BArray<BDat>& p)
 
 
 //--------------------------------------------------------------------
-BDat BoxPierceLjung(const BArray<BDat>& vec, BInt m, BInt p, BInt q)
+BDat BoxPierceLjungACF(const BArray<BDat>& acf, BInt s, BInt m)
 
-/*! Returns the Box-Pierce-Ljung statistic of a vector with m
- *  autocorrelations, p AR-parameters and q MA-parameters
+/*! Returns the Box-Pierce-Ljung statistic for first m autocorrelations
+ *  of a time series of length s 
  */
 //--------------------------------------------------------------------
 {
-    BInt k, N = vec.Size();
-    BDat Q = 0;
-    BArray<BDat> cor;
-    AutoCor(vec,cor,m);
-    for(k = 0; k<m; k++) { Q += ((cor(k)^2)/BDat(N-k-1)); }
-    Q *= BDat(N*(N+2));
-    return(Q);
+  BDat Q = 0;
+  BInt k;
+  if(m>acf.Size()) { m=acf.Size(); }
+  for(k=0; k<m; k++) 
+  { 
+    Q += ((acf(k)^2)/BDat(s-k-1)); 
+  }
+  Q *= BDat(s*(s+2));
+  return(Q);
+}
+
+
+//--------------------------------------------------------------------
+BDat BoxPierceLjung(const BArray<BDat>& vec, BInt m)
+
+/*! Returns the Box-Pierce-Ljung statistic for first m autocorrelations
+ *  of a time series vec.
+ */
+//--------------------------------------------------------------------
+{
+  BInt s = vec.Size();
+  BArray<BDat> acf;
+  AutoCor(vec,acf,m);
+  return(BoxPierceLjungACF(acf,m,s));
 }
 
 
