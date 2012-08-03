@@ -7178,6 +7178,71 @@ void BMatEvalMat::CalcContens()
   }  
 }
 
+//--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatEvalMatRows);
+DefExtOpr(1, BMatEvalMatRows, "EvalMatRows", 2, 2, "Matrix Code",
+  "(Matrix argsByCol, Code Rn2RFunction)",
+  I2("Returns a matrix with the evaluations of a given Real^n to Real "
+     "function in each row of matrix M(m x n) returning a column marix.\n"
+  "Example : \n"
+  ,
+  "Devuelve una matriz con las evaluaciones de una función dada de "
+  "Real^n a Real en cada fila de una matriz M(m x n) devolviendo una matriz "
+  "columna.\n"
+  "Ejemplo : \n")+
+  "Matrix EvalMatRows(gsl_sf_log_erfc, X);",
+  BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BMatEvalMatRows::CalcContens()
+//--------------------------------------------------------------------
+{
+  BMat& M = Mat(Arg(1));
+  BCode&  code = Code(Arg(2));
+  int k,j;
+  int m = M.Rows();
+  int n = M.Columns();
+  BStandardOperator* opr = (BStandardOperator*)code.Operator();
+  if(!opr) 
+  {
+    Error(I2("<fun> argument of function Vectorize has no operator",
+             "El argumento <fun> de la función Vectorize no tiene operador"));
+    return;
+  }
+  bool okArgs = (opr->MaxArg() >= n) && (opr->Grammar() == GraReal());
+  for(j=1; okArgs && (j<=n); j++)
+  {
+    okArgs &= opr->GrammarForArg(j)==GraReal();
+  }
+  if(!okArgs) 
+  {
+    Error(I2("<fun> argument of function EvalMatRows ",
+             "El argumento <fun> de la función EvalMatRows ")+"\n"+
+          opr->Grammar()->Name()+" "+code.Name()+opr->Arguments()+"\n"+
+          I2("should be declared as ",
+             "debería estar declarada como ")+"\n"+
+          "Real "+code.Name()+"(Real x1, ..., Real x"+n+") \n");
+    return;
+  }
+
+  contens_.Alloc(m, 1);
+  double* y = (double*)contens_.GetData().GetBuffer();
+
+  BSyntaxObject* ev;
+  for(k=0; k<m; k++, y++)
+  {
+    BList* args = NULL;
+    for(j=n-1; j>=0; j--)
+    {
+      args = Cons(new BContensDat("",M(k,j)),args);
+    }
+    ev = opr->Evaluator(args);
+    if(ev)
+    {
+      *y = Real(ev);
+      DESTROY(ev);
+    }
+  }  
+}
 
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatReplace);
