@@ -69,6 +69,7 @@ class BModel
 //--------------------------------------------------------------------
 {
 public: //member data
+  static BArray<BText> testName_;
   static BArray<BText> testTitle_;
   static BArray<BText> qualifTitle_;
   BInt		  iterationNumber_;
@@ -189,8 +190,7 @@ public: //member data
   BInt		  maxpq_;
   BDat		  varianze_;
   BDat		  SwartzInfo_;
-  BDat		  RegularBoxPierceLjung_;
-  BDat		  SeasonalBoxPierceLjung_;
+  BDat		  BoxPierceLjung_;
   
   BDat    maxLikelihoodCoef_;
 
@@ -295,8 +295,7 @@ private: //Battery of tests
   BInt FstSeaAutCorTest		   (BInt n);
   BInt SndRegAutCorTest		   (BInt n);
   BInt SndSeaAutCorTest		   (BInt n);
-  BInt RegBoxPierceLjungTest	   (BInt n);
-  BInt SeaBoxPierceLjungTest	   (BInt n);
+  BInt BoxPierceLjungTest	   (BInt n);
   BInt KullbackLeiblerDistanceTest (BInt n);
   BInt FisherDistanceTest	   (BInt n);
   BInt MinSignificationTest	   (BInt n);

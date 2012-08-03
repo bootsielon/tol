@@ -97,7 +97,7 @@ BInt BModel::FstRegAutCorTest(BInt n)
  */
 //--------------------------------------------------------------------
 {
-  Std(BText("\nTRACE FstRegAutCorTest "));
+//Std(BText("\nTRACE FstRegAutCorTest "));
   BInt m = 1;
   BDat x,y;
   if(m<resACor_.Rows()) { y = resACor_(m-1,1)*Sqrt(N_); }
@@ -113,7 +113,7 @@ BInt BModel::FstSeaAutCorTest(BInt n)
  */
 //--------------------------------------------------------------------
 {
-  Std(BText("\nTRACE FstSeaAutCorTest "));
+//Std(BText("\nTRACE FstSeaAutCorTest "));
   BInt m = periodicity_;
   BDat x,y;
   BBool necessary = (periodicity_>1);
@@ -133,7 +133,7 @@ BInt BModel::SndRegAutCorTest(BInt n)
  */
 //--------------------------------------------------------------------
 {
-  Std(BText("\nTRACE SndRegAutCorTest "));
+//Std(BText("\nTRACE SndRegAutCorTest "));
   BInt m = 2;
   BDat x,y;
   if(m<resACor_.Rows()) { y = resACor_(m-1,1)*Sqrt(N_); }
@@ -149,7 +149,7 @@ BInt BModel::SndSeaAutCorTest(BInt n)
  */
 //--------------------------------------------------------------------
 {
-  Std(BText("\nTRACE SndSeaAutCorTest "));
+//Std(BText("\nTRACE SndSeaAutCorTest "));
   BInt m = 2*periodicity_;
   BDat x,y;
   BBool necessary = (periodicity_>1);
@@ -164,67 +164,25 @@ BInt BModel::SndSeaAutCorTest(BInt n)
 
 
 //--------------------------------------------------------------------
-BInt BModel::RegBoxPierceLjungTest(BInt n)
+BInt BModel::BoxPierceLjungTest(BInt n)
 
-/*! Runs the test of the Box-Pierce-Ljung statistic of regular
+/*! Runs the test of the Box-Pierce-Ljung statistic of residuals
  *  autocorrelations
  */
 //--------------------------------------------------------------------
 {
-  Std(BText("\nTRACE RegBoxPierceLjungTest "));
+//Std(BText("\nTRACE BoxPierceLjungTest "));
   BInt  m = aCorNum_;
   BInt  p = arParam_;
   BInt  q = maParam_;
-  Std(BText("\nTRACE RegBoxPierceLjungTest N=")+A_.Data().Size());
-  Std(BText("\nTRACE RegBoxPierceLjungTest m=")+m);
-  Std(BText("\nTRACE RegBoxPierceLjungTest p=")+p);
-  Std(BText("\nTRACE RegBoxPierceLjungTest q=")+q);
-  RegularBoxPierceLjung_ = BoxPierceLjung(A_.Data(), m, p, q);
-  Std(BText("\nTRACE RegBoxPierceLjungTest RegularBoxPierceLjung_=")+RegularBoxPierceLjung_);
+  BoxPierceLjung_ = BoxPierceLjungACF(resACor_.Data(), m, N_);
   BChiSquareDist Chi(m-p-q);
-  diagValue_(n) = RegularBoxPierceLjung_;
-  BDat x =  Chi.Dist(RegularBoxPierceLjung_);
-  Std(BText("\nTRACE RegBoxPierceLjungTest x=")+x);
-//Std(BText("\nRegular Box-Pierce-Ljung = ")+RegularBoxPierceLjung_.Name());
+  diagValue_(n) = BoxPierceLjung_;
+  BDat x =  Chi.Dist(BoxPierceLjung_);
+//Std(BText("\nTRACE BoxPierceLjungTest x=")+x);
+//Std(BText("\nBox-Pierce-Ljung = ")+BoxPierceLjung_.Name());
 //Std(BText("\nProbability    = ")+x.Name());
   return(Qualify(n,x,BTRUE));
-}
-
-//--------------------------------------------------------------------
-BInt BModel::SeaBoxPierceLjungTest(BInt n)
-
-/*! Runs the test of the Box-Pierce-Ljung statistic of seasonal
- *  autocorrelations
- */
-//--------------------------------------------------------------------
-{
-  Std(BText("\nTRACE SeaBoxPierceLjungTest "));
-  BBool necessary = (periodicity_ > 1) &&
-  (A_.Data().Size()/periodicity_ > 2);
-  BDat x;
-  if(necessary)
-  {
-    int j = arFactors_.Size()-1;
-    BInt  m = aCorNum_/periodicity_;
-    BInt  p = arFactors_[j].Size()-1;
-    BInt  q = maFactors_[j].Size()-1;
-    BArray<BDat> seaRes(N_/periodicity_);
-    for(int i=0; i<seaRes.Size(); i++)
-    {
-      seaRes[i] = A_.Data()[i*periodicity_];
-  //  Std(BText("\nseaRes[")+i+"]="+seaRes[i]);
-    }
-    SeasonalBoxPierceLjung_ = BoxPierceLjung(seaRes, m, p, q);
-    diagValue_(n) = SeasonalBoxPierceLjung_;
-    BChiSquareDist Chi(m-p-q);
-    x = Chi.Dist(SeasonalBoxPierceLjung_);
-  /*
-    Std(BText("\nSeasonal Box-Pierce-Ljung = ")+
-    SeasonalBoxPierceLjung_.Name());
-    Std(BText("\nProbability       = ")+x.Name());
-  */
-  }
-  return(Qualify(n,x,necessary));
 }
 
 //--------------------------------------------------------------------
@@ -234,7 +192,7 @@ BInt BModel::KullbackLeiblerDistanceTest(BInt n)
  */
 //--------------------------------------------------------------------
 {
-  Std(BText("\nTRACE KullbackLeiblerDistanceTest "));
+//Std(BText("\nTRACE KullbackLeiblerDistanceTest "));
   static BReal paso = 0.25;
   static BDat  KullbackLeiblerAvr  = -5.349629861;
   static BDat  KullbackLeiblerStDs =  3*0.544121702;
@@ -285,7 +243,7 @@ BInt BModel::FisherDistanceTest(BInt n)
  */
 //--------------------------------------------------------------------
 {
-  Std(BText("\nTRACE FisherDistanceTest "));
+//Std(BText("\nTRACE FisherDistanceTest "));
   BInt numInterv = BInt(Sqrt(N_));
 //Std(BText("\nnumInterv=")+numInterv);
   
@@ -326,7 +284,7 @@ BInt BModel::MinSignificationTest(BInt n)
  */
 //--------------------------------------------------------------------
 {
-  Std(BText("\nTRACE MinSignificationTest "));
+//Std(BText("\nTRACE MinSignificationTest "));
   BTStudentDist T(N_-numParam_);
   BInt i;
   BDat min=BDat::PosInf();
@@ -357,7 +315,7 @@ BInt BModel::MaxCorrelationTest(BInt n)
  */
 //--------------------------------------------------------------------
 {
-  Std(BText("\nTRACE MaxCorrelationTest "));
+//Std(BText("\nTRACE MaxCorrelationTest "));
   BInt  N = paramCor_.Rows();
   if(!N || !paramCor_.Columns())
   {
@@ -383,42 +341,32 @@ BInt BModel::MaxCorrelationTest(BInt n)
 //--------------------------------------------------------------------
 BInt BModel::MixedSignCorrTest(BInt n)
 
-/*! Runs the test of mixed signification and correlation of parameters
+/*! Runs the test of multicolinearity based on minimum significating 
+ *  combination of parameters using eigenvector of minimum eigenvalue 
+ *  of Jacobian.
+ *   
  */
 //--------------------------------------------------------------------
 {
-  Std(BText("\nTRACE MixedSignCorrTest "));
+//Std(BText("\nTRACE MixedSignCorrTest "));
   BTStudentDist T(N_-numParam_);
-  BBool necessary = (diagQualify_[7] != BDIAGREFUSE) &&
-                    (diagQualify_[8] != BDIAGREFUSE);
-  BDat maxMixed = 0;
-  if(necessary)
+  BBool necessary = true;
+  if(!numParam_ || (D_.Rows()!=numParam_)||(D_.Columns()!=numParam_))
   {
-    if(!paramCor_.Rows() || !paramCor_.Columns())
-    {
-      diagValue_(n) = BDat::Unknown();
-      return(Qualify(n,1,BTRUE));
-    }
-    for(BInt i=0; i<paramCor_.Rows(); i++)
-    {
-      BDat  corr=0;
-      for(BInt j=0; j<paramCor_.Rows(); j++)
-      {
-        if(i!=j)
-        {
-          BDat c = Abs(paramCor_(i,j));
-          if(corr < c) { corr = c; }
-        }
-      }
-      BDat sign   = 2*(1-T.Dist(Abs(param_[i]/paramSD_[i])));
-      BDat mixed = Sqrt(Abs(sign*corr));
-      if(maxMixed<mixed) { maxMixed = mixed; }
-    }
-    diagValue_(n) = maxMixed;
-//  Std(BText("\nMaximum mixed correlation-signification = ")+
-//  maxMixed.Name());
+    diagValue_(n) = BDat::Unknown();
+    return(Qualify(n,1,BTRUE));
   }
-  return(Qualify(n,maxMixed,necessary));
+  BDat c = 0;
+  int i;
+  for(i=0;i<numParam_;i++)
+  {
+    c+=param_[i]*V_(i,numParam_-1);
+  }
+  BDat d = D_(numParam_-1,numParam_-1);
+  BDat t = d*c/standardError_;
+  diagValue_(n) = t;
+  BDat refuseProb = 2*(1-T.Dist(Abs(t))); 
+  return(Qualify(n,refuseProb,BTRUE));
 }
 
 
@@ -430,7 +378,7 @@ BInt BModel::UnitRootsProbTest(BInt n)
  */
 //--------------------------------------------------------------------
 {
-  Std(BText("\nTRACE UnitRootsProbTest "));
+//Std(BText("\nTRACE UnitRootsProbTest "));
   BDat x = 0;
   BInt num = arParam_+maParam_;
   BBool necessary = num!=0; 
@@ -489,7 +437,7 @@ BInt BModel::UnitRootsProbTest(BInt n)
       for(i=j=0; j<2*facNum; j++)
       {
         for(k=1; k<factors[j].Size(); k++,i++)
-        { factors[j][k].PutCoef(-simula(0,i)); }
+        { factors[j][k].PutCoef(-simula(i,0)); }
         if(!(IsStationary(factors[j]))) { unarys[j]+=1; }
       }
     }
@@ -522,17 +470,16 @@ BInt BModel::RunTest(BInt n)
 //Std(Out()+"\n\nRunning test "+n+" " +testTitle_(n));
   switch(n)
   {
-    case  0 : return(FstRegAutCorTest     (n));
-    case  1 : return(FstSeaAutCorTest     (n));
-    case  2 : return(SndRegAutCorTest     (n));
-    case  3 : return(SndSeaAutCorTest     (n));
-    case  4 : return(RegBoxPierceLjungTest     (n));
-    case  5 : return(SeaBoxPierceLjungTest     (n));
-    case  6 : return(FisherDistanceTest     (n));
-    case  7 : return(MinSignificationTest      (n));
-    case  8 : return(MaxCorrelationTest     (n));
-    case  9 : return(MixedSignCorrTest     (n));
-    case 10 : return(UnitRootsProbTest     (n));
+    case  0 : return(FstRegAutCorTest      (n));
+    case  1 : return(FstSeaAutCorTest      (n));
+    case  2 : return(SndRegAutCorTest      (n));
+    case  3 : return(SndSeaAutCorTest      (n));
+    case  4 : return(BoxPierceLjungTest    (n));
+    case  5 : return(FisherDistanceTest    (n));
+    case  6 : return(MinSignificationTest  (n));
+    case  7 : return(MaxCorrelationTest    (n));
+    case  8 : return(MixedSignCorrTest     (n));
+    case  9 : return(UnitRootsProbTest     (n));
     default : return(-1);
   }
 }
@@ -567,9 +514,33 @@ void BModel::Diagnostics()
   }
   qualification_ = 0;
   arithmeticQualification_ = 0;
-  for(BInt n = 0; n<testTitle_.Size(); n++)
+  int n=0, m=1;
+  for(; n<testTitle_.Size(); n++, m++)
   {
-    BSet& s = Set(set[n+1]);
+    BSet& s = Set(set[m]);
+    BText name = set[m]->Name();
+    if(name=="RegBoxPierceLjungBounds")
+    {
+      name = "PierceLjungBounds";
+    }
+    else if(name=="SeaBoxPierceLjungBounds")
+    {
+      m++;
+      s = Set(set[m]);
+      name = set[m]->Name();
+      continue;
+    }
+    if(name!=testName_[n])
+    {
+      Error(I2("Error in name of","Error en el nombre del")+
+            " "+(n+1)+"-"+
+            I2("th element of","ésimo elemento de")+ 
+            " Set DiagnosticsBounds "+
+            I2("that would be","que debería ser")+
+            " '"+testName_[n]+"' "+
+            I2("instead of","en lugar de")+
+            " '"+name+"'."   );
+    }
     diagValue_  (n) = BDat::Unknown();
     diagPunct_  (n) = 0;
     testAccept_ (n) = Dat(s[1]);
