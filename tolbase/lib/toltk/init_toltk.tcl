@@ -332,9 +332,9 @@ project::project $infoProjects
 # load iniFile
 ::iniFile::Create [file join $home_path "tolcon.ini"]
 
-
 # load language files, stored in msgs subdirectory
 set lang [::iniFile::Read TolConsole language es]
+
 ::msgcat::mclocale $lang
 
 # Load Packages
@@ -352,7 +352,13 @@ if { [winfo exists .__debugwin] } {
 
 # inicializo el kernel de tol con el lenguaje apropiado
 
-::tol::initkernel $lang vA
+set _lang [ string range $lang 0 1 ]
+if { $_lang ne "es" && $_lang ne "en" } {
+  # tol just know to deal with english or spanish
+  set _lang "en"
+}
+
+::tol::initkernel $_lang vA
 
 # Evalute the client TOL code to expose rmtps_client functionality
 #
@@ -364,7 +370,7 @@ AutoLoadWord
 
 Tolcon_Trace "Librerias cargadas"
 
-::tol::language $lang
+::tol::language $_lang
 Supertext::overrideTextCommand
 # force BWidget autoload
 Bitmap::use

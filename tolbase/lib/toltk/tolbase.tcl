@@ -2036,6 +2036,17 @@ proc ::TolConsole::OptionsApplyLanguage {} {
   ::tol::language $data(language)
   ::msgcat::mclocale $data(language)
   ::msgcat::mcload [file join $toltk_script_path msgs]
+  # sincroniza con tolconfig
+  if { $data(language) eq "es" } {
+    set tl "CASTELLANO"
+  } else {
+    set tl "ENGLISH"
+  }
+  set script [ string map [ list %L $tl ] {
+    Text TolConfigManager::Config::Various::Language := "%L";
+    Real TolConfigManager::Save(?)
+  } ]
+  toltcl::eval $script
 }
 
 #/////////////////////////////////////////////////////////////////////////////      
