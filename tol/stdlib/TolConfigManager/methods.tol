@@ -61,8 +61,8 @@ Real Apply(Real unused)
   Text TolConfigManager::Config::Various::Language := LANGUAGE;
   Text PutLanguage(LANGUAGE);
   Text WriteFile(TolAppDataPath+"language.txt",""<<langId);
-  If( OSName!="UNIX", 
-      Text WriteFile(GetFilePath(TOLSessionPath)+"language.txt",""<<langId) );
+  Text If( OSName!="UNIX", 
+    WriteFile(GetFilePath(TOLSessionPath)+"language.txt",""<<langId) );
   Real ShowStackAtError := 
     TolConfigManager::Config::Various::Verbose::ShowStackAtError;
   Real ShowStackAtWarning := 
