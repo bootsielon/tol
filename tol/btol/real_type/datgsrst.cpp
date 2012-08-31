@@ -582,3 +582,50 @@ void BDatBoxPierceLjungACF::CalcContens()
   BInt s = (BInt)Real(Arg(3));
   contens_ = BoxPierceLjungACF(ACF.Data(), m, s);
 }
+
+//--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatBoxPierceACF);
+DefExtOpr(1, BDatBoxPierceACF, "BoxPierceACF", 3, 3,
+    "Matrix Real Real", 
+    "(Matrix acf, Real m, Real s)",
+    I2("Returns the Box-Pierce statistic for first ´m´  "
+       "autocorrelations in vector ´acf´ from a time series of length ´s´",
+       "Devuelve el estadístico de Box-Pierce para las ´s´ primeras "
+       "autocorrelaciones del vector ´acf´ de una serie temporal de "
+       "longitud ´s´."),
+    BOperClassify::Sthocastic_);
+void BDatBoxPierceACF::CalcContens()
+//--------------------------------------------------------------------
+{
+  BMatrix<BDat>& ACF = Mat(Arg(1)); 
+  BInt m = (BInt)Real(Arg(2)); 
+  BInt s = (BInt)Real(Arg(3));
+  contens_ = BoxPierceACF(ACF.Data(), m, s);
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatBoxPierceModACF);
+DefExtOpr(1, BDatBoxPierceModACF, "BoxPierceModACF", 3, 3,
+    "Matrix Real Real", 
+    "(Matrix acf, Real m, Real s)",
+    I2("Returns the modified Box-Pierce statistic for first ´m´  "
+       "autocorrelations in vector ´acf´ from a time series of length ´s´."
+       "The modification ensures that first and second moments are the same "
+       "than theorical chi-square moments, and it's defined in formulae (67) "
+       "of article",
+       "Devuelve el estadístico de Box-Pierce modificado para las ´s´ primeras "
+       "autocorrelaciones del vector ´acf´ de una serie temporal de "
+       "longitud ´s´. La modificación asegura que los dos primeros momentos "
+       "coinciden con la distribución chi cuadrado teórica, y puede verse la "
+       "definición en la fórmula (67) del artículo")+
+       "\nOn the distribution of the sample autocorrelation coefficients (Kan-Wang)"
+       "\nhttp://www.rotman.utoronto.ca/xiaolu.wang04/index_files/sacf4.pdf",
+    BOperClassify::Sthocastic_);
+void BDatBoxPierceModACF::CalcContens()
+//--------------------------------------------------------------------
+{
+  BMatrix<BDat>& ACF = Mat(Arg(1)); 
+  BInt m = (BInt)Real(Arg(2)); 
+  BInt s = (BInt)Real(Arg(3));
+  contens_ = BoxPierceModACF(ACF.Data(), m, s);
+}
