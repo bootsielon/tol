@@ -141,7 +141,7 @@ BBool BEstimation::Marquardt()
 //--------------------------------------------------------------------
 {
   M_->iterationNumber_ = 0;
-  if(ok_)
+  if(ok_ && M_->numParam_)
   {
     M_->GetParameter();
     BArray<BDat>  x, y;
@@ -177,17 +177,20 @@ BBool BEstimation::Marquardt()
   }
   if(ok_)
   {
-    M_->GetParameter();
-    BInt N1 = M_->residuous_.Size();
-    BInt N2 = M_->paramAPrioriResiduals_.Size();
-    N1 -= N2;
-    M_->residuous_.ReallocBuffer(N1);
-    M_->standardError_ = Sqrt(MtMSqr(M_->A_ )(0,0)/M_->A_.Rows());
-    M_->informationMatrix_ = M_->informationMatrix_/(M_->standardError_^2);
-
-    M_->IntegrateMissingValues();
+    if(M_->numParam_)
+    {
+      M_->GetParameter();
+      BInt N1 = M_->residuous_.Size();
+      BInt N2 = M_->paramAPrioriResiduals_.Size();
+      N1 -= N2;
+      M_->residuous_.ReallocBuffer(N1);
+      M_->standardError_ = Sqrt(MtMSqr(M_->A_ )(0,0)/M_->A_.Rows());
+      M_->informationMatrix_ = M_->informationMatrix_/(M_->standardError_^2);
+      M_->IntegrateMissingValues();
+    }
     M_->Statistics();
     M_->Diagnostics();
+    Std("\n");
   }
   return(ok_);
 }
@@ -280,11 +283,11 @@ void BSetEstimate::CalcContens()
       BText aux = " FREE.";
       if(fixed)
       {
-	aux = BText(" RESTRICTED to Normal(") +mod.paramAPrioriNu_[n]+","+
-					       mod.paramAPrioriSigma_ [n]+")";
+	      aux = BText(" RESTRICTED to Normal(") +mod.paramAPrioriNu_[n]+","+
+				      mod.paramAPrioriSigma_ [n]+")";
       }
       Std(BText("\nParameter ")+ mod.paramAPrioriName_	[n] +
-		" with order " + mod.paramAPrioriOrder_ [n] + " is " +aux);
+		  " with order " + mod.paramAPrioriOrder_ [n] + " is " +aux);
     }
   }
   BGrammar::IncLevel();
@@ -292,7 +295,7 @@ void BSetEstimate::CalcContens()
   if(estim.Marquardt())
   {
     mod.CopyInfToSet(contens_);
-  }
+  }  
   BGrammar::DecLevel();
   return;
 }
