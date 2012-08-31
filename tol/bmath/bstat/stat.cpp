@@ -1029,7 +1029,103 @@ void InvPartAutoCor(const BArray<BDat>& cor, BArray<BDat>& p)
 
 
 //--------------------------------------------------------------------
-BDat BoxPierceLjungACF(const BArray<BDat>& acf, BInt s, BInt m)
+BDat BoxPierceACF(const BArray<BDat>& acf, BInt m, BInt s)
+
+/*! Returns the Box-Pierce statistic for first m autocorrelations
+ *  of a time series of length s 
+ */
+//--------------------------------------------------------------------
+{
+  BDat Q = 0;
+  BInt k;
+  if(m>acf.Size()) { m=acf.Size(); }
+  for(k=1; k<=m; k++) 
+  { 
+    Q += (acf(k-1)^2); 
+  }
+  Q *= BDat(s);
+  return(Q);
+}
+
+//--------------------------------------------------------------------
+double BoxPierceCenterMoment1(int m, int n)
+//--------------------------------------------------------------------
+{
+  int h = max(0,m-n/2);
+  double n2 = n*n;
+  double n3 = n*n2;
+  double EQBP = (m*(2*n3-(m+3)*n2+(m+1)*(2*m+1))-4*n*h*(2*m-n+1-h)) /
+                (2*n*(n2-1));
+  return(EQBP);
+}
+
+//--------------------------------------------------------------------
+double BoxPierceCenterMoment2(int m, int n)
+//--------------------------------------------------------------------
+{
+  double m2 = m*m;
+  double m3 = m*m2;
+  double m4 = m*m3;
+  double m5 = m*m4;
+  double n2 = n*n;
+  double n3 = n*n2;
+  double n4 = n*n3;
+  double n5 = n*n4;
+  double n6 = n*n5;
+  int zm = m%2;
+  int zn = n%2;
+  int q2 = max(0,2*m-n+1)/2;
+  int q3 = max(0,3*m-n+1)/2;
+  int q4 = max(0,4*m-n+1)/2;
+  double EQBP2 = (1/(n2-1)*(n+3)*(n+5)) * 
+  (
+    (m/12*n2)*(
+      24*n*(-2-2*n-n2+3*n3-2*n4+n5)
+      +(35+114*n2+60*n3-261*n4+84*n5+12*n6)*m
+      -6*(-35-80*n-70*n2-14*n3+17*n4+2*n5)*m2
+      +(455+720*n+282*n2+24*n3+3*n4)*m3
+      -12*(-35-24*n+n2)*m4
+      +140*m5
+    )
+    +(4*n*(n-m)*(n-m-1)+6*m-2*n+3)*zm
+    +4*n*q4*(q4+1)*(4*q4-12*m+3*n-4)
+    +4*q3*(q3+1)*(2*q3*(q3+1)-(3*m-n+1)*(3*m-n+2)-1)
+    +(q2/6*n)*(
+      -(2*m-n+2)*(
+        (24-84*n-150*n2+59*n3+16*n4)
+        -2*m*(-63-54*n+63*n2+10*n3)
+        -6*m2*(-39-18*n+n2)
+        +156*m3
+      )
+      +zn*(
+        48-27*n-111*n2+43*n3+16*n4
+        -2*m*(-87-111*n+63*n2+10*n3)
+        -6*m2*(-47-18*n+n2)
+        +156*m3
+      )
+    )
+  ); 
+  return(EQBP2);
+}
+
+//--------------------------------------------------------------------
+BDat BoxPierceModACF(const BArray<BDat>& acf, BInt m, BInt s)
+
+/*! Returns the modified Box-Pierce statistic for first m autocorrelations
+ *  of a time series of length s 
+ */
+//--------------------------------------------------------------------
+{
+  BDat QBP = BoxPierceACF(acf, m, s);
+  BDat EQBP  = BoxPierceCenterMoment1(m, s);
+  BDat EQBP2 = BoxPierceCenterMoment2(m, s);
+  BDat VQBP  = EQBP2-EQBP^2;
+  BDat QBPM = m+Sqrt(2*m/VQBP)*(QBP-EQBP);
+  return(QBPM);
+}
+
+//--------------------------------------------------------------------
+BDat BoxPierceLjungACF(const BArray<BDat>& acf, BInt m, BInt s)
 
 /*! Returns the Box-Pierce-Ljung statistic for first m autocorrelations
  *  of a time series of length s 
@@ -1039,9 +1135,9 @@ BDat BoxPierceLjungACF(const BArray<BDat>& acf, BInt s, BInt m)
   BDat Q = 0;
   BInt k;
   if(m>acf.Size()) { m=acf.Size(); }
-  for(k=0; k<m; k++) 
+  for(k=1; k<=m; k++) 
   { 
-    Q += ((acf(k)^2)/BDat(s-k-1)); 
+    Q += ((acf(k-1)^2)/BDat(s-k)); 
   }
   Q *= BDat(s*(s+2));
   return(Q);
