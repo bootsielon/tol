@@ -130,45 +130,57 @@ static void ModelInitialize()
   {
     BModel::qualifTitle_.ReallocBuffer(4);
     BModel::qualifTitle_[0] = I2("UNNECESSARY", "INNECESARIO");
-    BModel::qualifTitle_[1] = I2("GOOD",	"BUENO");
+    BModel::qualifTitle_[1] = I2("GOOD",	      "BUENO");
     BModel::qualifTitle_[2] = I2("ACCEPTABLE",	"ACEPTABLE");
-    BModel::qualifTitle_[3] = I2("REFUSED",	"RECHAZADO");
+    BModel::qualifTitle_[3] = I2("REFUSED",	    "RECHAZADO");
 
+    BModel::testName_.ReallocBuffer(11);
+    BModel::testName_[ 0] = "ResAcfFstReg";
+    BModel::testName_[ 1] = "ResAcfFstSea";
+    BModel::testName_[ 2] = "ResAcfSndReg";
+    BModel::testName_[ 3] = "ResAcfSndSea";
+    BModel::testName_[ 4] = "ResAcfBoxPieMReg";
+    BModel::testName_[ 5] = "ResAcfBoxPieMSea";
+    BModel::testName_[ 6] = "ResNorPearson";
+    BModel::testName_[ 7] = "ParamSignif";
+    BModel::testName_[ 8] = "ParamCorrel";
+    BModel::testName_[ 9] = "ParamMulticolin";
+    BModel::testName_[10] = "ParamStationary";
 
-    BModel::testName_.ReallocBuffer(10);
-    BModel::testName_[ 0] = "FstRegAutCorBounds";
-    BModel::testName_[ 1] = "FstSeaAutCorBounds";
-    BModel::testName_[ 2] = "SndRegAutCorBounds";
-    BModel::testName_[ 3] = "SndSeaAutCorBounds";
-    BModel::testName_[ 4] = "BoxPierceLjungBounds";
-    BModel::testName_[ 5] = "FisherBounds";
-    BModel::testName_[ 6] = "MinSignificationBounds";
-    BModel::testName_[ 7] = "MaxCorrelationBounds";
-    BModel::testName_[ 8] = "MixedSignCorrBounds";
-    BModel::testName_[ 9] = "UnitRootsProbBounds";
-
-
-    BModel::testTitle_.ReallocBuffer(10);
-    BModel::testTitle_[ 0] = I2("First Regular AutoCorrelation",
-				"Primera Autocorrelacion Regular");
-    BModel::testTitle_[ 1] = I2("First Seasonal AutoCorrelation",
-				"Primera Autocorrelación Estacional");
-    BModel::testTitle_[ 2] = I2("Second Regular AutoCorrelation",
-				"Segunda Autocorrelación Regular");
-    BModel::testTitle_[ 3] = I2("Second Seasonal AutoCorrelation",
-				"Segunda Autocorrelación Estacional");
-    BModel::testTitle_[ 4] = I2("Box-Pierce-Ljung's statistic",
-				"Estadístico de Box-Pierce-Ljung");
-    BModel::testTitle_[ 5] = I2("Fisher's Distance to Normal",
-				  "Distancia a la normal de Fisher");
-    BModel::testTitle_[ 6] = I2("Minimum Signification of Parameters",
-				"Mínima Significación de los Parámetros");
-    BModel::testTitle_[ 7] = I2("Maximum Correlation of Parameters",
-				"Máxima Correlación de los Parámetros");
-    BModel::testTitle_[ 8] = I2("Test of multicolinearity",
-				"Test de multicolinealidad");
-    BModel::testTitle_[ 9] = I2("Probabilty of Unary Roots",
-				"Probabilidad de Raíces Unitarias");
+    BModel::testTitle_.ReallocBuffer(11);
+    BModel::testTitle_[ 0] = I2(
+      "First Regular AutoCorrelation",
+      "Primera Autocorrelacion Regular");
+    BModel::testTitle_[ 1] = I2(
+      "First Seasonal AutoCorrelation",
+      "Primera Autocorrelación Estacional");
+    BModel::testTitle_[ 2] = I2(
+      "Second Regular AutoCorrelation",
+      "Segunda Autocorrelación Regular");
+    BModel::testTitle_[ 3] = I2(
+      "Second Seasonal AutoCorrelation",
+      "Segunda Autocorrelación Estacional");
+    BModel::testTitle_[ 4] = I2(
+      "Box-Pierce modified statistic",
+      "Estadístico modificado de Box-Pierce");
+    BModel::testTitle_[ 5] = I2(
+      "Seasonal Box-Pierce modified statistic",
+      "Estadístico modificado de Box-Pierce estacional");
+    BModel::testTitle_[ 6] = I2(
+      "Normality test of Pearson over residuals",
+      "Test de normalidad de Pearson sobre los residuos");
+    BModel::testTitle_[ 7] = I2(
+      "Minimum Signification of Parameters",
+      "Mínima Significación de los Parámetros");
+    BModel::testTitle_[ 8] = I2(
+      "Maximum Correlation of Parameters",
+      "Máxima Correlación de los Parámetros");
+    BModel::testTitle_[ 9] = I2(
+      "Test of multicolinearity",
+      "Test de multicolinealidad");
+    BModel::testTitle_[10] = I2(
+      "Probabilty of Unary Roots",
+      "Probabilidad de Raíces Unitarias");
     isInitialized = BTRUE;
   }
 }

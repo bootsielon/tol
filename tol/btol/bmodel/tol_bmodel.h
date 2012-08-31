@@ -190,7 +190,10 @@ public: //member data
   BInt		  maxpq_;
   BDat		  varianze_;
   BDat		  SwartzInfo_;
-  BDat		  BoxPierceLjung_;
+  BDat		  RegBoxPierceLjung_;
+  BDat		  SeaBoxPierceLjung_;
+  BDat		  RegBoxPierceMod_;
+  BDat		  SeaBoxPierceMod_;
   
   BDat    maxLikelihoodCoef_;
 
@@ -295,10 +298,13 @@ private: //Battery of tests
   BInt FstSeaAutCorTest		   (BInt n);
   BInt SndRegAutCorTest		   (BInt n);
   BInt SndSeaAutCorTest		   (BInt n);
-  BInt BoxPierceLjungTest	   (BInt n);
+  BInt RegBoxPierceLjungTest (BInt n);
+  BInt SeaBoxPierceLjungTest (BInt n);
+  BInt RegBoxPierceModTest   (BInt n);
+  BInt SeaBoxPierceModTest   (BInt n);
   BInt KullbackLeiblerDistanceTest (BInt n);
-  BInt FisherDistanceTest	   (BInt n);
-  BInt MinSignificationTest	   (BInt n);
+  BInt PearsonNormalityTest  (BInt n);
+  BInt MinSignificationTest	 (BInt n);
   BInt MaxCorrelationTest	   (BInt n);
   BInt MixedSignCorrTest	   (BInt n);
   BInt UnitRootsProbTest	   (BInt n);

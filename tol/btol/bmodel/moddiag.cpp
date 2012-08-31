@@ -116,10 +116,10 @@ BInt BModel::FstSeaAutCorTest(BInt n)
 //Std(BText("\nTRACE FstSeaAutCorTest "));
   BInt m = periodicity_;
   BDat x,y;
-  BBool necessary = (periodicity_>1);
+  BBool necessary = (periodicity_>1) && (m<resACor_.Rows());
   if(necessary)
   {
-    if(m<resACor_.Rows()) { y = resACor_(m-1,1)*Sqrt(N_); }
+    y = resACor_(m-1,1)*Sqrt(N_);
     diagValue_(n) = y;
     x = AbsNormal(y);
   }
@@ -152,10 +152,10 @@ BInt BModel::SndSeaAutCorTest(BInt n)
 //Std(BText("\nTRACE SndSeaAutCorTest "));
   BInt m = 2*periodicity_;
   BDat x,y;
-  BBool necessary = (periodicity_>1);
+  BBool necessary = (periodicity_>1) && (m<resACor_.Rows());
   if(necessary)
   {
-    if(m<resACor_.Rows()) { y = resACor_(m-1,1)*Sqrt(N_); }
+    y = resACor_(m-1,1)*Sqrt(N_);
     diagValue_(n) = y;
     x = AbsNormal(y);
   }
@@ -164,7 +164,36 @@ BInt BModel::SndSeaAutCorTest(BInt n)
 
 
 //--------------------------------------------------------------------
-BInt BModel::BoxPierceLjungTest(BInt n)
+BInt BModel::RegBoxPierceLjungTest(BInt n)
+
+/*! Runs the test of the Box-Pierce-Ljung statistic of residuals
+ *  autocorrelations
+ */
+//--------------------------------------------------------------------
+{
+  BDat x;
+//Std(BText("\nTRACE BoxPierceLjungTest "));
+  BInt  m = aCorNum_;
+  BInt  p = arParam_;
+  BInt  q = maParam_;
+  BBool necessary = (m-p-q>0);
+  if(necessary)
+  {
+    BArray<BDat> acf(m);
+    for(int i=0; i<m; i++) { acf[i] = resACor_(i,1); }
+    RegBoxPierceLjung_ = BoxPierceLjungACF(acf, m, N_);
+    BChiSquareDist Chi(m-p-q);
+    diagValue_(n) = RegBoxPierceLjung_;
+    x =  Chi.Dist(RegBoxPierceLjung_);
+  }
+//Std(BText("\nTRACE BoxPierceLjungTest x=")+x);
+//Std(BText("\nBox-Pierce-Ljung = ")+BoxPierceLjung_.Name());
+//Std(BText("\nProbability    = ")+x.Name());
+  return(Qualify(n,x,BTRUE));
+}
+
+//--------------------------------------------------------------------
+BInt BModel::SeaBoxPierceLjungTest(BInt n)
 
 /*! Runs the test of the Box-Pierce-Ljung statistic of residuals
  *  autocorrelations
@@ -172,17 +201,94 @@ BInt BModel::BoxPierceLjungTest(BInt n)
 //--------------------------------------------------------------------
 {
 //Std(BText("\nTRACE BoxPierceLjungTest "));
+  BDat x;
+  int facNum = arFactors_.Size();
+  BInt m=0,p=0,q=0;
+  BBool necessary = (periodicity_>1) && (3*periodicity_<resACor_.Rows());
+  if(necessary)
+  {
+    m = aCorNum_/periodicity_;
+    p = arFactors_[facNum-1].Size()-1;
+    q = maFactors_[facNum-1].Size()-1;
+    necessary = (m-p-q>0);
+  }
+  if(necessary)
+  {
+    BInt m = aCorNum_/periodicity_;
+    BInt p = arFactors_[facNum-1].Size()-1;
+    BInt q = maFactors_[facNum-1].Size()-1;
+    BArray<BDat> acf(m);
+    for(int i=1; i<=m; i++) { acf[i-1] = resACor_(i*periodicity_-1,1); }
+    SeaBoxPierceLjung_ = BoxPierceLjungACF(acf, m, N_);
+    BChiSquareDist Chi(m-p-q);
+    diagValue_(n) = SeaBoxPierceLjung_;
+    x =  Chi.Dist(SeaBoxPierceLjung_);
+  }
+  return(Qualify(n,x,necessary));
+}
+
+//--------------------------------------------------------------------
+BInt BModel::RegBoxPierceModTest(BInt n)
+
+/*! Runs the test of the modified Box-Pierce statistic of 
+ *  autocorrelations of residuals
+ */
+//--------------------------------------------------------------------
+{
+  BDat x;
+//Std(BText("\nTRACE BoxPierceLjungTest "));
   BInt  m = aCorNum_;
   BInt  p = arParam_;
   BInt  q = maParam_;
-  BoxPierceLjung_ = BoxPierceLjungACF(resACor_.Data(), m, N_);
-  BChiSquareDist Chi(m-p-q);
-  diagValue_(n) = BoxPierceLjung_;
-  BDat x =  Chi.Dist(BoxPierceLjung_);
+  BBool necessary = (m-p-q>0);
+  if(necessary)
+  {
+    BArray<BDat> acf(m);
+    for(int i=0; i<m; i++) { acf[i] = resACor_(i,1); }
+    BDat RegBoxPierceMod_ = BoxPierceModACF(acf, m, N_);
+    BChiSquareDist Chi(m-p-q);
+    diagValue_(n) = RegBoxPierceMod_;
+    x = Chi.Dist(RegBoxPierceLjung_);
+  }
 //Std(BText("\nTRACE BoxPierceLjungTest x=")+x);
 //Std(BText("\nBox-Pierce-Ljung = ")+BoxPierceLjung_.Name());
 //Std(BText("\nProbability    = ")+x.Name());
   return(Qualify(n,x,BTRUE));
+}
+
+//--------------------------------------------------------------------
+BInt BModel::SeaBoxPierceModTest(BInt n)
+
+/*! Runs the test of the Box-Pierce-Ljung statistic of 
+ *  seassonal autocorrelations of resiudals
+ */
+//--------------------------------------------------------------------
+{
+//Std(BText("\nTRACE BoxPierceLjungTest "));
+  BDat x;
+  int facNum = arFactors_.Size();
+  BInt m=0,p=0,q=0;
+  BBool necessary = (periodicity_>1);
+  if(necessary)
+  {
+    m = aCorNum_/periodicity_;
+    p = arFactors_[facNum-1].Size()-1;
+    q = maFactors_[facNum-1].Size()-1;
+    necessary = (m-p-q>0);
+  }
+  if(necessary)
+  {
+    BInt m = aCorNum_/periodicity_;
+    BInt p = arFactors_[facNum-1].Size()-1;
+    BInt q = maFactors_[facNum-1].Size()-1;
+    BArray<BDat> acf(m);
+    for(int i=1; i<=m; i++) { acf[i-1] = resACor_(i*periodicity_-1,1); }
+    BDat SeaBoxPierceMod_ = BoxPierceModACF(acf, m, N_);
+    BChiSquareDist Chi(m-p-q);
+    diagValue_(n) = SeaBoxPierceMod_;
+    x =  Chi.Dist(SeaBoxPierceMod_);
+  }
+  return(Qualify(n,x,necessary));
 }
 
 //--------------------------------------------------------------------
@@ -237,41 +343,87 @@ BInt BModel::KullbackLeiblerDistanceTest(BInt n)
 }
 
 //--------------------------------------------------------------------
-BInt BModel::FisherDistanceTest(BInt n)
+BInt BModel::PearsonNormalityTest(BInt n)
 
-/*! Runs the test of Fisher distance to normal of residuous.
+/*! Runs the test of Pearson's Chi-Square Test for goodness of normal fit
+ *  over model residuals
  */
 //--------------------------------------------------------------------
 {
-//Std(BText("\nTRACE FisherDistanceTest "));
-  BInt numInterv = BInt(Sqrt(N_));
-//Std(BText("\nnumInterv=")+numInterv);
-  
-  BChiSquareDist Chi(numInterv);
-  BArray<BDat>  res01  = A_.Data();
-  BMatrix<BDat> freq01;
   BInt         i,j;
-  for(i=0; i<res01.Size(); i++) { res01[i] = res01[i]/standardError_; }
-  Frequency(res01, freq01, numInterv);
-  BDat epsilon = 0;
-  BDat from    = 0;
-  for(j=0; j<numInterv; j++)
+//Std(BText("\nTRACE PearsonNormalityTest "));
+
+  BNormalDist U(0,1);
+  //Cálculo de la desviación típica en base a cuantiles para filtrar outliers
+  BDat sQ = 0;
   {
-    BDat until = 1;
-    if(j!=numInterv-1) { until = BNormalDist::Dist01(freq01(j,0)); }
-    BDat ft    = res01.Size()*(until-from);
-    BDat fe    = freq01(j,1);
-    BDat d     = ((fe-ft)*(fe-ft))/ft;
-    if(d.IsKnown()) { epsilon += d; }
-//  Std(BText("\nj=")+j+"\td="+d.Name());
-    from  = until;
+    int nQ = (N_>30)?3:1;
+    BArray<BDat> q(nQ), p(nQ), Q(nQ);
+    if(nQ==1) 
+    {
+      q[0]=1.0;
+    }
+    else
+    {
+      q[0]=0.9; 
+      q[1]=1.0; 
+      q[2]=1.1; 
+    }
+    for(i=0; i<nQ; i++) { p[i] = U.Dist(q[0]); }
+    BArray<BDat> A(N_);
+    for(i=0; i<N_; i++) { A[i] = Abs(A_(i,0)); }
+    Quantile(A, p, Q);
+    for(i=0; i<nQ; i++) 
+    { 
+      sQ += Q[i]/(Abs(q[i])*Sqrt(2.0));
+    }
+    sQ /= nQ;
   }
-  diagValue_(n) = epsilon;
+
+  //Filtrado de outliers
+  BArray<BDat> Y(N_);
+  BDat kSig = -U.Inverse(1.0/N_,0);
+  for(i=j=0; i<N_; i++)
+  {
+    BDat x = A_(i,0)/sQ;
+    if(Abs(x) <= kSig) { Y(j++) = x; }
+  }
+  int N = j;
+  Y.ReallocBuffer(N);
+
+  //Pearson goodness of fit test statistic
+  BInt nQ = (N>=900)?(int)sqrt((double)N):(N>=400)?30:(N>=100)?6:4;
+//Std(BText("TRACE BModel::PearsonNormalityTest nQ=")+nQ+" sQ="+sQ+"\n");
+  BChiSquareDist Chi(nQ-3);
+  BArray<BDat> q(nQ+1);
+  BDat chi=0; 
+  BDat step = (((double)N_-2.0)/double(N_*nQ));
+  BDat p = 1.0/N_;
+  for(j=0; j<=nQ; j++, p+=step)
+  {
+    q[j] = U.Inverse(p,0);
+  }
+  p = 1.0/nQ;
+  for(j=1; j<=nQ; j++)
+  {
+    BDat q0 = q[j-1];
+    BDat q1 = q[j];
+    BDat Q = 0;
+    for(i=0; i<N; i++)
+    {
+      Q += And(q0 <= Y[i], Y[i] < q1);
+    }
+    Q/=N;
+    BDat dif = Q-p;
+    BDat dif2 = dif*dif;
+    BDat dif2p = dif2/p;
+  //Std(BText("TRACE BModel::PearsonNormalityTest   Q=")+Q+" p="+p+" dif="+dif+" dif2="+dif2+" dif2p="+dif2p+"\n");
+    chi += dif2p;
+  }
+  diagValue_(n) = chi;
 //Std(BText("\nepsilon")=epsilon.Name());
   BDat x;
-  if(epsilon.IsKnown()) { x = Chi.Dist(epsilon); }
-//Std(BText("\nNumber of intervals = ")+numInterv);
-//Std(BText("\Fisher Distance     = ")+epsilon.Name());
+  if(chi.IsKnown()) { x = Chi.Dist(chi); }
 //Std(BText("\nProbability     = ")+x.Name());
   return(Qualify(n,x,BTRUE));
 }
@@ -285,27 +437,32 @@ BInt BModel::MinSignificationTest(BInt n)
 //--------------------------------------------------------------------
 {
 //Std(BText("\nTRACE MinSignificationTest "));
-  BTStudentDist T(N_-numParam_);
-  BInt i;
-  BDat min=BDat::PosInf();
-  for(i=0; i<numParam_; i++)
+  BDat x;
+  BBool necessary = numParam_>0; 
+  if(necessary)
   {
-    BDat t = Abs(param_[i]/paramSD_[i]);
-    if(!t.IsKnown())
+    BTStudentDist T(N_-numParam_);
+    BInt i;
+    BDat min=BDat::PosInf();
+    for(i=0; i<numParam_; i++)
     {
-      diagValue_(n) = t;
-      return(Qualify(n,1,BTRUE));
+      BDat t = Abs(param_[i]/paramSD_[i]);
+      if(!t.IsKnown())
+      {
+        diagValue_(n) = t;
+        return(Qualify(n,1,BTRUE));
+      }
+      else if(min > t)
+      {
+        min = t;
+        diagValue_(n) = min;
+      }
     }
-    else if(min > t)
-    {
-      min = t;
-      diagValue_(n) = min;
-    }
+    x = 2*(1-T.Dist(min)); 
   }
-  BDat refuseProb = 2*(1-T.Dist(min)); 
 //Std(BText("\nMinimum signification = ")+min.Name());
 //Std(BText("\nProbability     = ")+x.Name());
-  return(Qualify(n,refuseProb,BTRUE));
+  return(Qualify(n,x,necessary));
 }
 
 //--------------------------------------------------------------------
@@ -315,27 +472,43 @@ BInt BModel::MaxCorrelationTest(BInt n)
  */
 //--------------------------------------------------------------------
 {
-//Std(BText("\nTRACE MaxCorrelationTest "));
-  BInt  N = paramCor_.Rows();
-  if(!N || !paramCor_.Columns())
+  BDat x, Z;
+  BBool necessary = numParam_>1; 
+//Std(BText("TRACE [BModel::MaxCorrelationTest]")+" numParam_="+numParam_+" necessary="+necessary+"\n");
+  if(necessary)
   {
-    diagValue_(n) = BDat::Unknown();
-    return(Qualify(n,1,BTRUE));
-  }
-  BDat  max=0;
-  for(BInt i=0; i<N; i++)
-  {
-    for(BInt j=0; j<i; j++)
+    if(paramCor_.Rows()!=numParam_ || 
+       paramCor_.Columns()!=numParam_)
     {
-      BDat c = Abs(paramCor_(i,j));
-      if(max < c)
+      diagValue_(n) = BDat::Unknown();
+      return(Qualify(n,1,BTRUE));
+    }
+    Z=0;
+    for(BInt i=0; i<numParam_; i++)
+    {
+      for(BInt j=0; j<i; j++)
       {
-        diagValue_(n) = c;
-        max = c;
+        BDat c = Abs(paramCor_(i,j));
+        if(Abs(Z) < c)
+        {
+          Z = paramCor_(i,j);
+        }
       }
     }
+    diagValue_(n) = Z;
+    x = Abs(Z);
+/* * /
+    static BDat R = 0.99;
+    static BDat r = 0.5*Log((1+R)/(1-R));
+    BDat z = 0.5*Log((1+Z)/(1-Z));
+    BNormalDist U(z,1/Sqrt(N_-1));
+    BDat p0 = U.Dist(-r);
+    BDat p1 = U.Dist( r);
+    x = 1.0-(p1-p0);
+/* */
+  //Std(BText("TRACE [BModel::MaxCorrelationTest]")+" Z="+Z+" z="+z+" R="+R+" r="+r+" p0="+p0+" p1="+p1+" x="+x+"\n");
   }
-  return(Qualify(n,max,BTRUE));
+  return(Qualify(n,x,necessary));
 }
 
 //--------------------------------------------------------------------
@@ -349,24 +522,30 @@ BInt BModel::MixedSignCorrTest(BInt n)
 //--------------------------------------------------------------------
 {
 //Std(BText("\nTRACE MixedSignCorrTest "));
-  BTStudentDist T(N_-numParam_);
-  BBool necessary = true;
-  if(!numParam_ || (D_.Rows()!=numParam_)||(D_.Columns()!=numParam_))
+  BDat x;
+  BBool necessary = numParam_>1; 
+  if(necessary)
   {
-    diagValue_(n) = BDat::Unknown();
-    return(Qualify(n,1,BTRUE));
+    x = 0;
+    BTStudentDist T(N_-numParam_);
+    if(!numParam_ || (D_.Rows()!=numParam_)||(D_.Columns()!=numParam_))
+    {
+      diagValue_(n) = BDat::Unknown();
+      return(Qualify(n,1,BTRUE));
+    }
+    int i, j;
+    for(j=0; j<numParam_; j++)
+    {
+      BDat c = 0;
+      for(i=0;i<numParam_;i++) { c +=param_[i]*V_(i,j); }
+      BDat d = D_(j,j);
+      BDat s = standardError_/d;
+      BDat t = c/s;
+      BDat p = 2*(1-T.Dist(Abs(t)));
+      if(p>x) { x=p; diagValue_(n) = t; }
+    }
   }
-  BDat c = 0;
-  int i;
-  for(i=0;i<numParam_;i++)
-  {
-    c+=param_[i]*V_(i,numParam_-1);
-  }
-  BDat d = D_(numParam_-1,numParam_-1);
-  BDat t = d*c/standardError_;
-  diagValue_(n) = t;
-  BDat refuseProb = 2*(1-T.Dist(Abs(t))); 
-  return(Qualify(n,refuseProb,BTRUE));
+  return(Qualify(n,x,necessary));
 }
 
 
@@ -379,11 +558,12 @@ BInt BModel::UnitRootsProbTest(BInt n)
 //--------------------------------------------------------------------
 {
 //Std(BText("\nTRACE UnitRootsProbTest "));
-  BDat x = 0;
+  BDat x;
   BInt num = arParam_+maParam_;
   BBool necessary = num!=0; 
   if(necessary)
   {
+    x=0;
     if(!paramCor_.Rows() || !paramCor_.Columns())
     {
       diagValue_(n) = BDat::Unknown();
@@ -456,7 +636,7 @@ BInt BModel::UnitRootsProbTest(BInt n)
   */
     diagValue_(n) = x;
   }
-  return(Qualify(n,x,BTRUE));
+  return(Qualify(n,x,necessary));
 }
 
 
@@ -474,12 +654,13 @@ BInt BModel::RunTest(BInt n)
     case  1 : return(FstSeaAutCorTest      (n));
     case  2 : return(SndRegAutCorTest      (n));
     case  3 : return(SndSeaAutCorTest      (n));
-    case  4 : return(BoxPierceLjungTest    (n));
-    case  5 : return(FisherDistanceTest    (n));
-    case  6 : return(MinSignificationTest  (n));
-    case  7 : return(MaxCorrelationTest    (n));
-    case  8 : return(MixedSignCorrTest     (n));
-    case  9 : return(UnitRootsProbTest     (n));
+    case  4 : return(RegBoxPierceLjungTest (n));
+    case  5 : return(SeaBoxPierceLjungTest (n));
+    case  6 : return(PearsonNormalityTest  (n));
+    case  7 : return(MinSignificationTest  (n));
+    case  8 : return(MaxCorrelationTest    (n));
+    case  9 : return(MixedSignCorrTest     (n));
+    case 10 : return(UnitRootsProbTest     (n));
     default : return(-1);
   }
 }
@@ -515,21 +696,11 @@ void BModel::Diagnostics()
   qualification_ = 0;
   arithmeticQualification_ = 0;
   int n=0, m=1;
+  int requiredTests = 0;
   for(; n<testTitle_.Size(); n++, m++)
   {
     BSet& s = Set(set[m]);
     BText name = set[m]->Name();
-    if(name=="RegBoxPierceLjungBounds")
-    {
-      name = "PierceLjungBounds";
-    }
-    else if(name=="SeaBoxPierceLjungBounds")
-    {
-      m++;
-      s = Set(set[m]);
-      name = set[m]->Name();
-      continue;
-    }
     if(name!=testName_[n])
     {
       Error(I2("Error in name of","Error en el nombre del")+
@@ -557,17 +728,17 @@ void BModel::Diagnostics()
     else if(p<=y) { q = x0 + (p-x) * (y0-x0)/(y-x); }
     else          { q = y0 + (p-y) * ( 1-y0)/(1-y); }
     arithmeticQualification_ += q;
+    requiredTests += (diagQualify_(n) != BDIAGUNNECESSARY);
 /*
     Std( BText("\nBounds[")  + testAccept_ (n) +
          ", "    + testRefuse_ (n) +
          "]; Value   = "  + diagValue_  (n) +
-         "; Prob   = "  + diagPunct_  (n) +
+         "; Refuse Prob = "  + diagPunct_  (n) +
          "; Qualify = "  + qualifTitle_[diagQualify_ (n)] +";"+
          "; Qualify(1/3,2/3) = " + q.Name() +";\n");
 */
   }
-  if(periodicity_>1) { arithmeticQualification_ /= testTitle_.Size(); }
-  else               { arithmeticQualification_ /= (testTitle_.Size()-3); }
+  arithmeticQualification_ /= requiredTests;
 /*
   Std(BText("\nModel Average Qualify(1/3, 2/3) = ") +
       arithmeticQualification_.Name() +";\n");
