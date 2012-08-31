@@ -351,7 +351,8 @@ BBool BModel::InitData(const BDate& f, const BDate& l, BInt numPrev)
       N_ = outData_.NumDates()-difDeg_;
       outDifData_.Alloc(1, N_);
       ApplyPolB(outDifData_, 0, fullData_, dif_, difDeg_, outName_+"_Full", 0);
-      Z_ = outDifData_.T();
+      A_ = Z_ = outDifData_.T();
+      residuous_ = A_.Data();
       initialError_ = Sqrt(CenterMoment(outDifData_.Data(),2));
       standardError_ = initialError_;
       Std(I2("\nDifferenced output norm : ",
@@ -620,7 +621,7 @@ BBool BModel::CheckData()
     }
   numParam_    -= r;
   inputParam_  -= r;
-
+/*
   if(!numParam_)
   {
     ok = BFALSE;
@@ -630,6 +631,7 @@ BBool BModel::CheckData()
 	            "No se puede estimar un modelo sin variables."
 	            "Introduzca algún parámetro ARMA o una serie input."));
   }
+*/
   param_.ReallocBuffer(numParam_);
   if(ok && (N_<(interruptionIndex_.Size()+numParam_)))
   {
@@ -2030,16 +2032,16 @@ void BModel::Statistics()
 //  for(i=0; i<n; i++) { paramSD_[i]*=standardError_; }
   }
 
-  Std(BText("\nTRACE BModel::Statistics() N_=")+N_);
+//Std(BText("\nTRACE BModel::Statistics() N_=")+N_);
   aCorNum_ = N_/4;
-  Std(BText("\nTRACE BModel::Statistics() aCorNum_=")+aCorNum_);
+//Std(BText("\nTRACE BModel::Statistics() aCorNum_=")+aCorNum_);
   if(periodicity_>0)
   {
-    if(aCorNum_< 2*periodicity_+4) { aCorNum_ =	 2*periodicity_+4; }
-    Std(BText("\nTRACE BModel::Statistics() aCorNum_=")+aCorNum_);
+    if(aCorNum_< periodicity_+4) { aCorNum_ =	 periodicity_+4; }
+  //Std(BText("\nTRACE BModel::Statistics() aCorNum_=")+aCorNum_);
   }
-  if(aCorNum_<N_/2) { aCorNum_ = N_/2; }
-  Std(BText("\nTRACE BModel::Statistics() aCorNum_=")+aCorNum_);
+  if(aCorNum_>N_/2) { aCorNum_ = N_/2; }
+//Std(BText("\nTRACE BModel::Statistics() aCorNum_=")+aCorNum_);
 
   if(aCorNum_>0)
   {
