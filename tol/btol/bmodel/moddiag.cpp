@@ -665,7 +665,7 @@ BInt BModel::RunTest(BInt n)
   }
 }
 
-static BDat doDiagnostics_ = 1;
+static BDat doDiagnostics_ = 0;
 
 BDat& DoDiagnostics () { return(doDiagnostics_); }
 
