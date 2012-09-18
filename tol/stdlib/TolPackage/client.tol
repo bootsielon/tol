@@ -237,6 +237,7 @@ Text _.autodoc.member.Client =
   ////////////////////////////////////////////////////////////////////////////
   {
     Text destDir = TolPackage::Client::_.defaultPackageDir;
+    WriteLn( "[TolPackage::Client] _.DefaultFetch: " << destDir );
     If( !OSDirExist( destDir ), { 
         Real OSDirMake( destDir )
       } );
@@ -287,6 +288,7 @@ Text _.autodoc.member.Client =
       Set install = EvalSet(localZips, Real (Text filename) {
         Text packageName = Replace(GetFileName(filename), ".zip", "");
         If(catalog::FindRecord(packageName), 0, {
+          WriteLn( "[TolPackage::Client] Installing default package " << packageName );
           InstallZip(_.defaultPackageDir<<filename)
         })
       });
