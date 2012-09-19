@@ -319,8 +319,8 @@ void BDatStoredBytes::CalcContens()
 //--------------------------------------------------------------------
 {
   BVMat& v = VMat(Arg(1));
-  int nrow = (int)Real(Arg(2));
-  int ncol = (int)Real(Arg(3));
+  int nrow = max(0,(int)Real(Arg(2)));
+  int ncol = max(0,(int)Real(Arg(3)));
   int row0 = (int)Real(Arg(4))-1;
   int col0 = (int)Real(Arg(5))-1;
   contens_.Convert(v,BVMat::ESC_chlmRtriplet);
@@ -341,7 +341,7 @@ void BDatStoredBytes::CalcContens()
   void BVMatMergeRows::CalcContens()
 //--------------------------------------------------------------------
 {
-  int nrow = (int)Real(Arg(1));
+  int nrow = max(0,(int)Real(Arg(1)));
   BSet& items = Set(Arg(2));
   contens_.MergeRows(nrow, items);
   assert(contens_.Check());
@@ -561,8 +561,8 @@ void BVMatTriplet::CalcContens()
 //--------------------------------------------------------------------
 { 
   BSyntaxObject* ijx_ = Arg(1);
-  int nrow = (int)Real(Arg(2));
-  int ncol = (int)Real(Arg(3));
+  int nrow = max(0,(int)Real(Arg(2)));
+  int ncol = max(0,(int)Real(Arg(3)));
   BMatrix<double> ijx;
   if(ijx_->Grammar()==GraMatrix())
   {
@@ -680,8 +680,8 @@ void BVMatTripletUnique::CalcContens()
 //--------------------------------------------------------------------
 { 
   BMatrix<double>& ijx = (BMatrix<double>&)Mat(Arg(1));
-  int nrow = (int)Real(Arg(2));
-  int ncol = (int)Real(Arg(3));
+  int nrow = max(0,(int)Real(Arg(2)));
+  int ncol = max(0,(int)Real(Arg(3)));
   contens_.DMat2tripletUnique(ijx,nrow,ncol);
 }
 
@@ -724,8 +724,8 @@ void BPol2VMat::CalcContens()
 //--------------------------------------------------------------------
 {
   BPolyn<BDat>& pol = Pol(Arg(1));
-  register int r = (BInt)Real(Arg(2));
-  register int c = (BInt)Real(Arg(3));
+  register int r = max(0,(BInt)Real(Arg(2)));
+  register int c = max(0,(BInt)Real(Arg(3)));
   contens_.BPol2sparse(pol, r, c);
   assert(contens_.Check());
 }
@@ -743,8 +743,8 @@ DefExtOpr(1, BVMatConstant, "Constant",  3, 3,
 void BVMatConstant::CalcContens()
 //--------------------------------------------------------------------
 {
-  int r = (BInt)Real(Arg(1));
-  int c = (BInt)Real(Arg(2));
+  int r = max(0,(BInt)Real(Arg(1)));
+  int c = max(0,(BInt)Real(Arg(2)));
   double v = Real(Arg(3));
   contens_.BlasRDense(r,c, v);
 }
@@ -764,10 +764,10 @@ BOperClassify::MatrixAlgebra_);
 void BVMatZero::CalcContens()
 //--------------------------------------------------------------------
 {
-  int nrow = (int)Real(Arg(1));
+  int nrow = max(0,(int)Real(Arg(1)));
   int ncol = nrow;
   BVMat::ECode code = BVMat::ESC_chlmRsparse; 
-  if(Arg(2)) { ncol = (int)Real(Arg(2)); }
+  if(Arg(2)) { ncol = max(0,(int)Real(Arg(2))); }
   if(Arg(3)) { code = BVMat::FindCodeName(Text(Arg(3))); }
   contens_.Zeros(nrow,ncol,code);
   assert(contens_.Check());
@@ -795,16 +795,16 @@ BOperClassify::MatrixAlgebra_);
 void BVMatEye::CalcContens()
 //--------------------------------------------------------------------
 {
-  int nrow = (int)Real(Arg(1));
+  int nrow = max(0,(int)Real(Arg(1)));
   int ncol = nrow;
-  if(Arg(2)) { ncol=(int)Real(Arg(2)); }
+  if(Arg(2)) { ncol=max(0,(int)Real(Arg(2))); }
   if(!Arg(3)) 
   { 
     contens_.Eye(nrow,ncol,BVMat::ESC_chlmRsparse); 
   }
   else
   {
-    int diag = (int)Real(Arg(3));
+    int diag = max(0,(int)Real(Arg(3)));
     BSyntaxObject* x_ = Arg(4);
     bool isReal = !x_;
     double x = 1.0;
@@ -2468,8 +2468,8 @@ BOperClassify::MatrixAlgebra_);
 void BVMatRand::CalcContens()
 //--------------------------------------------------------------------
 {
-  int    nrow = (int)Real(Arg(1));
-  int    ncol = (int)Real(Arg(2));
+  int    nrow = max(0,(int)Real(Arg(1)));
+  int    ncol = max(0,(int)Real(Arg(2)));
   double min  = Real(Arg(3));
   double max  = Real(Arg(4));
   if(Arg(5)) 
@@ -2500,8 +2500,8 @@ BOperClassify::MatrixAlgebra_);
 void BVMatGaussian::CalcContens()
 //--------------------------------------------------------------------
 {
-  int    nrow = (int)Real(Arg(1));
-  int    ncol = (int)Real(Arg(2));
+  int    nrow = max(0,(int)Real(Arg(1)));
+  int    ncol = max(0,(int)Real(Arg(2)));
   double nu   = Real(Arg(3));
   double sig  = Real(Arg(4));
   contens_.Gaussian(nrow,ncol,nu,sig);
@@ -2542,7 +2542,7 @@ void BVMatTruncStdGaussian::CalcContens()
   int ncol = 1;
   int burn = 0;
   double borderDistance = 0.001;
-  if(Arg(4)) { ncol = (int)Real(Arg(4)); }
+  if(Arg(4)) { max(0,ncol = (int)Real(Arg(4))); }
   if(Arg(5)) { burn = (int)Real(Arg(5)); }
   if(Arg(6)) { burn = (int)Real(Arg(6)); }
   contens_.TruncStdGaussian(D,d,z0,ncol,burn,borderDistance);
