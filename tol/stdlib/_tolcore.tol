@@ -6,5 +6,4 @@ Set Include("system/_init_system.tol");
 Set Include("various/_init_various.tol");
 Set Include("TolPackage/TolPackage.tol");
 
-
-
+Set Include("arima/_init_arima.tol");

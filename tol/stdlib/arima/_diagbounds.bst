@@ -1,0 +1,12 @@
+@TestBounds       ; Accept ; Refuse ;
+ResAcfFstReg      ; 0.38   ; 0.88   ;
+ResAcfFstSea      ; 0.51   ; 0.90   ;
+ResAcfSndReg      ; 0.60   ; 0.93   ;
+ResAcfSndSea      ; 0.72   ; 0.96   ;
+ResAcfBoxPieMReg  ; 0.93   ; 0.99   ;
+ResAcfBoxPieMSea  ; 0.78   ; 0.97   ;
+ResNorPearson     ; 0.02   ; 0.20   ;
+ParamSignif       ; 0.95   ; 0.99   ;
+ParamCorrel       ; 0.95   ; 0.99   ;
+ParamMulticolin   ; 0.87   ; 0.99   ;
+ParamStationary   ; 0.40   ; 0.90   ;
