@@ -43,6 +43,7 @@ TOL_API BPol EvalPolyn(const BText& expr, const BPol&  defVal);
 TOL_API BPol RandStationary(
   BInt degree, 
   BInt period, 
+  BDat minInvRootModule=.000001, 
   BDat maxInvRootModule=.999999);
 
 

@@ -501,6 +501,7 @@ void BPolMatPol::CalcContens()
 BPol RandStationary(
   BInt degree, 
   BInt period, 
+  BDat minInvRootModule, 
   BDat maxInvRootModule)
 //--------------------------------------------------------------------
 {
@@ -514,10 +515,17 @@ BPol RandStationary(
   BPol BP = BPol::X() ^ period;
   BPol factor;
   if(maxInvRootModule>1-2*DEpsilon()) { maxInvRootModule = 1-2*DEpsilon(); }
-  else if(maxInvRootModule<0) { maxInvRootModule = 0; }
+  if(maxInvRootModule<  2*DEpsilon()) { maxInvRootModule =   2*DEpsilon(); }
+  if(minInvRootModule<  2*DEpsilon()) { minInvRootModule =   2*DEpsilon(); }
+  if(minInvRootModule>maxInvRootModule) 
+  { 
+    Error("[RandStationary] Cannot draw in empty interval ["+minInvRootModule+","+maxInvRootModule+"]");
+    return(factor);
+  }
   if(n1)
   {
-    a = maxInvRootModule*u.Random();
+    BDat ur = u.Random();
+    a = maxInvRootModule*ur + minInvRootModule*(1-ur);
     factor = B0-a*BP;
   //Std(BText("\nRandStationary(")+degree+","+period+","+maxInvRootModule+") monome a="+a+"; factor="+factor.Name());
     p1 = factor;
@@ -543,8 +551,10 @@ BPol RandStationary(
       } 
       ok = (a<1-b) &&
            (a<1+b) &&
-           (m1<maxInvRootModule) &&
-           (m2<maxInvRootModule);
+           (m1>=minInvRootModule) &&
+           (m2>=minInvRootModule) &&
+           (m1<=maxInvRootModule) &&
+           (m2<=maxInvRootModule);
       if(ok) 
       { 
         factor = B0-b*BP-a*(BP^2);
@@ -558,9 +568,11 @@ BPol RandStationary(
 
 //--------------------------------------------------------------------
 DeclareContensClass(BPol, BPolTemporary, BPolRandStationary);
-DefExtOpr(1, BPolRandStationary, "RandStationary", 1, 3, 
-  "Real Real Real",
-  "(Real d [, Real p = 1, Real maxInvRootModule = 0.999999])",
+DefExtOpr(1, BPolRandStationary, "RandStationary", 1, 4, 
+  "Real Real Real Real",
+  "(Real d [, Real p = 1, "
+    "Real minInvRootModule = 0.000001, "
+    "Real maxInvRootModule = 0.999999])",
   I2("Returns a random stationary polinomial as \n",
      "Devuelve un polinomio estacionario aleatorio de la forma \n") +
      " 1 - C1 * B^p - C2 * B^(2*p) - ... - Cd * B^(d*p).",
@@ -571,10 +583,12 @@ void BPolRandStationary::CalcContens()
 {
   BInt degree = (BInt)Real(Arg(1));
   BInt period = 1;
+  BDat minInvRootModule = .000001;
   BDat maxInvRootModule = .999999;
   if(Arg(2)) { period = (BInt)Real(Arg(2)); }
-  if(Arg(3)) { maxInvRootModule = Dat(Arg(3)); }
-  contens_ = RandStationary(degree, period, maxInvRootModule);
+  if(Arg(3)) { minInvRootModule = Dat(Arg(3)); }
+  if(Arg(4)) { maxInvRootModule = Dat(Arg(4)); }
+  contens_ = RandStationary(degree, period, minInvRootModule, maxInvRootModule);
 }
 
 
