@@ -1441,11 +1441,11 @@ static BDat ARMAACFBartlettLLH_Theorical(
   const BPol& ma,
   const BMat& acf,
   int T,
-  int n,
   int s)
 //--------------------------------------------------------------------
 {
   static double _05log2pi = 0.5*log(2*3.14159265358979323846);
+  int n = acf.Rows();
   int res;
   BMat rho, rho_, dif, cov, L, eps;
   BDat alpha = 1.0;
@@ -1459,10 +1459,10 @@ static BDat ARMAACFBartlettLLH_Theorical(
   _covACF_Bartlett(cov,rho,n,T,s);
 
   res = TolLapack::dpotrf(CblasLower,cov,L);
-  if(!res) { return(BDat::NegInf()); }
+  if(res) { return(BDat::NegInf()); }
   res = TolBlas::dtrsm(CblasLeft,CblasLower,CblasNoTrans,CblasNonUnit,alpha,
                            L,dif,eps);
-  if(!res) { return(BDat::NegInf()); }
+  if(res) { return(BDat::NegInf()); }
   const BDat* eps_i = eps.Data().Buffer();
   BDat eps_sumSqr = 0;
   BDat log_det = 0;
@@ -1475,17 +1475,16 @@ static BDat ARMAACFBartlettLLH_Theorical(
 }
 
 //--------------------------------------------------------------------
-static BDat ARMAACFBartlettLLH_Sampling(
+static BDat ARMAACFBartlettLLH_Commuted(
   const BPol& ar,
   const BPol& ma,
   const BMat& acf,
   int T,
-  int n,
-  int s,
   const BMat& L)
 //--------------------------------------------------------------------
 {
   static double _05log2pi = 0.5*log(2*3.14159265358979323846);
+  int n = acf.Rows();
   int res;
   BMat rho, dif, eps;
   BDat alpha = 1.0;
@@ -1512,9 +1511,9 @@ static BDat ARMAACFBartlettLLH_Sampling(
 
 //--------------------------------------------------------------------
 DeclareContensClass(BDat, BDatTemporary, BDatARMAACFBartlettLLH);
-DefExtOpr(1, BDatARMAACFBartlettLLH, "ARMA.ACF.Bartlett.LLH", 4, 4, 
-  "Polyn Polyn Matrix Real",
-  "(Polyn ar, Polyn ma, Matrix acf, Real T)",
+DefExtOpr(1, BDatARMAACFBartlettLLH, "ARMA.ACF.Bartlett.LLH", 4, 5, 
+  "Polyn Polyn Matrix Real Real",
+  "(Polyn ar, Polyn ma, Matrix acf, Real T [, Real truncating])",
   I2("Calculates the log-likelihood of asymptotic distribution of sample "
      "autocorrelation acf of an ARMA noise z of size T and equations "
      "ar(B)*z= ma(B)*e",
@@ -1531,23 +1530,24 @@ void BDatARMAACFBartlettLLH::CalcContens()
   BPol& ma = Pol(Arg(2));
   BMat& acf = Mat(Arg(3));
   int T = (int)Real(Arg(4));
+  int s = T*4;
+  if(Arg(5)) { s = (int)Real(Arg(5)); }
   int n = acf.Data().Size();
-  int s = T*2;
-  contens_ = ARMAACFBartlettLLH_Theorical(ar,ma,acf,T,n,s);
+  contens_ = ARMAACFBartlettLLH_Theorical(ar,ma,acf,T,s);
 }
 
 
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatARMAACFBartlettLLHRandStationary);
 DefExtOpr(1, BMatARMAACFBartlettLLHRandStationary, 
-  "ARMA.ACF.Bartlett.LLH.RandStationary", 6, 6, 
-  "Real Real Matrix Real Real Real",
-  "(Real p, Real q, Matrix acf, Real T, Real sampleSize, Real exact)",
-  I2("Draws the log-likelihood of asymptotic distribution of sample "
+  "ARMA.ACF.Bartlett.LLH.RandStationary", 6, 7, 
+  "Real Real Matrix Real Real Real Real",
+  "(Real p, Real q, Matrix acf, Real T, Real N, Real exact [, Real truncating=N*4])",
+  I2("Draws N times the log-likelihood of asymptotic distribution of sample "
      "autocorrelation of orders from 1 to n of an ARMA noise of size T."
      "Generates stationary polynomials AR and MA of degrees p and q "
      "with uniform distributed modules of roots.",
-     "Simula la log-verosimilitud de la distribución aintótica "
+     "Simula N veces la log-verosimilitud de la distribución aintótica "
      "de las autocorrelaciones muestrales de órdenes 1 a n de un ruido "
      "ARMA de tamaño T.\n"
      "Genera polinomios AR y MA estacionarios de grados p y q de forma "
@@ -1561,35 +1561,38 @@ void BMatARMAACFBartlettLLHRandStationary::CalcContens()
   int q = (int)Real(Arg(2));
   BMat& acf = Mat(Arg(3));
   int T = (int)Real(Arg(4));
-  int sampleSize = (int)Real(Arg(5));
+  int N = (int)Real(Arg(5));
   bool exact = (int)Real(Arg(6));
   int n = acf.Data().Size();
-  int s = T*2;
-  contens_.Alloc(sampleSize,1);
-  contens_.GetData().Replicate(BDat::NegInf(),sampleSize);
+  int s = T*4;
+  if(Arg(7)) { s = (int)Real(Arg(7)); }
+  contens_.Alloc(N,1);
+  contens_.GetData().Replicate(BDat::NegInf(),N);
   int k;
   int res;
   BPol ar, ma;
   BMat cov, L;
-  if(!exact)
+  if(exact)
+  {
+    for(k=0; k<N; k++)
+    {
+      ar = RandStationary(p,1);
+      ma = RandStationary(q,1);
+      contens_(k,0) = ARMAACFBartlettLLH_Theorical(ar,ma,acf,T,s);
+    }
+  }
+  else
   {
     _covACF_Bartlett(cov,acf,n,T,s);
     res = TolLapack::dpotrf(CblasLower,cov,L);
     if(res) { return; }
+    for(k=0; k<N; k++)
+    {
+      ar = RandStationary(p,1);
+      ma = RandStationary(q,1);
+      contens_(k,0) = ARMAACFBartlettLLH_Commuted (ar,ma,acf,T,L);
+    }
   };
-  for(k=0; k<sampleSize; k++)
-  {
-    ar = RandStationary(p,1);
-    ma = RandStationary(q,1);
-    if(exact)
-    {
-      contens_(k,0) = ARMAACFBartlettLLH_Theorical(ar,ma,acf,T,n,s);
-    }
-    else
-    {
-      contens_(k,0) = ARMAACFBartlettLLH_Sampling(ar,ma,acf,T,n,s,L);
-    }
-  }
 }
 
 //--------------------------------------------------------------------
