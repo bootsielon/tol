@@ -119,6 +119,7 @@ FNDParam(Variance, "Variance of residuals");
 FNDParam(VarNumber, "Number of variables");
 FNDParam(ParameterInfo, "Parameters Information");
 FNDParam(Diagnostics, "Diagnostics Information");
+FNDParam(Gradient, "Target gradient at optimal point");
 
 
 //--------------------------------------------------------------------
@@ -1001,6 +1002,8 @@ void BModel::CopyInfToSet(BSet& set)
   lsta = auxa = NIL;
 
   BText& JacobianMethod();
+
+  BMatrix<BDat> gradient = jacobian_.T()*A_*2;
   LstFastAppend(lsta,auxa,tmp=NewFND(BMat,Jacobian,jacobian_));
   LstFastAppend(lsta,auxa,tmp=NewFND(BMat,U,U_));
   LstFastAppend(lsta,auxa,tmp=NewFND(BMat,D,D_));
@@ -1011,8 +1014,8 @@ void BModel::CopyInfToSet(BSet& set)
   LstFastAppend(lsta,auxa,tmp=NewFND(BMat,COR,paramCor_));
   LstFastAppend(lsta,auxa,tmp=NewFND(BMat,ACOR,resACor_));
   LstFastAppend(lsta,auxa,tmp=NewFND(BMat,PACOR,resPACor_));
+  LstFastAppend(lsta,auxa,tmp=NewFND(BMat,Gradient,gradient));
   LstFastAppend(lst,aux,  tmp=NewSetFND(Correlations,lsta,NIL,BSet::Generic));
-
   LstFastAppend(lst,aux,ParamDiag());
   set.RobElement(lst);
 }
