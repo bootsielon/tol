@@ -1596,6 +1596,28 @@ void BMatARMAACFBartlettLLHRandStationary::CalcContens()
 }
 
 //--------------------------------------------------------------------
+void BuildArimaFactor(
+  const BSet& s,
+  BArray<BARIMAFactor>& factor, 
+  int& p, 
+  int& q)
+//--------------------------------------------------------------------
+{
+  factor.ReallocBuffer(s.Card());
+  int i;
+  for(i=p=q=0; i<s.Card(); i++)
+  {
+    BSet& si = Set(s[i+1]);
+    factor(i).s_   = (BInt)Real(si.Field("Periodicity"));
+    factor(i).dif_ = Pol(si.Field("DIF"));
+    factor(i).ar_  = Pol(si.Field("AR"));
+    factor(i).ma_  = Pol(si.Field("MA"));
+    p += factor(i).ar_.Degree();
+    q += factor(i).ma_.Degree();
+  }
+}
+
+//--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetTemporary, BSetARIMALevinsonEval);
 DefExtOpr(1, BSetARIMALevinsonEval, "ARIMALevinsonEval", 2, 4, "Set Matrix Real Real",
   "(Set arima, Matrix output [, Real calcInitialValues=false, Real sigma=1.0])",
@@ -1648,18 +1670,7 @@ void BSetARIMALevinsonEval::CalcContens()
   bool  iv= (Arg(3))?(Real(Arg(3))!=0):false;
   BDat  sigma = (Arg(4))?Dat(Arg(4)):1.0;
   BArray<BARIMAFactor> factor;
-  factor.ReallocBuffer(s.Card());
-
-  for(i=p=q=0; i<s.Card(); i++)
-  {
-    BSet& si = Set(s[i+1]);
-    factor(i).s_   = (BInt)Real(si.Field("Periodicity"));
-    factor(i).dif_ = Pol(si.Field("DIF"));
-    factor(i).ar_  = Pol(si.Field("AR"));
-    factor(i).ma_  = Pol(si.Field("MA"));
-    p += factor(i).ar_.Degree();
-    q += factor(i).ma_.Degree();
-  }
+  BuildArimaFactor(s,factor,p,q);
   if(!(p+q))
   {
   }
@@ -2402,3 +2413,101 @@ void BMatSttPol2UncVec::CalcContens()
   }
 }
 
+
+//--------------------------------------------------------------------
+DeclareContensClass(BPol, BPolTemporary, BPolVec2Pol);
+DefExtOpr(1, BPolVec2Pol, "Vec2Pol", 2, 2, 
+  "Matrix Real",
+  "(Matrix v, Real p)",
+  "Returns the polynomial 'p' represented by a vector 'v' in this way:\n"
+  "p(B) = 1 - v[1]*B^p  - v[2]*B^2*p - ... \n"
+  "The inverse function is Pol2Vec.",
+	BOperClassify::Sthocastic_);
+//--------------------------------------------------------------------
+void BPolVec2Pol::CalcContens()
+//--------------------------------------------------------------------
+{
+  BMatrix<BDat>& V = Mat(Arg(1));
+  const BArray<BDat>& vec = V.Data();
+  int d,n = vec.Size();
+  if(n==0) { contens_ = BPolyn<BDat>::One(); }
+  else
+  {
+    int period = (int)Real(Arg(2));
+    contens_.AllocBuffer(n+1);
+    contens_[0].PutDegree(0);
+    contens_[0].PutCoef(1);
+    for(d = 1; d<=n; d++) 
+    { 
+      contens_[d].PutDegree(d*period);
+      contens_[d].PutCoef(-vec[d-1]);
+    }
+  }
+}
+
+
+//--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatPol2Vec);
+DefExtOpr(1, BMatPol2Vec, "Pol2Vec", 2, 2, "Polyn Real",
+  "(Polyn p, Real p)",
+  "Returns the column vector 'v' representing a polynomial 'p' in this way:\n "
+  "  p(B) = 1 - v[1]*B^p  - v[2]*B^2*p - ... \n"
+  "The inverse function is Vec2Pol.",
+	BOperClassify::Sthocastic_);
+//--------------------------------------------------------------------
+void BMatPol2Vec::CalcContens()
+//--------------------------------------------------------------------
+{
+  BPolyn<BDat>& pol = Pol(Arg(1));
+  int period =(int)Real(Arg(2));
+  int d,n = pol.Degree()/period;
+  if(n<=0)
+  {
+    contens_.Alloc(0,1);
+  }
+  else
+  {
+    contens_.Alloc(n,1);
+    BArray<BDat>& vec = contens_.GetData();
+    for(d = 1; d<=n; d++) { vec[d-1] = -pol.Coef(period*d); }
+  }
+}
+
+/*
+//--------------------------------------------------------------------
+DeclareContensClass(BSet, BSetTemporary, BSetARIMAConditionalEstimate);
+DefExtOpr(1, BSetARIMAConditionalEstimate, "ARMAConditionalEstimate", 1, 4, "Set Date Date Set",
+  "(Set arima, Matrix z [, Matrix w0, Matrix a0])",
+  I2("Estimates by least squares approximation an ARIMA model "
+     "conditioned by initial values",
+     "Estima por la aproximación de mínimos cuadrados un modelo ARIMA "
+     "condicionado por los valores iniciales"),
+    BOperClassify::Sthocastic_);
+//--------------------------------------------------------------------
+void BSetARIMAConditionalEstimate::CalcContens()
+//--------------------------------------------------------------------
+{
+  BInt i, p, q;
+  BSet& s = Set(Arg(1));
+  BMat& z = Mat(Arg(2));
+  BMat w0, a0;
+  if(Arg(3)) { w0 = Mat(Arg(3)); }
+  if(Arg(4)) { a0 = Mat(Arg(4)); }
+  BArray<BARIMAFactor> factor;
+  BuildArimaFactor(s,factor,p,q);
+  if(!(p+q))
+  {
+    return;
+  }
+  BARIMA model;
+  model.PutFactors(factor);
+  model.PutOutputData(z);
+  model.w0_ = w0;
+  model.a0_ = a0;
+
+  BARIMAConditionalEstimation est(@model);
+  est.Marquardt();
+  return;
+}
+
+*/
