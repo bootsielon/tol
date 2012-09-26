@@ -145,10 +145,13 @@ public:
   BArray<BARIMAFactor>	factor_;
   BArray<BARIMAFactor>	grFact_;
   BArray<BARIMAFactor>	acumFact_;
-  BARIMAFactor		prod_;
+  BARIMAFactor prod_;
+  BArray<BDat> coef_;
   BInt			d_;
   BInt			p_;
   BInt			q_;
+  BInt			n_;
+  BInt			m_;
   BMatrix<BDat>		z_;
   BMatrix<BDat>		w_;
   BMatrix<BDat>		r_;
@@ -156,6 +159,7 @@ public:
   BMatrix<BDat>		aCoviw_;
   BMatrix<BDat>		a0_;
   BMatrix<BDat>		w0_;
+  BMatrix<BDat>		Ja_;
   BArray<BDat> aCov_;
   BArray<BDat> aCor_;
   BArray<BDat> aCorI_;
@@ -166,15 +170,21 @@ public:
   BDat logLikelihood_;
   BDat likelihoodCoef_;
   BDat waCoef_;
+  BDat stdErr_;
 
   BARIMA() {};
  ~BARIMA() {};
 
-  void PutFactors   (const BArray<BARIMAFactor>& factor);
   void PutOutputData(const BMatrix<BDat>& z);
+  void PutFactors   (const BArray<BARIMAFactor>& factor);
+  void FactorUpdated();
+  void PutCoef(const BArray<BDat>& coef);
+  const BArray<BDat>& GetCoef() const;
   void OutputDataUpdated();
   void SetError();
-  bool CheckStationary();
+  void CalcResiduals();
+  void CalcResidualsJacobian(BMatrix<BDat>& J);
+  bool CheckStationary(bool allowNonStat=false);
   bool CalcAutoCovarianze(BInt N);
   bool CalcAutoCorrelation();
   bool CalcLikelihood_Levinson(BDat sigma=1.0, BInt n=-1, BBool calcDet=BTRUE, BBool calcInitValues=BTRUE);
@@ -183,4 +193,37 @@ public:
 };
 
 
+//--------------------------------------------------------------------
+class BARIMACondLeastSqr : public BRnRmFunction
+
+/*! Class to estimate an ARIMA model conditioned to initial values.
+ */
+//--------------------------------------------------------------------
+{
+public:
+  BARIMA* M_;
+  BMatrix<BDat> x;
+  BMatrix<BDat> G;
+  BMatrix<BDat> H;
+  BMatrix<BDat> S;
+  BMatrix<BDat> U;
+  BDiagMatrix<BDat> D;
+  BDiagMatrix<BDat> Dp;
+  BMatrix<BDat> V;
+  BMatrix<BDat> SLt;
+  BMatrix<BDat> x_StdErr;
+  BMatrix<BDat> x_T;
+  BMatrix<BDat> x_RefuseProb;
+  BDat stdErr;
+  BDat S_logDet;
+
+  BARIMACondLeastSqr(BARIMA* model);
+  void Evaluate(      BArray<BDat>& a,
+                const BArray<BDat>& p);
+  void Jacobian(const BArray<BDat>&  x,
+                const BArray<BDat>&  y,
+                      BMatrix<BDat>& J);
+  BBool Marquardt();
+  BDat StationarityProb(int sampleLength);
+};
 #endif	//BARMA

@@ -35,6 +35,7 @@
 #include <tol/tol_bvmat.h>
 #include <tol/tol_bratgra.h>
 #include <tol/tol_bar.h>
+#include <tol/tol_bprdist.h>
 
 //--------------------------------------------------------------------
 // static variables
@@ -1153,32 +1154,44 @@ BSymMatrix<BDat> ARMAAutoCovarianze(const BPolyn<BDat> ar,
 void BARIMA::PutFactors(const BArray<BARIMAFactor>& factor)
 //--------------------------------------------------------------------
 {
+  BInt i,j;
+  if(&factor_ == &factor) { return; }
   if(!factor.Size())
   {
     factor_.AllocBuffer(0);
     grFact_   = BArray<BARIMAFactor>(0);
     acumFact_ = BArray<BARIMAFactor>(0);
+    coef_.AllocBuffer(0);
     d_ = 0;
     p_ = 0;
     q_ = 0;
     return;
   }
-  BInt i,j;
   factor_.AllocBuffer(factor.Size());
-  for(i=j=0;i<factor.Size();i++)
+  for(i=j=n_=0;i<factor.Size();i++)
   {
     if(factor(i).HasValue())
     {
       factor_(j++) = factor(i);
+      n_+=(factor(i).ar_.Size()-1)+(factor(i).ma_.Size()-1);
     }
   }
   if(!j)
   {
     factor_(j++) = factor(0);
   }
-
   factor_.ReallocBuffer(j);
   factor_.Sort(ArrayARIMAFactorCmp);
+  coef_.ReallocBuffer(n_);
+  FactorUpdated();
+}
+
+//--------------------------------------------------------------------
+void BARIMA::FactorUpdated()
+//--------------------------------------------------------------------
+{
+  BInt i,j;
+  GetCoef();
   grFact_   = BArray<BARIMAFactor>(factor_.Size());
   acumFact_ = BArray<BARIMAFactor>(factor_.Size());
 //prod_.SetOne();
@@ -1211,10 +1224,49 @@ void BARIMA::PutFactors(const BArray<BARIMAFactor>& factor)
   d_ = prod_.dif_.Degree();
   p_ = prod_.ar_ .Degree();
   q_ = prod_.ma_ .Degree();
-//Std(BText("\nd=")+d_);
-//Std(BText("\np=")+p_);
-//Std(BText("\nq=")+q_);
+}
 
+//--------------------------------------------------------------------
+const BArray<BDat>& BARIMA::GetCoef() const
+//--------------------------------------------------------------------
+{
+  int i,j,k,r;
+  for(r=k=0;k<factor_.Size();k++)
+  {
+    BPolyn<BDat>& ar = factor_(k).ar_;
+    BPolyn<BDat>& ma = factor_(k).ma_;
+    for(i=1;i<ar.Size();i++)
+    {
+      coef_[r++] = ar[i].Coef();
+    }
+    for(j=1;j<ma.Size();j++)
+    {
+      coef_[r++] = ma[j].Coef();
+    }
+  }
+  return(coef_);
+}
+
+//--------------------------------------------------------------------
+void BARIMA::PutCoef(const BArray<BDat>& coef)
+//--------------------------------------------------------------------
+{
+  int i,j,k,r;
+  if(&coef_ != &coef) { coef_ = coef; }
+  for(r=k=0;k<factor_.Size();k++)
+  {
+    BPolyn<BDat>& ar = factor_(k).ar_;
+    BPolyn<BDat>& ma = factor_(k).ma_;
+    for(i=1;i<ar.Size();i++)
+    {
+      ar[i].PutCoef(coef[r++]);
+    }
+    for(j=1;j<ma.Size();j++)
+    {
+      ma[j].PutCoef(coef[r++]);
+    }
+  }
+  FactorUpdated();
 }
 
 //--------------------------------------------------------------------
@@ -1233,6 +1285,7 @@ void BARIMA::OutputDataUpdated()
   BMat z0 = z_.Sub(0,0,d_,z_.Columns());
   BMat z1 = z_.Sub(d_,0,z_.Rows()-d_,z_.Columns());
   Backward(prod_.dif_,z0,z1,w_);
+  m_ = w_.Rows();
 //TRZ(FrobeniusNormU(z0.Data())); TRZ(FrobeniusNormU(z1.Data()));TRZ(FrobeniusNormU(w_.Data()));
 //TRZ(w_);
   BMat w0 = w_.Sub(0,0,p_,w_.Columns());
@@ -1243,6 +1296,41 @@ void BARIMA::OutputDataUpdated()
 //TRZ(mair_);
 }
 
+//--------------------------------------------------------------------
+void BARIMA::CalcResiduals()
+//--------------------------------------------------------------------
+{
+  MatBackwardDifEq(prod_.ar_/prod_.ma_,w0_,w_,a0_,a_);
+}
+
+//--------------------------------------------------------------------
+void BARIMA::CalcResidualsJacobian(BMatrix<BDat>& J)
+//--------------------------------------------------------------------
+{
+  int i,r,k,j,d;
+  BMatrix<BDat> b;
+  
+  J.Alloc(m_,n_);
+  for(r=k=0;k<factor_.Size();k++)
+  {
+    BPolyn<BDat>& ar = factor_(k).ar_;
+    BPolyn<BDat>& ma = factor_(k).ma_;
+    
+    for(i=1;i<ar.Size();i++)
+    {
+      d = ar[i].Degree();
+      for(j=0; j<m_; j++) { J(j,k) = (j<d)?0:a_(j-d,0); } 
+      k++;
+    } 
+    MatBackwardDifEq(BPol::One()/ma,a_,b);
+    for(j=1;j<ma.Size();j++)
+    {
+      d = ma[i].Degree();
+      for(j=0; j<m_; j++) { J(j,k) = (j<d)?0:-b(j-d,0); } 
+      k++;
+    }
+  }
+}
 
 //--------------------------------------------------------------------
   bool BARIMA::CalcAutoCovarianze(BInt N)
@@ -1279,7 +1367,7 @@ void BARIMA::OutputDataUpdated()
 }
 
 //--------------------------------------------------------------------
-  bool BARIMA::CheckStationary()
+  bool BARIMA::CheckStationary(bool allowNonStat)
 //--------------------------------------------------------------------
 {
   bool arOk = true;
@@ -1293,7 +1381,7 @@ void BARIMA::OutputDataUpdated()
     maOk = maOk && IsStationary(ma_i);
   }
   bool ok = arOk && maOk;
-  if(!ok)
+  if(!allowNonStat && !ok)
   {
     Warning(I2("ARMA polynomials are not all stationary.",
                "Los polinomios ARMA no son todos estacionarios."));
@@ -1359,7 +1447,7 @@ void BARIMA::OutputDataUpdated()
     MatForwardDifEq(prod_.ma_/prod_.ar_,aCoviw_,a_);
     if(calcInitValues && mpq)
     { 
-      int j,d;
+      int j;
       BMatrix<BDat> covWW0(mpq,N);
       for(i=0; i<mpq; i++) 
       {
@@ -1585,3 +1673,80 @@ void BARIMA::OutputDataUpdated()
 //return(CalcLikelihood_Almagro (sigma));
 }
 
+
+
+//------------------------------------------------------------------
+BARIMACondLeastSqr::BARIMACondLeastSqr(BARIMA* model)
+: BRnRmFunction(), M_(model)
+//------------------------------------------------------------------
+{
+  SetDimensions(M_->n_, M_->m_);
+};
+
+//------------------------------------------------------------------
+void BARIMACondLeastSqr::Evaluate(      BArray<BDat>& a,
+              const BArray<BDat>& p)
+//------------------------------------------------------------------
+{
+  M_->PutCoef(p);
+  M_->CalcResiduals();
+  a = M_->a_.Data();
+};
+
+//------------------------------------------------------------------
+void BARIMACondLeastSqr::Jacobian(const BArray<BDat>&  x,
+              const BArray<BDat>&  y,
+                    BMatrix<BDat>& J)
+//------------------------------------------------------------------
+{
+  M_->PutCoef(x);
+  M_->CalcResidualsJacobian(J);
+};
+
+//------------------------------------------------------------------
+BBool BARIMACondLeastSqr::Marquardt()
+//------------------------------------------------------------------
+{
+  BDiagMatrix<BDat> Dp, D;
+  BMatrix<BDat> U,V,Vt;
+  x.Alloc(n_,1);
+  G.Alloc(n_,1);
+  H.Alloc(n_,n_);
+  U.Alloc(m_, n_);
+  V.Alloc(n_, n_);
+  D.Alloc(n_);
+  M_->stdErr_ = LeastSqrMarquardt(M_->coef_, M_->a_.GetData(), M_->Ja_);
+  stdErr = M_->stdErr_;
+  BDat var = stdErr^2;
+  x.GetData() = M_->coef_;
+  gsl_SingularValueDecomposition(M_->Ja_, U, D, V,
+  BText("Golub_Reinsch_Mod"));
+  Vt  = V.T();
+  Dp  = D.P(Sqrt(D.Rows()*BDat::Zero()));
+  H = (V*D*D*Vt)/var;
+  S = (V*Dp*Dp*Vt)*var;
+  SLt = V*Dp*stdErr;
+  return(stdErr.IsKnown());
+};
+
+//------------------------------------------------------------------
+BDat BARIMACondLeastSqr::StationarityProb(int sampleLength)
+//------------------------------------------------------------------
+{
+  int iter, t, nonStationaryCount=0;
+  BMatrix<BDat> e(n_,1), z(n_,1);
+  for(iter=1; iter<= sampleLength; iter++)
+  {
+    for(t=0; t<n_; t++)
+    {
+      e(t,0) = BNormalDist::Random01();
+    }
+    z = x + SLt * e;
+    M_->PutCoef(z.Data());
+    nonStationaryCount += !M_->CheckStationary(true);  
+  }
+  return(double(nonStationaryCount)/sampleLength);
+};
+
+
+/* */
