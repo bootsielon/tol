@@ -733,7 +733,7 @@ BSyntaxObject* BModel::OneParamDiag(BInt n)
     LstFastAppend(lst,aux, tmp = BContensText::New(qualifTitle_[diagQualify_[n]]));
   }
   tmp = strTestResult->Create(lst,testTitle_ [n]);
-  tmp->PutName(testTitle_[n]);
+  tmp->PutName(testName_[n]);
   return tmp;
 }
 
