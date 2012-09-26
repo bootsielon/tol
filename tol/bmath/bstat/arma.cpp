@@ -1237,11 +1237,11 @@ const BArray<BDat>& BARIMA::GetCoef() const
     BPolyn<BDat>& ma = factor_(k).ma_;
     for(i=1;i<ar.Size();i++)
     {
-      coef_[r++] = ar[i].Coef();
+      coef_[r++] = -ar[i].Coef();
     }
     for(j=1;j<ma.Size();j++)
     {
-      coef_[r++] = ma[j].Coef();
+      coef_[r++] = -ma[j].Coef();
     }
   }
   return(coef_);
@@ -1259,11 +1259,11 @@ void BARIMA::PutCoef(const BArray<BDat>& coef)
     BPolyn<BDat>& ma = factor_(k).ma_;
     for(i=1;i<ar.Size();i++)
     {
-      ar[i].PutCoef(coef[r++]);
+      ar[i].PutCoef(-coef[r++]);
     }
     for(j=1;j<ma.Size();j++)
     {
-      ma[j].PutCoef(coef[r++]);
+      ma[j].PutCoef(-coef[r++]);
     }
   }
   FactorUpdated();
@@ -1319,17 +1319,33 @@ void BARIMA::CalcResidualsJacobian(BMatrix<BDat>& J)
     for(i=1;i<ar.Size();i++)
     {
       d = ar[i].Degree();
-      for(j=0; j<m_; j++) { J(j,k) = (j<d)?0:a_(j-d,0); } 
-      k++;
+      for(j=0; j<m_; j++) 
+      { 
+        J(j,r) = (j<d)?0:-a_(j-d,0); 
+      } 
+      r++;
     } 
     MatBackwardDifEq(BPol::One()/ma,a_,b);
-    for(j=1;j<ma.Size();j++)
+    for(i=1;i<ma.Size();i++)
     {
       d = ma[i].Degree();
-      for(j=0; j<m_; j++) { J(j,k) = (j<d)?0:-b(j-d,0); } 
-      k++;
+      for(j=0; j<m_; j++) 
+      {
+        J(j,r) = (j<d)?0:b(j-d,0); 
+      } 
+      r++;
     }
   }
+/*  
+  for(r=0;r<n_;r++)
+  {
+    for(j=0; j<m_; j++) 
+    {
+      if(J(j,r).IsUnknown())
+        printf("");
+    } 
+  }
+*/
 }
 
 //--------------------------------------------------------------------
