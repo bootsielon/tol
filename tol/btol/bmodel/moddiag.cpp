@@ -563,6 +563,7 @@ BInt BModel::UnitRootsProbTest(BInt n)
   BBool necessary = num!=0; 
   if(necessary)
   {
+/*
     x=0;
     if(!paramCor_.Rows() || !paramCor_.Columns())
     {
@@ -628,6 +629,10 @@ BInt BModel::UnitRootsProbTest(BInt n)
       unarys[j] /= maxIter;
       if(x<unarys[j]) { x = unarys[j]; }
     }
+*/
+  BARIMACondLeastSqr condEst(&arma_);
+  condEst.Marquardt(); 
+  x = condEst.StationarityProb(1000); 
   /*
     Std(BText("\nRegular  AR unary rooots probability = ")+unarys[0].Name());
     Std(BText("\nSeasonal AR unary rooots probability = ")+unarys[1].Name());
