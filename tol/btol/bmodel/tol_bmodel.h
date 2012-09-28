@@ -84,7 +84,7 @@ public: //member data
   BArray<BDat>	  diagPunct_;
   BArray<BInt>	  diagQualify_;
   BInt		  qualification_;
-  BDat		  arithmeticQualification_;
+  BDat		  diagnosysLogPrior_;
   BReal		  firstTransformation_;	 // additive BOX-COX transformation
   BReal		  secondTransformation_; // exponential BOX-COX transformation
   BInt		  regularDifference_;	 // regular difference exponent
