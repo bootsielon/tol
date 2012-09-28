@@ -69,7 +69,7 @@ BArray<BText> BModel::testTitle_;
 FNDParam(ACOR, "Residuous autocorrelation");
 FNDParam(Alfa, "P-Value of F-Schnedecor statistic");
 FNDParam(AR, "Auto-Regressive polynomials");
-FNDParam(ArithmeticQualification, "Diagnostics qualification value");
+FNDParam(DiagnosysLogPrior, "Diagnosys prior log-density");
 FNDParam(Asymmetry, "Asymmetry of residuals");
 FNDParam(Average, "Average of residuals");
 FNDParam(Constant, "Constant of the model");
@@ -799,12 +799,12 @@ void BModel::CopyInfToSet(BSet& set)
   if(DoDiagnostics().Value())
   {
     LstFastAppend(lsta,auxa,tmp=NewFND(BText,Qualification,qualifTitle_[qualification_]));
-    LstFastAppend(lsta,auxa,tmp=NewFND(BDat,ArithmeticQualification,arithmeticQualification_));
+    LstFastAppend(lsta,auxa,tmp=NewFND(BDat,DiagnosysLogPrior,diagnosysLogPrior_));
   }
   else
   {
     LstFastAppend(lsta,auxa,tmp=NewFND(BText,Qualification,"?"));
-    LstFastAppend(lsta,auxa,tmp=NewFND(BDat,ArithmeticQualification,BDat::Unknown()));
+    LstFastAppend(lsta,auxa,tmp=NewFND(BDat,DiagnosysLogPrior,BDat::Unknown()));
   }
   LstFastAppend(lsta,auxa,tmp=NewFND(BDat,MaxLHSigma,sigma));
   LstFastAppend(lsta,auxa,tmp=NewFND(BDat,normMaxLH,normMaxLH));

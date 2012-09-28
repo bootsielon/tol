@@ -631,8 +631,14 @@ BInt BModel::UnitRootsProbTest(BInt n)
     }
 */
   BARIMACondLeastSqr condEst(&arma_);
-  condEst.Marquardt(); 
-  x = condEst.StationarityProb(1000); 
+  if(condEst.Marquardt())
+  { 
+    x = condEst.StationarityProb(1000); 
+  }
+  else
+  {
+    x = 1;
+  }
   /*
     Std(BText("\nRegular  AR unary rooots probability = ")+unarys[0].Name());
     Std(BText("\nSeasonal AR unary rooots probability = ")+unarys[1].Name());
@@ -699,7 +705,7 @@ void BModel::Diagnostics()
     return;
   }
   qualification_ = 0;
-  arithmeticQualification_ = 0;
+  diagnosysLogPrior_ = 0;
   int n=0, m=1;
   int requiredTests = 0;
   for(; n<testTitle_.Size(); n++, m++)
@@ -732,7 +738,7 @@ void BModel::Diagnostics()
          if(p<=x) { q = p * x0/x; }
     else if(p<=y) { q = x0 + (p-x) * (y0-x0)/(y-x); }
     else          { q = y0 + (p-y) * ( 1-y0)/(1-y); }
-    arithmeticQualification_ += q;
+    diagnosysLogPrior_ += (q==1)?BDat::NegInf():Log(1.0-q);
     requiredTests += (diagQualify_(n) != BDIAGUNNECESSARY);
 /*
     Std( BText("\nBounds[")  + testAccept_ (n) +
@@ -743,9 +749,9 @@ void BModel::Diagnostics()
          "; Qualify(1/3,2/3) = " + q.Name() +";\n");
 */
   }
-  arithmeticQualification_ /= requiredTests;
+  diagnosysLogPrior_ /= requiredTests;
 /*
   Std(BText("\nModel Average Qualify(1/3, 2/3) = ") +
-      arithmeticQualification_.Name() +";\n");
+      diagnosysLogPrior_.Name() +";\n");
 */
 }
