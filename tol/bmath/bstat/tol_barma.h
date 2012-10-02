@@ -190,6 +190,18 @@ public:
   bool CalcLikelihood_Levinson(BDat sigma=1.0, BInt n=-1, BBool calcDet=BTRUE, BBool calcInitValues=BTRUE);
   bool CalcLikelihood_Almagro(BDat sigma=1.0);
   bool CalcLikelihood(BDat sigma=1.0);
+
+  static bool PreliminaryEstimation(
+    const BArray<BDat>& acvf,
+    int p,
+    int q,
+    int N,
+    int maxIter,
+    BDat eps,
+    BDat& sigma,
+    BArray<BDat>& phi,
+    BArray<BDat>& theta);
+
 };
 
 

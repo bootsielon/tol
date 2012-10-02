@@ -2473,6 +2473,72 @@ void BMatPol2Vec::CalcContens()
   }
 }
 
+
+//--------------------------------------------------------------------
+DeclareContensClass(BSet, BSetTemporary, BSetARMAPreliminaryEstimation);
+DefExtOpr(1, BSetARMAPreliminaryEstimation, "ARMAPreliminaryEstimation", 
+  4, 6, "Matrix Real Real Real Real Real",
+  "(Matrix ACVF, Real p, Real q, Real N [, Real maxIter=100*q, Real eps = 1/Sqrt(N))",
+  "Estimates a preliminary AR(p)MA(q) non seassonal model \n"
+  "  \n"
+  " (1-phi(B)) z[t] = (1-theta(B)) a[t] ; t = 1 ... N \n"
+  " \n"
+  "  a ~ Normal(0,variance*I) \n"
+  " \n"
+  "using just the first 1+p+q sampling autocovariances of ARMA noise.\n"
+  "Vector ACVF represents the sampling autocovariance of an unknown ARMA "
+  "noise z of length N, and must have at least 1+p+q cells, and first one "
+  "must be positive.\n"
+  "If success, it returns a Set with positive real variance and "
+  "polynomials 1-phi(B) and 1-phi(B). Elsewhere it returns unknown variance."
+  "The algorithm is given by Box and Jenkins in their book"
+  "\n"
+  "  Time Series Analysis, forecasting and control \n"
+  "  Revised edition, January 1976 \n"
+  "  pages 498-500 \n",
+  BOperClassify::Sthocastic_);
+//--------------------------------------------------------------------
+void BSetARMAPreliminaryEstimation::CalcContens()
+//--------------------------------------------------------------------
+{
+  BMatrix<BDat>& acvf = Mat(Arg(1));
+  int p = (int)Abs(Real(Arg(2)));
+  int q = (int)Abs(Real(Arg(3)));
+  int N = (int)Abs(Real(Arg(4)));
+  //Maximum iteration stop criteria
+  int maxIter = 100*q;
+  //Tolerance stop criteria
+  BDat eps = 1.0/Sqrt(N);
+  if(Arg(5)) { maxIter = (int)Abs(Real(Arg(5))); }
+  if(Arg(6)) { eps = Dat(Arg(6)); }
+  BDat variance;
+  BArray<BDat> phi;
+  BArray<BDat> theta;
+  BPolyn<BDat> phiB;
+  BPolyn<BDat> thetaB;
+  phiB.AllocBuffer(p+1);
+  thetaB.AllocBuffer(q+1);
+  int i;
+  BARIMA::PreliminaryEstimation(acvf.Data(), p, q, N, maxIter, eps, variance, phi, theta);
+  phiB[0].PutDegree(0);
+  phiB[0].PutCoef(1);
+  for(i=1; i<=p; i++) { 
+    phiB[i].PutDegree(i);
+    phiB[i].PutCoef(-phi(i-1));
+  }
+  thetaB[0].PutDegree(0);
+  thetaB[0].PutCoef(1);
+  for(i=1; i<=q; i++) { 
+    thetaB[i].PutDegree(i);
+    thetaB[i].PutCoef(-theta(i-1));
+  }
+  BList* result = NULL, *aux = NULL;
+  LstFastAppend(result, aux,  BContensDat::New("variance",variance,	""));
+  LstFastAppend(result, aux,  BContensPol::New("phi",phiB, ""));
+  LstFastAppend(result, aux,  BContensPol::New("theta",thetaB,  ""));
+  contens_.RobElement(result);
+}
+
 /*
 //--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetTemporary, BSetARIMAConditionalEstimate);

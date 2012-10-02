@@ -1689,6 +1689,228 @@ void BARIMA::CalcResidualsJacobian(BMatrix<BDat>& J)
 //return(CalcLikelihood_Almagro (sigma));
 }
 
+//--------------------------------------------------------------------
+#define PrlmEstErr(MSG) \
+  phi.Replicate(BDat::Unknown(),p); \
+  theta.Replicate(BDat::Unknown(),q); \
+  Error(BText("[ARMA prelim. estim.] ")+MSG); \
+  return(false); 
+
+
+BMat SvdMinimumResidualsSolve(const BMat& A, const BMat& b);
+
+//--------------------------------------------------------------------
+  bool BARIMA::PreliminaryEstimation(
+    const BArray<BDat>& acvf,
+    int p,
+    int q,
+    int N,
+    int maxIter,
+    BDat eps,
+    BDat& variance,
+    BArray<BDat>& phi,
+    BArray<BDat>& theta)
+/*
+  Estimates a preliminary AR(p)MA(q) non seassonal model
+
+   (1-phi(B)) z = (1-theta(B)) a 
+ 
+   a ~ Normal(0,variance)
+
+  using just the first 1+p+q sampling autocovariances (acvf) of noise (z)
+
+  The algorithm is given by Box and Jenkins in their book
+    Time Series Analysis, forecasting and control
+    Revised edition, January 1976
+    pages 498-500
+
+*/
+//--------------------------------------------------------------------
+{
+  phi.Replicate(BDat::Unknown(),p);
+  theta.Replicate(BDat::Unknown(),q);
+  int s = acvf.Size();
+  if(p+q+1>s) { PrlmEstErr(BText(
+    "Insuficient autocovariances ")+s+"<"+(p+q+1)); }
+  if(acvf(0)<=0) { PrlmEstErr(BText(
+    "First autocovariance is negative: ")+acvf(0)); }
+  int i,j,k;
+  if(!p && !q)
+  {
+    //In a white noise model the only unknown is the variance
+    variance = acvf(0);
+    return(true);
+  }
+  for(i=0; i<=p+q; i++)
+  {
+    if(acvf(i).IsUnknown()) { PrlmEstErr(BText(
+      "Unknown autocovariance are not allowed")); }
+  }
+  if(p)
+  {
+    //The (acvf[q+1], ..., acvf[q+p]) autocovariances of an AR(p)MA(q)
+    //process match the q-displaced Yule-Walker equations 
+    // 
+    //  A*phi = x
+    // 
+    //  A[i,j] = acvf[|q+i-j|]
+    // 
+    //  x[i] = acvf[i]
+    // 
+    //  i,j = 1 ... p
+    //
+    BMatrix<BDat> A(p,p), x(p,1);
+    for(i=1; i<=p; i++)
+    {
+      x(i-1,0) = acvf(q+i);
+      for(j=1; j<=p; j++)
+      {
+        k = abs(q+i-j);
+        assert((k>=0)&&(k<=p+q));
+        A(i-1,j-1) = acvf(k);
+      }  
+    }
+  //phi = CholeskiMinimumResidualsSolve(A,x).Data();
+  //phi = gsl_MinimumResidualsSolve(A,x).Data();
+    phi = SvdMinimumResidualsSolve(A,x).Data();
+
+    if(phi.Size()!=p) { PrlmEstErr(BText(
+    "Yule-Walker equations are singular or are wrong defined")); }
+  }
+  if(!q)
+  {
+    //In a pure AR(p), the variance is (1-phi(B)):acvf
+    variance = acvf(0);
+    for(i=1; i<=p; i++)
+    {
+      variance -= acvf(i)*phi(i-1);
+    }
+    if(variance<=0) { PrlmEstErr(BText(
+    "Yule-Walker equations returns negative variance")); }
+  }
+  else
+  {
+    if(maxIter < 10*q) { maxIter = 10*q; }
+    if(eps < 1.0/Sqrt(N)) { eps = 1.0/Sqrt(N); }
+    BArray<BDat> c(q+1);
+    //In a AR(p)MA(q) we will estimate the theta coefficients fitting the 
+    //AR-filtered autocovariances non linear equations
+    //
+    //  c(B+F) = (1-phi(B))*(1-phi(F))*acvf(B+F) = (1-theta(B))*(1-theta(F))
+    //
+    if(!p)
+    {
+      //In a pure MA(q) we will have directly 
+      // 
+      // c(B+F) = acvf(B+F)
+      // 
+      for(j=0; j<=q; j++)
+      {
+        c(j) = acvf(j);
+      }
+    }
+    else
+    {
+      //In p>0 we need to filter the original autocovariances to build
+      //the corresponding ACVF for the corresponding pure MA(q) 
+      //
+      //  c(B+F) = (1-phi(B))*(1-phi(F))*acvf(B+F)
+      //
+      BArray<BDat> phi_(p+1);
+      phi_(0) = -1;
+      for(k=1; k<=p; k++)
+      {
+        phi_(k) = phi(k-1);
+      }
+      for(j=0; j<=q; j++)
+      {
+        c(j) = 0;
+        for(k=0; k<=p; k++)
+        {
+          for(i=0; i<=p; i++)
+          {
+            c(j) += phi_(i)*phi_(k)*acvf(abs(j+i-k));
+            assert(c(j).IsKnown());            
+          }
+        }
+      }
+    }
+    //We will use multivariate Newton-Raphson to solve the non linear equations
+    // 
+    //  t <- t - h
+    //  T*h = f
+    //  f = (1-phi(B))*(1-phi(F))*acvf(B+F) - c(B+F)
+    //  T = phi(B) + phi(F)
+    // 
+    BDat F, minF;
+    BMatrix<BDat> t(q+1,1), tMin(q+1,1), h(q+1,1), f(q+1,1), T(q+1,q+1);
+    //Initializes vector t with values corresponding to white noise
+    t.SetAllValuesTo(0);
+    t(0,0) = Sqrt(c(0));
+    //Iteration counter
+    int iter = 0;
+    //Newton-Raphson cycle
+  //Std(BText("[ARMA prelim. estim.] iter[")+iter+"] t=\n"+t.Name()+"\n");
+    do
+    {
+    //if(iter>=maxIter) { PrlmEstErr(BText("Exceeded maximum number of Newton iterations")); }
+      iter++;
+      //Calculates vector f, and its module F = |f|
+      F = 0;
+      for(j=0; j<=q; j++) 
+      { 
+        BDat fj = -c(j); 
+        for(i=0; i<=q-j; i++) 
+        { 
+          fj += t(i,0)*t(i+j,0); 
+        }
+        f(j,0) = fj;
+        F = max(F,Abs(fj));
+      }
+      if(iter==1) { minF = F; }
+      else if(F<minF)
+      {
+        minF = F;
+        tMin = t;
+      }  
+      //Calculates matrix T
+      T.SetAllValuesTo(0);
+      for(i=0; i<=q; i++) 
+      { 
+        for(j=i; j<=q; j++) 
+        { 
+          T(i,j) += t(j-i,0);
+        }
+        for(j=0; j<=q-i; j++) 
+        { 
+          T(i,j) += t(j+i,0);
+        }
+      }
+      //Solves linear system T*h = f
+    //h = CholeskiMinimumResidualsSolve(T,f);
+    //h = gsl_MinimumResidualsSolve(T,f);
+      h = SvdMinimumResidualsSolve(T,f);
+
+      if(!h.Rows()|| !h.IsKnown()) { PrlmEstErr(BText(
+        "Linear step of Newton iteration has a singular or wrong defined coefficient matrix")); }
+      //Newton update
+      t -= h;
+    //Std(BText("[ARMA prelim. estim.] iter[")+iter+"] f=\n"+f.Name()+"\n |f|="+F+"\n T=\n"+T.Name()+"\n h=\n"+h.Name()+" t=\n"+t.Name()+"\n\n");
+    //if(t(0,0)<=0) { PrlmEstErr(BText(
+    //  "Linear step of Newton iteration returns negative variance")); }
+    }
+    while(F>eps && iter<=maxIter );
+    //Retrieve variance as square of first term of vector t
+    variance = tMin(0,0)^2;
+    //Retrieve theta coefficients as rest of oposite of scaled values on vector t
+    for(j=1; j<=q; j++) 
+    {   
+      theta(j-1) = -tMin(j,0)/tMin(0,0);
+    }
+  }
+  return(true);
+}
+
 
 
 //------------------------------------------------------------------
