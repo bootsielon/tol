@@ -68,6 +68,7 @@ BMat CholeskiMinimumResidualsSolve(
   const BMat& A, 
   const BMat& b);
 
+BMat SvdMinimumResidualsSolve(const BMat& A, const BMat& b);
 
 BDat LinearLeastSquareSolve
 (

@@ -327,6 +327,26 @@ BMat CholeskiMinimumResidualsSolve(const BMat& A, const BMat& b)
 }
 
 //--------------------------------------------------------------------
+BMat SvdMinimumResidualsSolve(const BMat& A, const BMat& b)
+
+/*! Solves Ax=b using SVD decomposition
+ */
+//--------------------------------------------------------------------
+{
+  BText method = BText("Golub_Reinsch_Mod");
+  int r = A.Rows();
+  int c = A.Columns();
+  BMat U, V;
+  BDiagMatrix<BDat> D, Dp; 
+  D.Alloc(c);
+  U.Alloc(r,c);
+  V.Alloc(c,c);
+  gsl_SingularValueDecomposition(A,U,D,V, method);
+  Dp = D.P(Sqrt(DEpsilon()));
+  return(V*Dp*((b.T()*U).T()));
+}
+
+//--------------------------------------------------------------------
 BMat Kernel(const BMat& A)
 
 /*! Adds right columns to a orthonormal matrix until to obtain a
