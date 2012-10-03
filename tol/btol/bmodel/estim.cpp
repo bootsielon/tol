@@ -376,6 +376,7 @@ void BSetLinearRegression::CalcContens()
 
   BList* lst = NIL;
   BList* aux	= NIL;
+  BGrammar::IncLevel();
   for(i=0; i<n; i++)
   {
     BList* lsta	   = NIL;
@@ -429,8 +430,8 @@ void BSetLinearRegression::CalcContens()
   LstFastAppend(lst,aux,par);
   LstFastAppend(lst,aux,inf);
   LstFastAppend(lst,aux,covInf);
-
   contens_.RobElement(lst);
+  BGrammar::DecLevel();
 }
 
 
@@ -514,6 +515,7 @@ void BSetAutoRegression::CalcContens()
 
   BList* lst	= NIL;
   BList* aux	= NIL;
+  BGrammar::IncLevel();
   for(i=0; i<n; i++)
   {
     pol -= BMonome<BDat>(param[i], i+1);
@@ -572,8 +574,8 @@ void BSetAutoRegression::CalcContens()
   LstFastAppend(lst,aux,inf);
   LstFastAppend(lst,aux,covInf);
   LstFastAppend(lst,aux,BContensPol::New("",pol, "ARI polyn"));
-
   contens_.RobElement(lst);
+  BGrammar::DecLevel();
 }
 
 
@@ -632,6 +634,7 @@ void BSetLinReg::CalcContens()
 
   BList* lst	= NIL;
   BList* aux	= NIL;
+  BGrammar::IncLevel();
   for(i=0; i<param.Size(); i++)
   {
     BList* lsta	   = NIL;
@@ -688,6 +691,7 @@ void BSetLinReg::CalcContens()
   LstFastAppend(lst,aux,covInf);
 
   contens_.RobElement(lst);
+  BGrammar::DecLevel();
 }
 
 
@@ -740,6 +744,7 @@ void BooleanModelEstimation(const BMat& y,
 
   BList* lst	= NIL;
   BList* aux	= NIL;
+  BGrammar::IncLevel();
   for(i=0; i<param.Size(); i++)
   {
     BList* lsta	   = NIL;
@@ -811,6 +816,7 @@ void BooleanModelEstimation(const BMat& y,
   LstFastAppend(lst,aux,covInf);
 
   result.RobElement(lst);
+  BGrammar::DecLevel();
 }
 
 
@@ -851,6 +857,7 @@ void BSetLogit::CalcContens()
   BMatrix    <BDat> lnL;
   BDat		    lnLikelyhood;
   BDat		    likelyhood;
+  BGrammar::IncLevel();
 
   Logit(y,X,B,e,p,G,H,lnL,lnLikelyhood,likelyhood);
 
@@ -865,6 +872,7 @@ void BSetLogit::CalcContens()
   LstFastAppend(lst,aux,BContensDat::New("", lnLikelyhood, "Log of likelihood"));
   LstFastAppend(lst,aux,BContensDat::New("", likelyhood, "Log of likelihood"));
   contens_.RobElement(lst);
+  BGrammar::DecLevel();
 
 }
 
@@ -890,6 +898,7 @@ void BSetProbit::CalcContens()
   BMatrix    <BDat> lnL;
   BDat		    lnLikelyhood;
   BDat		    likelyhood;
+  BGrammar::IncLevel();
 
   Probit(y,X,B,e,p,G,H,lnL,lnLikelyhood,likelyhood);
 
@@ -904,6 +913,7 @@ void BSetProbit::CalcContens()
   LstFastAppend(lst,aux,BContensDat::New("", lnLikelyhood, "Log of likelihood"));
   LstFastAppend(lst,aux,BContensDat::New("", likelyhood, "Log of likelihood"));
   contens_.RobElement(lst);
+  BGrammar::DecLevel();
 }
 
 /*
@@ -1089,10 +1099,12 @@ void BSetBoxCoxTrans::CalcContens()
   {
     BoxCoxTrans(exponent,addition,zTable.Data().Data(), period);
   }
+  BGrammar::IncLevel();
   BUserDat* exp = BContensDat::New("",exponent,I2("Exponent","Exponente"));
   BUserDat* add = BContensDat::New("",addition,I2("Addition","Adición"  ));
   BList* lst = Cons(exp,NCons(add));
   contens_.RobStruct(lst,BoxCoxStruct_,BSet::Structured);
+  BGrammar::DecLevel();
 }
 
 
@@ -1212,6 +1224,7 @@ void BMatLinLeastSqr::CalcContens()
 
   BList* result=NIL;
   BList* aux=NIL;
+  BGrammar::IncLevel();
 
   BUserMat* UX = BContensMat::New("X",X,I2("Parameters of the model","Parámetros del modelo"));
   LstFastAppend(result, aux, UX);
@@ -1296,6 +1309,7 @@ void BMatLinLeastSqr::CalcContens()
 
   }
   contens_.RobElement(result);
+  BGrammar::DecLevel();
 }
 
 
@@ -2070,6 +2084,7 @@ void BSetARMAGohbergSemenculEval::CalcContens()
     }  
   }
   var /= double(N);
+  BGrammar::IncLevel();
   BUserMat* Var = BContensMat::New("MaxLHVar",var, I2("Tra(W)*Inv(Cov)*W : Maximum likelihood estimated varianze of the model",
                                           "Tra(W)*Inv(Cov)*W : Estimación máximo verosímil de la varianza del modelo"));
   BList* result=NIL;
@@ -2180,6 +2195,7 @@ void BSetARMAGohbergSemenculEval::CalcContens()
   }
 */
   contens_.RobElement(result);
+  BGrammar::DecLevel();
 }
 
 //--------------------------------------------------------------------
@@ -2225,10 +2241,12 @@ void BSetYuleWalkerDurbin::CalcContens()
   YuleWalkerDurbin(r.Data(), y, PACF, logDet, r.Rows());
   BList* result=NIL;
   BList* aux=NIL;
+  BGrammar::IncLevel();
   LstFastAppend(result, aux,  BContensMat::New("y",     BMat(y.Size(),1,y.Buffer()),	   "Solution"));
   LstFastAppend(result, aux,  BContensMat::New("PCC",   BMat(y.Size(),1,PACF.Buffer()), "Partial Correlation Coefficients"));
   LstFastAppend(result, aux,  BContensDat::New("LogDet",logDet,	"Log(Det(T))"));
   contens_.RobElement(result);
+  BGrammar::DecLevel();
 /* */
 }
 
@@ -2275,11 +2293,13 @@ void BSetLevinson::CalcContens()
   BMatrix<BDat> x_  (x  .Size()-1,1,x  .Buffer()+1);
   BMatrix<BDat> y_  (y  .Size()-1,1,y  .Buffer()+1);
   BMatrix<BDat> PCF_(PCF.Size()-1,1,PCF.Buffer()  );
+  BGrammar::IncLevel();
   LstFastAppend(result, aux,  BContensMat::New("x",x_,	    "-Inv(T(r))*c"));
   LstFastAppend(result, aux,  BContensMat::New("y",y_,	    "-Inv(T(r))*R"));
   LstFastAppend(result, aux,  BContensMat::New("PCF",PCF_, "Partial Correlation Coefficients"));
   LstFastAppend(result, aux,  BContensDat::New("LogDet",logDet,  "Log(Det(T(r)))"));
   contens_.RobElement(result);
+  BGrammar::DecLevel();
 }
 
   int LevinsonARMA(const BArray<BDat>& r,
@@ -2338,11 +2358,13 @@ void BSetLevinsonARMA::CalcContens()
   BMatrix<BDat> x_  (x  .Size()-1,1,x  .Buffer()+1);
   BMatrix<BDat> y_  (y  .Size()-1,1,y  .Buffer()+1);
   BMatrix<BDat> PCF_(PCF.Size()-1,1,PCF.Buffer()  );
+  BGrammar::IncLevel();
   LstFastAppend(result, aux,  BContensMat::New("x",x_,	    "-Inv(T(r))*c"));
   LstFastAppend(result, aux,  BContensMat::New("y",y_,	    "-Inv(T(r))*R"));
   LstFastAppend(result, aux,  BContensMat::New("PCF",PCF_, "Partial Correlation Coefficients"));
   LstFastAppend(result, aux,  BContensDat::New("LogDet",logDet,  "Log(Det(T(r)))"));
   contens_.RobElement(result);
+  BGrammar::DecLevel();
 }
 
 
@@ -2481,7 +2503,7 @@ DefExtOpr(1, BSetARMAPreliminaryEstimation, "ARMAPreliminaryEstimation",
   "(Matrix ACVF, Real p, Real q, Real N [, Real maxIter=100*q, Real eps = 0.1/Sqrt(N))",
   "Estimates a preliminary AR(p)MA(q) non seassonal model \n"
   "  \n"
-  " (1-phi(B)) z[t] = (1-theta(B)) a[t] ; t = 1 ... N \n"
+  " phi(B) z[t] = theta(B) a[t] ; t = 1 ... N \n"
   " \n"
   "  a ~ Normal(0,variance*I) \n"
   " \n"
@@ -2490,7 +2512,8 @@ DefExtOpr(1, BSetARMAPreliminaryEstimation, "ARMAPreliminaryEstimation",
   "noise z of length N, and must have at least 1+p+q cells, and first one "
   "must be positive.\n"
   "If success, it returns a Set with positive real variance and "
-  "polynomials 1-phi(B) and 1-phi(B). Elsewhere it returns unknown variance."
+  "polynomials phi(B) and theta(B). Elsewhere it returns unknown variance."
+  "There is no control about stationarity of both polynomials."
   "The algorithm is given by Box and Jenkins in their book"
   "\n"
   "  Time Series Analysis, forecasting and control \n"
@@ -2533,10 +2556,18 @@ void BSetARMAPreliminaryEstimation::CalcContens()
     thetaB[i].PutCoef(-theta(i-1));
   }
   BList* result = NULL, *aux = NULL;
-  LstFastAppend(result, aux,  BContensDat::New("variance",variance,	""));
-  LstFastAppend(result, aux,  BContensPol::New("phi",phiB, ""));
-  LstFastAppend(result, aux,  BContensPol::New("theta",thetaB,  ""));
+  BGrammar::IncLevel();
+  BContensDat* variance_ = BContensDat::New("",variance,	"");
+  BContensPol* phiB_ = BContensPol::New("",phiB, "");
+  BContensPol* thetaB_ =  BContensPol::New("",thetaB,  "");
+  variance_->PutName("variance");
+  phiB_->PutName("phi");
+  thetaB_->PutName("theta");
+  LstFastAppend(result, aux, variance_);
+  LstFastAppend(result, aux, phiB_);
+  LstFastAppend(result, aux, thetaB_);
   contens_.RobElement(result);
+  BGrammar::DecLevel();
 }
 
 /*
