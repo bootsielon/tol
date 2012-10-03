@@ -23,11 +23,18 @@
 #define TOL_BCOMPLEX_H 1
 
 #include <tol/tol_bgencon.h>
+#include <tol/tol_bpolyn.h>
 
 //--------------------------------------------------------------------
 // types
 //--------------------------------------------------------------------
 #define Ci BComplex::I()
+
+struct complex
+{
+  double x;
+  double y;
+};
 
 
 //--------------------------------------------------------------------
@@ -61,6 +68,10 @@ public:
 //BComplex(BReal x) { PutReal(x); }
 //BComplex(BInt x) { PutReal(x); }
   BComplex(BDat x, BDat y) : x_(x), y_(y), xr_(2)
+  {
+  //ToRA();
+  }
+  BComplex(complex z) : x_(z.x), y_(z.y), xr_(2)
   {
   //ToRA();
   }
@@ -191,5 +202,15 @@ inline BComplex operator /  (const BDat& z1, const BComplex& z2)
 { return(BComplex(z1,0)/z2); }
 inline BComplex operator ^  (const BDat& z1, const BComplex& z2)
 { return(BComplex(z1,0)^z2); }
+
+int ComplexRootCmp(const void* v1, const void* v2);
+
+void tol_gsl_poly_complex_solve(
+  const BPolyn<BDat>& pol, 
+  BArray<complex>& row);
+
+void tol_gsl_poly_complex_solve(
+  const BPolyn<BDat>& pol, 
+  BArray<BComplex>& row);
 
 #endif // TOL_BCOMPLEX_H 

@@ -26,6 +26,7 @@
 #include <tol/tol_bcomplex.h>
 #include <tol/tol_bout.h>
 #include <gsl/gsl_math.h>
+#include <gsl/gsl_poly.h>
 
 //--------------------------------------------------------------------
 static BComplex CreateImaginaryUnit()
@@ -401,3 +402,65 @@ BComplex ATanH(BComplex z)
 {
     return(Log((BComplex::RC(1)+z)/(BComplex::RC(1)-z))/BComplex::RC(2));
 }
+
+//--------------------------------------------------------------------
+int ComplexRootCmp(const void* v1, const void* v2)
+
+/*! Compairs two BParam receiving the pointers.
+ */
+//--------------------------------------------------------------------
+{
+  complex& z1 = *((complex*)v1);
+  complex& z2 = *((complex*)v2);
+  double z1m = z1.x*z1.x+z1.y*z1.y;
+  double z2m = z2.x*z2.x+z2.y*z2.y;
+  if(z1m < z2m) { return(-1); }
+  if(z1m > z2m) { return( 1); }
+  if(z1.x<z2.x) { return(-1); }
+  if(z1.x>z2.x) { return( 1); }
+  if(z1.y<z2.y) { return(-1); }
+  if(z1.y>z2.y) { return( 1); }
+  return(0);
+}
+
+//--------------------------------------------------------------------
+  void tol_gsl_poly_complex_solve(
+    const BPolyn<BDat>& pol, 
+    BArray<complex>& row)
+//--------------------------------------------------------------------
+{
+  int gcd = pol.Period();
+  int n = pol.Degree() / gcd;
+  int s = pol.Size();
+  BArray<double> a(n+1);
+  int k, d;
+
+  for(k=0; k<s; k++)
+  {
+    d = pol[k].Degree()/gcd;
+    a[d] = pol[k].Coef().Value();
+  }
+  gsl_poly_complex_workspace * w = gsl_poly_complex_workspace_alloc (n+1);
+  row.AllocBuffer(n);
+  gsl_poly_complex_solve (a.Buffer(), n+1, w, (double*)row.GetBuffer());
+  row.Sort(ComplexRootCmp);
+  gsl_poly_complex_workspace_free(w);
+}
+
+//--------------------------------------------------------------------
+  void tol_gsl_poly_complex_solve(
+    const BPolyn<BDat>& pol, 
+    BArray<BComplex>& row)
+//--------------------------------------------------------------------
+{
+  BArray<complex> row_;
+  tol_gsl_poly_complex_solve(pol, row_);
+  int n = row_.Size();
+  row.AllocBuffer(n);
+  int k=0;
+  for(k=0; k<n; k++)
+  {
+    row(k) = BComplex(row_(k));
+  }
+}
+
