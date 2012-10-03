@@ -1790,8 +1790,8 @@ BMat SvdMinimumResidualsSolve(const BMat& A, const BMat& b);
   }
   else
   {
-    if(maxIter < 10*q) { maxIter = 10*q; }
-    if(eps < 1.0/Sqrt(N)) { eps = 1.0/Sqrt(N); }
+    if(maxIter <= 0) { maxIter = 100*q; }
+    if(eps <= 0) { eps = 0.1/Sqrt(N); }
     BArray<BDat> c(q+1);
     //In a AR(p)MA(q) we will estimate the theta coefficients fitting the 
     //AR-filtered autocovariances non linear equations
@@ -1842,7 +1842,7 @@ BMat SvdMinimumResidualsSolve(const BMat& A, const BMat& b);
     //  f = (1-phi(B))*(1-phi(F))*acvf(B+F) - c(B+F)
     //  T = phi(B) + phi(F)
     // 
-    BDat F, minF;
+    BDat F, minF=BDat::PosInf();
     BMatrix<BDat> t(q+1,1), tMin(q+1,1), h(q+1,1), f(q+1,1), T(q+1,q+1);
     //Initializes vector t with values corresponding to white noise
     t.SetAllValuesTo(0);
@@ -1865,10 +1865,10 @@ BMat SvdMinimumResidualsSolve(const BMat& A, const BMat& b);
           fj += t(i,0)*t(i+j,0); 
         }
         f(j,0) = fj;
-        F = max(F,Abs(fj));
+        fj = Abs(fj);
+        if(fj>F) { F = fj; }
       }
-      if(iter==1) { minF = F; }
-      else if(F<minF)
+      if(F<minF)
       {
         minF = F;
         tMin = t;
@@ -1890,7 +1890,6 @@ BMat SvdMinimumResidualsSolve(const BMat& A, const BMat& b);
     //h = CholeskiMinimumResidualsSolve(T,f);
     //h = gsl_MinimumResidualsSolve(T,f);
       h = SvdMinimumResidualsSolve(T,f);
-
       if(!h.Rows()|| !h.IsKnown()) { PrlmEstErr(BText(
         "Linear step of Newton iteration has a singular or wrong defined coefficient matrix")); }
       //Newton update
