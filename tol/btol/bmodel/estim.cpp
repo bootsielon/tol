@@ -2478,7 +2478,7 @@ void BMatPol2Vec::CalcContens()
 DeclareContensClass(BSet, BSetTemporary, BSetARMAPreliminaryEstimation);
 DefExtOpr(1, BSetARMAPreliminaryEstimation, "ARMAPreliminaryEstimation", 
   4, 6, "Matrix Real Real Real Real Real",
-  "(Matrix ACVF, Real p, Real q, Real N [, Real maxIter=100*q, Real eps = 1/Sqrt(N))",
+  "(Matrix ACVF, Real p, Real q, Real N [, Real maxIter=100*q, Real eps = 0.1/Sqrt(N))",
   "Estimates a preliminary AR(p)MA(q) non seassonal model \n"
   "  \n"
   " (1-phi(B)) z[t] = (1-theta(B)) a[t] ; t = 1 ... N \n"
@@ -2508,7 +2508,7 @@ void BSetARMAPreliminaryEstimation::CalcContens()
   //Maximum iteration stop criteria
   int maxIter = 100*q;
   //Tolerance stop criteria
-  BDat eps = 1.0/Sqrt(N);
+  BDat eps = 0.1/Sqrt(N);
   if(Arg(5)) { maxIter = (int)Abs(Real(Arg(5))); }
   if(Arg(6)) { eps = Dat(Arg(6)); }
   BDat variance;
