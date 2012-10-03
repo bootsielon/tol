@@ -738,26 +738,6 @@ void BPolSetProd::CalcContens()
 
 
 //--------------------------------------------------------------------
-DeclareContensClass(BPol, BPolTemporary, BPolInverseNonStationaryRoots);
-DefExtOpr(1, BPolInverseNonStationaryRoots, "InverseNonStationaryRoots",
-	  1, 2, "Polyn Real",
-  I2("(Polyn p [, Real periodicity = 1 ])",
-     "(Polyn p [, Real periodicidad = 1 ])"),
-  I2("Changes the non stationary roots of a polynomial for its inverses.",
-     "Cambia las raíces no estacionarias de un polinomio por sus inversas."),
-	  BOperClassify::RetardPolynomial_);
-//--------------------------------------------------------------------
-void BPolInverseNonStationaryRoots::CalcContens()
-//--------------------------------------------------------------------
-{
-    contens_ = Pol(Arg(1));
-    BInt p = 1;
-    if(Arg(2)) { p = (BInt)Real(Arg(2)); }
-    InverseNonStationaryRoots(contens_,p,"");
-}
-
-
-//--------------------------------------------------------------------
 DeclareContensClass(BPol, BPolTemporary, BPolDerivate);
 DefExtOpr(1, BPolDerivate, "Derivate", 1, 1, "Polyn",
   "(Polyn p)",
@@ -786,4 +766,18 @@ void BPolIntegrate::CalcContens()
 {
     contens_ = Pol(Arg(1));
     contens_ = contens_.Integrate();
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BPol, BPolTemporary, BPolInverseNonStationaryRoots);
+DefExtOpr(1, BPolInverseNonStationaryRoots, "InverseNonStationaryRoots", 1, 1, "Polyn",
+  "(Polyn p)",
+  I2("Replaces each nonstationary root of a polynomial by its inverse.",
+     "Reemplaza cada raíz no estacionaria de un polinomio por su inversa."),
+	  BOperClassify::RetardPolynomial_);
+//--------------------------------------------------------------------
+void BPolInverseNonStationaryRoots::CalcContens()
+//--------------------------------------------------------------------
+{
+  InverseNonStationaryRoots(Pol(Arg(1)),contens_);
 }

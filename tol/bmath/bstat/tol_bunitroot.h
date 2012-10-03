@@ -39,11 +39,6 @@ struct BProbPol
 };
 
 
-BBool
-InverseNonStationaryRoots (BPolyn<BDat>& p, 
-			   BInt periodicity, 
-			   BText name);
-
 BInt
 BProbPolOrderCriterium (const BAny txt1, 
 			const BAny txt2);

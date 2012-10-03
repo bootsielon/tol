@@ -74,6 +74,7 @@ BDat StationaryValue(
 bool IsStationary(const BPolyn<BDat>& pol, BDat& tolerance);
 BDat StationaryValue(const BPolyn<BDat>& pol);
 bool IsStationary(const BPolyn<BDat>& pol);
+void InverseNonStationaryRoots(const BPolyn<BDat>& pol,BPolyn<BDat>& statPol);
 
 
 

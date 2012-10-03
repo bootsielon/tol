@@ -27,6 +27,7 @@
 #include <tol/tol_bar.h>
 #include <tol/tol_bstat.h>
 #include <tol/tol_bfibonac.h>
+#include <tol/tol_bcomplex.h>
 
 //#define USE_MPREAL 
 
@@ -451,3 +452,41 @@ bool IsStationary(const BPolyn<BDat>& pol)
   BDat tolerance = BDat::Unknown();
   return(IsStationary(pol,tolerance));
 }
+
+//--------------------------------------------------------------------
+  void InverseNonStationaryRoots(
+    const BPolyn<BDat>& pol, 
+    BPolyn<BDat>& statPol)
+//--------------------------------------------------------------------
+{
+  if(IsStationary(pol)) { statPol = pol; return; }
+  BArray<BComplex> row;
+  tol_gsl_poly_complex_solve(pol, row);
+  int gcd = pol.Period();
+  int n = row.Size();
+  int k;
+  statPol = BPolyn<BDat>::One();
+  for(k=0; k<n; k++)
+  {
+    BComplex r_ = row(k);
+    BDat m = r_.R();
+    BComplex r = (m>=1)?r_:1.0/r_;
+    BDat ci = r.Y();
+    if(ci==0)
+    {
+      BDat phi1 = 1.0/r.X();
+      statPol *= BPolyn<BDat>::One() - phi1*(BPolyn<BDat>::B()^gcd);
+    }
+    else if(ci>0)
+    {
+      BComplex u = 1.0/r;
+      BDat x = u.X();
+      BDat y = u.Y();
+      BDat phi1 = 2.0*x;
+      BDat phi2 = -(x*x+y*y);
+      int gcd2 =  gcd*2;
+      statPol *= BPolyn<BDat>::One() - phi1*(BPolyn<BDat>::B()^gcd) - phi2*(BPolyn<BDat>::B()^gcd2);
+    }
+  }
+}
+
