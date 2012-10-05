@@ -63,6 +63,7 @@ public:
   ANNkd_tree* get_kdtree( ) { return tree; };
   
   int get_dim( ) { return tree->theDim( ); }
+  int get_size( ) { return size; }
   
   static double code_addr( tol_kdtree* ptr )
   {
@@ -183,13 +184,15 @@ void BSetANNKDTreeKSearch::CalcContens()
 
   if ( dK.IsUnknown( ) || 
       (dK.Value() <= 0) || 
-      (dK.Value() > qpoints.Rows()) ) {
+      (dK.Value() > tree->get_size()) ) {
     Error( I2( "Invalid k argument: must be positive and lesser or equal than "
                "number of reference points.",
                "Argumento k es invalido: debe ser positivo y menor o igual que "
-               "el número de puntos de referencia." ) );
+               "el número de puntos de referencia." )+"\n"+
+           "(0<(k="+dK+")<="+tree->get_size()+")==False" );
     return;
   }
+
   int k = int( round( dK.Value( ) ) );
   ANNpoint pt = annAllocPt( tree->get_dim(), 0.0 );
   ANNidxArray nn_idx = new ANNidx[k];
