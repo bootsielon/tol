@@ -1,0 +1,62 @@
+#Require MMS;
+
+//Set Include("generateModelData.tol");
+Text modelName = "estimationBSR2_0";
+
+BysMcmc::@Config bsr.config = Include(modelName+"/master.bsr.config.oza")[1];
+
+Real bsr.config::mcmc.burnin := 0;
+Real bsr.config::mcmc.sampleLength := 500;
+
+Set bsr.parsed = BSR.Parse(modelName+"/master.bsr","master");
+Real ((((bsr.parsed::SubModule)[1])->LinearBlock)[1])->InitialValue := beta2;
+Real ((((bsr.parsed::SubModule)[1])->LinearBlock)[2])->InitialValue := beta3;
+Polyn((((((bsr.parsed::SubModule)[1])->NoiseDistrib)[1])->Arima)[1])->AR:=ar;
+Polyn((((((bsr.parsed::SubModule)[1])->NoiseDistrib)[1])->Arima)[2])->MA:=ma;
+
+Set nonLinFlt.new = { [[
+    NameBlock addInp1 = LogAditiveEffect(
+      Real  enabled = True,
+      Text  segmentName = "Mixto_Submodel",
+      Serie observation,
+      Date  First(observation),
+      Date  Last(observation),
+      Set   aditiveInputs = { SetOfNameBlock( 
+      NameBlock addInp_X1 = [[
+        //##Serie input
+        Serie _.serie = X1;
+        //##Si es falso no se usará este input
+        Real _.enabled = True;
+        //##Número de sigmas para la distribución a priori de los omitidos
+        Real _.mis_pri_sig_fac =  5;
+        //##Valor mínimo a priori para los omitidos
+        Real _.mis_pri_min     =  -1/0;
+        //##Valor máximo a priori para los omitidos
+        Real _.mis_pri_max     =  +1/0;
+        //##Valor inicial del parámetro
+        Real _.initValue       =  beta1;
+        //##Valor mínimo a priori del parámetro
+        Real _.minimum         =  -100;
+        //##Valor máximo a priori del parámetro
+        Real _.maximum         =  +100
+      ]]) }
+    )
+]] };
+
+Set nonLinFlt.old = 
+  ((((bsr.parsed::SubModule)[1])->NoiseDistrib)[1])->NonLinFilters;
+
+Set ((((bsr.parsed::SubModule)[1])->NoiseDistrib)[1])->NonLinFilters := 
+  nonLinFlt.new;
+
+BysMcmc::@Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
+  bsr.parsed, 
+  BysMcmc::@McmcPartialHandler::Null(0), 
+  bsr.config, 
+  BysMcmc::@Notifier::Null(0));
+
+BysMcmc::@Estimation estim = BysMcmc::@Estimation::New(cycler);
+
+Real estim::Run(0);
+
+/* */

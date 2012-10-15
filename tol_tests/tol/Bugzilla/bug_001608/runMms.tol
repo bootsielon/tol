@@ -1,0 +1,162 @@
+//////////////////////////////////////////////////////////////////////////////
+// File: ejemplo1.tol
+// Purpuse: ejemplo inventado de un modelo mixto
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+#Require MMS;
+//////////////////////////////////////////////////////////////////////////////
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+// DATASET: Conjunto de variables
+
+MMS::@DataSet DS = MMS::Container::ReplaceDataSet([[
+  Text _.name = "Mixto_DataSet"
+]]);
+
+// ReplaceVariable
+
+Anything DS::ReplaceVariable([[
+  Text _.name = "Observation";
+  Text _.description = "Variable de las observaciones";
+  Text _.expression = "Serie observation";
+  Set _.tags = SetOfText ("Output")
+]]);
+
+Anything DS::ReplaceVariable([[
+  Text _.name = "Input1";
+  Text _.description = "Variable Input1";
+  Text _.expression = "Serie X1";
+  Set _.tags = SetOfText ("Input", "additive") 
+]]);
+
+Anything DS::ReplaceVariable([[
+  Text _.name = "Input2";
+  Text _.description = "Variable Input2";
+  Text _.expression = "Serie X2";
+  Set _.tags = SetOfText ("Input", "multiplicative")
+]]);
+
+Anything DS::ReplaceVariable([[
+  Text _.name = "Input3";
+  Text _.description = "Variable Input3";
+  Text _.expression = "Serie X3";
+  Set _.tags = SetOfText ("Input", "multiplicative")
+]]);
+//////////////////////////////////////////////////////////////////////////////
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+// MODEL: Modelo y Submodelo: TerminosExplicativos+ Noise
+
+// CreateModel
+MMS::@Model model = MMS::Container::ReplaceModel([[
+  Text _.name = "Mixto_Model";
+  Text _.description = "Modelo mixto: aditivo y multiplicativo";
+  Set _.dataSets = [[ "Mixto_DataSet" ]]
+]]);
+
+// CreateSubmodel
+MMS::@Submodel submodel = model::CreateSubmodel([[
+  Text _.name = "Mixto_Submodel";
+  Text _.descripton = "Submodelo del ejemplo de modelo mixto";
+  NameBlock _.output = [[
+    Text _.name = "Output";
+    Text _.variable = "Observation";
+    Text _.transformationLabel = "BoxCox_0_0"
+  ]];
+  NameBlock _.noise = [[
+    Text _.type = "ARIMA"; 
+    Text _.arimaLabel = "P1_12DIF0_1AR1_0MA0_12";
+    Real _.sigma = ?
+  ]]
+]]);
+
+// Para crear el input aditivo, simplemente tenemos que poner el 
+// atributo de la clase término explicativo:
+//
+// Real _.isAdditive = 1 (True)
+//
+// Por defecto, este atributo está con valor 0 (False)
+// Observacion
+// el polinomio de la función de transferencia no podemos introducir un 0
+// porque no lo toma como polinomio constante 0, lo toma como que no 
+// existe polinomio.
+
+// CreateExpTerm_TransferFunction
+Set EvalSet(Select(
+  model::GetDataSet(?)::GetVariables(?), Real(NameBlock var){
+    "Input" <: var::GetTags(?)
+  }), 
+  Anything (NameBlock varInput){
+    submodel::CreateExpTerm_TransferFunction([[
+      Text _.name  = varInput::GetName(?);
+      Real _.isAdditive = If("additive" <: varInput::GetTags(?), 1, 0);
+      NameBlock _.input = [[
+        Text _.name = varInput::GetName(?);
+        Text _.variable = varInput::GetName(?)
+      ]];
+      Polyn _.transferFunction = 0.1
+    ]])
+});
+
+// Restricción del término aditivo
+/*
+Real model::GetParameter("Mixto_Submodel__Input1__Linear.0")
+  ::SetPrior([[
+    Real _.mean = 2;
+    Real _.sigma = 0.1
+]]);
+*/
+//////////////////////////////////////////////////////////////////////////////
+
+
+/*
+//////////////////////////////////////////////////////////////////////////////
+// ESTIMATION: Estimación MLE
+MMS::@Estimation estimationMLE= MMS::Container::ReplaceEstimation([[
+  Text _.name = "Mixto_Estimate";
+  MMS::@Model _.model = MMS::Container::GetModel("Mixto_Model");
+  MMS::@SettingsMultiMLE _.settings = [[
+    Real _.showTraces = False  // Para que no muestre la traza
+  ]]
+]]);
+
+// Ejecución de la estimación:
+Real estimationMLE::Execute(?);
+
+
+// ESTIMATION: Estimación BSR
+MMS::@Estimation estimationBSR = MMS::Container::ReplaceEstimation([[
+  Text _.name = "Mixto_EstimateBSR";
+  MMS::@Model _.model = MMS::Container::GetModel("Mixto_Model");
+  MMS::@SettingsBSR _.settings = [[
+    Real mcmc.sampleLength = 500; // tamaño de la muestra
+    Real do.report = True 
+  ]]
+]]);
+
+// Ejecución de la estimación:
+Real estimationBSR::Execute(?);
+*/
+
+// ESTIMATION: Estimación BSR
+MMS::@Estimation estimationBSR2 = MMS::Container::ReplaceEstimation([[
+  Text _.name = "Mixto_EstimateBSR2";
+  MMS::@Model _.model = MMS::Container::GetModel("Mixto_Model");
+  MMS::@SettingsBSR _.settings = [[
+    Real _.additiveApproximation = 0;
+    Real mcmc.sampleLength = 500; // tamaño de la muestra
+    Real do.report = True 
+  ]]
+]]);
+
+// Ejecución de la estimación:
+//Real estimationBSR2::Execute(?);
+//////////////////////////////////////////////////////////////////////////////
+
+Real estimationBSR2::GetStrategy(?)::SaveIsolationFile("estimationBSR2.zip");
+

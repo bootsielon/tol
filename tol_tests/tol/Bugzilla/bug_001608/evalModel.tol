@@ -1,0 +1,21 @@
+
+//Matrix param = SubRow(estim::report::mcmc,[[1]]);
+Matrix param = estim::param.average;
+
+Real beta1_ = MatDat(param,1,6);
+Real beta2_ = MatDat(param,1,1);
+Real beta3_ = MatDat(param,1,2);
+Real s2 =  MatDat(param,1,3);
+Real phi1 =  MatDat(param,1,4);
+Real theta12 =  MatDat(param,1,5);
+Serie N;
+Serie N_ = Log(observation-beta1_*X1)-beta2_*X2-beta3_*X3;
+Set arima = [[
+  ARIMAStruct(1,1-phi1*B,1,1),
+  ARIMAStruct(12,1,1-theta12*B^12,dif)]];
+Matrix N__ = Tra(SerSetMat([[N_]]));
+Set ev = ARIMALevinsonEval(arima, N__);
+
+Serie R;
+Serie R_ = MatSerSet(Tra(ev::a),Dating(N),Succ(Last(N),Dating(N),1-Rows(ev::a)))[1];
+

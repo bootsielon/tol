@@ -1,0 +1,63 @@
+
+// Real PutRandomSeed(190463);
+// Real PutRandomSeed(514809833);
+Real PutRandomSeed(1528068215); 
+
+
+// Definimos las series de las observaciones y las series que entraran
+// tanto como inputs aditivos como multiplicativos.
+  
+Date begin = y2000m01;
+Date end   = y2012m08;
+
+Polyn ma = 1-0.9*B^12;
+Polyn ar = 1-0.3*B;
+Polyn dif = (1-B^12);
+Real initLength = 100*Max(Degree(ar)+ Degree(dif), Degree(ma));
+Date begin_ = Succ(begin, Monthly, -initLength);  
+Serie R0 = SubSer(Gaussian(0, 0.04, Monthly), begin_, end); 
+Serie N0 = DifEq(ma/(dif*ar), R0);
+Serie R = SubSer(R0, begin, end);
+Serie N = SubSer(N0, begin, end)+4;
+  
+// X1 ~ N(10, 2)
+Real beta1 = 5;
+//Serie X1 = SubSer(Gaussian(10, 2, Monthly), begin, end);
+  Serie X1 = SubSer(CalVar(C,Monthly), begin, end);
+
+// X2 ~ N(5, 4)
+Real beta2 = 0.2;
+Serie X2_ = SubSer(Gaussian(0, 1, Monthly), begin, end);
+Serie X2 = DifEq((1)/(1-0.3*B), X2_, N0);
+
+// X3 ~ Festivos
+TimeSet CtFes.es = 
+  M(1)*D(1) + // Año nuevo
+  M(1)*D(6) + // Epifania (no siempre es FasNac)
+  Succ(Easter, -2, C) + // Viernes Santo
+  M(5)*D(1)   + // Dia del trabajador
+  M(8)*D(15)  + // Virgen de Agosto
+  M(10)*D(12) + // Dia del Pilar
+  M(11)*D(1)  + // Todos los Santos
+  M(12)*D(6)  + // Constitucion
+  M(12)*D(8)  + // Inmaculada
+  M(12)*D(25) +  // Navidad
+  WD(7) + WD(6)
+;
+
+Real beta3 = 0.05;
+Serie X3 = SubSer(CalVar(CtFes.es, Monthly), begin, end);
+  
+Serie additive = beta1*X1;
+Serie mult2 = beta2*X2;
+Serie mult3 = beta3*X3;
+Serie expMult2 = Exp(mult2);
+Serie expMult3 = Exp(mult3);
+Serie expNoise = Exp(N);
+Serie multiplicative = N + beta2*X2 + beta3*X3; 
+Serie expMult = Exp(multiplicative);
+Serie observation = expMult+additive;
+Serie zero = observation*0;
+
+//////////////////////////////////////////////////////////////////////////////
+
