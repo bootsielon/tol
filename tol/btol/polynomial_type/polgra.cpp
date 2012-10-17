@@ -509,11 +509,12 @@ BPol RandStationary(
   BInt n1 = degree-2*n2;
   BPol p1 = BPol::One();
   BPol p2 = BPol::One();
-  BUniformDist u(-1,1);
   BDat a, b, d, m1, m2;
   BPol B0 = BPol::One();
   BPol BP = BPol::X() ^ period;
   BPol factor;
+  BUniformDist u(-1,1);
+
   if(maxInvRootModule>1-2*DEpsilon()) { maxInvRootModule = 1-2*DEpsilon(); }
   if(maxInvRootModule<  2*DEpsilon()) { maxInvRootModule =   2*DEpsilon(); }
   if(minInvRootModule<  2*DEpsilon()) { minInvRootModule =   2*DEpsilon(); }
@@ -524,8 +525,11 @@ BPol RandStationary(
   }
   if(n1)
   {
+    BUniformDist v(0,1);
+    BDat vr = v.Random();
     BDat ur = u.Random();
-    a = maxInvRootModule*ur + minInvRootModule*(1-ur);
+    a = maxInvRootModule*vr + minInvRootModule*(1-vr);
+    if(ur<0) { a*=-1.0; }
     factor = B0-a*BP;
   //Std(BText("\nRandStationary(")+degree+","+period+","+maxInvRootModule+") monome a="+a+"; factor="+factor.Name());
     p1 = factor;
