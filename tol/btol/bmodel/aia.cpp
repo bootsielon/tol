@@ -514,7 +514,6 @@ BList* BAia::Input()
     { 
       BSyntaxObject* inp = userOutliers_[oFound_]->RecalcResiduous(tFound_,wFound_);
       assert(inp);
-      input_ = Cons(inp, input_);
       BDat tStd = userOutliers_[oFound_]->student_;
       BDat bic = 2*Log(sigma_) + n*Log(N_)/N_;
       BDat difBIC = bic-oldBic;
@@ -527,6 +526,7 @@ BList* BAia::Input()
       {
         break;
       }
+      input_ = Cons(inp, input_);
       n++; 
     }
   }
