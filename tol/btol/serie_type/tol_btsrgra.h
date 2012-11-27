@@ -53,7 +53,7 @@ public:
   void PutContens(BUserTimeSerieDo* ser);
   bool IsBounded () const 
   {
-    return(!Dating() || (FirstDate().HasValue() && LastDate().HasValue()));
+    return(!Dating() || IsStochastic());
   }
 };
 
@@ -193,6 +193,16 @@ public:
   {
     assert(GetResult());
     return(GetResult()->LastDate()); 
+  }
+  BBool		IsSthocastic () const
+  {
+    assert(GetResult());
+    return(GetResult()->IsSthocastic()); 
+  }
+  BBool		IsEmpty () const
+  {
+    assert(GetResult());
+    return(GetResult()->IsEmpty()); 
   }
   void PutDating(BUserTimeSet* dating) 
   {

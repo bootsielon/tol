@@ -680,21 +680,24 @@ BTsrSubSerie::BTsrSubSerie(BList* arg)
   BDate first = Date(Arg(2));
   BDate last  = Date(Arg(3));
   PutDating(DefaultDating(Ser()->Dating()));
-  if(utmser->FirstDate().HasValue() && first<utmser->FirstDate())
+  if(first<=last)
   {
-    first = utmser->FirstDate();
-  }
-  if(utmser->LastDate().HasValue() && last>utmser->LastDate())
-  {
-    last = utmser->LastDate();
-  }
-  if(first.HasValue() && Dating())
-  {
-    first = Dating()->FirstNoLess(first);
-  }
-  if(last.HasValue() && Dating())
-  {
-    last = Dating()->FirstNoGreat(last);
+    if(!utmser->FirstDate().IsUnknown() && first<utmser->FirstDate())
+    {
+      first = utmser->FirstDate();
+    }
+    if(!utmser->LastDate().IsUnknown() && last>utmser->LastDate())
+    {
+      last = utmser->LastDate();
+    }
+    if(!first.IsUnknown() && Dating())
+    {
+      first = Dating()->FirstNoLess(first);
+    }
+    if(!last.IsUnknown() && Dating())
+    {
+      last = Dating()->FirstNoGreat(last);
+    }
   }
   NCDate(firstDate_) = first;
   NCDate(lastDate_ ) = last;
@@ -728,6 +731,7 @@ BDat BTsrSubSerie::GetDat(const BDate& dte)
 //--------------------------------------------------------------------
 {
   BDat dat;
+  if(FirstDate()>LastDate()) { return(dat); }
   BUserTimeSet* dating = Dating();
   if(dating && (dating->Inf()<=dte) && (dating->Sup()>=dte))
   {
@@ -836,9 +840,22 @@ BDat BTsrPolyn::GetDat(const BDate& dte)
     if(!len)
     {
       dat = 0.0;
-      for(BInt n = 0; n<pol_.Size(); n++)
+      int s = pol_.Size();
+      int n, k, deg, deg_1, deg_s, H;
+      deg_s = pol_[s-1].Degree();
+      deg_1 = pol_[0  ].Degree();
+      BDate fst = ser_->Dating()->Prev(dte, deg_s);
+      BDate lst = ser_->Dating()->Prev(dte, deg_1);
+      BHash hash; ser_->Dating()->GetHashBetween(hash, fst, lst);
+      H = hash.Size();
+      for(n=0; n<s; n++)
       {
-        BDate d = ser_->Dating()->Prev(dte, pol_[n].Degree());
+        deg = pol_[n].Degree();
+//      n=0   => deg = deg[0]   => k=H-1=deg[s-1]-deg[0];
+//      n=s-1 => deg = deg[s-1] => k=0;
+        k = deg_s - deg;
+      //BDate d = ser_->Dating()->Prev(dte, deg);
+        BDate d = HashToDte(hash[k]);
         BDat  x = (*ser_)[d];
         dat    += pol_[n].Coef()*x;
       }

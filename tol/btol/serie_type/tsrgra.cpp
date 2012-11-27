@@ -91,10 +91,7 @@ void BUserTimeSerieDo::Do ()
     CompactData();
     //  Std(BText("\n IsStochastic [")+FirstDate()+","+LastDate()+"]"+Length());
   }
-  else
-  {
-    operator[](DteToday());
-  }
+//else { operator[](DteToday()); }
 }
 
 //--------------------------------------------------------------------

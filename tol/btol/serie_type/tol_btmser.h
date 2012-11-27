@@ -87,6 +87,8 @@ class TOL_API BTimeSerie
   virtual int GetIndex (const BDate& dte) const;
   virtual BDate IndexToDate(int index) const;
   virtual int Length() const { return(length_); }
+  virtual BBool IsStochastic() const ;
+  virtual BBool IsEmpty() const ;
 
   BInt BinWrite(FILE*);
   BInt BinRead (FILE*);
@@ -104,9 +106,6 @@ class TOL_API BTimeSerie
   }
   void FreeData() { GetDataBuffer().DeleteBuffer(); }
   BBool HasDating   () const { return(Dating()!=NIL); }
-  BBool IsStochastic() const { 
-     return(HasDating() && FirstDate().HasValue() && LastDate().HasValue()); 
-  }
   static BDat& GlobalizeSeries();
 };
 

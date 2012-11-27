@@ -546,7 +546,7 @@ BDate BTimeSet::FirstNoLess(const BDate& dte) const
 //--------------------------------------------------------------------
 {
   CheckCache(this);
-  if(!dte.HasValue() || Contain(dte)) 
+  if(dte.IsTheEnd() || dte.IsUnknown() || Contain(dte)) 
   { 
     return(dte); 
   }
@@ -565,7 +565,7 @@ BDate BTimeSet::FirstNoGreat(const BDate& dte) const
 //--------------------------------------------------------------------
 {
   CheckCache(this);
-  if(!dte.HasValue() || Contain(dte)) 
+  if(dte.IsTheBegin() || dte.IsUnknown() || Contain(dte)) 
   { 
     return(dte); 
   }

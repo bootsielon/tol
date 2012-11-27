@@ -144,8 +144,15 @@ BDate BTimeSerie::FirstDate() const
 //--------------------------------------------------------------------
 {
   BTimeSerie* ser = (BTimeSerie*)this; //Cast problem with gcc
-  ser->ReadData();
-  ser->CompactData();
+  if(!HasDating())
+  {
+    ser->firstDate_=BDate::Begin();
+  }
+  else
+  {    
+    ser->ReadData();
+    ser->CompactData();
+  }
   return(firstDate_);
 }
 
@@ -155,8 +162,15 @@ BDate BTimeSerie::LastDate () const
 //--------------------------------------------------------------------
 {
   BTimeSerie* ser = (BTimeSerie*)this; //Cast problem with gcc
-  ser->ReadData();
-  ser->CompactData();
+  if(!HasDating())
+  {
+    ser->lastDate_=BDate::End();
+  }
+  else
+  {    
+    ser->ReadData();
+    ser->CompactData();
+  }
   return(lastDate_);
 }
 
@@ -174,19 +188,66 @@ void BTimeSerie::PutFirstCache(const BDate&  firstCache)
 void BTimeSerie::PutFirstDate(const BDate&  firstDate) 
 //--------------------------------------------------------------------
 {
-	if(Dating() && firstDate.HasValue()) 
-  { 
-	  firstDate_ = Dating()->FirstNoLess(firstDate); 
-	}
+	if(Dating())
+  {
+    if(!firstDate.IsTheEnd() && !firstDate.IsUnknown()) 
+    { 
+	    firstDate_ = Dating()->FirstNoLess(firstDate); 
+	  }
+    else
+    {
+      firstDate_ = firstDate;
+    }
+  }
 }
 
 //--------------------------------------------------------------------
 void BTimeSerie::PutLastDate(const BDate&  lastDate) 
 //--------------------------------------------------------------------
 {
-  if(Dating()&&lastDate.HasValue())
-  { 
-    lastDate_ = Dating()->FirstNoGreat(lastDate); 
+  if(Dating())
+  {
+    if(!lastDate.IsTheBegin() && !lastDate.IsUnknown())
+    { 
+      lastDate_ = Dating()->FirstNoGreat(lastDate); 
+    }
+    else
+    {
+      lastDate_ = lastDate; 
+    }
+  }
+}
+
+//--------------------------------------------------------------------
+  BBool BTimeSerie::IsStochastic() const 
+//--------------------------------------------------------------------
+{ 
+  if(!HasDating()) { return(false); }
+  else if(IsEmpty()) { return(true); }
+  else
+  {
+    return(!FirstDate().IsTheBegin() && !LastDate().IsTheEnd());
+  } 
+}
+
+//--------------------------------------------------------------------
+  BBool BTimeSerie::IsEmpty() const 
+//--------------------------------------------------------------------
+{ 
+  BTimeSerie* ser = (BTimeSerie*)this; //Cast problem with gcc
+  BDate f = firstDate_;
+  BDate l = lastDate_;
+  if(!HasDating()) { return(false); }
+  else if(f.IsTheEnd()  || l.IsTheBegin() || f > l )
+  {
+  //ser->firstDate_ = BDate::End();
+  //ser->lastDate_ = BDate::Begin();
+    return(true);
+  }
+
+  else
+  {
+    return(false);
   }
 }
 
@@ -287,7 +348,8 @@ BInt	 BTimeSerie::GetLength()
 //--------------------------------------------------------------------
 {
   if(!Dating()) { return(length_ = -1); }
-  if(!length_)
+  if(IsEmpty()) { length_=0; }
+  else if(!length_)
   {
     if(IsStochastic())
     { length_= 1+Dating()->Difference(FirstDate(), LastDate()); }
@@ -306,24 +368,40 @@ BDat BTimeSerie::operator[](const BDate& dte)
 //--------------------------------------------------------------------
 {
   BDat  dat;
-  BHash hash;
-  if(!Dating()) { return(BDat::Unknown()); }
-  if(!GetLength())
+  if(!Dating()) { return(dat); }
+  if(IsEmpty()) { return(dat); }
+  if(!IsStochastic())
   {
     dat = GetDat(dte);
+/*
+    double h = dte.Hash();
+    hash_map_by_double<BDat>::sparse_::const_iterator fc;
+    fc = hashedData_.find(h);
+    if(fc!=hashedData_.end()) 
+    {
+      dat = fc->second;
+    }
+    else
+    {
+      dat = GetDat(dte);
+      hashedData_[h] = dat;
+    }
+*/
   }
   else if(Data().HasValue()) { dat = data_[GetIndex(dte)]; }
   else
   {
-    Realloc(length_);
+    BData data(GetLength());
+    BHash hash;
 	  Dating()->GetHashBetween(hash, FirstDate(), LastDate());
 	  BInt n=0;
 	  BReal h = dte.Hash();
 	  for(; n<length_; n++)
 	  {
-	    data_[n] = GetDat(HashToDte(hash[n]));
-	    if(hash[n]==h) { dat = data_[n]; }
+	    data[n] = GetDat(HashToDte(hash[n]));
+	    if(hash[n]==h) { dat = data[n]; }
 	  }
+    data_ = data;
     compacted_ = false;
 	  CompactData();
   }
@@ -338,10 +416,11 @@ void BTimeSerie::PutDat(const BDate& dte, const BDat& dat)
  */
 //--------------------------------------------------------------------
 {
-  BHash hash;
+  if(IsEmpty()) { return; }
   if(!GetLength() || !Dating()) { return; }
   if(!Data().HasValue())
   {
+    BHash hash;
     Realloc(length_);
     Dating()->GetHashBetween(hash, FirstDate(), LastDate());
     BInt n=0;
@@ -369,6 +448,7 @@ void BTimeSerie::GetData(      BData& data,
 {
 //InitTotalTime("BTimeSerie::GetData");
   ReadData();
+  if(IsEmpty()) {  return; }
   compacted_ = false;
   CompactData();
   BData aux0;

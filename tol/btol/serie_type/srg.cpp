@@ -112,13 +112,22 @@ void BSerieGroup::PrepareOperate()
   dating_      = NIL;
   numDates_    = 0;
   BDate first, last;
+  maxFirst_ = BDate::Begin();
+  minLast_ = BDate::End();
   if(!(NumSeries())) { return; }
   for(n=1; n<=NumSeries(); n++)
   {
-	  if(Serie(n) && (Serie(n)->Grammar()==GraSerie()))
+    BUserTimeSerie* ser = Serie(n);
+	  if(ser && (ser->Grammar()==GraSerie()))
 	  {
-	    first  = Serie(n)->FirstDate();
-	    last   = Serie(n)->LastDate();
+      if(ser->IsEmpty()) 
+      { 
+        maxFirst_ = BDate::End();
+        minLast_ = BDate::Begin();
+        break;
+      } 
+	    first  = ser->FirstDate();
+	    last   = ser->LastDate();
 	    //Std(BText("\nSerie ")+n+" ("+first+","+last+")");
 	    if(first.HasValue())
 	    {
@@ -143,10 +152,11 @@ void BSerieGroup::PrepareOperate()
 
   for(n=1; (n<=NumSeries())&&(checkDating_); n++)
   {
-	  if(Serie(n)->getDatingType()==DATING_VOLATILE) serieDatVol = n;
-	  if(Serie(n) && (Serie(n)->Grammar()==GraSerie()) && n!=serieDatVol)
+    BUserTimeSerie* ser = Serie(n);
+	  if(ser->getDatingType()==DATING_VOLATILE) serieDatVol = n;
+	  if(ser && (ser->Grammar()==GraSerie()) && n!=serieDatVol)
 	  {
-	    newDating = Serie(n)->Dating();
+	    newDating = ser->Dating();
 	    if(newDating)
 	    {
 		    allNull = BFALSE;
@@ -373,12 +383,18 @@ void BSerieTable::Fill(const BDate& f,  const BDate& l)
   data_.Alloc(NumSeries(), numDates_);
   for(n=1; n<=NumSeries(); n++)
   {
-	  if(Serie(n) && (Serie(n)->Grammar()==GraSerie()))
+    BUserTimeSerie* ser = Serie(n);
+    BData& dt = data(n-1); 
+  //dt.AllocBuffer(numDates_);
+    dt.Replicate(BDat::Unknown(),numDates_);
+	  if(ser && (ser->Grammar()==GraSerie()))
 	  {
-	    Serie(n)->GetData(data(n-1), firstDate_, lastDate_, numDates_);
+	    ser->GetData(dt, firstDate_, lastDate_, numDates_);
 	  }
-    memcpy(data_.GetData().GetBuffer()+(n-1)*numDates_,
-           data(n-1).Buffer(),numDates_*sizeof(BDat)); 
+    void* dest = data_.GetData().GetBuffer()+(n-1)*numDates_;
+    const void* sour = dt.Buffer();
+    int size = numDates_*sizeof(BDat);
+    if(dest && sour) { memcpy(dest,sour,size); }
   }
 }
 
@@ -665,26 +681,27 @@ BBool ReadBDT(const BText&	          file,
   BBool datesOk = BTRUE;
   for(BInt m = 0; m<serie.Size(); m++)
   {
-    if(!serie[m])
+    BUserTimeSerie* ser = serie[m];
+    if(!ser)
     {
       Error(BDT + file +" "+ I2("Null serie.", "Serie nula."));
       return(BFALSE);
     }
-    if( (m>0) && (serie[m]->Dating()!=serie[m-1]->Dating()) )
+    if( (m>0) && (ser->Dating()!=serie[m-1]->Dating()) )
     {
       Error(BDT+file+" "+
 	    I2(" Wrong dating."," Fechado no valido."));
       return(BFALSE);
     }
-    if(serie[m]->FirstDate()!=firstDate)
+    if(ser->FirstDate()!=firstDate)
     {
-      datesOk=!(serie[m]->FirstDate().HasValue());
-      serie[m]->PutFirstDate(firstDate);
+      datesOk=!(ser->FirstDate().HasValue());
+      ser->PutFirstDate(firstDate);
     }
-    if(serie[m]->LastDate()!=lastDate)
+    if(ser->LastDate()!=lastDate)
     {
-      datesOk=!(serie[m]->LastDate().HasValue());
-      serie[m]->PutLastDate(lastDate);
+      datesOk=!(ser->LastDate().HasValue());
+      ser->PutLastDate(lastDate);
     }
     if(!datesOk && enableWarning)
     {
@@ -692,17 +709,17 @@ BBool ReadBDT(const BText&	          file,
 	      I2("First or last dates have been modified for serie ",
 		 "Las fechas inicial o final han sido modificadas "
 		 "para la serie ")+
-	      serie[m]->Name());
+	      ser->Name());
       datesOk = BTRUE;
     }
-    serie[m]->Alloc(data.Size());
+    ser->Alloc(data.Size());
 
     for(BInt n=0; n<data.Size(); n++)
     {
       if(data[n].Data().Size())
-      { serie[m]->PutBufDat(n,data[n][m]); }
+      { ser->PutBufDat(n,data[n][m]); }
       else
-      { serie[m]->PutBufDat(n,fillValue); }
+      { ser->PutBufDat(n,fillValue); }
     }
   }
   return(BTRUE);
