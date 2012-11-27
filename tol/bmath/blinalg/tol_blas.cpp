@@ -120,8 +120,21 @@ int dgemm(const enum CBLAS_TRANSPOSE TransA,
 //http://www.netlib.org/blas/dtrsm.f
 /////////////////////////////////////////////////////////////////////////////
 {
-  return(dgemm(TransA, TransB, alpha.Value(), cb2dMat(A), b2dMat(B), 
-               beta.Value(),b2dMat(C)));
+  if( (TransA==CblasNoTrans && TransB==CblasNoTrans && A.Columns()==B.Rows   ()) ||
+      (TransA==CblasNoTrans && TransB==CblasTrans   && A.Columns()==B.Columns()) ||
+      (TransA==CblasTrans   && TransB==CblasNoTrans && A.Rows   ()==B.Rows   ()) ||
+      (TransA==CblasTrans   && TransB==CblasTrans   && A.Rows   ()==B.Columns()) )
+  {
+    return(dgemm(TransA, TransB, alpha.Value(), cb2dMat(A), b2dMat(B), 
+                 beta.Value(),b2dMat(C)));
+  }
+  else
+  {
+    Error(BText("[dgemm] Cannot multiply matrices with dimensions ")+
+    "("+(TransA==CblasNoTrans?A.Rows():A.Columns())+"x"+(TransA==CblasNoTrans?A.Columns():A.Rows())+") * "
+    "("+(TransB==CblasNoTrans?B.Rows():B.Columns())+"x"+(TransB==CblasNoTrans?B.Columns():B.Rows())+")\n");
+    return(-1);
+  }
 };
 
 
@@ -210,14 +223,34 @@ int dtrmm(const enum CBLAS_SIDE Side,
   int N   = X.Columns();
   int lda = (Side==CblasLeft)?M:N;
   int ldb = N;
-  if(N&&M)
+  if(N&&M&&(
+    (Side==CblasLeft  && TransA==CblasNoTrans && A.Columns()==M) ||
+    (Side==CblasRight && TransA==CblasNoTrans && A.Rows   ()==N) ||
+    (Side==CblasLeft  && TransA==CblasTrans   && A.Rows   ()==M) ||
+    (Side==CblasRight && TransA==CblasTrans   && A.Columns()==N) ))
   {
     cblas_dtrmm(CblasRowMajor,Side,Uplo,TransA,Diag,M,N,alpha, 
                 A.Data   ().Buffer   (),lda,
                 X.GetData().GetBuffer(),ldb);
+    return(0);
+  }
+  else
+  {
+    if(Side==CblasLeft)
+    {
+      Error(BText("[dtrmm] Cannot multiply matrices with dimensions ")+
+      "("+(TransA==CblasNoTrans?A.Rows():A.Columns())+"x"+(TransA==CblasNoTrans?A.Columns():A.Rows())+") * "
+      "("+B.Rows()+"x"+B.Columns()+")\n");
+    }
+    else
+    {
+      Error(BText("[dtrmm] Cannot multiply matrices with dimensions ")+
+      "("+B.Rows()+"x"+B.Columns()+") * "
+      "("+(TransA==CblasNoTrans?A.Rows():A.Columns())+"x"+(TransA==CblasNoTrans?A.Columns():A.Rows())+")\n");
+    }
+    return(-1);
   }
 //VBR: Comprobar si hay error
-  return(0);
 };
 
 /////////////////////////////////////////////////////////////////////////////
@@ -263,14 +296,33 @@ int dtrsm(const enum CBLAS_SIDE Side,
   int N   = X.Columns();
   int lda = (Side==CblasLeft)?M:N;
   int ldb = N;
-  if(N&&M)
+  if(N&&M&&(
+    (Side==CblasLeft  && TransA==CblasNoTrans && A.Columns()==M) ||
+    (Side==CblasRight && TransA==CblasNoTrans && A.Rows   ()==N) ||
+    (Side==CblasLeft  && TransA==CblasTrans   && A.Rows   ()==M) ||
+    (Side==CblasRight && TransA==CblasTrans   && A.Columns()==N) ))
   {
     cblas_dtrsm(CblasRowMajor,Side,Uplo,TransA,Diag,M,N,alpha, 
                 A.Data   ().Buffer   (),lda,
                 X.GetData().GetBuffer(),ldb);
+    return(0);
   }
-//VBR: Comprobar si hay error
-  return(0);
+  else
+  {
+    if(Side==CblasLeft)
+    {
+      Error(BText("[dtrmm] Cannot multiply matrices with dimensions ")+
+      "("+(TransA==CblasNoTrans?A.Rows():A.Columns())+"x"+(TransA==CblasNoTrans?A.Columns():A.Rows())+") * "
+      "("+B.Rows()+"x"+B.Columns()+")\n");
+    }
+    else
+    {
+      Error(BText("[dtrmm] Cannot multiply matrices with dimensions ")+
+      "("+B.Rows()+"x"+B.Columns()+") * "
+      "("+(TransA==CblasNoTrans?A.Rows():A.Columns())+"x"+(TransA==CblasNoTrans?A.Columns():A.Rows())+")\n");
+    }
+    return(-1);
+  }
 };
 
 /////////////////////////////////////////////////////////////////////////////
@@ -290,8 +342,33 @@ int dtrsm(const enum CBLAS_SIDE Side,
 //http://www.netlib.org/blas/dtrsm.f
 /////////////////////////////////////////////////////////////////////////////
 {
-  return(dtrsm(Side,Uplo,TransA,Diag,alpha.Value(),
-               cb2dMat(A),cb2dMat(B),b2dMat(X)));
+  int M   = B.Rows   ();
+  int N   = B.Columns();
+  if(N&&M&&(
+    (Side==CblasLeft  && TransA==CblasNoTrans && A.Columns()==M) ||
+    (Side==CblasRight && TransA==CblasNoTrans && A.Rows   ()==N) ||
+    (Side==CblasLeft  && TransA==CblasTrans   && A.Rows   ()==M) ||
+    (Side==CblasRight && TransA==CblasTrans   && A.Columns()==N) ))
+  {
+    return(dtrsm(Side,Uplo,TransA,Diag,alpha.Value(),
+                 cb2dMat(A),cb2dMat(B),b2dMat(X)));
+  }
+  else
+  {
+    if(Side==CblasLeft)
+    {
+      Error(BText("[dtrmm] Cannot multiply matrices with dimensions ")+
+      "("+(TransA==CblasNoTrans?A.Rows():A.Columns())+"x"+(TransA==CblasNoTrans?A.Columns():A.Rows())+") * "
+      "("+B.Rows()+"x"+B.Columns()+")\n");
+    }
+    else
+    {
+      Error(BText("[dtrmm] Cannot multiply matrices with dimensions ")+
+      "("+B.Rows()+"x"+B.Columns()+") * "
+      "("+(TransA==CblasNoTrans?A.Rows():A.Columns())+"x"+(TransA==CblasNoTrans?A.Columns():A.Rows())+")\n");
+    }
+    return(-1);
+  }
 };
 
 };
