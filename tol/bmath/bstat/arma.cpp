@@ -1431,7 +1431,7 @@ void BARIMA::CalcResidualsJacobian(BMatrix<BDat>& J)
     if(period<factor_(i).s_) { period = factor_(i).s_; }
   }
   if(N<=0) { N = w_.Rows(); }
-  if(!CheckStationary()) { return(false); }
+  if(!CheckStationary(true)) { return(false); }
   int extra = (calcInitValues)?mpq:1;
   //Std(BText("\nEXTRA = ")<<extra);
   if(!CalcAutoCovarianze(N+extra)) { return(false); }
@@ -1583,7 +1583,7 @@ void BARIMA::CalcResidualsJacobian(BMatrix<BDat>& J)
     logLikelihood_ = -0.5*( m*Log(2*BDat::Pi()*s2)+wtCoviw_/s2);
     return(true);
   }
-  if(!CheckStationary()) { return(false); }
+  if(!CheckStationary(true)) { return(false); }
   if(!CalcAutoCovarianze(mxpq)) { return(false); }
 
   BPolyn<BDat>& ar = prod_.ar_;
@@ -1690,14 +1690,71 @@ void BARIMA::CalcResidualsJacobian(BMatrix<BDat>& J)
 }
 
 //--------------------------------------------------------------------
+#define AcvfFltAr(MSG) \
+  c.Replicate(BDat::Unknown(),0); \
+  Error(BText("[ARMA ACVF AR-filter] ")+MSG); \
+  return(false); 
+//--------------------------------------------------------------------
+
+
+
+//--------------------------------------------------------------------
+  bool BARIMA::ACVF_ARFilter(
+    const BArray<BDat>& acvf,
+    const BPolyn<BDat>& phi,
+    BArray<BDat>& c)
+/*
+  
+
+*/
+//--------------------------------------------------------------------
+{
+  int s = acvf.Size();
+  if(s<=0) { AcvfFltAr(BText(
+    "Insuficient autocovariances ")+s+"<"+1); }
+  if(acvf(0)<=0) { AcvfFltAr(BText(
+    "First autocovariance is negative: ")+acvf(0)); }
+  int p = phi.Degree();
+  int q = s-p-1;
+  if(q<0) { AcvfFltAr(BText(
+    "Insuficient autocovariances ")+s+"<"+(p+1)); }
+  if(!p) { c=acvf; return(true); }
+  c.AllocBuffer(q+1);
+  int i,j,k;
+
+  //In p>0 we need to filter the original autocovariances to build
+  //the corresponding ACVF for the corresponding pure MA(q) 
+  //
+  //  c(B+F) = (1-phi(B))*(1-phi(F))*acvf(B+F)
+  //
+  BArray<BDat> phi_(p+1);
+  for(k=0; k<=p; k++)
+  {
+    phi_(k) = -phi.Coef(k);
+  }
+  for(j=0; j<=q; j++)
+  {
+    c(j) = 0;
+    for(k=0; k<=p; k++)
+    {
+      for(i=0; i<=p; i++)
+      {
+        c(j) += phi_(i)*phi_(k)*acvf(abs(j+i-k));
+        assert(c(j).IsKnown());            
+      }
+    }
+  }
+  return(true);
+}
+
+
+//--------------------------------------------------------------------
 #define PrlmEstErr(MSG) \
   phi.Replicate(BDat::Unknown(),p); \
   theta.Replicate(BDat::Unknown(),q); \
   Error(BText("[ARMA prelim. estim.] ")+MSG); \
   return(false); 
-
-
-BMat SvdMinimumResidualsSolve(const BMat& A, const BMat& b);
+//--------------------------------------------------------------------
 
 //--------------------------------------------------------------------
   bool BARIMA::PreliminaryEstimation(
@@ -1772,7 +1829,10 @@ BMat SvdMinimumResidualsSolve(const BMat& A, const BMat& b);
     }
   //phi = CholeskiMinimumResidualsSolve(A,x).Data();
   //phi = gsl_MinimumResidualsSolve(A,x).Data();
-    phi = SvdMinimumResidualsSolve(A,x).Data();
+    BMat phi_ = SvdMinimumResidualsSolve(A,x);
+    phi = phi_.Data();
+    BMat err = A*phi_ - x;
+  //Std(BText("[ARMA prelim. estim.] Yule-Walker A=\n")+A.Name()+"\n x=\n"+x.Name()+"\n phi=\n"+phi_.Name()+"\n err=\n"+err.Name()+"\n");
 
     if(phi.Size()!=p) { PrlmEstErr(BText(
     "Yule-Walker equations are singular or are wrong defined")); }
@@ -1895,8 +1955,6 @@ BMat SvdMinimumResidualsSolve(const BMat& A, const BMat& b);
       //Newton update
       t -= h;
     //Std(BText("[ARMA prelim. estim.] iter[")+iter+"] f=\n"+f.Name()+"\n |f|="+F+"\n T=\n"+T.Name()+"\n h=\n"+h.Name()+" t=\n"+t.Name()+"\n\n");
-    //if(t(0,0)<=0) { PrlmEstErr(BText(
-    //  "Linear step of Newton iteration returns negative variance")); }
     }
     while(F>eps && iter<=maxIter );
     //Retrieve variance as square of first term of vector t

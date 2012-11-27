@@ -191,6 +191,11 @@ public:
   bool CalcLikelihood_Almagro(BDat sigma=1.0);
   bool CalcLikelihood(BDat sigma=1.0);
 
+  static bool ACVF_ARFilter(
+    const BArray<BDat>& acvf,
+    const BPolyn<BDat>& phi,
+    BArray<BDat>& c);
+
   static bool PreliminaryEstimation(
     const BArray<BDat>& acvf,
     int p,
