@@ -428,7 +428,6 @@ BInt BModel::PearsonNormalityTest(BInt n)
   return(Qualify(n,x,BTRUE));
 }
 
-
 //--------------------------------------------------------------------
 BInt BModel::MinSignificationTest(BInt n)
 
@@ -438,14 +437,16 @@ BInt BModel::MinSignificationTest(BInt n)
 {
 //Std(BText("\nTRACE MinSignificationTest "));
   BDat x;
-  BBool necessary = numParam_>0; 
+  int K = armaMaxDegParamIdx_.Size();
+  BBool necessary = K>0; 
   if(necessary)
   {
-    BTStudentDist T(N_-numParam_);
-    BInt i;
+    BTStudentDist T(N_-K);
+    BInt i, k;
     BDat min=BDat::PosInf();
-    for(i=0; i<numParam_; i++)
+    for(k=0; k<K; k++)
     {
+      i = armaMaxDegParamIdx_(k);
       BDat t = Abs(param_[i]/paramSD_[i]);
       if(!t.IsKnown())
       {
@@ -473,8 +474,9 @@ BInt BModel::MaxCorrelationTest(BInt n)
 //--------------------------------------------------------------------
 {
   BDat x, Z;
-  BBool necessary = numParam_>1; 
-//Std(BText("TRACE [BModel::MaxCorrelationTest]")+" numParam_="+numParam_+" necessary="+necessary+"\n");
+  int K = armaMaxDegParamIdx_.Size();
+  BBool necessary = K>0; 
+
   if(necessary)
   {
     if(paramCor_.Rows()!=numParam_ || 
@@ -484,10 +486,13 @@ BInt BModel::MaxCorrelationTest(BInt n)
       return(Qualify(n,1,BTRUE));
     }
     Z=0;
-    for(BInt i=0; i<numParam_; i++)
+    int i, j, i_, j_;
+    for(i_=0; i_<K; i_++)
     {
-      for(BInt j=0; j<i; j++)
+      i = armaMaxDegParamIdx_(i_);
+      for(j_=0; j_<i_; j_++)
       {
+        j = armaMaxDegParamIdx_(j_);
         BDat c = Abs(paramCor_(i,j));
         if(Abs(Z) < c)
         {
@@ -522,22 +527,32 @@ BInt BModel::MixedSignCorrTest(BInt n)
 //--------------------------------------------------------------------
 {
 //Std(BText("\nTRACE MixedSignCorrTest "));
+  int k;
   BDat x;
-  BBool necessary = numParam_>1; 
+//BArray<int> paramIdx = armaParamIdx_;
+  BArray<int> paramIdx(numParam_);
+  for(k=0; k<numParam_; k++) {    paramIdx[k]=k; }
+  int K = paramIdx.Size();
+  BBool necessary = K>0; 
   if(necessary)
   {
     x = 0;
-    BTStudentDist T(N_-numParam_);
+    BTStudentDist T(N_-K);
     if(!numParam_ || (D_.Rows()!=numParam_)||(D_.Columns()!=numParam_))
     {
       diagValue_(n) = BDat::Unknown();
       return(Qualify(n,1,BTRUE));
     }
-    int i, j;
-    for(j=0; j<numParam_; j++)
+    int i, j, i_, j_;
+    for(j_=0; j_<K; j_++)
     {
+      j = paramIdx(j_);
       BDat c = 0;
-      for(i=0;i<numParam_;i++) { c +=param_[i]*V_(i,j); }
+      for(i_=0;i_<K;i_++) 
+      { 
+        i = paramIdx(i_);
+        c +=param_[i]*V_(i,j); 
+      }
       BDat d = D_(j,j);
       BDat s = standardError_/d;
       BDat t = c/s;
@@ -733,12 +748,17 @@ void BModel::Diagnostics()
     BDat y0 = 2.0/3.0;
     BDat x  = testAccept_ (n);
     BDat y  = testRefuse_ (n);
+    BDat eps0 = 0.000001;
+    BDat eps1 = 1.0-eps0;
+    if(x  <=eps0) { x=  eps0; }
+    if(y-x<=eps0) { y=x+eps0; }
+    if(y  >=eps1) { y=  eps1; }
     BDat p  = diagPunct_(n);
     BDat q;
          if(p<=x) { q = p * x0/x; }
     else if(p<=y) { q = x0 + (p-x) * (y0-x0)/(y-x); }
     else          { q = y0 + (p-y) * ( 1-y0)/(1-y); }
-    diagnosysLogPrior_ += (q==1)?BDat::NegInf():Log(1.0-q);
+    diagnosysLogPrior_ += (q>=eps1)?Log(eps0):Log(1.0-q);
     requiredTests += (diagQualify_(n) != BDIAGUNNECESSARY);
 /*
     Std( BText("\nBounds[")  + testAccept_ (n) +

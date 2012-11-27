@@ -441,7 +441,7 @@ void BModel::GetInfoParam()
 //--------------------------------------------------------------------
 {
   if(aborted_) { return; }
-  BInt j,k,p;
+  BInt j,k,p,m,n;
   numParam_ = 0;
   ConstructARMAFromRoots();
   CalcNonLinnearInputDifFilter(N_);
@@ -633,6 +633,29 @@ BBool BModel::CheckData()
   }
 */
   param_.ReallocBuffer(numParam_);
+  armaParamIdx_.ReallocBuffer(arParam_+maParam_);
+  armaMaxDegParamIdx_.ReallocBuffer(arParam_+maParam_);
+  int m=0, n=0, p=inputParam_+nonLinPar_.Card();
+  for(j=0; j<arFactors_.Size(); j++)
+  {
+    for(k=1; k<arFactors_(j).Size(); k++)
+    {
+      armaParamIdx_(n++) = p;
+      if(k==arFactors_(j).Size()-1) { armaMaxDegParamIdx_(m++) = p; }
+      p++;  
+    }    
+  }
+  for(j=0; j<maFactors_.Size(); j++)
+  {
+    for(k=1; k<maFactors_(j).Size(); k++)
+    {
+      armaParamIdx_(n++) = p;
+      if(k==maFactors_(j).Size()-1) { armaMaxDegParamIdx_(m++) = p; }
+      p++;
+    }
+  }
+  armaMaxDegParamIdx_.ReallocBuffer(m);
+
   if(ok && (N_<(interruptionIndex_.Size()+numParam_)))
   {
     ok = BFALSE;
