@@ -2497,10 +2497,28 @@ void BMatPol2Vec::CalcContens()
 
 
 //--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatARMA_ACVF_ARFilter);
+DefExtOpr(1, BMatARMA_ACVF_ARFilter, "ARMA_ACVF_ARFilter", 
+  2, 2, "Matrix Polyn",
+  "(Matrix ACVF, Polyn phi)",
+  "",
+  BOperClassify::Sthocastic_);
+//--------------------------------------------------------------------
+void BMatARMA_ACVF_ARFilter::CalcContens()
+//--------------------------------------------------------------------
+{
+  BMatrix<BDat>& acvf = Mat(Arg(1));
+  BPolyn<BDat>& phi = Pol(Arg(2));
+  contens_.Alloc(acvf.Rows()-phi.Degree(),1);
+  BARIMA::ACVF_ARFilter(acvf.Data(), phi, contens_.GetData());
+}
+
+//--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetTemporary, BSetARMAPreliminaryEstimation);
 DefExtOpr(1, BSetARMAPreliminaryEstimation, "ARMAPreliminaryEstimation", 
   4, 6, "Matrix Real Real Real Real Real",
-  "(Matrix ACVF, Real p, Real q, Real N [, Real maxIter=100*q, Real eps = 0.1/Sqrt(N))",
+  "(Matrix ACVF, Real p, Real q, Real N "
+  "[, Real maxIter=100*q, Real eps = 0.1/Sqrt(N)])",
   "Estimates a preliminary AR(p)MA(q) non seassonal model \n"
   "  \n"
   " phi(B) z[t] = theta(B) a[t] ; t = 1 ... N \n"
