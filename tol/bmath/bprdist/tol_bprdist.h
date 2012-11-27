@@ -987,6 +987,30 @@ public:
 };
 
 //--------------------------------------------------------------------
+class TOL_API BZeroInflGenCountDist : public BDiscreteDist
+
+/*! Zero-inflated Generic counting probability distribution definition.
+ */
+//--------------------------------------------------------------------
+{
+private:
+  BDat p0_; //Probability of zeroes
+  BGenCountDist* gc_;
+
+public:
+  // contructors and destructors:
+  BZeroInflGenCountDist(BDat p0, BDat a, BDat v);
+ ~BZeroInflGenCountDist();
+
+  // Implementation: prd.cpp
+  BDat Average	() { return((1-p0_)*(gc_->Average()-1)); }
+  BDat Varianze () { return((1-p0_)*(gc_->Varianze())); }
+  BDat Dist	(BDat x);
+  BDat Dens	(BDat x);
+  BDat Inverse  (BDat prob, BDat tolerance = 0.1);
+};
+
+//--------------------------------------------------------------------
 class TOL_API BHypergeometricDist : public BDiscreteDist
 
 /*! Hypergeometric probability distribution definition.

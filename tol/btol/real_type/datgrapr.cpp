@@ -1882,6 +1882,135 @@ void BDatRandGamma::CalcContens()
 }
 
 //--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatZeroInflGenCountDens);
+  DefIntOpr(1, BDatZeroInflGenCountDens, "ProbZeroInflGenCount", 4, 4,
+  "(Real k, Real a>0, Real v>0, Real p0)",
+  I2("Probability function for zero-inflated generic counting "
+     "distribution with parameters \n"
+     " * p0: the probability of zero value\n"
+     " * a: the average of non zero values minus one\n"
+     " * v: is the variance of non zero values minus one\n"
+     "The non zero values minus one has a generic counting distribution, "
+     "that could be on of these distributions:\n"
+     " * Binomial(N,p) if a>v, \n"
+     " * Poisson(a) if a=v, \n"
+     " * Negative Binomial(N,P) if a<v, \n"
+     "where \n"
+     "  N=a^2/|a-v| \n"
+     "  p=1-min{N/v,v/N} \n"
+     "If k is not an integer number it will be truncated.",
+     "Función de probabilidad de la distribución genérica de conteo de "
+     "inflada en el cero con parámetros \n"
+     " * p0: la probabilidad del valor zero \n"
+     " * a: la media de los valores distintos de cero tras restarles la unidad\n"
+     " * v: la varianza de los valores distintos de cero tras restarles la unidad\n"
+     "Los valores distintos de cero tras restarles la unidad siguen "
+     "la distribución genérica de conteo que puede ser una de las siguientes:\n"
+     " * Binomial(N,p) si a>v, \n"
+     " * Poisson(a) si a=v, \n"
+     " * Binomial Negativa(N,p) si a<v, \n"
+     "donde \n"
+     "  N=a^2/|a-v| \n"
+     "  p=1-min{N/v,v/N} \n"
+     "Si k no es entero se toma su parte entera."),
+  BOperClassify::Probability_);
+  void BDatZeroInflGenCountDens::CalcContens()
+//--------------------------------------------------------------------
+{
+  BDat x = Dat (Arg(1));
+  BDat a = Dat (Arg(2));
+  BDat v = Dat (Arg(3));
+  BDat p0 = Dat (Arg(4));
+  contens_ = BZeroInflGenCountDist(p0,a,v).GetDens(x);
+}
+
+
+//--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatZeroInflGenCountDist);
+  DefIntOpr(1, BDatZeroInflGenCountDist, "DistZeroInflGenCount",  4, 4,
+  "(Real k, Real a>0, Real v>0, Real p0)",
+  I2("Cumulkative probability function for zero-inflated generic counting "
+     "distribution with parameters \n"
+     " * p0: the probability of zero value\n"
+     " * a: the average of non zero values minus one\n"
+     " * v: is the variance of non zero values minus one\n"
+     "The non zero values minus one has a generic counting distribution, "
+     "that could be on of these distributions:\n"
+     " * Binomial(N,p) if a>v, \n"
+     " * Poisson(a) if a=v, \n"
+     " * Negative Binomial(N,P) if a<v, \n"
+     "where \n"
+     "  N=a^2/|a-v| \n"
+     "  p=1-min{N/v,v/N} \n"
+     "If k is not an integer number it will be truncated.",
+     "Función de probabilidad acumulada de la distribución genérica de conteo de "
+     "inflada en el cero con parámetros \n"
+     " * p0: la probabilidad del valor zero \n"
+     " * a: la media de los valores distintos de cero tras restarles la unidad\n"
+     " * v: la varianza de los valores distintos de cero tras restarles la unidad\n"
+     "Los valores distintos de cero tras restarles la unidad siguen "
+     "la distribución genérica de conteo que puede ser una de las siguientes:\n"
+     " * Binomial(N,p) si a>v, \n"
+     " * Poisson(a) si a=v, \n"
+     " * Binomial Negativa(N,p) si a<v, \n"
+     "donde \n"
+     "  N=a^2/|a-v| \n"
+     "  p=1-min{N/v,v/N} \n"
+     "Si k no es entero se toma su parte entera."),
+  BOperClassify::Probability_);
+  void BDatZeroInflGenCountDist::CalcContens()
+//--------------------------------------------------------------------
+{
+  BDat x = Dat (Arg(1));
+  BDat a = Dat (Arg(2));
+  BDat v = Dat (Arg(3));
+  BDat p0 = Dat (Arg(4));
+  contens_ = BZeroInflGenCountDist(p0,a,v).GetDist(x);
+}
+
+
+//--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatZeroInflGenCountInv);
+  DefIntOpr(1, BDatZeroInflGenCountInv, "DistZeroInflGenCountInv", 4, 4,
+  "(Real k, Real a>0, Real v>0, Real p0)",
+  I2("Cumulkative probability function for zero-inflated generic counting "
+     "distribution with parameters \n"
+     " * p0: the probability of zero value\n"
+     " * a: the average of non zero values minus one\n"
+     " * v: is the variance of non zero values minus one\n"
+     "The non zero values minus one has a generic counting distribution, "
+     "that could be on of these distributions:\n"
+     " * Binomial(N,p) if a>v, \n"
+     " * Poisson(a) if a=v, \n"
+     " * Negative Binomial(N,P) if a<v, \n"
+     "where \n"
+     "  N=a^2/|a-v| \n"
+     "  p=1-min{N/v,v/N} \n",
+     "Función de probabilidad acumulada de la distribución genérica de conteo de "
+     "inflada en el cero con parámetros \n"
+     " * p0: la probabilidad del valor zero \n"
+     " * a: la media de los valores distintos de cero tras restarles la unidad\n"
+     " * v: la varianza de los valores distintos de cero tras restarles la unidad\n"
+     "Los valores distintos de cero tras restarles la unidad siguen "
+     "la distribución genérica de conteo que puede ser una de las siguientes:\n"
+     " * Binomial(N,p) si a>v, \n"
+     " * Poisson(a) si a=v, \n"
+     " * Binomial Negativa(N,p) si a<v, \n"
+     "donde \n"
+     "  N=a^2/|a-v| \n"
+     "  p=1-min{N/v,v/N} \n"),
+  BOperClassify::Probability_);
+  void BDatZeroInflGenCountInv::CalcContens()
+//--------------------------------------------------------------------
+{
+  BDat y = Dat (Arg(1));
+  BDat a = Dat (Arg(2));
+  BDat v = Dat (Arg(3));
+  BDat p0 = Dat (Arg(4));
+  contens_ = Floor(BZeroInflGenCountDist(p0,a,v).Inverse(y));
+}
+
+//--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatHypergeometricDist);
   DefIntOpr(1, BDatHypergeometricDist, "DistHyperG", 4, 4,
   "(Real k, Real N, Real P, Real n)",

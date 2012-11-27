@@ -2488,6 +2488,7 @@ BDat BBinomialDist::Inverse(BDat x, BDat tolerance)
 //--------------------------------------------------------------------
 {
   if(wrongParameter_ || x.IsUnknown()) { return(BDat::Unknown()); }
+  if(x<=Dens(0)) { return(0); }
     double p, q, s, xn, pr, ompr, bound;
     int which, status;
     //Using dcdflib 
@@ -2624,6 +2625,7 @@ BDat BNegBinomialDist::Inverse(BDat x, BDat tolerance)
 {
   if(wrongParameter_ || x.IsUnknown()) { return(BDat::Unknown()); }
 //return(BDiscreteDist::Inverse(x,tolerance));
+  if(x<=Dens(0)) { return(0); }
 
     double p, q, s, xn, pr, ompr, bound;
     int which, status; 
@@ -2781,6 +2783,7 @@ BDat BPoissonDist::Inverse(BDat p, BDat tolerance)
 //--------------------------------------------------------------------
 {
   if(wrongParameter_ || p.IsUnknown()) { return(BDat::Unknown()); }
+  if(p<=Dens(0)) { return(0); }
   return(BDiscreteDist::Inverse(p,tolerance));
 /*
   if(wrongParameter_|| x.IsUnknown()) { return(BDat::Unknown());}
@@ -2915,7 +2918,7 @@ BDat BGenCountDist::Dens(BDat x)
 //--------------------------------------------------------------------
 {
   BDat d;
-  if(cd_) { d = cd_->Dens(x); }
+  if(x>=0 && cd_) { d = cd_->Dens(x); }
   return(d);
 }
 
@@ -2928,7 +2931,7 @@ BDat BGenCountDist::Dist(BDat x)
 //--------------------------------------------------------------------
 {
   BDat d;
-  if(cd_) { d = cd_->Dist(x); }
+  if(x>=0 && cd_) { d = cd_->Dist(x); }
   return(d);
 }
 
@@ -2941,6 +2944,71 @@ BDat BGenCountDist::Inverse(BDat p, BDat tolerance)
 {
   BDat i;
   if(cd_) { i = cd_->Inverse(p,tolerance); }
+  return(i);
+}
+
+//--------------------------------------------------------------------
+BZeroInflGenCountDist::BZeroInflGenCountDist(BDat p0, BDat a, BDat v)
+
+/*! Creates an object aimed to deal with a Zero-Inflated Generic 
+ *  Counting distribution depending just in probability of zero, 
+ *  average and variance parameters. Non zeroes values minus one
+ *  has one of these distributions
+ *    - Binomial:                 average>variance
+ *    - Poisson:                  average=variance
+ *    - Negative Binomial:        average<variance
+ */
+//--------------------------------------------------------------------
+:  BDiscreteDist(), p0_(p0), 
+   gc_(NULL)
+{
+  gc_ = new BGenCountDist(a,v);
+}
+
+//--------------------------------------------------------------------
+ BZeroInflGenCountDist::~BZeroInflGenCountDist()
+//--------------------------------------------------------------------
+{
+  if(gc_) { delete gc_; }
+}
+
+//--------------------------------------------------------------------
+BDat BZeroInflGenCountDist::Dens(BDat x)
+
+/*! Returns PDF
+ */
+//--------------------------------------------------------------------
+{
+  BDat d;
+  if(x>=0 && x<1) { d=p0_; }
+  else if(gc_) { d = (1-p0_)*gc_->Dens(x); }
+  return(d);
+}
+
+
+//--------------------------------------------------------------------
+BDat BZeroInflGenCountDist::Dist(BDat x)
+
+/*! Returns CDF
+ */
+//--------------------------------------------------------------------
+{
+  BDat d;
+  if(x>=0 && x<1) { d=p0_; }
+  else if(gc_) { d = p0_+(1-p0_)*gc_->Dist(x-1); }
+  return(d);
+}
+
+//--------------------------------------------------------------------
+BDat BZeroInflGenCountDist::Inverse(BDat p, BDat tolerance)
+
+/*! Returns the maximum x matching Poisson(x,fi) <= p
+ */
+//--------------------------------------------------------------------
+{
+  BDat i;
+  if(p<=p0_) { i=0; }
+  else if(gc_) { i = gc_->Inverse((p-p0_)/(1-p0_),tolerance)+1; }
   return(i);
 }
 
