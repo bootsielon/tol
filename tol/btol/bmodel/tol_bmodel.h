@@ -177,7 +177,8 @@ public: //member data
   BInt		  numParam_;
   BArray<BText>	  infoParam_;
   BArray<BDat>	  param_;
-
+  BArray<int>     armaParamIdx_;
+  BArray<int>     armaMaxDegParamIdx_;
   BArray<BDat>	  Fi_;
   BArray<BDat>	  DFi_;
   BArray<BDat>	  Teta_;
