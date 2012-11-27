@@ -34,6 +34,8 @@
 #include <tol/tol_gslmat.h>
 #include <tol/tol_bsvdsep.h>
 #include <tol/tol_bratio.h>
+#include <tol/tol_bprdist.h>
+#include <tol/tol_barma.h>
 
 
 BTraceInit("stat.cpp");
@@ -1346,3 +1348,241 @@ void Frequency(const BArray<BDat>& vec, BMatrix<BDat>& M ,
     M(i-1,1) = j-k;
   }
 }
+
+//--------------------------------------------------------------------
+static BDat AbsNormal(BDat x)
+//--------------------------------------------------------------------
+{
+  return(2*BNormalDist::Dist01(Abs(x)) - BDat(1));
+}
+
+//--------------------------------------------------------------------
+bool Diagnostic_ARIMA_ResAcf_NormalUnivariate(
+  BDat& statValue,
+  BDat& refuseProb,
+  const BArray<BDat>& acf,
+  int dataLength,
+  int lag)
+//--------------------------------------------------------------------
+{
+  if(acf.Size()<lag) { return(false); }
+  statValue = acf[lag];
+  refuseProb = AbsNormal(statValue*Sqrt(dataLength)); 
+  return(true);
+}
+
+//--------------------------------------------------------------------
+bool Diagnostic_ARIMA_ResAcf_BoxPierceLjung(
+  BDat& statValue,
+  BDat& refuseProb,
+  const BArray<BDat>& acf,
+  int dataLength,
+  int p,
+  int q)
+//--------------------------------------------------------------------
+{
+  if(acf.Size()<=p+q) { return(false); }
+  int m = acf.Size();
+  statValue = BoxPierceLjungACF(acf, m, dataLength);
+  BChiSquareDist Chi(m-p-q);
+  refuseProb = Chi.Dist(statValue); 
+  return(true);
+}
+
+//--------------------------------------------------------------------
+bool Diagnostic_ARIMA_ResAcf_BoxPierceMod(
+  BDat& statValue,
+  BDat& refuseProb,
+  const BArray<BDat>& acf,
+  int dataLength,
+  int p,
+  int q)
+//--------------------------------------------------------------------
+{
+  if(acf.Size()<=p+q) { return(false); }
+  int m = acf.Size();
+  statValue = BoxPierceModACF(acf, m, dataLength);
+  BChiSquareDist Chi(m-p-q);
+  refuseProb = Chi.Dist(statValue); 
+  return(true);
+}
+
+//--------------------------------------------------------------------
+bool Diagnostic_NormalReg_Res_Pearson(
+  BDat& statValue,
+  BDat& refuseProb,
+  const BArray<BDat>& res)
+//--------------------------------------------------------------------
+{
+  int N_ = res.Size();
+  if(N_<=100) { return(false); }
+  BInt         i,j;
+//Std(BText("\nTRACE PearsonNormalityTest "));
+  BNormalDist U(0,1);
+  //Cálculo de la desviación típica en base a cuantiles para filtrar outliers
+  BDat sQ = 0;
+  {
+    int nQ = (N_>30)?3:1;
+    BArray<BDat> q(nQ), p(nQ), Q(nQ);
+    if(nQ==1) 
+    {
+      q[0]=1.0;
+    }
+    else
+    {
+      q[0]=0.9; 
+      q[1]=1.0; 
+      q[2]=1.1; 
+    }
+    for(i=0; i<nQ; i++) { p[i] = U.Dist(q[0]); }
+    BArray<BDat> A(N_);
+    for(i=0; i<N_; i++) { A[i] = Abs(res(i)); }
+    Quantile(A, p, Q);
+    for(i=0; i<nQ; i++) 
+    { 
+      sQ += Q[i]/(Abs(q[i])*Sqrt(2.0));
+    }
+    sQ /= nQ;
+  }
+
+  //Filtrado de outliers
+  BArray<BDat> Y(N_);
+  BDat kSig = -U.Inverse(1.0/N_,0);
+  for(i=j=0; i<N_; i++)
+  {
+    BDat x = res(i)/sQ;
+    if(Abs(x) <= kSig) { Y(j++) = x; }
+  }
+  int N = j;
+  Y.ReallocBuffer(N);
+
+  //Pearson goodness of fit test statistic
+  BInt nQ = (N>=900)?(int)sqrt((double)N):(N>=400)?30:(N>=100)?6:4;
+//Std(BText("TRACE BModel::PearsonNormalityTest nQ=")+nQ+" sQ="+sQ+"\n");
+  BChiSquareDist Chi(nQ-3);
+  BArray<BDat> q(nQ+1);
+  BDat chi=0; 
+  BDat step = (((double)N_-2.0)/double(N_*nQ));
+  BDat p = 1.0/N_;
+  for(j=0; j<=nQ; j++, p+=step)
+  {
+    q[j] = U.Inverse(p,0);
+  }
+  p = 1.0/nQ;
+  for(j=1; j<=nQ; j++)
+  {
+    BDat q0 = q[j-1];
+    BDat q1 = q[j];
+    BDat Q = 0;
+    for(i=0; i<N; i++)
+    {
+      Q += And(q0 <= Y[i], Y[i] < q1);
+    }
+    Q/=N;
+    BDat dif = Q-p;
+    BDat dif2 = dif*dif;
+    BDat dif2p = dif2/p;
+  //Std(BText("TRACE BModel::PearsonNormalityTest   Q=")+Q+" p="+p+" dif="+dif+" dif2="+dif2+" dif2p="+dif2p+"\n");
+    chi += dif2p;
+  }
+  statValue = chi;
+  refuseProb = Chi.Dist(chi); 
+  return(true);
+}
+
+//--------------------------------------------------------------------
+bool Diagnostic_NormalReg_ParamSignif(
+  BDat& statValue,
+  BDat& refuseProb,
+  const BArray<BDat>& mean,
+  const BArray<BDat>& stdErr,
+  int dataLength)
+//--------------------------------------------------------------------
+{
+  int numParam = mean.Size();
+  if(!numParam) { return(false); }
+
+  BTStudentDist T(dataLength-numParam);
+  BInt i;
+  statValue=BDat::PosInf();
+  for(i=0; i<numParam; i++)
+  {
+    BDat t = Abs(mean[i]/stdErr[i]);
+    if(!t.IsKnown())
+    {
+      statValue = t;
+      refuseProb = 1;
+      break;
+    }
+    else if(statValue > t)
+    {
+      statValue = t;
+    }
+  }
+  refuseProb = 2*(1-T.Dist(statValue)); 
+  return(true);
+}
+
+//--------------------------------------------------------------------
+bool Diagnostic_NormalReg_ParamMulticolinearity(
+  BDat& statValue,
+  BDat& refuseProb,
+  const BArray<BDat>& mean,
+  const BArray<BDat>& covEigenValues,
+  const BMatrix<BDat>& covEigenVectors,
+  int dataLength,
+  BDat standardError)
+//--------------------------------------------------------------------
+{
+  int numParam = mean.Size();
+  if(!numParam) { return(false); }
+  if(covEigenValues.Size()!=numParam ||
+     covEigenVectors.Rows()!=numParam ||
+     covEigenVectors.Columns()!=numParam ||
+     standardError.IsUnknown())
+  {
+    statValue = BDat::Unknown(); 
+    refuseProb = 1; 
+    return(true);
+  }
+  int i,j;
+  BTStudentDist T(dataLength-numParam);
+  statValue = 0;
+  for(j=0; j<numParam; j++)
+  {
+    BDat c = 0;
+    for(i=0;i<numParam;i++) { c +=mean[i]*covEigenVectors(i,j); }
+    BDat d = Sqrt(covEigenValues(i));
+    BDat s = standardError/d;
+    BDat t = c/s;
+    BDat p = 2*(1-T.Dist(Abs(t)));
+    if(p>statValue) 
+    { 
+      statValue = t; 
+      refuseProb = p; 
+    }
+  }
+  return(true);
+}
+
+//--------------------------------------------------------------------
+bool Diagnostic_ARIMA_ParamUnitRoots(
+  BDat& statValue,
+  BDat& refuseProb,
+  const BArray<BARIMAFactor>& factors,
+  const BMatrix<BDat>& z,
+  const BMatrix<BDat>& w0,
+  const BMatrix<BDat>& a0)
+//--------------------------------------------------------------------
+{
+  BARIMA arima;
+  arima.PutFactors(factors);
+  arima.PutOutputData(z);
+
+  statValue = 0;
+  refuseProb = 1; 
+  return(true);
+}
+
+
+
