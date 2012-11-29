@@ -294,6 +294,7 @@ if {[lsearch $auto_path $toltk_library] == -1} {
 # Load project
 namespace import project::*
 set project::data(iniproject) 1
+set project::data(defaultpackages) 1
 set state ""
 set project::data(-project) $toltk_script_path
 foreach option $argv {
@@ -304,6 +305,9 @@ foreach option $argv {
       }
       -np {
         set project::data(iniproject) 0
+      }
+      -ndp {
+        set project::data(defaultpackages) 0
       }
       -project {
         set state "project"

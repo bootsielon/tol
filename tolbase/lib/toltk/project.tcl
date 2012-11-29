@@ -171,7 +171,7 @@ namespace eval ::project {
     set initol $data(iniproject)
     set iniproject ""
   }
-  tol::initlibrary $initol
+  tol::initlibrary -initproject $initol -defaultpackages $data(defaultpackages)
   if { $iniproject ne "" } {
     # incluyo _iniproject.tol relativo a -project
     tol::include $iniproject

@@ -1200,7 +1200,7 @@ const char * TOLContribAcknowledgements()
 }
 
 //--------------------------------------------------------------------
-  bool InitTOLFile(const char* str)
+bool InitTOLFile(const char* str, bool loadDefaultPackages)
 //--------------------------------------------------------------------
 {
   BText txt = str;
@@ -1212,6 +1212,14 @@ const char * TOLContribAcknowledgements()
   {
     Std(I2("\nLoading standard TOL library ",
            "\nCargando la libreria estandar de TOL ") + txt +"\n");
+    if ( loadDefaultPackages )
+      {
+      GraReal()->EvaluateExpr( "Real __NODEFAULTPACKAGES=0;" );
+      }
+    else
+      {
+      GraReal()->EvaluateExpr( "Real __NODEFAULTPACKAGES=1;" );
+      }
     initTol_ = GraSet()->EvaluateExpr(Out()+"Set InitTol = Include(\""+txt+"\")");
     if(initTol_) 
     {
@@ -1245,7 +1253,7 @@ const char * TOLContribAcknowledgements()
 };
 
 //--------------------------------------------------------------------
-void LoadInitLibrary(int loadInitProject)
+void LoadInitLibrary(int loadInitProject, int loadDefaultPackages)
 //--------------------------------------------------------------------
 {
   static bool done_ = false;
@@ -1255,7 +1263,7 @@ void LoadInitLibrary(int loadInitProject)
   BDir initTolPath = InitTolPath();
   if (initTolPath.Exist()) 
   {
-    InitTOLFile(initTolPath.Name());
+    InitTOLFile(initTolPath.Name(), loadDefaultPackages);
     if(loadInitProject)
     {
       BDir initProject = GetFilePath(initTolPath.Name())+"_init_project.tol";
@@ -1525,6 +1533,7 @@ void InitializeFromMainArgs(int argc, char *argv[], char *env[])
 
   BList* stack = NIL;
   bool loadInitProject = true;
+  bool loadDefaultPackages = true;
   if(!helpMode) {
     BInt i = 1;
     TrcIG("Parsing TOL executable arguments");
@@ -1537,6 +1546,7 @@ void InitializeFromMainArgs(int argc, char *argv[], char *env[])
         BChar com = arg.Get(1);
         BText par = arg.SubString(2,arg.Length()-1);
              if  (arg == "-np") { loadInitProject=false; }
+        else if  (arg == "-ndp") { loadDefaultPackages=false;}
         else if  (com == 'v') { ChangeVerboseMode(arg.String()+1); }
         else if  (com == 'm') { ChangeVerboseMode(arg.String()+1); }
         else if  (com == 'f') { BOut::PutDumpFile(); }
@@ -1548,7 +1558,7 @@ void InitializeFromMainArgs(int argc, char *argv[], char *env[])
         else if  (com == 'c')
         {
           InitGrammars(argv[0]);
-          if(initTOL) { LoadInitLibrary(loadInitProject); }
+          if(initTOL) { LoadInitLibrary(loadInitProject,loadDefaultPackages); }
           Trace(I2("\nCompiling command line argument -c :\n",
                    "\nCompilando argumento -c de la línea de comandos :\n  ") + par+"\n");
           BList* result = MultyEvaluate(par);
@@ -1578,7 +1588,7 @@ void InitializeFromMainArgs(int argc, char *argv[], char *env[])
       else
       {
         InitGrammars(argv[0]);
-        if(initTOL) { LoadInitLibrary(loadInitProject); }
+        if(initTOL) { LoadInitLibrary(loadInitProject,loadDefaultPackages); }
         if(arg.HasName()) {
           BText fName = argv[i];
           fName = Replace(fName,"\n","/n");
@@ -1682,7 +1692,7 @@ void InitializeFromMainArgs(int argc, char *argv[], char *env[])
   {
     InitGrammars(argv[0]);
     aliveObjects_1 = AliveObjects();
-    if(initTOL) { LoadInitLibrary(loadInitProject); }
+    if(initTOL) { LoadInitLibrary(loadInitProject,loadDefaultPackages); }
     aliveObjects_2 = AliveObjects();
     BOut::PutAllTerm(BTRUE);
     Dialog();

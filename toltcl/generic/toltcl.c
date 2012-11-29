@@ -343,19 +343,46 @@ Tol_InitLibraryCmd(clientData, interp, objc, objv)
      int objc;               /* Number of arguments */
      Tcl_Obj *CONST objv[];  /* Argument objects */
 {
-  int loadIni;
-  int status;
+  int loadInitProject = 1;
+  int loadDefaultPackages = 1;
+  int i;
 
-  if ( objc != 2 ) {
+  if ( !( objc % 2 ) ) 
+    {
     Tcl_AppendResult(interp, "wrong # args: should be \"",
-                     Tcl_GetString(objv[0]), " 0|1\"", NULL);
-    return TCL_ERROR;
-  }
-  
-  if ( (status = Tcl_GetIntFromObj( interp, objv[1], &loadIni )) == TCL_OK ) {
-    LoadInitLibrary( loadIni );
-  }
-  return status;
+                     Tcl_GetString(objv[0]), " ?-initproject 0|1? ?-defaultpackages 0|1?\"", NULL);
+    return TCL_ERROR;    
+    }
+  for ( i = 1; i < objc; i += 2 )
+    {
+    if ( !strcmp( Tcl_GetString( objv[i] ), "-initproject" ) )
+      {
+      if ( Tcl_GetIntFromObj( interp, objv[i+1], &loadInitProject ) != TCL_OK ) 
+        {
+        Tcl_AppendResult( interp, "wrong value for option \"-initproject\"",
+                          NULL );
+        return TCL_ERROR;
+        }
+      }
+    else if ( !strcmp( Tcl_GetString( objv[i] ), "-defaultpackages" ) )
+      {
+      if ( Tcl_GetIntFromObj( interp, objv[i+1], &loadDefaultPackages ) != TCL_OK ) 
+        {
+        Tcl_AppendResult( interp, "wrong value for option \"-defaultpackages\"",
+                          NULL );
+        return TCL_ERROR;
+        }
+      }
+    else
+      {
+      Tcl_AppendResult( interp, "wrong option \"", 
+                        Tcl_GetString( objv[i] ),
+                        "\", must be: -initproject or -defaultpackages", NULL );
+      return TCL_ERROR;
+      }
+    }
+  LoadInitLibrary( loadInitProject, loadDefaultPackages );
+  return TCL_OK;
 }
 
 
@@ -1516,7 +1543,7 @@ int Tol_SerieStatCmd ( ClientData clientData, Tcl_Interp *interp,
   if ( objc < 2 ) {
     Tcl_AppendStringsToObj( obj_result, "wrong # args: should be '",
                            Tcl_GetString(objv[0]),
-                           " serieref ?statname ?args??'", NULL );
+                           " serieref ?statname ?args? ?'", NULL );
     tcl_result = TCL_ERROR;
   } else
     tcl_result = Tol_ComputeSerieStat(interp,objc-1,objv+1,obj_result); 

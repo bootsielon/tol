@@ -260,7 +260,10 @@ Text _.autodoc.member.Client =
   Real _.DefaultRequire( Real void )
   ////////////////////////////////////////////////////////////////////////////
   {
-    Set toRequire = Select(_.defaultPackages, Real(Set elem) { elem[2] });
+    Real tryDefaults = If( ObjectExist("Real", "__NODEFAULTPACKAGES"),
+                           Not(__NODEFAULTPACKAGES), 1 );
+    Set toRequire = Select(_.defaultPackages, Real(Set elem) 
+                           { And(tryDefaults, elem[2]) });
     Set done = EvalSet( toRequire, Real ( Set elem ) {
         NameBlock Require( elem[1] );
         Real 1

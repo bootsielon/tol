@@ -32,6 +32,7 @@ namespace eval ::tolsh {
   set options(lang)    ""
   set options(initlib) 1
   set options(iniproject) 1
+  set options(defaultpackages) 1
   set options(compile) ""
   set options(vmode)   ""
   set options(out,enabled) no
@@ -94,7 +95,9 @@ proc ::tolsh::getoptions { cmdline } {
         # initLibrary should not be loaded
         # 
         set options(initlib) 0
-      } elseif {$opt eq "np"} {
+      } elseif {$opt eq "ndp"} {
+        set options(defaultpackages) 0
+      }  elseif {$opt eq "np"} {
         set options(iniproject) 0
       } elseif {[string index $opt 0] eq "c"} {
         if {[string length $opt]>1} {
@@ -401,7 +404,8 @@ proc ::tolsh::run { cmdline } {
     tol::initkernel $options(lang) $options(vmode)
 
     if {$options(initlib)} {
-      tol::initlibrary $options(iniproject)
+      tol::initlibrary -initproject $options(iniproject) \
+          -defaultpackages $options(defaultpackages)
     }
     # why should I do that?
     if { $options(lang) ne "" } {
