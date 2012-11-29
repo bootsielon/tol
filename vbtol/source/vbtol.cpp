@@ -145,7 +145,7 @@ void __declspec(dllexport) CALLBACK TolInit(long addr, BSTR vmode, short initlib
   InitTolKernel(NULL, 0, str_vmode);
 
   if (initlib)
-    LoadInitLibrary(true);
+    LoadInitLibrary(true,true);
 }
 
 // VC++ DLL entry point routine. Called during certain system events.
