@@ -804,7 +804,7 @@ void BVMatEye::CalcContens()
   }
   else
   {
-    int diag = max(0,(int)Real(Arg(3)));
+    int diag = (int)Real(Arg(3));
     BSyntaxObject* x_ = Arg(4);
     bool isReal = !x_;
     double x = 1.0;
