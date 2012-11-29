@@ -30,7 +30,6 @@
 
 BTraceInit("oisxml.cpp");
 
-
 //--------------------------------------------------------------------
 // OIS writing XML functions 
 //--------------------------------------------------------------------
@@ -67,16 +66,19 @@ BTraceInit("oisxml.cpp");
   header_->Print("<tolVersion>%s</tolVersion>\n",                 control_.tolEngine_.tolVersion_.String());
   header_->Print("<tolRelease>%s</tolRelease>\n",                 control_.tolEngine_.tolRelease_.String());
   header_->Print("<tolUserLang>%s</tolUserLang>\n",               control_.tolEngine_.tolUserLang_.String());
-  header_->Print("<globalRequiredPackages>\n");
-  const BRequiredPackage& grp = BNameBlock::GlobalRequiredPackages();
-  int grp_n = grp.CountRequiredPackage();
-  header_->Print("<entries>%ld</entries>\n",grp_n);
-  for(n=1; n<=grp_n; n++)
+  if(oisWriteVersion_>="02.17")
   {
-    header_->Print("<package_%ld>%s</package_%ld>\n",
-                   n, grp.GetRequiredPackageVersion(n-1).String(), n);
+    header_->Print("<globalRequiredPackages>\n");
+    const BRequiredPackage& grp = BNameBlock::GlobalRequiredPackages();
+    int grp_n = grp.CountRequiredPackage();
+    header_->Print("<entries>%ld</entries>\n",grp_n);
+    for(n=1; n<=grp_n; n++)
+    {
+      header_->Print("<package_%ld>%s</package_%ld>\n",
+                     n, grp.GetRequiredPackageVersion(n-1).String(), n);
+    }
+    header_->Print("</globalRequiredPackages>\n");
   }
-  header_->Print("</globalRequiredPackages>\n");
   header_->Print("</tolEngine>\n");
 
   header_->Print("<typeSizes>\n");
@@ -538,7 +540,7 @@ BTraceInit("oisxml.cpp");
   XMLEnsure(XMLGetNextTagTitle(tag_, "TOLDependencies"));
   XMLEnsure(XMLGetNextTagValue(tag_, value_, "entries")); sscanf(value_,"%d",&m); tolSources_.AllocBuffer(m);
   obsoleteSource_ = false;
-  if(control_.oisEngine_.oisVersion_!=OIS_VERSION)
+  if(control_.oisEngine_.oisVersion_<oisWriteVersion_)
   {
     obsoleteSource_ = true;
   }

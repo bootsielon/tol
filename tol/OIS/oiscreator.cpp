@@ -151,7 +151,7 @@ BTraceInit("oiscreator.cpp");
 
   control_.oisEngine_.curDir_       = BDir::GetCurrent();
   control_.oisEngine_.release_      = DteNow();
-  control_.oisEngine_.oisVersion_   = oisCurrentVersion_;
+  control_.oisEngine_.oisVersion_   = oisWriteVersion_;
  
   control_.machine_.hostName_       = BSys::HostName();
   control_.machine_.isLittleEndian_ = isLittleEndian_;

@@ -42,6 +42,7 @@ BTraceInit("ois.cpp");
   bool BOis::isLittleEndian_=false;
 #endif
 BText BOis::oisCurrentVersion_ = OIS_VERSION;
+BText BOis::oisWriteVersion_   = OIS_VERSION;
 BText BOis::oisDefRoot_        = "";
 int BOis::def_CLv_ = 9;
 

@@ -43,6 +43,16 @@ BTraceInit("oisapitol.cpp");
 //--------------------------------------------------------------------
 
 //--------------------------------------------------------------------
+  static BText& GetOisWriteVersion()
+//--------------------------------------------------------------------
+{
+  static BText txt;
+  txt = BOis::WriteVersion();
+  return(txt);
+};
+
+
+//--------------------------------------------------------------------
   static BText& GetOisDefBSE()
 //--------------------------------------------------------------------
 {
@@ -67,6 +77,7 @@ BTraceInit("oisapitol.cpp");
 //If addressStr_ is not null  BOis::Initialize() has been called already.
   if(addressStr_) { return(false); }
   oisCurrentVersion_ = OIS_VERSION;
+  oisWriteVersion_ = "02.16";
 
   Std(I2("OIS: implemented version: ",
          "OIS: versión implementada: ") << oisCurrentVersion_);
@@ -112,6 +123,13 @@ BTraceInit("oisapitol.cpp");
     OIS_VERSION,
 	  I2("OIS version identifier",
 	     "Identificador de la versión de OIS")
+  );
+  BParamText* OIS_def_WriteVersion_ = new BParamText
+  (
+    "Ois.WriteVersion",
+    oisWriteVersion_,
+    I2("This is useful to write OIS of older versions.",
+       "Es útil para escribir OIS de versiones viejas.")
   );
   BParamText* OIS_DefRoot_ = new BParamText
 	(
@@ -191,7 +209,6 @@ BTraceInit("oisapitol.cpp");
        "acceso a puntos internos del fichero.\n"
        "Para cambiar el valor úsese la función Ois.PutDefaultSerialEngine")
   );
-  OIS_def_BSE_->PutConstant();
 
   BParamText* OIS_def_BAE_ = new BParamText
   (
@@ -702,23 +719,23 @@ static const char* aliasSpanishDescription_ =
   TRACE_SHOW_LOW(fun,"1.4");
   if(ok) 
   {
-    if(ois.control_.oisEngine_.oisVersion_<BOis::CurrentVersion())
+    if(ois.control_.oisEngine_.oisVersion_<BOis::WriteVersion())
     {
       Warning(I2(BText("OIS: version '")<ois.control_.oisEngine_.oisVersion_+
                  "' of \n  "+ois.Path()+"\n"  
-                 " is previous than currently implemented "<<BOis::CurrentVersion(),
+                 " is previous than minimum currently used "<<BOis::WriteVersion(),
                  BText("OIS: La versión ")<<ois.control_.oisEngine_.oisVersion_+
                  " de \n  "+ois.Path()+"\n"  
-                 " es anterior a la actualmente implementada '"<<BOis::CurrentVersion()+"'"));
+                 " es anterior a la mínima actualmente usada '"<<BOis::WriteVersion()+"'"));
     }
     if(ois.control_.oisEngine_.oisVersion_>BOis::CurrentVersion())
     {
       Error(I2(BText("OIS: version '")>ois.control_.oisEngine_.oisVersion_+
                "' of \n  "+ois.Path()+"\n"  
-               " is later than currently implemented "<<BOis::CurrentVersion(),
+               " is later than maximum currently used "<<BOis::CurrentVersion(),
                BText("OIS: La versión ")<<ois.control_.oisEngine_.oisVersion_+
                " de \n  "+ois.Path()+"\n"  
-               " es posterior a la actualmente implementada '"<<BOis::CurrentVersion()+"'"));
+               " es posterior a la máxima actualmente usada '"<<BOis::CurrentVersion()+"'"));
       ok=false;
     }
   }

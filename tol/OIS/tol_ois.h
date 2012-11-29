@@ -554,11 +554,15 @@ protected:
 //Current OIS_VERSION in a BText
   static BText oisCurrentVersion_;
 
+//Default OIS write version method
+  static BText oisWriteVersion_;
+
 //Current OIS default root path
   static BText oisDefRoot_;
 
 //Default OIS archive method
   static BText oisDefArchive_;
+
 
 //Default date format
   static BDateFormat dateFmt_;
@@ -645,6 +649,8 @@ public:
   static BSerialEngine SerialEngine(const BText& txt);
   static BArchiveEngine       ArchiveEngine      (const BText& txt);
   static const BText& CurrentVersion() { return(oisCurrentVersion_); }
+  static const BText& WriteVersion() { return(oisWriteVersion_); }
+
   static BText AutoPath(const BText& path);
   static BText PlainPath    (const BText& path);
   static BText GetModulePath(const BText& tolFile);
