@@ -140,7 +140,7 @@ proc ::SetGraph::Create {path info set tableset {fileGCF {}} {title {}}} {
       wm state    [winfo parent $widgets(this)] $data(wm,state)
     }
   }
-
+  ::bayesGraph::ZoomExtend  $Instance
   return $Instance
 }
 

@@ -100,7 +100,7 @@ proc ::SeriesGraph::Create { path list args } {
   if {[string length $opts(-title)]} {
     ::bayesGraph::SetMainTitle $Instance $opts(-title)
   }
-
+  ::bayesGraph::ZoomExtend  $Instance
   return $Instance
 }
 
