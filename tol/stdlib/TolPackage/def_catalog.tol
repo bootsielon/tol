@@ -240,7 +240,9 @@ Class @Catalog
           Real index2 = FindIndexByName(subrecords, Name(refRecord));
           If(index2, {
             Set record = subrecords[index2];
-            If(refRecord::release<record::release, record, Empty)
+            If(DateToIndex(refRecord::release)<DateToIndex(record::release), {
+              subrecords[index2] // se mantiene así el nombre del set
+            }, Empty)
           }, Empty)
         }), Card)
       }, Empty)
