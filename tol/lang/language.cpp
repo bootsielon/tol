@@ -981,25 +981,28 @@ void BSetBDTFile::CalcContens()
     }
     else
     {
+      BText out;
       if(header=="_DEFAULT_HEADER_")
       {
-        Std(table.Dating()->Identify() + "; ");
-        for(n=1; n<=table.NumSeries(); n++) { Std(table.Name(n) + colSeparator); }
-        Std(rowSeparator);
+        out << table.Dating()->Identify() <<colSeparator;
+        for(n=1; n<table.NumSeries(); n++) 
+        { out << table.Name(n) << colSeparator; }
+        out << table.Name(n) << rowSeparator;
       }
       else if(header.HasName()) 
-      { 
-        Std(header+rowSeparator); 
+      {
+        out << header+rowSeparator; 
       }
       for(m=1; m<=table.NumDates(); m++)
       {
-        Std(BTableFormat::DateFormat().DateToText(table.Date(m)) + colSeparator);
+        out << BTableFormat::DateFormat().DateToText(table.Date(m)) << colSeparator;
         for(n=1; n<table.NumSeries(); n++)
         {
-          Std(table.TextData(n,m)+colSeparator);
+          out << table.TextData(n,m) << colSeparator;
         }
-        Std(table.TextData(n,m)+rowSeparator);
+        out << table.TextData(n,m) << rowSeparator;
       }
+      Std(out);
     }
   }
 }
