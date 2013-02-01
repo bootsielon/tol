@@ -345,10 +345,14 @@ int dtrsm(const enum CBLAS_SIDE Side,
   int M   = B.Rows   ();
   int N   = B.Columns();
   if(N&&M&&(
-    (Side==CblasLeft  && TransA==CblasNoTrans && A.Columns()==M) ||
-    (Side==CblasRight && TransA==CblasNoTrans && A.Rows   ()==N) ||
-    (Side==CblasLeft  && TransA==CblasTrans   && A.Rows   ()==M) ||
-    (Side==CblasRight && TransA==CblasTrans   && A.Columns()==N) ))
+     //(Side==CblasLeft  && TransA==CblasNoTrans && A.Columns()==M) ||
+     (Side==CblasLeft  && TransA==CblasNoTrans && A.Rows()==M) ||
+     //(Side==CblasRight && TransA==CblasNoTrans && A.Rows   ()==N) ||
+     (Side==CblasRight && TransA==CblasNoTrans && A.Columns   ()==N) ||
+     //(Side==CblasLeft  && TransA==CblasTrans   && A.Rows   ()==M) ||
+     (Side==CblasLeft  && TransA==CblasTrans   && A.Columns   ()==M) ||
+     //(Side==CblasRight && TransA==CblasTrans   && A.Columns()==N) ))
+     (Side==CblasRight && TransA==CblasTrans   && A.Rows()==N) ))
   {
     return(dtrsm(Side,Uplo,TransA,Diag,alpha.Value(),
                  cb2dMat(A),cb2dMat(B),b2dMat(X)));

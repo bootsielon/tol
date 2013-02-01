@@ -2141,8 +2141,8 @@ void BMatTrSolve::CalcContens()
   BMatrix<BDat>& T = Mat(Arg(1));
   BMatrix<BDat>& B = Mat(Arg(2));
   if(!T.Columns()||!T.Rows()||
-     !B.Columns()||!B.Rows()||
-      T.Columns()!= B.Rows())
+     !B.Columns()||!B.Rows()/*||
+      T.Columns()!= B.Rows()*/)
   { 
     Warning(I2("Cannot apply TrSolve to matrices ",
                "No se puede aplicar TrSolve a las matrices ")+
