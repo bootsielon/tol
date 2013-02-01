@@ -1,4 +1,6 @@
-Matrix L = Diag(3, 2);
+Real PutRandomSeed(1000);
+Matrix A = Rand(3, 6, 0, 1);
+Matrix L = Choleski(A*Tra(A));
 
 Real nSol = 4;
 
@@ -7,11 +9,12 @@ Matrix Bc = Tra(Br);
 
 Set checkAll = Copy(Empty);
 
-Real AppendCheck(Matrix X, Matrix B, Text name)
+Real tolTest = 1.0e-10;
+
+Real AppendCheck(Matrix Bhat, Matrix B, Text name)
 {
-  Matrix ratio =  X$/B;
-  Real check0 = And(EQ(MatMin(ratio),0.5), EQ(MatMax(ratio),0.5));
-  Real check = If(IsUnknown(check0),0,check0);
+  Real check0 = MatFrobeniusNorm(Bhat - B);
+  Real check = If(IsUnknown(check0),0,check0<tolTest);
   Set Append(checkAll, [[PutName(name, check)]]);
   Real 1
 };
@@ -19,34 +22,36 @@ Real AppendCheck(Matrix X, Matrix B, Text name)
 // Matrix TrSolve (Matrix T, Matrix B [, Real left=1, Real trans=0, Real lower=1])
 // L*X=B
 Matrix X_LXB = TrSolve(L, Br, 1, 0, 1);
-Real AppendCheck(X_LXB, Br, "LXB");
+Real AppendCheck(L*X_LXB, Br, "LXB");
 
 // L'*X=B
 Matrix X_LtXB = TrSolve(L, Br, 1, 1, 1);
-Real AppendCheck(X_LtXB, Br, "LtXB");
+Real AppendCheck(Tra(L)*X_LtXB, Br, "LtXB");
 
 // X*L=B
 Matrix X_XLB = TrSolve(L, Bc, 0, 0, 1);
-Real AppendCheck(X_XLB, Bc, "XLB");
+Real AppendCheck(X_XLB*L, Bc, "XLB");
 
 // X*L'=B
 Matrix X_XLtB = TrSolve(L, Bc, 0, 1, 1);
-Real AppendCheck(X_XLtB, Bc, "XLtB");
+Real AppendCheck(X_XLtB*Tra(L), Bc, "XLtB");
+
+Matrix U = Tra(L);
 
 // U*X=B
-Matrix X_UXB = TrSolve(L, Br, 1, 0, 0);
-Real AppendCheck(X_UXB, Br, "UXB");
+Matrix X_UXB = TrSolve(U, Br, 1, 0, 0);
+Real AppendCheck(U*X_UXB, Br, "UXB");
 
 // U'*X=B
-Matrix X_UtXB = TrSolve(L, Br, 1, 1, 0);
-Real AppendCheck(X_UtXB, Br, "UtXB");
+Matrix X_UtXB = TrSolve(U, Br, 1, 1, 0);
+Real AppendCheck(Tra(U)*X_UtXB, Br, "UtXB");
 
 // X*U=B
-Matrix X_XUB = TrSolve(L, Bc, 0, 0, 0);
-Real AppendCheck(X_XUB, Bc, "XUB");
+Matrix X_XUB = TrSolve(U, Bc, 0, 0, 0);
+Real AppendCheck(X_XUB*U, Bc, "XUB");
 
 // X*U'=B
-Matrix X_XUtB = TrSolve(L, Bc, 0, 1, 0);
-Real AppendCheck(X_XUtB, Bc, "XUtB");
+Matrix X_XUtB = TrSolve(U, Bc, 0, 1, 0);
+Real AppendCheck(X_XUtB*Tra(U), Bc, "XUtB");
 
 Set View(checkAll, "");
