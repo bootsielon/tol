@@ -28,6 +28,7 @@
 #include <tol/tol_bout.h>
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bdatgra.h>
+#include <tol/tol_bmatgra.h>
 
 #include <errno.h>
 
@@ -235,7 +236,6 @@ BText sysErrCleanVervose_ = I2(
   contens_ = handle;
 }
 
-
 /////////////////////////////////////////////////////////////////////////////
   DeclareContensClass(BTxt, BTxtTemporary, BTxtFGetText);
   DefExtOpr(1, BTxtFGetText, "FGetText", 2, 3, "Real Real Text",
@@ -282,6 +282,130 @@ BText sysErrCleanVervose_ = I2(
   if(file)
   {
     contens_ = fputs(txt.String(),file);
+  }
+}
+
+/////////////////////////////////////////////////////////////////////////////
+  DeclareContensClass(BDat, BDatTemporary, BDatFTell);
+  DefExtOpr(1, BDatFTell, "FTell", 1, 1, "Real",
+  "(Real handle)",
+  I2("Returns the current position of a file open with FOpen.",
+     "Devuelve la posición actual de un fichero abierto con FOpen"),
+  BOperClassify::BayesDataBase_);
+  void BDatFTell::CalcContens()
+/////////////////////////////////////////////////////////////////////////////
+{
+  int handle  = (int)Real(Arg(1));
+  FILE* file = BFileDesc::CheckFileHandle(handle,true,
+    I2("Fail in ","Fallo en ")+"FTell");
+  if(file)
+  {
+    contens_ = (double)ftello(file);
+  }
+}
+
+/////////////////////////////////////////////////////////////////////////////
+  DeclareContensClass(BDat, BDatTemporary, BDatFSeek);
+  DefExtOpr(1, BDatFSeek, "FSeek", 2, 2, "Real Real",
+  "(Real handle, Real offset)",
+  I2("Sets the current position of a file open with FOpen.",
+     "Mueve la posición actual de un fichero abierto con FOpen"),
+  BOperClassify::BayesDataBase_);
+  void BDatFSeek::CalcContens()
+/////////////////////////////////////////////////////////////////////////////
+{
+  int handle  = (int)Real(Arg(1));
+  off_t offset = (off_t)Real(Arg(2));
+  FILE* file = BFileDesc::CheckFileHandle(handle,true,
+    I2("Fail in ","Fallo en ")+"FSeek");
+  if(file)
+  {
+    contens_ = fseeko(file,offset,SEEK_SET);
+  }
+}
+
+/////////////////////////////////////////////////////////////////////////////
+  DeclareContensClass(BMat, BMatTemporary, BMatFGetNumbers);
+  DefExtOpr(1, BMatFGetNumbers, "FGetNumbers", 3, 3, "Real Real Text",
+  "(Real handle, Real numItems, Text numberType)",
+  I2("Reads an array of numbers from a binary file.",
+     "Lee un array de números desde un fichero binario."),
+  BOperClassify::BayesDataBase_);
+  void BMatFGetNumbers::CalcContens()
+/////////////////////////////////////////////////////////////////////////////
+{
+  if(CheckNonDeclarativeAction("FGetNumbers")) { return; }
+  int handle  = (int)Real(Arg(1));
+  int numItems = (int)Real(Arg(2));
+  BText& numberType = Text(Arg(3)); 
+  contens_.Alloc(1,numItems);
+  int result, i; 
+  FILE* file = BFileDesc::CheckFileHandle(handle,true,
+    I2("Fail in ","Fallo en ")+"FGetNumbers");
+  if(file)
+  {
+    if(numberType=="double")
+    {
+      BArray<double> arr(numItems);
+      result = fread(arr.GetBuffer(),8,numItems,file);
+      if(result==numItems) for(i=0; i<numItems; i++)
+      {
+        contens_(0,i) = (double)arr(i); 
+      }
+    }
+    else if(numberType=="float")
+    {
+      BArray<float> arr(numItems);
+      result = fread(arr.GetBuffer(),4,numItems,file);
+      if(result==numItems) for(i=0; i<numItems; i++)
+      {
+        contens_(0,i) = (double)arr(i); 
+      }
+    }
+    else if(numberType=="int")
+    {
+      BArray<int> arr(numItems);
+      result = fread(arr.GetBuffer(),4,numItems,file);
+      if(result==numItems) for(i=0; i<numItems; i++)
+      {
+        contens_(0,i) = (double)arr(i); 
+      }
+    }
+    else if(numberType=="unsigned int")
+    {
+      BArray<unsigned int> arr(numItems);
+      result = fread(arr.GetBuffer(),4,numItems,file);
+      if(result==numItems) for(i=0; i<numItems; i++)
+      {
+        contens_(0,i) = (double)arr(i); 
+      }
+    }
+    else if(numberType=="short int")
+    {
+      BArray<short int> arr(numItems);
+      result = fread(arr.GetBuffer(),2,numItems,file);
+      if(result==numItems) for(i=0; i<numItems; i++)
+      {
+        contens_(0,i) = (double)arr(i); 
+      }
+    }
+    else if(numberType=="unsigned short int")
+    {
+      BArray<unsigned short int> arr(numItems);
+      result = fread(arr.GetBuffer(),2,numItems,file);
+      if(result==numItems) for(i=0; i<numItems; i++)
+      {
+        contens_(0,i) = (double)arr(i); 
+      }
+    }
+    if(result!=numItems)
+    {
+      Error(BText("[FGetNumbers] ")+
+        I2("The total number of elements successfully read is ",
+           "El número total de elementos leídos con éxito es ")+result+
+        I2(" when it was expected ",
+           " cuando se esperaban ")+numItems);
+    };
   }
 }
 
