@@ -329,7 +329,8 @@ BText sysErrCleanVervose_ = I2(
   DefExtOpr(1, BMatFGetNumbers, "FGetNumbers", 3, 3, "Real Real Text",
   "(Real handle, Real numItems, Text numberType)",
   I2("Reads an array of numbers from a binary file.",
-     "Lee un array de números desde un fichero binario."),
+     "Lee un array de números desde un fichero binario.")+
+     "numberType : \"double\", \"float\", \"int\", \"unsigned int\", \"short int\", \"unsigned short int\"",
   BOperClassify::BayesDataBase_);
   void BMatFGetNumbers::CalcContens()
 /////////////////////////////////////////////////////////////////////////////
