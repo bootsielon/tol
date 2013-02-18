@@ -471,7 +471,7 @@ DefExtOpr(1, BMatReadFile, "MatReadFile", 1, 3, "Text Text Real",
      "Lee una matriz de un fichero en el formato especificado")+":\n"+
      "BINARY: "+
      I2("Standard TOL binary format",
-        "Formato estándar binario de TOL")+
+        "Formato estándar binario de TOL ")+
      "WGRIB2TXT: "+
      I2("Result of command", "Resultado del comando")+
      " wgrib2 ... -text file\n"+
@@ -609,6 +609,45 @@ void BMatReadRows::CalcContens()
     BSys::FUnlockAndClose(file,path.String());
   }
 }
+
+//--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatReadRowSet);
+DefExtOpr(1, BMatReadRowSet, "MatReadRowSet", 3, 3, 
+  "Real Set Real",
+  "(Real file, Set rows, Real numCol)",
+  I2("Reads a set of rows of a matrix from a file in binary format\n"
+     "If argument <file> is a Text then the file in these path will be "
+     "open before to read and it will be closed after.\n"
+     "Argument <file> is the result of a previous call to FOpen.\n"
+     "Argument <rows> gives de number of lines to be reeaded.",
+     "Lee un rango de filas de una matriz de un fichero en formato binario\n"
+     "El argumento <file> es el resultado de una llamada previa a FOpen.\n"
+     "El argumento <rows> indica las líneas a ser leídas."),
+    BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BMatReadRowSet::CalcContens()
+//--------------------------------------------------------------------
+{
+  static BText errMsg = "[BMatReadRowSet] Unexpected error reading from BBM file";
+  int handle = (int)Real(Arg(1));
+  BSet& rows = Set(Arg(2));
+  int c = (int)Real(Arg(3));
+  BFileDesc* fd = BFileDesc::FindFileHandle(handle,true,errMsg);  
+  FILE* file = fd->file_;
+  int i, j, r = rows.Card();
+  contens_.Alloc(r,c);
+  BDat* ptr = contens_.GetData().GetBuffer();
+  off_t pos;
+  for(i=1; i<=r; i++)
+  {
+    j = (int)Real(rows[i])-1;
+    pos = 2*sizeof(BInt)+(j*c)*sizeof(BDat);
+    fseeko(file,pos,SEEK_SET);
+    fread(ptr, sizeof(BDat), c, file);
+    ptr += c;
+  }
+}
+
 //--------------------------------------------------------------------
 DeclareContensClass(BDat, BDatTemporary, BMatReadCell);
 DefExtOpr(1, BMatReadCell, "MatReadCell", 3, 5, 
@@ -2668,18 +2707,61 @@ void BMatMarquardt::CalcContens()
 
 
 //--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatAutoScale);
+DefExtOpr(1, BMatAutoScale, "AutoScale", 4, 6,
+  "Code Matrix Matrix Matrix Real Real",
+  "(Code function, Matrix x0, Matrix xMin, Matrix xMax [, Real fDist=.01, Real tolerance=0.001])",
+  I2("Returns the vector of scales that gives unitary variations of "
+     "evaluation of a function in an environment of a given point inside "
+     "the hyper-rectangle defined by limits [xMin,xMax].",
+     "Devuelve el vector de escalado con el que se obtienen variaciones "
+     "unitarias de las evaluaciones de una función en un entorno de "
+     "un punto dado x0 interior al hiper-rectángulo definido por los "
+     "límites [xMin,xMax]."
+     ),
+    BOperClassify::NumericalAnalysis_);
+//--------------------------------------------------------------------
+void BMatAutoScale::CalcContens()
+//--------------------------------------------------------------------
+{
+  BCode& code = Code(Arg(1));
+  BMat&  x    = Mat (Arg(2));
+  BMat&  xMin = Mat (Arg(3));
+  BMat&  xMax = Mat (Arg(4));
+  BDat fDist=.01;
+  BDat tolerance=0.001;
+  if(Arg(5)) { fDist=Dat(Arg(5)); }
+  if(Arg(6)) { tolerance=Dat(Arg(6)); }
+  BInt   n    = x.Rows(); 
+  contens_.Alloc(n,1);
+  if(contens_.Rows()!=n) { return; }
+  BRnRCode f(n, code);
+  f.AutoScale(x.Data(), xMin.Data(), xMax.Data(), fDist, tolerance, contens_.GetData());
+}
+
+//--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatGradient);
-DefExtOpr(1, BMatGradient, "Gradient", 2, 2,
-  "Code Matrix",
-  "(Code function, Matrix point)",
-  I2("Calculates the numerical gradient vector of a function evaluated in a given point.  \n"
-     "Arguments:                                                                \n" 
-     "function ---> function to be analyzed,                                    \n"
-     "point    ---> point where the gradient is calculated                      \n",
-     "Calcula el gradiente numérico de una funcion evaluada en un punto dado.          \n"
-     "Argumentos:                                                               \n" 
-      "function ---> funcion a analizar,                                         \n"
-     "point    ---> punto de calculo del gradiente                              \n"
+DefExtOpr(1, BMatGradient, "Gradient", 2, 3,
+  "Code Matrix Matrix",
+  "(Code function, Matrix point [, Matrix scale=1])",
+  I2("Calculates the numerical gradient vector of a function evaluated in a "
+     "given point.  \n"
+     "Firstly tries to apply the central formulae with five points. "
+     "If the point is near to domain border, the function evaluation can "
+     "fails in lateral points. Then use asymetric formulaes with four or "
+     "three points.\n"
+     "Arguments:                                                         \n" 
+     "function ---> function to be analyzed,                             \n"
+     "point    ---> point where the gradient is calculated               \n",
+     "Calcula el gradiente numérico de una funcion evaluada en un punto "
+     "dado.\n"
+     "En primer lugar intenta usar la fórmula central de cinco puntos. "
+     "Si el punto está muy cerca de la frontera del dominio, es posible que "
+     "la evaluación falle en algún punto lateral. En tal caso se intentará " 
+     "usar una fórmula asimétrica con cuatro o tres puntos.\n" 
+     "Argumentos:                                                        \n" 
+      "function ---> funcion a analizar,                                 \n"
+     "point    ---> punto de calculo del gradiente                       \n"
      ),
     BOperClassify::NumericalAnalysis_);
 //--------------------------------------------------------------------
@@ -2692,11 +2774,67 @@ void BMatGradient::CalcContens()
   contens_.Alloc(n,1);
   if(contens_.Rows()!=n) { return; }
   BRnRCode f(n, code);
-  /* OPT! : puede pasarse el buffer de contens_? */
-  f.Gradient(x.Data(), contens_.GetData());
+  if(Arg(3)) 
+  { 
+    BMat scale;
+    scale = Mat(Arg(3)); 
+    f.Gradient(x.Data(), scale.Data(), contens_.GetData());
+  }
+  else
+  {
+    f.Gradient(x.Data(), contens_.GetData());
+  }
 }
 
-  
+
+//--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatGradient2);
+DefExtOpr(1, BMatGradient2, "Gradient2", 2, 3,
+  "Code Matrix Matrix",
+  "(Code function, Matrix point [, Matrix scale=1])",
+  I2("Calculates the numerical second gradient vector (the hessian diagonal) "
+     "of a function evaluated in a given point.  \n"
+     "Firstly tries to apply the central formulae with five points. "
+     "If the point is near to domain border, the function evaluation can "
+     "fails in lateral points. Then use asymetric formulaes with four or "
+     "three points.\n"
+     "Arguments:                                                           \n" 
+     "  function ---> function to be analyzed,                             \n"
+     "  point    ---> point where the gradient is calculated               \n",
+     "Calcula el vector segundo gradiente numérico (diagonal del hessiano) "
+     "de una funcion evaluada en un punto dado.          \n"
+     "En primer lugar intenta usar la fórmula central de cinco puntos. "
+     "Si el punto está muy cerca de la frontera del dominio, es posible que "
+     "la evaluación falle en algún punto lateral. En tal caso se intentará " 
+     "usar una fórmula asimétrica con cuatro o tres puntos.\n" 
+     "Argumentos:                                                          \n" 
+     "  function ---> funcion a analizar,                                  \n"
+     "  point    ---> punto de calculo del gradiente                       \n"
+     ),
+    BOperClassify::NumericalAnalysis_);
+//--------------------------------------------------------------------
+void BMatGradient2::CalcContens()
+//--------------------------------------------------------------------
+{
+  BCode& code = Code(Arg(1));
+  BMat&  x    = Mat (Arg(2));
+  BInt   n    = x.Rows(); 
+  contens_.Alloc(n,1);
+  if(contens_.Rows()!=n) { return; }
+  BRnRCode f(n, code);
+  if(Arg(3)) 
+  { 
+    BMat scale;
+    scale = Mat(Arg(3)); 
+    f.Gradient2(x.Data(), scale.Data(), contens_.GetData());
+  }
+  else
+  {
+    f.Gradient2(x.Data(), contens_.GetData());
+  }
+}
+
+
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatHessian);
 DefExtOpr(1, BMatHessian, "Hessian", 2, 2,
@@ -2707,7 +2845,7 @@ DefExtOpr(1, BMatHessian, "Hessian", 2, 2,
      "Arguments:                                                                \n" 
      "function ---> function to be analyzed,                                    \n"
      "point    ---> point where the hessian is calculated                       \n",
-     "Calcula el hessiano numéico de una funcion evaluada en un punto dado.     \n"
+     "Calcula el hessiano numérico de una funcion evaluada en un punto dado.     \n"
      "Argumentos:                                                               \n" 
       "function ---> funcion a analizar,                                        \n"
      "point    ---> punto de calculo del hessiano                               \n"
@@ -3287,7 +3425,7 @@ DefExtOpr(1, BMatConcatRow,  "ConcatRows", 1, 0, "Matrix Matrix",
 void BMatConcatRow::CalcContens()
 //--------------------------------------------------------------------
 {
-  BInt  i, j, k=0, l;
+  BInt  i, k=0;
   BInt  numCol = 0;
   BInt  numRow = 0;
   BInt  numMat = NumArgs();
