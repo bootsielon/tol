@@ -1465,12 +1465,30 @@ static BSyntaxObject* EvDeepCopy(BGrammar* gra, const List* tre, BBool left)
           BUserMat* uM = (BUserMat*)GraMatrix()->EvaluateTree(Branch(tre,2)); 
           if(uM && (uM->Grammar()==GraMatrix()))
           { 
-            p	= uM->Contens().Data();
-            SAFE_DESTROY(uM,result);
+            BMat& M = uM->Contens();
+            int r = M.Rows();
+            int c = M.Columns();
+            p	= M.Data();
             pos = 0;
+            if(r==1)
+            {
+              DeepCopy(uS->Contens(),res->Contens(),p,pos);
+            }
+            else
+            {
+              int i;
+              res->Contens().PrepareStore(r);
+              for(i=0; i<r; i++)
+              {
+                BContensSet* res_i = new BContensSet;
+                DeepCopy(uS->Contens(),res_i->Contens(),p,pos); 
+                res->Contens().AddElement(res_i);
+              }
+            }
           }
+          SAFE_DESTROY(uM,result);
         }
-        DeepCopy(uS->Contens(),res->Contens(),p,pos);
+        if(pos==-1) { DeepCopy(uS->Contens(),res->Contens(),p,pos); }
         SAFE_DESTROY(toCopy,result);
       }
       BGrammar::DestroyStackUntil(stackPos, result);    
