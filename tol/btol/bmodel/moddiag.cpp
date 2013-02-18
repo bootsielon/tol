@@ -742,7 +742,14 @@ void BModel::Diagnostics()
     diagPunct_  (n) = 0;
     testAccept_ (n) = Dat(s[1]);
     testRefuse_ (n) = Dat(s[2]);
-    diagQualify_(n) = RunTest(n);
+    if(testAccept_(n)<1)
+    {
+      diagQualify_(n) = RunTest(n);
+    }
+    else
+    {
+      diagQualify_(n) = Qualify(n, BDat::Unknown(), false);
+    }
     if(qualification_<diagQualify_(n)) { qualification_=diagQualify_(n); }
     BDat x0 = 1.0/3.0;
     BDat y0 = 2.0/3.0;
