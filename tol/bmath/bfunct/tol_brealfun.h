@@ -95,8 +95,19 @@ public:
 
 
   // Operations:
-  virtual void Gradient (const BArray<BDat>&  x, BArray<BDat>&  G);
-  virtual void Hessian(const BArray<BDat>& x, BMatrix<BDat>& H);
+  bool AutoScale (
+    const BArray<BDat>& x, 
+    const BArray<BDat>& xMin, 
+    const BArray<BDat>& xMax, 
+    BDat fDist, 
+    BDat tolerance, 
+    BArray<BDat>& S);
+
+  virtual void Gradient (const BArray<BDat>& x, const BArray<BDat>& scale, BArray<BDat>&  G);
+  virtual void Gradient2(const BArray<BDat>& x, const BArray<BDat>& scale, BArray<BDat>&  G2);
+  virtual void Gradient (const BArray<BDat>& x, BArray<BDat>&  G);
+  virtual void Gradient2(const BArray<BDat>& x, BArray<BDat>&  G2);
+  virtual void Hessian  (const BArray<BDat>& x, BMatrix<BDat>& H);
   virtual BDat Dimension();
 };
 

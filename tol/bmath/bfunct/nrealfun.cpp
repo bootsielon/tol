@@ -25,6 +25,7 @@
 
 #include <tol/tol_matrix.h>
 #include <tol/tol_brealfun.h>
+#include <tol/tol_bfibonac.h>
 #include <tol/tol_btimer.h>
 #include <tol/tol_bstat.h>
 #include <tol/tol_blinalg.h>
@@ -77,36 +78,291 @@ BArray <BDat> arrayBDatDeclaration_;
 // BMatrix<BDat> matrixBDatDeclaration_; ASC
 
 //--------------------------------------------------------------------
+class BProyectionFunction : public BRRFunction
+
+/*! Evaluates the real to real function
+ *
+ *    f(x) = F(P + x H)
+ *
+ * where F is a real vector to real function and P is the initial point
+ * and H is the direction vector.
+ */
+//--------------------------------------------------------------------
+{
+ public:
+  BRnRFunction& F_;
+  BArray<BDat>  P_;
+  BArray<BDat>  H_;
+  BProyectionFunction(BRnRFunction& F,
+                      const BArray<BDat>& P,
+                      const BArray<BDat>& H)
+  : F_(F), P_(P), H_(H) {}
+ ~BProyectionFunction() {};
+  void Evaluate(BDat& f, const BDat& x)
+  {
+    BArray<BDat> Q = P_;
+    for(int i=0; i<Q.Size(); i++) { Q(i) += x * H_(i); }
+    f = F_[Q];
+  }
+};
+
+//--------------------------------------------------------------------
+class BPartialFunction : public BRRFunction
+
+/*! Evaluates the real to real function
+ *
+ *    f(x) = F(P + x*E[k])
+ *
+ * where F is a real vector to real function and P is the initial point
+ * and E[k] is the direction vector of k-th coordinate.
+ */
+//--------------------------------------------------------------------
+{
+ public:
+  BRnRFunction& F_;
+  BArray<BDat>  P_;
+  int k_;
+  BPartialFunction(BRnRFunction& F, const BArray<BDat>& P, int k)
+  : F_(F), P_(P), k_(k) {}
+ ~BPartialFunction() {};
+  void Evaluate(BDat& f, const BDat& x)
+  {
+    BArray<BDat> Q = P_;
+    Q(k_) += x; 
+    f = F_[Q];
+  }
+};
+
+//--------------------------------------------------------------------
+class BPartialAbsDifFunction : public BRRFunction
+
+/*! Evaluates the real to real function
+ *
+ *    f(x) = Abs(Abs(F(P + x*E[k])-F(P))-fDist)
+ *
+ * where F is a real vector to real function and P is the initial point
+ * and E[k] is the direction vector of k-th coordinate.
+ */
+//--------------------------------------------------------------------
+{
+ public:
+  BRnRFunction& F_;
+  BArray<BDat>  P_;
+  BDat fDist_;
+  BDat fP_;
+  int k_; 
+  BPartialAbsDifFunction(BRnRFunction& F, const BArray<BDat>& P, BDat fDist, int k)
+  : F_(F), P_(P), fDist_(fDist), k_(k) 
+  {
+    fP_ = F_[P_];
+  }
+ ~BPartialAbsDifFunction() {};
+  void Evaluate(BDat& f, const BDat& x)
+  {
+    BArray<BDat> Q = P_;
+    Q(k_) += x; 
+    BDat f1 = Abs(Abs(F_[Q]-fP_)-fDist_);
+    Q(k_) -= 2*x; 
+    BDat f2 = Abs(Abs(F_[Q]-fP_)-fDist_);
+    if(f1.IsUnknown()) { f=f2; }
+    else if(f2.IsUnknown()) { f=f1; }
+    else if(f1<=f2) { f=f1; }
+    else { f=f2; }
+  }
+};
+
+
+//--------------------------------------------------------------------
 // BRnRFunction functions.
 //--------------------------------------------------------------------
 
+//--------------------------------------------------------------------
+bool BRnRFunction::AutoScale (
+  const BArray<BDat>& x, 
+  const BArray<BDat>& xMin, 
+  const BArray<BDat>& xMax, 
+  BDat fDist, 
+  BDat tolerance, 
+  BArray<BDat>& S)
+
+/*! Returns the numerical Gradient vector of this function in a point
+ */
+//--------------------------------------------------------------------
+{
+  S.ReallocBuffer(n_);
+  int k;
+  fDist = Abs(fDist);
+  for(k=0; k<n_; k++)
+  {
+    BPartialAbsDifFunction Fk(*this, x, fDist, k);
+    BDat fd;
+    BDat hMin = 0;
+    BDat hMax = Maximum(Abs(x[k]-xMin[k]),Abs(x[k]-xMax[k]));
+    S[k] = BFibonacci::Minimum(&Fk,fd,hMin,hMax,tolerance);
+  }
+  return(true);
+/*
+  BDat f, f0, df, a,b,c;
+  BBool ok; 
+  int i,j;
+  (*this).Evaluate(f0, x); ok = f0.IsFinite();
+  if(!ok) { return(false); }
+  fDist = Abs(fDist);
+  for(i=0; i<n_; i++)
+  {
+    BDat x0 = x[i];
+    BDat h = Distance();
+    x[i] = x0+h;
+    (*this).Evaluate(f, x); ok = f.IsFinite();
+    if(!ok) 
+    { 
+      h*=-1;
+      x[i] = x0+h;
+      (*this).Evaluate(f, x); ok = f.IsFinite();
+    }
+    df = Abs(f-f0);
+    a=x0;
+    b=x[i];
+    for(j=0;j<maxIter;j++)
+    {
+      if(!ok) { break; }
+      if(Abs(df-fDist)<=tolerance) { break; }
+      else if(df>fDist)            { c; }
+      else                         { s*=2; }
+      x[i] = x0+h;
+      (*this).Evaluate(f, x); ok = f.IsFinite();
+      df = Abs(f-f0);
+    }
+    S[i]=Abs(h);
+    x[i] = x0;
+  }
+*/
+}
 
 //--------------------------------------------------------------------
-void BRnRFunction::Gradient (const BArray<BDat>& x, BArray<BDat>& G)
+void BRnRFunction::Gradient (const BArray<BDat>& x, const BArray<BDat>& scale, BArray<BDat>& G)
 
 /*! Returns the numerical Gradient vector of this function in a point
  */
 //--------------------------------------------------------------------
 {
   G.ReallocBuffer(n_);
-  BDat f1, f_1, f2, f_2; 
-  BDat h = Distance();
+  BDat f0, f1, f_1, f2, f_2; 
+  BBool ok0,ok1,ok_1,ok2,ok_2;
+  BDat h1 = Distance();
   int i;
+  bool scaled = scale.Size()==x.Size();
   for(i=0; i<n_; i++)
   {
+    BDat h = h1*((scaled)?scale[i]:1);
     x[i]+=h;
-    (*this).Evaluate(f1, x);
+    (*this).Evaluate(f1, x); ok1 = f1.IsFinite();
     x[i]+=h;
-    (*this).Evaluate(f2, x);
+    (*this).Evaluate(f2, x); ok2 = f2.IsFinite();
     x[i]-=3*h;
-    (*this).Evaluate(f_1, x);
+    (*this).Evaluate(f_1, x); ok_1 = f_1.IsFinite();
     x[i]-=h;
-    (*this).Evaluate(f_2, x);
-    G[i]=(f_2-8*f_1+8*f1-f2)/(12*h);
+    (*this).Evaluate(f_2, x); ok_2 = f_2.IsFinite();
     x[i]+=2*h;
+    if(ok_2&&ok_1&&ok1&&ok2)
+    {
+      G[i]=(f_2-8*f_1+8*f1-f2)/(h*12);
+    }
+    else
+    {
+      (*this).Evaluate(f0, x); ok0 = f0.IsFinite();
+      if(ok_2&&ok_1&&ok0&&ok1)
+      {
+        G[i]=(-2*f_2+9*f_1-18*f0+11*f1)/(h*6);
+      }
+      else if(ok_1&&ok0&&ok1&&ok2)
+      {
+        G[i]=(-2*f_1-3*f0+6*f1-f2)/(h*6);
+      }
+      else if(ok_2&&ok_1&&ok0)
+      {
+        G[i]=(f_2-4*f_1+3*f0)/(h*2);
+      }
+      else if(ok0&&ok1&&ok2)
+      {
+        G[i]=(-3*f0+4*f1-f2)/(h*2);
+      }
+      else
+      {
+        G[i]=BDat::Unknown();
+      }
+    }
   }
 }
 
+
+//--------------------------------------------------------------------
+void BRnRFunction::Gradient2 (const BArray<BDat>& x, const BArray<BDat>& scale, BArray<BDat>& G2)
+
+/*! Returns the numerical second Gradient vector of this function in a point
+ */
+//--------------------------------------------------------------------
+{
+  G2.ReallocBuffer(n_);
+  BDat f0, f1, f_1, f2, f_2; 
+  BBool ok0,ok1,ok_1,ok2,ok_2;
+  BDat h1 = Distance();
+  int i;
+  bool scaled = scale.Size()==x.Size();
+  for(i=0; i<n_; i++)
+  {
+    BDat h = h1*((scaled)?scale[i]:1);
+    BDat h2 = h*h;
+    BDat h2_12 = 12*h2;
+    BDat x0 = x[i];
+    (*this).Evaluate(f0, x); ok0 = f0.IsFinite();
+    x[i]=x0+h;
+    (*this).Evaluate(f1, x); ok1 = f1.IsFinite();
+    x[i]=x0+2*h;
+    (*this).Evaluate(f2, x); ok2 = f2.IsFinite();
+    x[i]=x0-h;
+    (*this).Evaluate(f_1, x); ok_1 = f_1.IsFinite();
+    x[i]=x0-2*h;
+    (*this).Evaluate(f_2, x); ok_2 = f_2.IsFinite();
+    x[i]=x0;
+    if(ok_2&&ok_1&&ok0&&ok1&&ok2)
+    {
+      G2[i]=(-f_2+16*f_1-30*f0+16*f1-f2)/h2_12;
+    }
+    else if(ok_1&&ok0&&ok1)
+    {
+      G2[i]=(f_1-2*f0+f1)/h2;
+    }
+    else if(ok0&&ok1&&ok2)
+    {
+      G2[i]=(f0-2*f1+f2)/h2;
+    }
+    else if(ok_2&&ok_1&&ok0)
+    {
+      G2[i]=(f_2-2*f_1+f0)/h2;
+    }
+    else
+    {
+      G2[i]=BDat::Unknown();
+    }
+  }
+}
+
+//--------------------------------------------------------------------
+void BRnRFunction::Gradient (const BArray<BDat>& x, BArray<BDat>& G)
+//--------------------------------------------------------------------
+{
+  BArray<BDat> scale;
+  Gradient(x,scale,G);
+}
+
+//--------------------------------------------------------------------
+void BRnRFunction::Gradient2 (const BArray<BDat>& x, BArray<BDat>& G2)
+//--------------------------------------------------------------------
+{
+  BArray<BDat> scale;
+  Gradient2(x,scale,G2);
+}
 
 //--------------------------------------------------------------------
 void BRnRFunction::Hessian(const BArray<BDat>& x, BMatrix<BDat>& H)
@@ -1250,41 +1506,6 @@ Default GSL error handler invoked.
   return(norm);
 }
 
-
-
-//--------------------------------------------------------------------
-class BProyectionFunction : public BRRFunction
-
-/*! Evaluates the real to real function
- *
- *    f(x) = F(P + x H)
- *
- * where F is a real vector to real function and P is the initial point
- * and H is the direction vector.
- */
-//--------------------------------------------------------------------
-{
- public:
-    BRnRFunction& F_;
-    BArray<BDat>	P_;
-    BArray<BDat>	H_;
-    
-    BProyectionFunction(      BRnRFunction& F,
-			const BArray<BDat>& P,
-			const BArray<BDat>& H)
-	: F_(F), P_(P), H_(H)
-	{
-	}
-    
-    ~BProyectionFunction();
-    
-    void Evaluate(BDat& f, const BDat& x)
-	{
-	    BArray<BDat> Q = P_;
-	    for(int i=0; i<Q.Size(); i++) { Q(i) += x * H_(i); }
-	    f = F_[Q];
-	}
-};
 
 
 
