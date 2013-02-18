@@ -454,14 +454,19 @@ BTraceInit("oisapitol.cpp");
               if((serialization[n]->Grammar()==GraText())&&(serialization[n]->Name()=="engine"))
               { 
                 options_.compressor_.serialization_.engine_ = SerialEngine(Text(serialization[n]));
-                if(options_.compressor_.serialization_.engine_!=BSE_BZIP2_)
+                if(options_.compressor_.serialization_.engine_==BSE_NONE_)
                 {
+                  options_.compressor_.serialization_.engine_=BOis::BSE_NONE_;
+                }
+                else if(options_.compressor_.serialization_.engine_==BSE_BZIP2_)
+                {
+                  options_.compressor_.serialization_.engine_=BOis::BSE_BZIP2_;
                 }
                 else
                 {
                   options_.compressor_.serialization_.engine_=BOis::BSE_BZIP2_;
-                  Warning(I2("OIS: Argument options->compression->serialization->engine of Ois.Create function must be \"_BZIP2_\"",
-                             "OIS: El options->compression->serialization->engine de la función Ois.Create ha de ser \"_BZIP2_\""));
+                  Warning(I2("OIS: Argument options->compression->serialization->engine of Ois.Create function must be \"_BZIP2_\" or \"_NONE_\"",
+                             "OIS: El options->compression->serialization->engine de la función Ois.Create ha de ser \"_BZIP2_\" o \"_NONE_\""));
                 }
               }
               else if((serialization[n]->Grammar()==GraReal())&&(serialization[n]->Name()=="level"))
