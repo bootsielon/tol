@@ -450,59 +450,56 @@ proc ::SetGraphDialog::DrawSet {path tableset set type {pairs {}} {names {}} {fi
 
   ::SetGraphDialog::InitData $tableset
 
-  switch [CheckGraphicable] {
-    0 {
+  if {![CheckGraphicable] } {
       tk_messageBox -type ok -icon warning -title [mc Warning]\
           -message [mc "Set not graphicable"]
-      return 0
-    }
-    1 {
-      # fill listX and listY
-      # TICKET 1450
-      #::SetGraphDialog::SetDataVarList
-      switch $type {
-        0 {
-          # custom
-          set lstLines {}
-          set len [llength $pairs]
-          for {set i 0} {[expr $i < $len]} {incr i} {
-            set xy   [lindex $pairs $i]
-            set name [lindex $names $i]
-            if {![string length $name]} {
-              set name "Column [expr $i + 1]"
-            }
-            lappend lstLines [::SetGraphDialog::AddLine \
-              [expr [lindex $xy 0] - 1] \
-              [expr [lindex $xy 1] - 1] \
-              $name          \
-              $lstLines] 
-          }
+      return ""
+  }
+  # fill listX and listY
+  # TICKET 1450
+  #::SetGraphDialog::SetDataVarList
+  switch $type {
+    0 {
+      # custom
+      set lstLines {}
+      set len [llength $pairs]
+      for {set i 0} {[expr $i < $len]} {incr i} {
+        set xy   [lindex $pairs $i]
+        set name [lindex $names $i]
+        if {![string length $name]} {
+          set name "Column [expr $i + 1]"
         }
-        1 {
-          # all to one
-          ::SetGraphDialog::GrapthAllLine 1 0 $names
-        }
-        2 {
-          # all to generic
-          ::SetGraphDialog::GrapthAllLine 0 0 $names
-        }
-        3 {
-          # even to odd
-          ::SetGraphDialog::GrapthEvenUneven $names
-        }
-      } 
-      # build info to graph
-      if [llength $data(selected)] {
-        ::SetGraphDialog::SetSelection
-        set info [list vectors $data(vectors) names $data(names) xTicks $data(xTicks)]
-        set instance [::SetGraph::Create $path $info $set $tableset $fileGCF $title]
-        bind $path <Destroy> +[list ::SetGraphDialog::OnDestroyGraph $data(nameVectors)]
-        return $instance
-      } else {
-        set msg [mc "There are no data to draw"] 
-        ::TolConsole::HciWriter "<W>$msg</W>"
+        lappend lstLines [::SetGraphDialog::AddLine \
+                              [expr [lindex $xy 0] - 1] \
+                              [expr [lindex $xy 1] - 1] \
+                              $name          \
+                              $lstLines] 
       }
     }
+    1 {
+      # all to one
+      ::SetGraphDialog::GrapthAllLine 1 0 $names
+    }
+    2 {
+      # all to generic
+      ::SetGraphDialog::GrapthAllLine 0 0 $names
+    }
+    3 {
+      # even to odd
+      ::SetGraphDialog::GrapthEvenUneven $names
+    }
+  } 
+  # build info to graph
+  if [llength $data(selected)] {
+    ::SetGraphDialog::SetSelection
+    set info [list vectors $data(vectors) names $data(names) xTicks $data(xTicks)]
+    set instance [::SetGraph::Create $path $info $set $tableset $fileGCF $title]
+    bind $path <Destroy> +[list ::SetGraphDialog::OnDestroyGraph $data(nameVectors)]
+    return $instance
+  } else {
+    set msg [mc "There are no data to draw"] 
+    ::TolConsole::HciWriter "<W>$msg</W>"
+    return ""
   }
 }
 
@@ -522,23 +519,19 @@ proc ::SetGraphDialog::DrawSet {path tableset set type {pairs {}} {names {}} {fi
 
   ::SetGraphDialog::InitData $tableset
 
-  switch [CheckGraphicable] {
-    0 {
-      tk_messageBox -type ok -icon warning -title [mc Warning]\
-          -message [mc "Set not graphicable"]
-      return 0
-    }
-    1 {
-      DrawDialog
-      if [llength $data(vectors)] {
-        set info [list vectors $data(vectors) names $data(names) xTicks $data(xTicks)]
-        set Instance [::SetGraph::Create $path $info $set $tableset]
-        bind $path <Destroy> +[list ::SetGraphDialog::OnDestroyGraph $data(nameVectors)]
-        return $Instance
-      } else {
-        return 0
-      }
-    }
+  if {![CheckGraphicable]} {
+    tk_messageBox -type ok -icon warning -title [mc Warning]\
+        -message [mc "Set not graphicable"]
+    return 0
+  }
+  DrawDialog
+  if [llength $data(vectors)] {
+    set info [list vectors $data(vectors) names $data(names) xTicks $data(xTicks)]
+    set Instance [::SetGraph::Create $path $info $set $tableset]
+    bind $path <Destroy> +[list ::SetGraphDialog::OnDestroyGraph $data(nameVectors)]
+    return $Instance
+  } else {
+    return 0
   }
 }
 
@@ -626,21 +619,15 @@ proc ::SetGraphDialog::OnDestroyGraph {list} {
 # 
 # RETURN:
 #    0 if the set isn't graphicable
-#    1 if there are some posibilities for choosing columns (assistant will be
+#    !0 if there are some posibilities for choosing columns (assistant will be
 #   drawn)
 #///////////////////////////////////////////////////////////////////////////// 
   variable data
 
-  #Para poder graficar =>
-  # debe haber al menos una col. tipo 1 o 2 y al menos otra col. tipo 1 o 3. 
-  set tot1 [llength $data(idxColsType1)]
-  set tot2 [llength $data(idxColsType2)]
-  set tot3 [llength $data(idxColsType3)]
-  if { ([expr $tot1 + $tot2] >= 1) && ([expr $tot1 + $tot3] >= 1) } {
-    return 1
-  } else  {
-    return 0
-  }
+  # there must be at least Real numbers
+  return [expr {[llength $data(idxColsType1)] + \
+                    [llength $data(idxColsType3)] + \
+                    [llength $data(idxColsType4)]}]
 }
 
 #/////////////////////////////////////////////////////////////////////////////
