@@ -17,7 +17,7 @@
 #//////////////////////////////////////////////////////////////////////////////
 proc TestWrong { } {
   #no puede crear el comando
-  tol::tableset create tblset AllLinear
+  tol::tableset create tblset {Set AllLinear}
   tol::tableset destroy tblset 
 }
 
@@ -27,7 +27,7 @@ proc Write {args} {
 
 proc TestWrong1 { } {
   #
-  tol::tableset create tblset AxisDatingList
+  tol::tableset create tblset {Set AxisDatingList}
   puts "Da como resultado [tblset info datarows] filas, en realidad son 10"
   puts "Vamos a imprimir todo el contenido del conjunto"
   tblset data apply all Write
@@ -48,7 +48,7 @@ proc TestWrong1 { } {
 proc TestGenericHeader { } {
   puts "Testing: Generic Header ..."
   tol::console eval {Set setGenHead = [[ [[1,2,3]], [[2,4]], [[6,7,8]] ]]; }
-  tol::tableset create tblset setGenHead
+  tol::tableset create tblset {Set setGenHead}
   # test the results
   set header_type [tblset info header]
   if { [string equal $header_type "generic"] } {
@@ -83,7 +83,7 @@ proc TestStructHeader { } {
   puts "Testing: Struc Header ..."
   tol::console eval {Struct STR { Real RealField; Text TextField };}
   tol::console eval {Set SET = [[ STR(1,"value1"), STR(2,"value2") ]];}
-  tol::tableset create tblset SET
+  tol::tableset create tblset {Set SET}
   # test the results
   set header_type [tblset info header]
   if { [string equal $header_type "struct"] } {
@@ -117,7 +117,7 @@ proc TestRowHeader { } {
   puts "Testing: Row Header ..."
   tol::console eval {Set setGenHead = \
 			 [[ [["A","B","C"]], [[1,2,3]], [[2,4]], [[6,7,8]] ]]; }
-  tol::tableset create tblset setGenHead
+  tol::tableset create tblset {Set setGenHead}
   # test the results
   set header_type [tblset info header]
   if { [string equal [lindex $header_type 0] "row"] } {
@@ -150,7 +150,7 @@ proc TestRowHeader { } {
 proc TestRealData { } {
   puts "Testing set with real content ..."
   tol::console eval {Set realSet = [[ [[1,?,3,5,6]], [[4,Real(1/0),?]], [[7,Real(-1/0),9,7]] ]];}
-  tol::tableset create tblset realSet
+  tol::tableset create tblset {Set realSet}
   puts [tblset info columns]
   puts [tblset data column 0]
   puts [tblset data column 1]
@@ -172,7 +172,7 @@ proc TestRealData { } {
 proc TestDateData { } {
   puts "Testing set with date content ..."
   tol::console eval {Set dteSet = [[ [["Date1", "Date2"]], [[y1999,y2000]], [[y2001,y2002]] ]];}
-  tol::tableset create tblset dteSet
+  tol::tableset create tblset {Set dteSet}
   puts [tblset info columns]
   puts [tblset data column 0]
   puts [tblset data column 1]  
@@ -194,7 +194,7 @@ proc TestMixedColumn { } {
   tol::console eval {Set mixSet = [[ [["Real", "Date", "Text"]],
 				     [[1,      y2000,   "aaa"]],
 				     [[2,      y2001,   "bbb"]] ]];}
-  tol::tableset create tblset mixSet
+  tol::tableset create tblset {Set mixSet}
   puts [tblset info columns]
   puts [tblset data column 0]
   puts [tblset data column 1]  
@@ -218,7 +218,7 @@ proc TestTextData { } {
   tol::console eval {Set mixSet = [[ [["RealMix", "DateMix"]],
 				     [[1,          y2000,   "aaa", "kkk"]],
 				     [[y2002,      "aaa",   "bbb"]] ]];}
-  tol::tableset create tblset mixSet
+  tol::tableset create tblset {Set mixSet}
   puts "Header info : [tblset info header]"
   puts [tblset info columns]
   puts [tblset data column 0]
@@ -242,7 +242,7 @@ proc TestError { } {
 				      [[10,10.5, 2, 4]],
 				      [[11,11.5, 4   ]],
 				      [[12,12.5, 7, 8]] ]]; }
-  tol::tableset create tblset __error
+  tol::tableset create tblset {Set __error}
   tol::tableset destroy tblset
 }
 
@@ -250,8 +250,19 @@ proc TestNames {  } {
   tol::console eval {Set row1 = [[Real col1 = 11, Real col2 = 12]];}
   tol::console eval {Set s1 = [[row1]];}
   
-  tol::tableset create tbl s1
+  tol::tableset create tbl {Set s1}
   puts [tbl info columns]
   tol::tableset destroy tbl
   tol::console stack release s1 row1
+}
+
+proc Test_Ticket1450 { } {
+  tol::console eval {
+    Set s2 = BinGroup("|", For(1, 4, Set (Real i) {
+      Set For(1, 10, Set (Real j) {
+        [[j, If(i==j, ?, i+j)]]
+      })
+    }));
+  }
+  tol::tableset create tbls2 {Set s2}
 }
