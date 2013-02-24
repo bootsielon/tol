@@ -5,7 +5,7 @@
 
 # force blt load
 
-if { [ info command "Blt_ZoomStack" ] eq "" } {
+if { [info command "_blt_InitStack"] eq "" } {
   blt::graph .__g__
   Blt_ZoomStack .__g__
   destroy .__g__
