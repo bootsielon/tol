@@ -369,6 +369,20 @@ namespace eval ::TolPkgGUI {
       5STzQsB6EPRHPPH8QVDLARu0iD76LFLzzhAFBAA7
     }
   }
+  if { [ lsearch [ image names ] clowd_down_16 ] == -1 } {
+    image create photo clowd_down_16 -data {
+      R0lGODlhEAAQAPYAAGtra3h4eABIlABRmABtrwB0smKRtWWevQCUzQCZzjGiywC35Aq05AC85m+s
+      xmGsyGi/3wTQ9mDR74WFhZOTk5WVlZiYmJmZmZ6enqenpqenp6ioqKmpqaysrK6urq+vr7CwsLGx
+      sbKysra0s7S0tLe3t724t7e3uLi4uLq6usTAvam6wrrN1bLP2cDAwMHBwcLCwsXDwcTExMfHx8rK
+      yszMzM7OztfQzMDL0dHR0dPT09fX19jY2Nra2tvb293d3eDb1uHf3Ojj3uDg4OHh4eTk5Obm5uzn
+      4ujo6Ozs7O3t7e/v7/X19fj4+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5
+      BAEAAE4ALAAAAAAQABAAAAeEgE6Cg4SFhoeIiYpOLkxJGIcAJSUBP0VEQ0oehkg+PEtHQkE+PU2F
+      FEM6OkACAwaqRhOEKTk0NDcEBQe2OyKDGjMwMCsPCAkKDjEvMx2CNSjQKhALDQw4J9A2gjAgId4m
+      EhEsH94gMoIWIBsc7CMtGewcHheDFSEk+CQi+SL0i/8AAQYCADs=
+    }
+  }
   if { [ lsearch [ image names ] package_down_16 ] == -1 } {
     image create photo package_down_16 -data {
       R0lGODlhEAAQAPcAADJwKjZ6MUFqIkNsJ0ZvJkBvK096LVyAPUePQEuPQUqMRUuNRk2PSFeNQ1CS
@@ -613,7 +627,7 @@ proc ::TolPkgGUI::GetPkgNode { T url p } {
     set lastlocal $packSync(lastlocal)
     set lastremote $packSync(lastremote)
     if { $lastlocal eq "" } {
-      set img "package_down_16"
+      set img "clowd_down_16"
       set nodeStatus new
       set statusLabel [ mc "new (%s)" $lastremote ]
     } else {
@@ -700,7 +714,7 @@ proc ::TolPkgGUI::FillTreeInfo { T } {
       set dateremote $versSync(dateremote)
       set datelocal $versSync(datelocal)
       if { $datelocal eq "TheBegin" } {
-        set img "package_down_16"
+        set img "clowd_down_16"
         set nodeStatus new
         set statusLabel [ mc "new" ]
       } else {
