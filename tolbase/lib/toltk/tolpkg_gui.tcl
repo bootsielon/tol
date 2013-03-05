@@ -371,18 +371,32 @@ namespace eval ::TolPkgGUI {
   }
   if { [ lsearch [ image names ] clowd_down_16 ] == -1 } {
     image create photo clowd_down_16 -data {
-      R0lGODlhEAAQAPYAAGtra3h4eABIlABRmABtrwB0smKRtWWevQCUzQCZzjGiywC35Aq05AC85m+s
-      xmGsyGi/3wTQ9mDR74WFhZOTk5WVlZiYmJmZmZ6enqenpqenp6ioqKmpqaysrK6urq+vr7CwsLGx
-      sbKysra0s7S0tLe3t724t7e3uLi4uLq6usTAvam6wrrN1bLP2cDAwMHBwcLCwsXDwcTExMfHx8rK
-      yszMzM7OztfQzMDL0dHR0dPT09fX19jY2Nra2tvb293d3eDb1uHf3Ojj3uDg4OHh4eTk5Obm5uzn
-      4ujo6Ozs7O3t7e/v7/X19fj4+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5
-      BAEAAE4ALAAAAAAQABAAAAeEgE6Cg4SFhoeIiYpOLkxJGIcAJSUBP0VEQ0oehkg+PEtHQkE+PU2F
-      FEM6OkACAwaqRhOEKTk0NDcEBQe2OyKDGjMwMCsPCAkKDjEvMx2CNSjQKhALDQw4J9A2gjAgId4m
-      EhEsH94gMoIWIBsc7CMtGewcHheDFSEk+CQi+SL0i/8AAQYCADs=
+      R0lGODlhEAAQAKU1AABVmABVmQBWmQBrqwBtrGpqamtrawCLxQCMxgCPyHd3d3h4eHx8fACu3gCw
+      35GRkQC14ZWVlZeXl5mZmQDN82S53aqqqqurq2q63aysrK6urq+vr7Ozs7S0tLa2tmDL7mHL7bi4
+      uLu7u8HBwWnW98TExMXFxcbGxszMzM3NzdXV1d3d3eLi4uPj4+jo6Onp6evr6+/v7/Hx8fPz8/T0
+      9P///////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACH5
+      BAEKAD8ALAAAAAAQABAAAAZ1wJ9wSCwaj8ik8ldg0RbIwqKgmLVasJBx8lrJZKvwylUoxlRogCCA
+      VkmIhVZqPiAM5qnHsLAq+UsHCQh/JShCIyKJIhgNEA4ViiZlKRyVHB0gFB8dlh4GPwwZF6MXGiQa
+      pBcnQxEbFq+wsCdlewa2t7dLurpBADs=
     }
   }
+
+  if { [ lsearch [ image names ] star_blue_16 ] == -1 } {
+    image create photo star_blue_16 -data {
+      R0lGODlhEAAQAPZLAA1piA5xkg52mA94mw97ng99ohB/pCuAnBCBpxKCpxWCphCCqBKDqBWDqBKE
+      qRCHrhKHrhiEqBqGqRuJrRyIrBOLsxGMtRePtx2LsByMsRGQuhGRuxKRuhSSuxSSvB+SuB+WvCyF
+      oiyLqiKPsyORtCqUtyKUuiuXuzCavDCcvzKcv2ehtCSZwC+fwy+fxDigwjuhwj6jxDqkxzylxz6l
+      xz2lyEGlxkCnyEKnyEKoyU2tzGivx2mxyGq61HrB2Ya0w5W9y4jG2pbI2bPQ2pfP4aXW5cPh68Pj
+      7tHj6eHs8OHx9v///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5
+      BAEAAEwALAAAAAAQABAAAAetgEyCgjM0NjEvKoOLTDU3LB4bGx0gKCeMOS2Sm5smJYM1mps6Opwf
+      JII3nBtHRg+cI0wyLJwuS0shnBcZOJE6PkRKt0lBPqUcFDaSPbfNzTuvEjGbPM63KwALGxEwHZtC
+      zkDZGxoKKSCbR85DBJIVDkwom8I/QEtIApIJgicmkkUHABQQMSTABggIBpX4IGmABUkWBEAwwIjE
+      iAscJGmokCAhI0EYJkiI0IABo0AAOw==
+    }
+  }
+
   if { [ lsearch [ image names ] package_down_16 ] == -1 } {
     image create photo package_down_16 -data {
       R0lGODlhEAAQAPcAADJwKjZ6MUFqIkNsJ0ZvJkBvK096LVyAPUePQEuPQUqMRUuNRk2PSFeNQ1CS
@@ -770,7 +784,7 @@ proc ::TolPkgGUI::FillTreeInfo { T } {
 proc ::TolPkgGUI::CreateTreeWidget { t } {
   variable tree $t
 
-  wtree $t
+  wtree $t -background white
   grid $t -row 1 -column 0 -sticky "snew"
   set f [ winfo parent $t ]
   grid rowconfigure $f 1 -weight 1
