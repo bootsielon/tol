@@ -1066,6 +1066,7 @@ static BSyntaxObject* EvPutName(BGrammar* gra, const List* tre, BBool left)
 {
   static BText _name_ = "PutName";
   if(CheckNonDeclarativeAction(_name_)) { return(NULL); }
+  BGrammar::IncLevel();
     BSyntaxObject* result = NIL;
     BInt nb = BSpecialFunction::NumBranches(tre);
     if(BSpecialFunction::TestNumArg(_name_, 2, nb, 2))
@@ -1098,6 +1099,7 @@ static BSyntaxObject* EvPutName(BGrammar* gra, const List* tre, BBool left)
 	}
 	SAFE_DESTROY(namObj,obj);
     }
+  BGrammar::DecLevel();
     return(result);
 }
 
