@@ -118,7 +118,7 @@ public:
   virtual const BText& TestAborted(const BText& cod, 
                                    const BText& msg, 
                                    const BText& interval);
-  virtual bool AbortedMessageSended() const { return(false); }
+  virtual bool AbortMessageSent(bool sign) { return(false); }
 
   BBool IsCompatibleWith   (const BTimeSet& tms,
 	                          BDate first = BDate::DefaultFirst(),

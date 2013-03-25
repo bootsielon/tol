@@ -248,7 +248,7 @@ static BDate& NCDate(const BDate& dte)
   const BDate& BTmsAbortable::EnsureNotAbortedSuccessor(const BDate& dte) const
 //--------------------------------------------------------------------
 {
-  if(abortedMessageSended_) 
+  if(abortSuccMessageSent_) 
   { 
   //Std(BText("\nabortSucc[")+abortSuccFirst_+","+abortSuccLast_+"]");
     if(!abortSuccFirst_.IsUnknown() && (abortSuccFirst_<=dte)) 
@@ -272,7 +272,7 @@ static BDate& NCDate(const BDate& dte)
   const BDate& BTmsAbortable::EnsureNotAbortedPredecessor(const BDate& dte) const
 //--------------------------------------------------------------------
 {
-  if(abortedMessageSended_) 
+  if(abortPredMessageSent_) 
   { 
   //Std(BText("\nabortPred[")+abortPredFirst_+","+abortPredLast_+"]");
     if(!abortPredFirst_.IsUnknown() && (dte<=abortPredLast_)) 
@@ -298,32 +298,28 @@ static BDate& NCDate(const BDate& dte)
                                     short sign) const
 //--------------------------------------------------------------------
 {
-  if(!abortedMessageSended_) { return; }
+  if(!AbortMessageSent(sign)) { return; }
   BTmsAbortable* T = (BTmsAbortable*)this;
   if(sign<0)
   {
-    if(abortPredFirst_.IsUnknown() || abortPredLast_.IsUnknown())
+    if(abortPredLast_.IsUnknown())
     {
-      T->abortPredFirst_  = d2;
       T->abortPredLast_   = d1;
     }
-    else 
-    {
-      if(abortPredLast_ <d1) { T->abortPredLast_  = d1; }
-    //if(abortPredFirst_>d2) { T->abortPredFirst_ = d2; }
+    else if(abortPredLast_ <d1) 
+    { 
+      T->abortPredLast_  = d1; 
     }
   }
   else
   {
-    if( abortSuccFirst_.IsUnknown() || abortSuccLast_.IsUnknown() )
+    if(abortSuccFirst_.IsUnknown())
     {
       T->abortSuccFirst_  = d1;
-      T->abortSuccLast_   = d2;
     }
-    else 
+    else if(abortSuccFirst_>d1) 
     {
-      if(abortSuccFirst_>d1) { T->abortSuccFirst_ = d1; }
-    //if(abortSuccLast_< d2) { T->abortSuccLast_  = d2; }
+      T->abortSuccFirst_ = d1;
     }
   }
 }
@@ -335,7 +331,7 @@ static BDate& NCDate(const BDate& dte)
                                           short sign) const
 //--------------------------------------------------------------------
 {
-  if(!abortedMessageSended_)
+  if(!AbortMessageSent(sign))
   {
     BText id = Identify();
     if(id=="$tmp$") { id = ""; }
@@ -343,10 +339,21 @@ static BDate& NCDate(const BDate& dte)
     Warning(function +
             I2(" has been aborted ",
                " ha sido abortado ")+id+
-            I2(" operating between dates "," operando entre las fechas [")+d1+","+d2+"]"+"\n"+
-            I2("Probably this is an expression of empty or bounded time set.",
-               "Probablemente se trata de una expresión de conjunto temporal vacío o acotado."));
-    ((BTmsAbortable*)(this))->abortedMessageSended_ = true;
+            I2(" running "," ejecutando operaciones de tipo ")+
+            ((sign>0)?I2("successor","sucesor"):I2("predecessor","predecesor"))+
+            I2("-like operator between dates "," ejecutando entre las fechas [")+
+            d1+","+d2+"]"+"\n"+
+            I2("Probably this is an expression of empty time set, or out of valid time range.",
+               "Probablemente se trata de una expresión del conjunto temporal vacío o "
+               "acotado, o está fuera del rango temporal admitido."));
+    if(sign>0)
+    {
+      ((BTmsAbortable*)(this))->abortSuccMessageSent_ = true;
+    }
+    else
+    {
+      ((BTmsAbortable*)(this))->abortPredMessageSent_ = true;
+    }
   }
   AbortSaveInfo(d1,d2, sign);
 }
@@ -358,7 +365,7 @@ static BDate& NCDate(const BDate& dte)
                                              short sign) const
 //--------------------------------------------------------------------
 {
-  if(!abortedMessageSended_)
+  if(!AbortMessageSent(sign))
   {
     int M = (int)OutOfRange().Value();
     BText id = Identify();
@@ -367,10 +374,21 @@ static BDate& NCDate(const BDate& dte)
     Warning(function +
             I2(" has been aborted because it has fall out of calculation range ",
                " ha sido abortado porque se ha salido del rango de cálculo ")+id+
-            I2(" operating between dates "," operando entre las fechas [")+d1+","+d2+"]"+"\n"+
-            I2("Probably this is an expression of empty time set.",
-               "Probablemente se trata de una expresión del conjunto temporal vacío o acotado."));
-    ((BTmsAbortable*)(this))->abortedMessageSended_ = true;
+            I2(" running "," ejecutando operaciones de tipo ")+
+            ((sign>0)?I2("successor","sucesor"):I2("predecessor","predecesor"))+
+            I2("-like operator between dates "," ejecutando entre las fechas [")+
+            d1+","+d2+"]"+"\n"+
+            I2("Probably this is an expression of empty time set, or out of valid time range.",
+               "Probablemente se trata de una expresión del conjunto temporal vacío o "
+               "acotado, o está fuera del rango temporal admitido."));
+    if(sign>0)
+    {
+      ((BTmsAbortable*)(this))->abortSuccMessageSent_ = true;
+    }
+    else
+    {
+      ((BTmsAbortable*)(this))->abortPredMessageSent_ = true;
+    }
   }
   AbortSaveInfo(d1,d2,sign);
 }

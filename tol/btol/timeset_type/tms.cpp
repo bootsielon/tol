@@ -856,11 +856,15 @@ BText BTimeSet::ListOfDates(BDate dte1, BDate dte2, BText sep, BInt jump)
 }
 
 #define CheckTestAborted(t0,maxTimeSim,interval) \
-if(AbortedMessageSended()) \
+if(AbortMessageSent(-1)) \
 { \
-  return(TestAborted("0001",msg=BText("aborted ")+maxTimeSim+" seconds.",interval)); \
+  return(TestAborted("0001",msg=BText(" predecessor aborted ")+maxTimeSim+" seconds.",interval)); \
 } \
-else if(time(0)-t0>maxTimeSim) \
+if(AbortMessageSent(+1)) \
+{ \
+  return(TestAborted("0001",msg=BText(" successor aborted ")+maxTimeSim+" seconds.",interval)); \
+} \
+if(time(0)-t0>maxTimeSim) \
 { \
   return(TestAborted("0002",msg=BText("exceeded maximum simulation time of ")+maxTimeSim+" seconds.",interval)); \
 } 

@@ -197,7 +197,8 @@ protected:
   static BDat  maxIter_;
   static BDat  outOfRange_;
   static BDat  cutRangeFactor_;
-  bool  abortedMessageSended_;
+  bool  abortSuccMessageSent_;
+  bool  abortPredMessageSent_;
   BDate abortSuccFirst_;
   BDate abortSuccLast_;
   BDate abortPredFirst_;
@@ -205,7 +206,8 @@ protected:
 public:
   BTmsAbortable(BList* arg=NULL) 
   : BTmsCached(arg),
-    abortedMessageSended_(false),
+    abortSuccMessageSent_(false),
+    abortPredMessageSent_(false),
     abortSuccFirst_(BDate::Unknown()),
     abortSuccLast_ (BDate::Unknown()),
     abortPredFirst_(BDate::Unknown()),
@@ -216,7 +218,14 @@ public:
   static BDat GetMaxIter   () { return(maxIter_); }
   static BDat GetOutOfRange() { return(outOfRange_); }
   static BDat GetCutRangeFactor() { return(cutRangeFactor_); }
-  bool AbortedMessageSended() const { return(abortedMessageSended_); }
+  bool AbortSuccMessageSent() const { return(abortSuccMessageSent_); }
+  bool AbortPredMessageSent() const { return(abortPredMessageSent_); }
+  bool AbortMessageSent(short sign) const
+  {
+    bool sent = (abortSuccMessageSent_ && (sign>0)) ||
+                (abortPredMessageSent_ && (sign<0));
+    return(sent);
+  }
 
 protected:
   static BDat& MaxIter   () { return(maxIter_); }
