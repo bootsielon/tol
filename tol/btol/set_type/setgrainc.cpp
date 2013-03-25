@@ -1028,10 +1028,10 @@ static bool ReadHeaderToken(BText&	tok, const BText& header,
 {
   if(endHeader) { return(true); }
   int numChar=0;
-  BChar buf[1024*8];
+  BChar buf[1024*256];
   buf[0]='\0';
   sscanf(header.String()+pos, "%s%n", buf, &numChar);
-  if(numChar>=64)
+  if(numChar>=1024)
   {
     Error(I2("Too long Serie name in BDT header",
              "Nombre de Serie demasiado largo en cabecera de BDT")+
