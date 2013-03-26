@@ -1054,7 +1054,7 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
   void BDatDirExist::CalcContens()
 //--------------------------------------------------------------------
 {
-  contens_ = BDir::CheckIsDir(Text(Arg(1)));
+  contens_ = BDir::CheckIsDir(Text(Arg(1))+"/.");
 }
 
 
