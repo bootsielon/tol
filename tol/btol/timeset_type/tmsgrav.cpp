@@ -1590,7 +1590,7 @@ Std(BText("\nDateIsNotValid(")+date.Name()+","+sign+")"); \
                              const BDate&  x)
 //--------------------------------------------------------------------
 {
-  if(x.IsUnknown() || x.IsTheEnd ()) 
+  if(x.IsUnknown() || x.IsTheEnd () || x.IsTheBegin ()) 
   { return(x); }
   if(n==0)  { return(icu_->Successor(x)); }
 //Std(BText("\nSuccSuccessor(")+center_->Identify()+","+n+","+units_->Identify()+","+x+")");
@@ -1609,6 +1609,10 @@ Std(BText("\nDateIsNotValid(")+date.Name()+","+sign+")"); \
   while(!((ua<=x)&&(x<ub)))
   {
     r *= 2;
+    if(r==-r)
+    { 
+      return(BDate::End()); 
+    }
     if(ua>x)
     {
       b  = a;
@@ -1674,7 +1678,7 @@ Std(BText("\nDateIsNotValid(")+date.Name()+","+sign+")"); \
                              const BDate&  x)
 //--------------------------------------------------------------------
 {
-  if(x.IsUnknown() || x.IsTheBegin ()) 
+  if(x.IsUnknown() || x.IsTheBegin () || x.IsTheEnd ()) 
   { return(x); }
   if(n==0)  { return(icu_->Predecessor(x)); }
 //Std(BText("\nSuccPredecessor(")+center_->Identify()+","+n+","+units_->Identify()+","+x+")");
@@ -1693,6 +1697,10 @@ Std(BText("\nDateIsNotValid(")+date.Name()+","+sign+")"); \
   while(!((ua<x)&&(x<=ub)))
   {
     r *= 2;
+    if(r==-r)
+    { 
+      return(BDate::Begin()); 
+    }
     if(ua>=x)
     {
       if(ua!=x)

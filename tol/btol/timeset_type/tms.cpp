@@ -722,6 +722,10 @@ BDate BTimeSet::Next(const BDate& dte, BInt nth) const
   assert(!BuildingCache());
   CheckCache(this);
   if(nth == 0) { return((!dte.HasValue()||Includes(dte))?dte:BDate::Unknown()); }
+  if(nth == -nth)
+  {
+    return(BDate::End());
+  }
   if(nth <  0) { return(Prev(dte, -nth)); }
   if(dte.IsTheEnd()) { return(BDate::End()); }
   if(dte.IsTheBegin()) { return(Inf()); }
@@ -769,6 +773,10 @@ BDate BTimeSet::Prev(const BDate& dte, BInt nth) const
   assert(!BuildingCache());
   CheckCache(this);
   if(nth == 0) { return((!dte.HasValue()||Includes(dte))?dte:BDate::Unknown()); }
+  if(nth == -nth)
+  {
+    return(BDate::Begin());
+  }
   if(nth <  0) { return(Next(dte, -nth)); }
   if(dte.IsTheBegin()) { return(BDate::Begin()); }
   if(dte.IsTheEnd()) { return(Sup()); }
