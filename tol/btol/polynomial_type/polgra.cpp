@@ -643,25 +643,32 @@ DefExtOpr(1, BPolSub, "Sub", 3, 3, "Polyn Real Real",
 void BPolSub::CalcContens()
 //--------------------------------------------------------------------
 {
-    BPol pol = Pol(Arg(1));
-    BInt m   = (BInt)Real(Arg(2));
-    BInt M   = (BInt)Real(Arg(3));
-    contens_.ReallocBuffer(M - m + 1);
+  BPol pol = Pol(Arg(1));
+  BInt m   = (BInt)Real(Arg(2));
+  BInt M   = (BInt)Real(Arg(3));
+  contens_.ReallocBuffer(M - m + 1);
 //Std(BText("\ns=")+s+" n="+n);
-    BInt k, j;
-    for(k=j=0; k<pol.Size(); k++)
-    {
-	BInt d  = pol[k].Degree();
+  BInt k, j;
+  for(k=j=0; k<pol.Size(); k++)
+  {
+    BInt d  = pol[k].Degree();
 //  Std(BText("\nMonome ")+k+" : "+d+"%" + s + "=" +(d%s));
-	if((d>=m) && (d<=M))
-	{
+    if((d>=m) && (d<=M))
+    {
 //    Std(BText("\t -> Adding ")+j+ " : " +(d/s));
-	    contens_[j].PutDegree(d);
-	    contens_[j].PutCoef  (pol[k].Coef());
-	    j++;
-	}
+      contens_[j].PutDegree(d);
+      contens_[j].PutCoef  (pol[k].Coef());
+      j++;
     }
+  }
+  if(j==0)
+  {
+    contens_ = BPol::Zero();
+  }
+  else
+  {
     contens_.ReallocBuffer(j);   
+  }
 }
 
 
