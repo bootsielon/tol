@@ -152,13 +152,13 @@ BTraceInit("datgrast.cpp");
 
 
 //--------------------------------------------------------------------
-  DeclareContensClass(BDat, BDatTemporary, BDatAsimetry);
-  DefIntOpr(1, BDatAsimetry, "Asymmetry", 1, 0,
+  DeclareContensClass(BDat, BDatTemporary, BDatAsymmetry);
+  DefIntOpr(1, BDatAsymmetry, "Asymmetry", 1, 0,
   "(Real x1 [, Real x2, ...])",
   I2("Returns the asymmetry ceficient of all arguments.",
      "Devuelve el coeficiente de asimetría de todos sus argumentos."),
      BOperClassify::Statistic_);
-  void BDatAsimetry::CalcContens()
+  void BDatAsymmetry::CalcContens()
 //--------------------------------------------------------------------
 {
 
@@ -319,11 +319,59 @@ BTraceInit("datgrast.cpp");
 }
 
 //--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatMatCount);
+  DefExtOpr(1, BDatMatCount, "MatCount", 1, 1, "Matrix",
+  "(Matrix mat)",
+  I2("Returns the number of cells of a matrix (rows x columns).",
+     "Devuelve el número de celdas de una matriz (filas x columnas)."),
+     BOperClassify::Statistic_);
+  void BDatMatCount::CalcContens()
+//--------------------------------------------------------------------
+{
+  BMat& x = Mat(Arg(1));
+  contens_ = x.Rows() * x.Columns();
+}
+
+//--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatMatKnown);
+  DefExtOpr(1, BDatMatKnown, "MatKnown", 1, 1, "Matrix",
+  "(Matrix mat)",
+  I2("Returns the number of cells of a matrix (rows x columns).",
+     "Devuelve el número de celdas de una matriz (filas x columnas)."),
+     BOperClassify::Statistic_);
+  void BDatMatKnown::CalcContens()
+//--------------------------------------------------------------------
+{
+  BMat& x = Mat(Arg(1));
+  contens_ = Known(x.Data());
+}
+
+//--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatSetKnown);
+  DefExtOpr(1, BDatSetKnown, "SetKnown", 1, 1, "Set",
+  I2("(Set set)","(Set cto)"),
+  I2("Returns the global sum of all elements of a set of numbers.",
+     "Devuelve el número de elementos no omitidos de un conjunto de números."),
+     BOperClassify::Statistic_);
+  void BDatSetKnown::CalcContens()
+//--------------------------------------------------------------------
+{
+  BSet& set = Set(Arg(1));
+  if(!CheckRealElement("SetSum",set)) { return; }
+  BArray<BDat> vec(set.Card());
+  for(BInt n=0; n<vec.Size(); n++) 
+  { 
+    vec[n] = Dat(set[n+1]); 
+  }
+  contens_ = Known(vec);
+}
+
+//--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatSetSum);
   DefExtOpr(1, BDatSetSum, "SetSum", 1, 1, "Set",
   I2("(Set set)","(Set cto)"),
-  I2("Returns the global sum of all elements of a set.",
-     "Devuelve el sumatorio de todos los elementos de un conjunto."),
+  I2("Returns the global sum of all elements of a set of numbers.",
+     "Devuelve el sumatorio de todos los elementos de un conjunto de números."),
      BOperClassify::Statistic_);
   void BDatSetSum::CalcContens()
 //--------------------------------------------------------------------
@@ -337,7 +385,6 @@ BTraceInit("datgrast.cpp");
   }
   contens_ = Sum(vec);
 }
-
 
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatMatSum);
@@ -359,8 +406,8 @@ BTraceInit("datgrast.cpp");
   DeclareContensClass(BDat, BDatTemporary, BDatSetProduct);
   DefExtOpr(1, BDatSetProduct, "SetProd", 1, 1, "Set",
   I2("(Set set)","(Set cto)"),
-  I2("Returns the global product of all elements of a set.",
-     "Devuelve el productorio de todos los elementos de un conjunto."),
+  I2("Returns the global product of all elements of a set of numbers.",
+     "Devuelve el productorio de todos los elementos de un conjunto de números."),
      BOperClassify::Statistic_);
   void BDatSetProduct::CalcContens()
 //--------------------------------------------------------------------
@@ -393,8 +440,8 @@ BTraceInit("datgrast.cpp");
   DeclareContensClass(BDat, BDatTemporary, BDatSetMedian);
   DefExtOpr(1, BDatSetMedian, "SetMedian", 1, 1, "Set",
   I2("(Set set)","(Set cto)"),
-  I2("Returns the median of all elements of a set.",
-     "Devuelve la mediana de todos los elementos de un conjunto."),
+  I2("Returns the median of all elements of a set of numbers.",
+     "Devuelve la mediana de todos los elementos de un conjunto de números."),
      BOperClassify::Statistic_);
   void BDatSetMedian::CalcContens()
 //--------------------------------------------------------------------
@@ -427,8 +474,8 @@ BTraceInit("datgrast.cpp");
   DeclareContensClass(BDat, BDatTemporary, BDatSetMin);
   DefExtOpr(1, BDatSetMin, "SetMin", 1, 1, "Set",
   I2("(Set set)","(Set cto)"),
-  I2("Returns the minimum of all elements of a set.",
-     "Devuelve la mínimo de todos los elementos de un conjunto."),
+  I2("Returns the minimum of all elements of a set of numbers.",
+     "Devuelve el mínimo de todos los elementos de un conjunto de números."),
      BOperClassify::Statistic_);
   void BDatSetMin::CalcContens()
 //--------------------------------------------------------------------
@@ -461,8 +508,8 @@ BTraceInit("datgrast.cpp");
   DeclareContensClass(BDat, BDatTemporary, BDatSetMax);
   DefExtOpr(1, BDatSetMax, "SetMax", 1, 1, "Set",
   I2("(Set set)","(Set cto)"),
-  I2("Returns the maximum of all elements of a set.",
-     "Devuelve la máximo de todos los elementos de un conjunto."),
+  I2("Returns the maximum of all elements of a set of numbers.",
+     "Devuelve la máximo de todos los elementos de un conjunto de números."),
      BOperClassify::Statistic_);
   void BDatSetMax::CalcContens()
 //--------------------------------------------------------------------
@@ -495,8 +542,8 @@ BTraceInit("datgrast.cpp");
   DeclareContensClass(BDat, BDatTemporary, BDatSetAvr);
   DefExtOpr(1, BDatSetAvr, "SetAvr", 1, 1, "Set",
   I2("(Set set)","(Set cto)"),
-  I2("Returns the arithmetic average of all elements of a set.",
-     "Devuelve la media aritmética de todos los elementos de un conjunto."),
+  I2("Returns the arithmetic average of all elements of a set of numbers.",
+     "Devuelve la media aritmética de todos los elementos de un conjunto de números."),
      BOperClassify::Statistic_);
   void BDatSetAvr::CalcContens()
 //--------------------------------------------------------------------
@@ -529,8 +576,8 @@ BTraceInit("datgrast.cpp");
   DeclareContensClass(BDat, BDatTemporary, BDatSetHarmonicAvr);
   DefExtOpr(1, BDatSetHarmonicAvr, "SetHarmonicAvr", 1, 1, "Set",
   I2("(Set set)","(Set cto)"),
-  I2("Returns the harmonic average of all elements of a set.",
-     "Devuelve la media armónica de todos los elementos de un conjunto."),
+  I2("Returns the harmonic average of all elements of a set of numbers.",
+     "Devuelve la media armónica de todos los elementos de un conjunto de números."),
      BOperClassify::Statistic_);
   void BDatSetHarmonicAvr::CalcContens()
 //--------------------------------------------------------------------
@@ -563,8 +610,8 @@ BTraceInit("datgrast.cpp");
   DeclareContensClass(BDat, BDatTemporary, BDatSetGeometricAvr);
   DefExtOpr(1, BDatSetGeometricAvr, "SetGeometricAvr", 1, 1, "Set",
   I2("(Set set)","(Set cto)"),
-  I2("Returns the geometric average of all elements of a set.",
-     "Devuelve la media geométrica de todos los elementos de un conjunto."),
+  I2("Returns the geometric average of all elements of a set of numbers.",
+     "Devuelve la media geométrica de todos los elementos de un conjunto de números."),
      BOperClassify::Statistic_);
   void BDatSetGeometricAvr::CalcContens()
 //--------------------------------------------------------------------
@@ -597,9 +644,9 @@ BTraceInit("datgrast.cpp");
   DeclareContensClass(BDat, BDatTemporary, BDatSetQuantile);
   DefExtOpr(1, BDatSetQuantile, "SetQuantile", 2, 2, "Set Real",
   I2("(Set set, Real p)","(Set cto, Real p)"),
-  I2("Returns the quantile of probability p of all elements of a set.",
+  I2("Returns the quantile of probability p of all elements of a set of numbers.",
      "Devuelve el cuantil de probabilidad p de todos los elementos "
-     "de un conjunto."),
+     "de un conjunto de números."),
      BOperClassify::Statistic_);
   void BDatSetQuantile::CalcContens()
 //--------------------------------------------------------------------
@@ -635,7 +682,7 @@ BTraceInit("datgrast.cpp");
   DeclareContensClass(BDat, BDatTemporary, BDatSetStDs);
   DefExtOpr(1, BDatSetStDs, "SetStDs", 1, 1, "Set",
   I2("(Set set)","(Set cto)"),
-  I2("Returns the standard deviation of all elements of a set.",
+  I2("Returns the standard deviation of all elements of a set of numbers.",
      "Devuelve la desviación típica de todos los elementos de un "
      "conjunto."),
      BOperClassify::Statistic_);
@@ -670,8 +717,8 @@ BTraceInit("datgrast.cpp");
   DeclareContensClass(BDat, BDatTemporary, BDatSetVar);
   DefExtOpr(1, BDatSetVar, "SetVar", 1, 1, "Set",
   I2("(Set set)","(Set cto)"),
-  I2("Returns the varianze of all elements of a set.",
-     "Devuelve la varianza de todos los elementos de un conjunto."),
+  I2("Returns the varianze of all elements of a set of numbers.",
+     "Devuelve la varianza de todos los elementos de un conjunto de números."),
      BOperClassify::Statistic_);
   void BDatSetVar::CalcContens()
 //--------------------------------------------------------------------
@@ -699,13 +746,87 @@ BTraceInit("datgrast.cpp");
   contens_ = Varianze(vec);
 }
 
+//--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatMatMoment);
+  DefExtOpr(1, BDatMatMoment, "MatMoment", 2, 2, "Matrix Real",
+  "(Matrix mat, Real n)",
+  I2("Returns the n-th moment of all cells of a matrix.",
+     "Devuelve el momento de orden n de todas las celdas de una "
+     "matriz."),
+     BOperClassify::Statistic_);
+  void BDatMatMoment::CalcContens()
+//--------------------------------------------------------------------
+{
+  BMat& mat = Mat(Arg(1));
+  BInt	m   = (BInt)Real(Arg(2));
+  const BArray<BDat>& vec = mat.Data();
+  contens_ = Moment(vec,m);
+}
+
+//--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatMatCenterMoment);
+  DefExtOpr(1, BDatMatCenterMoment, "MatCenterMoment", 2, 2, "Matrix Real",
+  "(Matrix mat, Real n)",
+  I2("Returns the n-th centered moment of all cells of a matrix.",
+     "Devuelve el momento centrado de orden n de todas las celdas de una "
+     "matriz."),
+     BOperClassify::Statistic_);
+  void BDatMatCenterMoment::CalcContens()
+//--------------------------------------------------------------------
+{
+  BMat& mat = Mat(Arg(1));
+  BInt	m   = (BInt)Real(Arg(2));
+  const BArray<BDat>& vec = mat.Data();
+  contens_ = CenterMoment(vec,m);
+}
+
+/*
+//--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatSetMoment);
+  DefExtOpr(1, BDatSetMoment, "MatMoment", 2, 2, "Set Real",
+  I2("(Set set, Real n)","(Set cto, Real n)"),
+  I2("Returns the n-th moment of all elements of a set of numbers.",
+     "Devuelve el momento de orden n de todos los elementos de un "
+     "conjunto."),
+     BOperClassify::Statistic_);
+  void BDatSetMoment::CalcContens()
+//--------------------------------------------------------------------
+{
+  BSet& set = Set (Arg(1));
+  if(!CheckRealElement("SetMoment",set)) { return; }
+  BInt	m   = (BInt)Real(Arg(2));
+  BArray<BDat> vec(set.Card());
+  for(BInt n=0; n<vec.Size(); n++) { vec[n] = Dat(set[n+1]); }
+  contens_ = Moment(vec,m);
+}
+
+
+//--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatSetCenterMoment);
+  DefExtOpr(1, BDatSetCenterMoment, "SetCenterMoment", 2, 2, "Set Real",
+  I2("(Set set, Real n)","(Set cto, Real n)"),
+  I2("Returns the n-th centered moment of all elements of a set of numbers.",
+     "Devuelve el momento centrado de orden n de todos los elementos de un "
+     "conjunto."),
+     BOperClassify::Statistic_);
+  void BDatSetCenterMoment::CalcContens()
+//--------------------------------------------------------------------
+{
+  BSet& set = Set (Arg(1));
+  if(!CheckRealElement("SetCenterMoment",set)) { return; }
+  BInt	m   = (BInt)Real(Arg(2));
+  BArray<BDat> vec(set.Card());
+  for(BInt n=0; n<vec.Size(); n++) { vec[n] = Dat(set[n+1]); }
+  contens_ = CenterMoment(vec,m);
+}
+*/
 
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatSetKurtosis);
   DefExtOpr(1, BDatSetKurtosis, "SetKurtosis", 1, 1, "Set",
   I2("(Set set)","(Set cto)"),
-  I2("Returns the kurtosis of all elements of a set.",
-     "Devuelve la curtosis de todos los elementos de un conjunto."),
+  I2("Returns the kurtosis of all elements of a set of numbers.",
+     "Devuelve la curtosis de todos los elementos de un conjunto de números."),
      BOperClassify::Statistic_);
   void BDatSetKurtosis::CalcContens()
 //--------------------------------------------------------------------
@@ -738,7 +859,7 @@ BTraceInit("datgrast.cpp");
   DeclareContensClass(BDat, BDatTemporary, BDatSetAsymmetry);
   DefExtOpr(1, BDatSetAsymmetry, "SetAsymmetry", 1, 1, "Set",
   I2("(Set set)","(Set cto)"),
-  I2("Returns the asymmetry coefficient of all elements of a set.",
+  I2("Returns the asymmetry coefficient of all elements of a set of numbers.",
      "Devuelve el coeficiente de asimetría de todos los elementos de un "
      "conjunto."),
      BOperClassify::Statistic_);
@@ -774,7 +895,7 @@ BTraceInit("datgrast.cpp");
   DeclareContensClass(BDat, BDatTemporary, BDatSetMoment);
   DefExtOpr(1, BDatSetMoment, "SetMoment", 2, 2, "Set Real",
   I2("(Set set, Real n)","(Set cto, Real n)"),
-  I2("Returns the n-th moment of all elements of a set.",
+  I2("Returns the n-th moment of all elements of a set of numbers.",
      "Devuelve el momento de orden n de todos los elementos de un "
      "conjunto."),
      BOperClassify::Statistic_);
@@ -794,7 +915,7 @@ BTraceInit("datgrast.cpp");
   DeclareContensClass(BDat, BDatTemporary, BDatSetCenterMoment);
   DefExtOpr(1, BDatSetCenterMoment, "SetCenterMoment", 2, 2, "Set Real",
   I2("(Set set, Real n)","(Set cto, Real n)"),
-  I2("Returns the n-th centered moment of all elements of a set.",
+  I2("Returns the n-th centered moment of all elements of a set of numbers.",
      "Devuelve el momento centrado de orden n de todos los elementos de un "
      "conjunto."),
      BOperClassify::Statistic_);

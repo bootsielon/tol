@@ -164,6 +164,35 @@ void BDatStatistic::PutArgs(BSyntaxObject* ser,
 }
 
 //--------------------------------------------------------------------
+  DefExtOpr(1, BDatStatKnown,	"KnownS", 1, 3, "Serie Date Date",
+  I2("(Serie ser [, Date from, Date until])",
+     "(Serie ser [, Date desde, Date hasta])"),
+  I2("Returns the number of non missing data of a serie between two dates. "
+     "If they do not appear, it is assumed the calculation with the "
+     "first and last dates of the series. Finally, if the series lacks "
+     "dates, is calculated with the dates by defect. ",
+     "Devuelve el número de datos no omitidos de una serie entre dos fechas. "
+     "Si no aparecen, se asume el cálculo con las fechas primera "
+     "y última de la serie. Por último, si la serie carece de fechas, "
+     "se calcula con las fechas por defecto."),
+     BOperClassify::Statistic_);
+  void BDatStatKnown::CalcContens()
+//--------------------------------------------------------------------
+{
+  if(ser_ && TsrR(ser_).Dating())
+  {
+    if(TsrR(ser_).FirstDate()>TsrR(ser_).LastDate())
+    {
+      contens_ = 0;
+    }
+    else
+    {
+      contens_ = Known(vec_); //1 + TsrR(ser_).Dating()->Difference(ini_, fin_);
+    }
+  }
+}
+
+//--------------------------------------------------------------------
   DefExtOpr(1, BDatStatMax,	"MaxS", 1, 3, "Serie Date Date",
   I2("(Serie ser [, Date from, Date until])",
      "(Serie ser [, Date desde, Date hasta])"),
@@ -232,6 +261,28 @@ void BDatStatistic::PutArgs(BSyntaxObject* ser,
 }
 
 //--------------------------------------------------------------------
+  DefExtOpr(1, BDatStatProd,	"ProdS", 1, 3, "Serie Date Date",
+  I2("(Serie ser [, Date from, Date until])",
+     "(Serie ser [, Date desde, Date hasta])"),
+  I2("Returns the product of a serie between two dates. "
+     "If they do not appear, it is assumed the calculation with the "
+     "first and last dates of the series. Finally, if the series lacks "
+     "dates, is calculated with the dates by defect.",
+     "Devuelve el producto de una serie entre dos fechas. "
+     "Si no aparecen, se asume el cálculo con las fechas primera "
+     "y última de la serie. Por último, si la serie carece de fechas, "
+     "se calcula con las fechas por defecto."),
+     BOperClassify::Statistic_);
+  void BDatStatProd::CalcContens()
+//--------------------------------------------------------------------
+{
+  if(ser_ && TsrR(ser_).Dating())
+  {
+    contens_ = Product(vec_);
+  }
+}
+
+//--------------------------------------------------------------------
   DefExtOpr(1, BDatStatAverage, "AvrS",	  1, 3, "Serie Date Date",
   I2("(Serie ser [, Date from, Date until])",
      "(Serie ser [, Date desde, Date hasta])"),
@@ -252,6 +303,53 @@ void BDatStatistic::PutArgs(BSyntaxObject* ser,
     contens_ = Average(vec_);
   }
 }
+
+
+//--------------------------------------------------------------------
+  DefExtOpr(1, BDatStatGeometricAverage, "GeometricAvrS",	  1, 3, "Serie Date Date",
+  I2("(Serie ser [, Date from, Date until])",
+     "(Serie ser [, Date desde, Date hasta])"),
+  I2("Returns the geometric average of a serie between two dates. "
+     "If they do not appear, it is assumed the calculation with the "
+     "first and last dates of the series. Finally, if the series lacks "
+     "dates, is calculated with the dates by defect.",
+     "Devuelve la media geométrica de una serie entre dos fechas. "
+     "Si no aparecen, se asume el cálculo con las fechas primera "
+     "y última de la serie. Por último, si la serie carece de fechas, "
+     "se calcula con las fechas por defecto."),
+     BOperClassify::Statistic_);
+  void BDatStatGeometricAverage::CalcContens()
+//--------------------------------------------------------------------
+{
+  if(ser_ && TsrR(ser_).Dating())
+  {
+    contens_ = GeometricAverage(vec_);
+  }
+}
+
+
+//--------------------------------------------------------------------
+  DefExtOpr(1, BDatStatHarmonicAverage, "HarmonicAvrS",	  1, 3, "Serie Date Date",
+  I2("(Serie ser [, Date from, Date until])",
+     "(Serie ser [, Date desde, Date hasta])"),
+  I2("Returns the harmonic average of a serie between two dates. "
+     "If they do not appear, it is assumed the calculation with the "
+     "first and last dates of the series. Finally, if the series lacks "
+     "dates, is calculated with the dates by defect.",
+     "Devuelve la media armónica de una serie entre dos fechas. "
+     "Si no aparecen, se asume el cálculo con las fechas primera "
+     "y última de la serie. Por último, si la serie carece de fechas, "
+     "se calcula con las fechas por defecto."),
+     BOperClassify::Statistic_);
+  void BDatStatHarmonicAverage::CalcContens()
+//--------------------------------------------------------------------
+{
+  if(ser_ && TsrR(ser_).Dating())
+  {
+    contens_ = HarmonicAverage(vec_);
+  }
+}
+
 
 
 //--------------------------------------------------------------------
@@ -373,11 +471,11 @@ void BDatStatistic::PutArgs(BSyntaxObject* ser,
   }
 }
 
-
-//--------------------------------------------------------------------
-  DefExtOpr(1, BDatStatAsimetry,    "AsimetryS",  1, 3, "Serie Date Date",
+static BText _asymmetry_types = "Serie Date Date";
+static BText _asymmetry_args = 
   I2("(Serie ser [, Date from, Date until])",
-     "(Serie ser [, Date desde, Date hasta])"),
+     "(Serie ser [, Date desde, Date hasta])");
+static BText _asymmetry_desc = 
   I2("Returns the asymmetry coefficient of a serie between two dates. "
      "If they do not appear, it is assumed the calculation with the "
      "first and last dates of the series. Finally, if the series lacks "
@@ -385,9 +483,18 @@ void BDatStatistic::PutArgs(BSyntaxObject* ser,
      "Devuelve el coeficiente de asimetría de una serie entre dos fechas. "
      "Si no aparecen, se asume el cálculo con las fechas primera "
      "y última de la serie. Por último, si la serie carece de fechas, "
-     "se calcula con las fechas por defecto."),
-     BOperClassify::Statistic_);
-  void BDatStatAsimetry::CalcContens()
+     "se calcula con las fechas por defecto.");
+
+//--------------------------------------------------------------------
+  DefExtOpr(1, BDatStatAsymmetry,    "AsymmetryS",  1, 3, 
+    _asymmetry_types,_asymmetry_args,_asymmetry_desc, 
+    BOperClassify::Statistic_);
+  DefExtOpr(2, BDatStatAsymmetry,    "AsimetryS",  1, 3, 
+    _asymmetry_types,_asymmetry_args,_asymmetry_desc + "\n"+
+    I2("DEPRECATED! Please, use AymmetryS",
+       "OBSOLETO! Por favor, use AymmetryS"), 
+    BOperClassify::Statistic_);
+  void BDatStatAsymmetry::CalcContens()
 //--------------------------------------------------------------------
 {
   if(ser_ && TsrR(ser_).Dating())
@@ -447,7 +554,7 @@ void BDatStatistic::PutArgs(BSyntaxObject* ser,
   DefExtOpr(1, BDatStatQuantile, "QuantileS",  4, 4, "Serie Date Date Real",
   I2("(Serie ser, Date from, Date until, Real p)",
      "(Serie ser, Date desde, Date hasta, Real p)"),
-  I2("Returns the quantile of a given probability of a serie between two "
+  I2("Returns the quantile of a given probability p of a serie between two "
      "dates. ",
      "Devuelve el cuantil de probabilidad p de una serie entre dos "
      "fechas. "),
@@ -524,8 +631,8 @@ BDat StatStDs(BSyntaxObject* ser)
 BDat StatVarianze(BSyntaxObject* ser)
 { return(BDatStatVarianze (NCons(ser)).Contens()); }
 
-BDat StatAsimetry(BSyntaxObject* ser)
-{ return(BDatStatAsimetry (NCons(ser)).Contens()); }
+BDat StatAsymmetry(BSyntaxObject* ser)
+{ return(BDatStatAsymmetry (NCons(ser)).Contens()); }
 
 BDat StatKurtosis(BSyntaxObject* ser)
 { return(BDatStatKurtosis (NCons(ser)).Contens()); }

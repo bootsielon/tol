@@ -86,6 +86,25 @@ BDat SubSampleAverage(BSimpleStatisticFunction stat,
     return((*stat)(x));
 }
 //--------------------------------------------------------------------
+BDat Known(const BArray<BDat>& vec)
+
+/*! Returns the Sum statistic of a vector of real numbers
+ */
+//--------------------------------------------------------------------
+{
+    if(!vec.Size()) { return(0); }
+    BDat result = 0;
+    for(BInt k = 0; k<vec.Size(); k++)
+    {
+	if(vec(k).IsKnown())
+	{
+	    result += 1;
+	}
+    }
+    return(result);
+}
+
+//--------------------------------------------------------------------
 BDat Sum(const BArray<BDat>& vec)
 
 /*! Returns the Sum statistic of a vector of real numbers

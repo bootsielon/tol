@@ -767,15 +767,15 @@ static void StatWriteFile(BList* lst,
   i=0;
   if(header=="_DEFAULT_HEADER_")
   {
-    table[i++][0] = I2("Statistic  ", "Estad�stico");
+    table[i++][0] = I2("Statistic  ", "Estadístico");
     table[i++][0] = I2("Count      ", "Longitud   ");
-    table[i++][0] = I2("Maximum    ", "M�ximo     ");
-    table[i++][0] = I2("Minimum    ", "M�nimo     ");
+    table[i++][0] = I2("Maximum    ", "Máximo     ");
+    table[i++][0] = I2("Minimum    ", "Mínimo     ");
     table[i++][0] = I2("Sum        ", "Suma       ");
     table[i++][0] = I2("Average    ", "Media      ");
     table[i++][0] = I2("Std. Desv. ", "Desv. Tip. ");
     table[i++][0] = I2("Varianze   ", "Varianza   ");
-    table[i++][0] = I2("Asymmetry   ", "Asimetr�a  ");
+    table[i++][0] = I2("Asymmetry  ", "Asimetría  ");
     table[i++][0] = I2("Kurtosis   ", "Curtosis   ");
     table[i++][0] = I2("Median     ", "Mediana    ");
     j=0;
@@ -797,16 +797,16 @@ static void StatWriteFile(BList* lst,
       BUserTimeSerie* ser = Tsr(syn);
       i=0;
       table[i++][j] = ser->Identify();
-      table[i++][j] = StatCount   (ser).Name();
-      table[i++][j] = StatMax     (ser).Name();
-      table[i++][j] = StatMin     (ser).Name();
-      table[i++][j] = StatSum     (ser).Name();
-      table[i++][j] = StatAverage (ser).Name();
-      table[i++][j] = StatStDs    (ser).Name();
-      table[i++][j] = StatVarianze(ser).Name();
-      table[i++][j] = StatAsimetry(ser).Name();
-      table[i++][j] = StatKurtosis(ser).Name();
-      table[i++][j] = StatMedian  (ser).Name();
+      table[i++][j] = StatCount    (ser).Name();
+      table[i++][j] = StatMax      (ser).Name();
+      table[i++][j] = StatMin      (ser).Name();
+      table[i++][j] = StatSum      (ser).Name();
+      table[i++][j] = StatAverage  (ser).Name();
+      table[i++][j] = StatStDs     (ser).Name();
+      table[i++][j] = StatVarianze (ser).Name();
+      table[i++][j] = StatAsymmetry(ser).Name();
+      table[i++][j] = StatKurtosis (ser).Name();
+      table[i++][j] = StatMedian   (ser).Name();
     }
     lst = Cdr(lst);
   }

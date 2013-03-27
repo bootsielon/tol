@@ -32,6 +32,7 @@ typedef BDat (*BSimpleStatisticFunction) (const BArray<BDat>& vec);
 TOL_API BDat SubSampleAverage(BSimpleStatisticFunction stat,
 		      const BArray<BDat>& vec);
 
+TOL_API BDat Known                (const BArray<BDat>& vec);
 TOL_API BDat Sum	                (const BArray<BDat>& vec);
 TOL_API BDat Product	            (const BArray<BDat>& vec);
 TOL_API BDat Average	            (const BArray<BDat>& vec);

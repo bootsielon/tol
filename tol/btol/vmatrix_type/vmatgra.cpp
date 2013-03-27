@@ -38,6 +38,7 @@
 #include <tol/tol_bcodgra.h>
 #include <tol/tol_blanguag.h>
 #include <tol/tol_bvmat_bsr.h>
+#include <tol/tol_bstat.h>
 #include <tol/tol_bdir.h>
 
 
@@ -2343,6 +2344,36 @@ void BVMatMinimumResidualsSolve::CalcContens()
 }
 
 //--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatVMatCount);
+  DefExtOpr(1, BDatVMatCount, "VMatCount", 1, 1, "VMatrix",
+  "(VMatrix mat)",
+  I2("Returns the number of cells of a matrix (rows x columns).",
+     "Devuelve el número de celdas de una matriz (filas x columnas)."),
+     BOperClassify::Statistic_);
+  void BDatVMatCount::CalcContens()
+//--------------------------------------------------------------------
+{
+  BVMat& x = VMat(Arg(1));
+  contens_ = x.Rows() * x.Columns();
+}
+
+//--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatVMatKnown);
+  DefExtOpr(1, BDatVMatKnown, "VMatKnown", 1, 1, "VMatrix",
+  "(VMatrix mat)",
+  I2("Returns the number of cells of a matrix (rows x columns).",
+     "Devuelve el número de celdas de una matriz (filas x columnas)."),
+     BOperClassify::Statistic_);
+  void BDatVMatKnown::CalcContens()
+//--------------------------------------------------------------------
+{
+  BVMat& x = VMat(Arg(1));
+  BMat y;
+  x.GetDMatT(*((DMat*)&y));
+  contens_ = Known(y.Data());
+}
+
+//--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatVMatSum);
   DefExtOpr(1, BDatVMatSum, "VMatSum", 1, 1, "VMatrix",
   "(VMatrix mat)",
@@ -2353,6 +2384,22 @@ void BVMatMinimumResidualsSolve::CalcContens()
 //--------------------------------------------------------------------
 {
   contens_ = VMat(Arg(1)).Sum();
+}
+
+//--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatVMatProduct);
+  DefExtOpr(1, BDatVMatProduct, "VMatProduct", 1, 1, "VMatrix",
+  "(VMatrix mat)",
+  I2("Returns the product of all elements of a matrix.",
+     "Devuelve el producto de todos los elementos de una matriz."),
+     BOperClassify::Statistic_);
+  void BDatVMatProduct::CalcContens()
+//--------------------------------------------------------------------
+{
+  BVMat& x = VMat(Arg(1));
+  BMat y;
+  x.GetDMatT(*((DMat*)&y));
+  contens_ = Product(y.Data());
 }
 
 //--------------------------------------------------------------------
@@ -2367,6 +2414,39 @@ void BVMatMinimumResidualsSolve::CalcContens()
 {
   contens_ = VMat(Arg(1)).Avr();
 }
+
+//--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatVMatGeometricAvr);
+  DefExtOpr(1, BDatVMatGeometricAvr, "VMatGeometricAvr", 1, 1, "VMatrix",
+  "(VMatrix mat)",
+  I2("Returns the geometric average of all elements of a matrix.",
+     "Devuelve la media geométrica de todos los elementos de una matriz."),
+     BOperClassify::Statistic_);
+  void BDatVMatGeometricAvr::CalcContens()
+//--------------------------------------------------------------------
+{
+  BVMat& x = VMat(Arg(1));
+  BMat y;
+  x.GetDMatT(*((DMat*)&y));
+  contens_ = GeometricAverage(y.Data());
+}
+
+//--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatVMatHarmonicAvr);
+  DefExtOpr(1, BDatVMatHarmonicAvr, "VMatHarmonicAvr", 1, 1, "VMatrix",
+  "(VMatrix mat)",
+  I2("Returns the harmonic average of all elements of a matrix.",
+     "Devuelve la media armónica de todos los elementos de una matriz."),
+     BOperClassify::Statistic_);
+  void BDatVMatHarmonicAvr::CalcContens()
+//--------------------------------------------------------------------
+{
+  BVMat& x = VMat(Arg(1));
+  BMat y;
+  x.GetDMatT(*((DMat*)&y));
+  contens_ = GeometricAverage(y.Data());
+}
+
 
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatVMatVar);
@@ -2419,6 +2499,40 @@ void BVMatMinimumResidualsSolve::CalcContens()
 {
   contens_ = VMat(Arg(1)).Kurtosis();
 }
+
+//--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatVMatMedian);
+  DefExtOpr(1, BDatVMatMedian, "VMatMedian", 1, 1, "VMatrix",
+  "(VMatrix mat)",
+  I2("Returns the median of all elements of a matrix.",
+     "Devuelve la mediana de todos los elementos de una matriz."),
+     BOperClassify::Statistic_);
+  void BDatVMatMedian::CalcContens()
+//--------------------------------------------------------------------
+{
+  BVMat& x = VMat(Arg(1));
+  BMat y;
+  x.GetDMatT(*((DMat*)&y));
+  contens_ = Median(y.Data());
+}
+
+//--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatVMatQunatile);
+  DefExtOpr(1, BDatVMatQunatile, "VMatQuantile", 2, 2, "VMatrix Real",
+  "(VMatrix mat, Real p)",
+  I2("Returns the the quantile of a given probability p of all elements of a matrix.",
+     "Devuelve el cuantil de probabilidad p de todos los elementos de una matriz."),
+     BOperClassify::Statistic_);
+  void BDatVMatQunatile::CalcContens()
+//--------------------------------------------------------------------
+{
+  BVMat& x = VMat(Arg(1));
+  BDat p = Dat(Arg(2));
+  BMat y;
+  x.GetDMatT(*((DMat*)&y));
+  contens_ = Quantile(y.Data(),p);
+}
+
 
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatVMatMax);
