@@ -1,0 +1,21 @@
+Real MyAppend(Set set, Anything data) {
+  Set set := [[ data ]];
+1};
+
+Set box_1_a = Copy(Empty);
+Real MyAppend(box_1_a, Real 2);
+Real result_1_a = {
+  Real data = 1;
+  Anything PutName("E", box_1_a[1]);
+  data + 1
+}; // =>
+
+Set box_1_b = Copy(Empty);
+Real MyAppend(box_1_b, Real 2);
+Real result_1_b = {
+  Real data = 1;
+  Anything { PutName("E", box_1_b[1]) };
+  data + 1
+}; // =>
+
+

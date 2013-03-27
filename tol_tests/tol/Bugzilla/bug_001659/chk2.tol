@@ -1,0 +1,14 @@
+
+Real result_2_a = {
+  Real a = 1;
+  Real PutName("w", a);
+  Real a = 2;
+  a
+}; // =>
+
+Real result_2_b = {
+  Real a = 1;
+  Real { PutName("w", a) };
+  Real a = 2;
+  a
+}; // =>
