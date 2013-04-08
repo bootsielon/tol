@@ -1701,7 +1701,7 @@ BSyntaxObject* BUserFunction::Evaluator(BList* argList) const
 #ifndef __USE_DYNSCOPE__
   BGrammar::PushStackLevel(Level()+1);
 #endif
-    
+  BArray<BSyntaxObject*> funArg(grammars_.Size());
   for((n=0),(arg=argList); arg; n++, arg = Cdr(arg))
   {
     gra = (BGrammar*)(grammars_[n][0]);
@@ -1730,6 +1730,7 @@ BSyntaxObject* BUserFunction::Evaluator(BList* argList) const
     BSyntaxObject* argument = gra->NewFunArg(names_[n], syn);
       argInstances = Cons(argument, argInstances);
       gra->AddObject(argument);
+    funArg[n] = argument;
   }
     
   //desc += ")";
@@ -1770,6 +1771,11 @@ BSyntaxObject* BUserFunction::Evaluator(BList* argList) const
     BClass::currentStatic_ = oldStaticOwner;
     BNameBlock::SetCurrent(oldNameBlock);
   }
+  for(n=0; n<funArg.Size(); n++)
+  {
+    if(funArg[n]) { funArg[n]->PutLocalName(""); }
+  }
+
   if(result)
   {
     result->IncNRefs();
