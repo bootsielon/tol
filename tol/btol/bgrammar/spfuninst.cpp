@@ -1450,7 +1450,7 @@ static BSyntaxObject* EvDeepCopy(BGrammar* gra, const List* tre, BBool left)
   BInt nb = BSpecialFunction::NumBranches(tre);
   if((gra==GraSet()) || (gra==GraAnything()))
   {
-    if(BSpecialFunction::TestNumArg(_name_, 1, nb, 2))
+    if(BSpecialFunction::TestNumArg(_name_, 1, nb, 3))
     {
       BGrammar::IncLevel();
       int stackPos = BGrammar::StackSize();
@@ -1468,17 +1468,24 @@ static BSyntaxObject* EvDeepCopy(BGrammar* gra, const List* tre, BBool left)
           if(uM && (uM->Grammar()==GraMatrix()))
           { 
             BMat& M = uM->Contens();
-            int r = M.Rows();
-            int c = M.Columns();
             p	= M.Data();
             pos = 0;
-            if(r==1)
+            bool multiple_instances = false;
+            if(nb==3)
+            {
+              BUserDat* mi = (BUserDat*)GraReal()->EvaluateTree(Branch(tre,3));
+              if(mi)
+              multiple_instances = Real(mi)!=0;
+            }
+            if(!multiple_instances)
             {
               DeepCopy(uS->Contens(),res->Contens(),p,pos);
             }
             else
             {
               int i;
+              int r = M.Rows();
+              int c = M.Columns();
               res->Contens().PrepareStore(r);
               for(i=0; i<r; i++)
               {
@@ -2707,14 +2714,27 @@ bool BSpecialFunction::Initialize()
   EvCopy);
 
   AddInstance("DeepCopy",
-    "(Set sample [, Matrix matrix])",
-  I2("Builds a set of a given example,substituting optionaly number dates "
-	     "from matrix dates.The argument must be a row matrix with so dates "
-	     "as number dates in example set",
-	     "Construye un conjunto semejante al ejemplo dado en el que "
-	     ", opcionalmente, se sustituyen los datos numéricos por los datos de "
-	     "la matriz dada.El argumento matriz debe ser una matriz fila con tantos "
-	     "datos como datos numericos haya en el conjunto ejemplo"),
+    "(Set sample [, Matrix matrix, Real oneInstanceByEachRow=False])",
+  I2("Builds a set with the same deep shape that a given sample."
+     "substituting optionaly number data by cells on given matrix. "
+     "If optional argument 'oneInstanceByEachRow' is false or not submitted, "
+     "the argument must be a matrix with so cells as number of "
+     "numeric elements in sample set."
+     "If optional argument 'oneInstanceByEachRow' is true, then it "
+     "will be created a set of sets with an instance for each row of "
+     "given matrix, and the number of columns will be equal to the number "
+     "of numeric elements in sample set.",
+	   "Construye un conjunto semejante al ejemplo dado en el que "
+	   ", opcionalmente, se sustituyen los datos numéricos por las celdas de "
+	   "la matriz dada. "
+     "Si el argumento opcional 'oneInstanceByEachRow' es falso o no se "
+     "cumplimenta, el argumento matriz debe ser una matriz fila con tantos "
+	   "datos como datos numericos haya en el conjunto ejemplo. "
+     "Si el argumento opcional 'oneInstanceByEachRow' es cierto, entonces "
+     "se devolverá un conjunto de conjuntos con una instancia semejante "
+     "al ejemplo para cada fila de la matriz, por lo que el número de "
+     "columnas será el de mismo que el de datos numéricos en el conjunto "
+     "de ejemplo."),
   EvDeepCopy);
 
 
