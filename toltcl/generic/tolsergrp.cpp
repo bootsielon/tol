@@ -97,7 +97,7 @@ stats_data[] = {
   {"Average",   StatAverage},
   {"Std. Dev.", StatStDs},
   {"Varianze",  StatVarianze},
-  {"Asimetry",  StatAsimetry},
+  {"Asymmetry",  StatAsymmetry},
   {"Kurtosis",  StatKurtosis},
   {"Median",    StatMedian}
 };
