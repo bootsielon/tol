@@ -21,6 +21,13 @@
 
 //#define TRACE_LEVEL 1
 
+#include <iostream>
+#include <boost/asio.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/thread/thread.hpp>
+#include <boost/thread/shared_mutex.hpp>
+#include <boost/thread/locks.hpp>
+
 #if defined(_MSC_VER)
 #include <win_tolinc.h>
 #endif
@@ -48,6 +55,17 @@
   #include <windows.h>
 #endif
 
+#if defined(_MSC_VER)
+  #define SIZE_T_SPECIFIER    "%Iu"
+  #define SSIZE_T_SPECIFIER   "%Id"
+#elif defined(__GNUC__)
+  #define SIZE_T_SPECIFIER    "%zu"
+  #define SSIZE_T_SPECIFIER   "%zd"
+#else
+  #define SIZE_T_SPECIFIER    "%d"
+  #define SSIZE_T_SPECIFIER   "%d"
+#endif
+
 BTraceInit("oprimp.cpp");
 
 BText BEqualOperator::creatingName_;
@@ -59,6 +77,14 @@ bool BStandardOperator::evaluatingFunctionArgument_ = false;
 
 #define Do_TolOprProfiler
 #ifdef Do_TolOprProfiler
+
+typedef boost::shared_mutex Lock;
+typedef boost::unique_lock< Lock > WriteLock;
+typedef boost::shared_lock< Lock > ReadLock;
+
+Lock myLock;
+
+void SampleProfiler();
 
 //--------------------------------------------------------------------
 struct BTolOprProfiler
@@ -77,8 +103,15 @@ struct BTolOprProfiler
   double time2;      //Total squared time to calculate standard deviation
   double timeMin;    //Minimun time elapsed in one execution
   double timeMax;    //Maximun time elapsed in one execution
-  bool   isRunning_; //To avoid spureous time reporting in recursive functions
-  
+  bool   isRunning_; //To avoid spureous time reporting in recursive
+                     //functions
+  size_t TickCounter; // Number of times the function was observed to
+                      // be running at sampling resolution given in
+                      // static member TickResolution
+  static BTolOprProfiler* ptrCurrentProfiler;
+  static size_t TickResolution;
+  static boost::thread *ptrThread;
+
   struct CalllingStr
   {
     int caller;
@@ -106,7 +139,8 @@ struct BTolOprProfiler
     time2  (0.0),
     timeMin(BDat::PosInf()),
     timeMax(BDat::NegInf()),
-    isRunning_(false)
+    isRunning_(false),
+    TickCounter(0)
   {
     identify = GetIdentify(opr);
   }
@@ -239,10 +273,101 @@ struct BTolOprProfiler
         runningIndex_.push_back(profiler->index);
         profiler->isRunning_ = true;
         initTime_ = BSys::SessionTime(); 
-        initAvailMem_ = BSys::SessionAvailMem(); 
+        initAvailMem_ = BSys::SessionAvailMem();
+        BTolOprProfiler::SetCurrentProfiler(profiler);
       }
     }
     return(profiler);
+  }
+
+  static void StartThread()
+  {
+    if (!BTolOprProfiler::ptrThread)
+      {
+      BTolOprProfiler::ptrThread = new boost::thread(&SampleProfiler);
+      }
+  }
+
+  static void StopThread()
+  {
+    if (BTolOprProfiler::ptrThread)
+      {
+      BTolOprProfiler::ptrThread->interrupt();
+      delete BTolOprProfiler::ptrThread;
+      BTolOprProfiler::ptrThread = NULL;
+      }
+  }
+
+  static void SetCurrentProfiler(BTolOprProfiler* profiler)
+  {
+    // REVIEW: adquire an exclusive lock
+    WriteLock w_lock(myLock);
+    BTolOprProfiler::ptrCurrentProfiler = profiler;
+    // REVIEW: release the lock (released when leaving scope
+  }
+
+  static BTolOprProfiler* GetCurrentProfiler()
+  {
+    // REVIEW: adquire an exclusive lock
+    ReadLock r_lock(myLock);
+    return BTolOprProfiler::ptrCurrentProfiler;
+    // REVIEW: release the lock (released when leaving scope
+  }
+
+  static size_t IncrCurrentTickCounter()
+  {
+    // REVIEW: adquire a lock
+    WriteLock w_lock(myLock);
+    if (BTolOprProfiler::ptrCurrentProfiler) 
+      {
+      return ++(BTolOprProfiler::ptrCurrentProfiler->TickCounter);
+      }
+    // REVIEW: release the lock, released when leaving the scope
+    return 0;
+  }
+
+  static size_t SetCurrentTickCounter(size_t counter)
+  {
+    // REVIEW: adquire a lock
+    WriteLock w_lock(myLock);
+    if (BTolOprProfiler::ptrCurrentProfiler) 
+      {
+      size_t previous = BTolOprProfiler::ptrCurrentProfiler->TickCounter;
+      BTolOprProfiler::ptrCurrentProfiler->TickCounter = counter;
+      return previous;
+      }
+    // REVIEW: release the lock, released when leaving the scope
+    return 0;
+  }
+
+  size_t GetCurrentTickCounter()
+  {
+    // REVIEW: adquire a lock
+    ReadLock r_lock(myLock);
+    if (BTolOprProfiler::ptrCurrentProfiler)
+      {
+      return BTolOprProfiler::ptrCurrentProfiler->TickCounter;
+      }
+    // REVIEW: release the lock, relased when leaving the scope    
+    return 0;
+  }
+
+  static size_t SetTickResolution(size_t resolution)
+  {
+    // REVIEW: adquire a lock
+    WriteLock w_lock(myLock);
+    size_t previous = BTolOprProfiler::TickResolution;
+    BTolOprProfiler::TickResolution = resolution;
+    // REVIEW: release the lock, released when leaving the scope  
+    return previous;
+  }
+
+  static size_t GetTickResolution()
+  {
+    // REVIEW: adquire a lock
+    ReadLock r_lock(myLock);
+    return BTolOprProfiler::TickResolution;
+    // REVIEW: release the lock, released when leaving scope 
   }
 
   static void StopProfile(
@@ -333,7 +458,8 @@ struct BTolOprProfiler
      "TimeAverage\t"+
      "TimeStdDev\t"+
      "TimeMin\t"+
-     "TimeMax\n";
+     "TimeMax\t"+
+     "Ticks\n";
     fprintf(dump,title.String());
     fflush(dump);
     BProfileTable::const_iterator iter;
@@ -349,7 +475,7 @@ struct BTolOprProfiler
         sop = profilers[n];
         double timeAverage = sop->time / sop->calls;
         double timeStdDev  = sqrt(sop->time2 / sop->calls - timeAverage*timeAverage);
-        fprintf(dump,"%d\t%s\t%.16lg\t%.16lg\t%.16lg\t%.16lg\t%.16lg\t%.16lg\n",
+        fprintf(dump,"%d\t%s\t%.16lg\t%.16lg\t%.16lg\t%.16lg\t%.16lg\t%.16lg\t%.16lg\t"SIZE_T_SPECIFIER"\n",
           sop->index,
           sop->identify.String(),
           sop->calls,
@@ -358,7 +484,8 @@ struct BTolOprProfiler
           timeAverage,
           timeStdDev,
           sop->timeMin,
-          sop->timeMax
+          sop->timeMax,
+          sop->TickCounter
         );
       }
     }
@@ -425,6 +552,20 @@ struct BTolOprProfiler
   }
 };
 
+// http://www.boost.org/doc/libs/1_53_0/doc/html/boost_asio/tutorial/tuttimer3/src.html
+//boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+
+void SampleProfiler()
+{
+  size_t resolution = BTolOprProfiler::GetTickResolution();
+  while(1) 
+    {
+    size_t t = BTolOprProfiler::IncrCurrentTickCounter();
+    //printf("tick = %d\n", t);
+    boost::this_thread::sleep(boost::posix_time::microseconds(resolution));
+    }
+}
+
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatTolOprProfilerDump);
   DefExtOpr(1, BDatTolOprProfilerDump, "TolOprProfiler.Dump", 1, 1, 
@@ -445,9 +586,44 @@ struct BTolOprProfiler
 //--------------------------------------------------------------------
 {
   BText& pathPrefix=Text(Arg(1));
+  BTolOprProfiler::StopThread();
   BTolOprProfiler::profilerPath_ = GetAbsolutePath(pathPrefix+".TolOprProfiler.csv");
   BTolOprProfiler::callingPath_  = GetAbsolutePath(pathPrefix+".TolOprCalling.csv");
   BTolOprProfiler::Dump();
+}
+
+//--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatTolOprProfilerInit);
+  DefExtOpr(1, BDatTolOprProfilerInit, "TolOprProfiler.Init", 1, 1, 
+  "Real", "(Real microSec)",
+  I2("Enable profiling with sampling resolution of microSec meaasured in microseconds",
+     "Habilita la medición de rendimiento por función. El argumento microSec indica la frecuencia de medición en microsegundos."),
+     BOperClassify::TimeAlgebra_);
+  void BDatTolOprProfilerInit::CalcContens()
+//--------------------------------------------------------------------
+{
+  if (BTolOprProfiler::ptrThread)
+    {
+    Error(I2("There is already one profiler running",
+             "Ya hay un profiler ejecutándose"));
+    return;
+    }
+  double freq = Real(Arg(1));
+  BTolOprProfiler::enabled_ = 1;
+  int iFreq = int(round(freq));
+  if (iFreq<=0)
+    {
+    char buffer[256];
+    snprintf(buffer, 255, 
+             I2("Invalid sampling (tick) resolution %d, must be a possitive integer",
+                "Resolution de muestreo (tick) inválida, debe ser un entero positivo"),
+             iFreq);
+    Warning(buffer);
+    iFreq = 1;
+    }
+  size_t previous = BTolOprProfiler::SetTickResolution(size_t(iFreq));
+  BTolOprProfiler::StartThread();
+  contens_ = double(previous);
 }
 
 BTolOprProfiler* BTolOprProfiler::nullProfiler_;
@@ -462,17 +638,22 @@ BText BTolOprProfiler::profilerPath_ = "";
 BText BTolOprProfiler::callingPath_ = "";
 int   BTolOprProfiler::callingNumber_ =0;
 
+BTolOprProfiler* BTolOprProfiler::ptrCurrentProfiler = NULL;
+size_t BTolOprProfiler::TickResolution = 1;
+boost::thread *BTolOprProfiler::ptrThread = NULL;
+
 int BTolOprProfiler_Init() { return(BTolOprProfiler::Initialize()); }
 int BTolOprProfiler_Dump() { return(BTolOprProfiler::Dump      ()); }
 
 #define Do_TolOprProfiler_Start(opr) \
   double initTime_; \
   double initAvailMem_; \
-  BTolOprProfiler* profiler; \
-  profiler = BTolOprProfiler::StartProfile(opr, initTime_, initAvailMem_);
+  BTolOprProfiler* saveProfiler = BTolOprProfiler::GetCurrentProfiler(); \
+  BTolOprProfiler* profiler = BTolOprProfiler::StartProfile(opr, initTime_, initAvailMem_);
 
 #define Do_TolOprProfiler_Stop(opr) \
-  BTolOprProfiler::StopProfile(profiler, initTime_, initAvailMem_);
+  BTolOprProfiler::StopProfile(profiler, initTime_, initAvailMem_); \
+  BTolOprProfiler::SetCurrentProfiler(saveProfiler);
 
 #else
 
@@ -1444,21 +1625,21 @@ BSyntaxObject* BStandardOperator::Evaluate(const List* argTrees)
 			   "Demasiados argumentos para ")) + desc);
 	  } 
     else 
-    {
-	    numArg_ = n;
+      {
+      numArg_ = n;
       BGrammar::PutLast(Grammar()); 
       Do_TolOprProfiler_Start(this);
-	    result = (BSyntaxObject*)Evaluator(args);
+      result = (BSyntaxObject*)Evaluator(args);
       if(result) { result->Do(); }
       Do_TolOprProfiler_Stop(this);
-	  }
+      }
   } 
   else 
-  {
-	  BText desc = Grammar()->Name()+" "+Name()+" "+Arguments();
-	  Error(I2("Wrong arguments in call to ",
-		         "Argumentos erróneos para ") + desc);
-  }
+    {
+    BText desc = Grammar()->Name()+" "+Name()+" "+Arguments();
+    Error(I2("Wrong arguments in call to ",
+             "Argumentos erróneos para ") + desc);
+    }
   BGrammar::PutLast(Grammar());
   TRACE_SHOW_LOW(fun," END");
   return(result);
