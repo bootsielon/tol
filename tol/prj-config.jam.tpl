@@ -10,6 +10,18 @@ configure lib : cholmod : <prefix>/usr/local/cholmod ;
 
 configure lib : fftw : <name>fftw3 ;
 
+configure lib : boost_thread
+              : 
+              <name>boost_thread
+              <search>/usr/local/boost_1_46_1/lib
+              <include>/usr/local/boost_1_46_1/include
+              ;
+
+configure lib : boost_system
+              : 
+              <name>boost_system
+              ;
+
 configure lib 
           : Cint_headers 
           : <include>/home/jsperez/TOL/ExternalLibs/cint/cint/inc ;
