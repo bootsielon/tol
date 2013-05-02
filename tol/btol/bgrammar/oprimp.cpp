@@ -21,12 +21,16 @@
 
 //#define TRACE_LEVEL 1
 
+#define DONOT_USE_THREAD_PROFILE
+
 #include <iostream>
-#include <boost/asio.hpp>
+
+#ifndef DONOT_USE_THREAD_PROFILE
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/locks.hpp>
+#endif
 
 #if defined(_MSC_VER)
 #include <win_tolinc.h>
@@ -78,13 +82,23 @@ bool BStandardOperator::evaluatingFunctionArgument_ = false;
 #define Do_TolOprProfiler
 #ifdef Do_TolOprProfiler
 
+#ifndef DONOT_USE_THREAD_PROFILE
 typedef boost::shared_mutex Lock;
 typedef boost::unique_lock< Lock > WriteLock;
 typedef boost::shared_lock< Lock > ReadLock;
 
 Lock myLock;
 
+#define WRITE_LOCK \
+  WriteLock w_lock(myLock);
+#define READ_LOCK \
+  ReadLock r_lock(myLock);
+
 void SampleProfiler();
+#else
+#define WRITE_LOCK
+#define READ_LOCK
+#endif
 
 //--------------------------------------------------------------------
 struct BTolOprProfiler
@@ -110,7 +124,10 @@ struct BTolOprProfiler
                       // static member TickResolution
   static BTolOprProfiler* ptrCurrentProfiler;
   static size_t TickResolution;
+
+#ifndef DONOT_USE_THREAD_PROFILE
   static boost::thread *ptrThread;
+#endif
 
   struct CalllingStr
   {
@@ -282,26 +299,30 @@ struct BTolOprProfiler
 
   static void StartThread()
   {
+#ifndef DONOT_USE_THREAD_PROFILE
     if (!BTolOprProfiler::ptrThread)
       {
       BTolOprProfiler::ptrThread = new boost::thread(&SampleProfiler);
       }
+#endif
   }
 
   static void StopThread()
   {
+#ifndef DONOT_USE_THREAD_PROFILE
     if (BTolOprProfiler::ptrThread)
       {
       BTolOprProfiler::ptrThread->interrupt();
       delete BTolOprProfiler::ptrThread;
       BTolOprProfiler::ptrThread = NULL;
       }
+#endif
   }
 
   static void SetCurrentProfiler(BTolOprProfiler* profiler)
   {
     // REVIEW: adquire an exclusive lock
-    WriteLock w_lock(myLock);
+    WRITE_LOCK;
     BTolOprProfiler::ptrCurrentProfiler = profiler;
     // REVIEW: release the lock (released when leaving scope
   }
@@ -309,7 +330,7 @@ struct BTolOprProfiler
   static BTolOprProfiler* GetCurrentProfiler()
   {
     // REVIEW: adquire an exclusive lock
-    ReadLock r_lock(myLock);
+    READ_LOCK;
     return BTolOprProfiler::ptrCurrentProfiler;
     // REVIEW: release the lock (released when leaving scope
   }
@@ -317,7 +338,7 @@ struct BTolOprProfiler
   static size_t IncrCurrentTickCounter()
   {
     // REVIEW: adquire a lock
-    WriteLock w_lock(myLock);
+    WRITE_LOCK;
     if (BTolOprProfiler::ptrCurrentProfiler) 
       {
       return ++(BTolOprProfiler::ptrCurrentProfiler->TickCounter);
@@ -329,7 +350,7 @@ struct BTolOprProfiler
   static size_t SetCurrentTickCounter(size_t counter)
   {
     // REVIEW: adquire a lock
-    WriteLock w_lock(myLock);
+    WRITE_LOCK;
     if (BTolOprProfiler::ptrCurrentProfiler) 
       {
       size_t previous = BTolOprProfiler::ptrCurrentProfiler->TickCounter;
@@ -343,7 +364,7 @@ struct BTolOprProfiler
   size_t GetCurrentTickCounter()
   {
     // REVIEW: adquire a lock
-    ReadLock r_lock(myLock);
+    READ_LOCK;
     if (BTolOprProfiler::ptrCurrentProfiler)
       {
       return BTolOprProfiler::ptrCurrentProfiler->TickCounter;
@@ -355,7 +376,7 @@ struct BTolOprProfiler
   static size_t SetTickResolution(size_t resolution)
   {
     // REVIEW: adquire a lock
-    WriteLock w_lock(myLock);
+    WRITE_LOCK;
     size_t previous = BTolOprProfiler::TickResolution;
     BTolOprProfiler::TickResolution = resolution;
     // REVIEW: release the lock, released when leaving the scope  
@@ -365,7 +386,7 @@ struct BTolOprProfiler
   static size_t GetTickResolution()
   {
     // REVIEW: adquire a lock
-    ReadLock r_lock(myLock);
+    READ_LOCK;
     return BTolOprProfiler::TickResolution;
     // REVIEW: release the lock, released when leaving scope 
   }
@@ -557,6 +578,7 @@ struct BTolOprProfiler
 
 void SampleProfiler()
 {
+#ifndef DONOT_USE_THREAD_PROFILE
   size_t resolution = BTolOprProfiler::GetTickResolution();
   while(1) 
     {
@@ -564,6 +586,7 @@ void SampleProfiler()
     //printf("tick = %d\n", t);
     boost::this_thread::sleep(boost::posix_time::microseconds(resolution));
     }
+#endif
 }
 
 //--------------------------------------------------------------------
@@ -602,12 +625,14 @@ void SampleProfiler()
   void BDatTolOprProfilerInit::CalcContens()
 //--------------------------------------------------------------------
 {
+#ifndef DONOT_USE_THREAD_PROFILE
   if (BTolOprProfiler::ptrThread)
     {
     Error(I2("There is already one profiler running",
              "Ya hay un profiler ejecutándose"));
     return;
     }
+#endif
   double freq = Real(Arg(1));
   BTolOprProfiler::enabled_ = 1;
   int iFreq = int(round(freq));
@@ -640,7 +665,10 @@ int   BTolOprProfiler::callingNumber_ =0;
 
 BTolOprProfiler* BTolOprProfiler::ptrCurrentProfiler = NULL;
 size_t BTolOprProfiler::TickResolution = 1;
+
+#ifndef DONOT_USE_THREAD_PROFILE
 boost::thread *BTolOprProfiler::ptrThread = NULL;
+#endif
 
 int BTolOprProfiler_Init() { return(BTolOprProfiler::Initialize()); }
 int BTolOprProfiler_Dump() { return(BTolOprProfiler::Dump      ()); }
