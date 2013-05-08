@@ -234,6 +234,10 @@ config.genlib lapack ;
 
 config.genlib cholmod ;
 
+config.genlib boost_thread ;
+
+config.genlib boost_system ;
+
 config.genlib fftw ;
 
 config.genlib bz2 ;
@@ -254,7 +258,7 @@ lib ltdl ;
 
 lib dl ;
 
-all_libs = gsl lapack cholmod fftw/<link>static bz2/<link>static libziparch ANN libz ltdl/<link>static dl ;
+all_libs = gsl lapack cholmod fftw/<link>static bz2/<link>static libziparch ANN libz ltdl/<link>static boost_thread/<link>static boost_system/<link>static dl ;
 
 lib tol
     : init $(all-obj-aliases) $(all_libs)
@@ -264,7 +268,7 @@ lib tol
 build-project dbdrivers ;
 
 exe tolcon
-    : tol.cpp tol 
+    : tol.cpp tol
     #readline 
     ;
 
