@@ -278,6 +278,7 @@ public:
   void SetUnsymmetric();
   void BlasRDense  (int nrow, int ncol);
   void BlasRDense  (int nrow, int ncol, double value);
+  void BlasRDense  (int nrow, int ncol, const double* ptr);
   void ChlmRSparse (int nrow, int ncol, int nzmax);
   void ChlmRTriplet(int nrow, int ncol, int nzmax);
 //Dimensions
