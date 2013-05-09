@@ -100,7 +100,8 @@ public:
     const BArray<BDat>& xMin, 
     const BArray<BDat>& xMax, 
     BDat fDist, 
-    BDat tolerance, 
+    BDat tolerance,
+    bool verbose, 
     BArray<BDat>& S);
 
   virtual void Gradient (const BArray<BDat>& x, const BArray<BDat>& scale, BArray<BDat>&  G);

@@ -182,7 +182,8 @@ bool BRnRFunction::AutoScale (
   const BArray<BDat>& xMin, 
   const BArray<BDat>& xMax, 
   BDat fDist, 
-  BDat tolerance, 
+  BDat tolerance,
+  bool verbose, 
   BArray<BDat>& S)
 
 /*! Returns the numerical Gradient vector of this function in a point
@@ -194,11 +195,23 @@ bool BRnRFunction::AutoScale (
   fDist = Abs(fDist);
   for(k=0; k<n_; k++)
   {
+    if(verbose)
+    {
+      Std(BText("  [BRnRFunction::AutoScale] Adjusting scale of variable ")+
+          (k+1)+" of "+n_+" in ["+xMin[k]+","+xMax[k]+"] \n");
+    }
     BPartialAbsDifFunction Fk(*this, x, fDist, k);
     BDat fd;
     BDat hMin = 0;
     BDat hMax = Maximum(Abs(x[k]-xMin[k]),Abs(x[k]-xMax[k]));
-    S[k] = BFibonacci::Minimum(&Fk,fd,hMin,hMax,tolerance);
+    if(hMax.IsFinite())
+    {
+      S[k] = BFibonacci::Minimum(&Fk,fd,hMin,hMax,tolerance);
+    }
+    else
+    {
+      S[k] = Abs(Fk.NewtonSolve(x[k], 0));
+    }
   }
   return(true);
 /*
@@ -286,6 +299,22 @@ void BRnRFunction::Gradient (const BArray<BDat>& x, const BArray<BDat>& scale, B
       else if(ok0&&ok1&&ok2)
       {
         G[i]=(-3*f0+4*f1-f2)/(h*2);
+      }
+      else if(ok0&&ok1)
+      {
+        G[i]=(f1-f0)/h;
+      }
+      else if(ok0&&ok_1)
+      {
+        G[i]=(f0-f_1)/h;
+      }
+      else if(ok1&&ok2)
+      {
+        G[i]=(f2-f1)/h;
+      }
+      else if(ok_1&&ok_2)
+      {
+        G[i]=(f_1-f_2)/h;
       }
       else
       {
