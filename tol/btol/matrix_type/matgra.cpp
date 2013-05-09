@@ -2705,12 +2705,12 @@ void BMatMarquardt::CalcContens()
   contens_.AddElement(UJ);
 }
 
-
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatAutoScale);
-DefExtOpr(1, BMatAutoScale, "AutoScale", 4, 6,
-  "Code Matrix Matrix Matrix Real Real",
-  "(Code function, Matrix x0, Matrix xMin, Matrix xMax [, Real fDist=.01, Real tolerance=0.001])",
+DefExtOpr(1, BMatAutoScale, "AutoScale", 4, 7,
+  "Code Matrix Matrix Matrix Real Real Real",
+  "(Code function, Matrix x0, Matrix xMin, Matrix xMax "
+  "[, Real fDist=.01, Real tolerance=0.001, Real verbose=False])",
   I2("Returns the vector of scales that gives unitary variations of "
      "evaluation of a function in an environment of a given point inside "
      "the hyper-rectangle defined by limits [xMin,xMax].",
@@ -2730,13 +2730,16 @@ void BMatAutoScale::CalcContens()
   BMat&  xMax = Mat (Arg(4));
   BDat fDist=.01;
   BDat tolerance=0.001;
+  bool verbose = false;
   if(Arg(5)) { fDist=Dat(Arg(5)); }
   if(Arg(6)) { tolerance=Dat(Arg(6)); }
+  if(Arg(7)) { verbose=Real(Arg(7))!=0; }
   BInt   n    = x.Rows(); 
   contens_.Alloc(n,1);
   if(contens_.Rows()!=n) { return; }
   BRnRCode f(n, code);
-  f.AutoScale(x.Data(), xMin.Data(), xMax.Data(), fDist, tolerance, contens_.GetData());
+  f.AutoScale(x.Data(), xMin.Data(), xMax.Data(), 
+   fDist, tolerance, verbose, contens_.GetData());
 }
 
 //--------------------------------------------------------------------
