@@ -29,6 +29,7 @@
 #include <tol/tol_bout.h>
 #include <tol/tol_bdatgra.h>
 #include <tol/tol_bmatgra.h>
+#include <tol/tol_bvmatgra.h>
 #include <tol/tol_blanguag.h>
 
 //--------------------------------------------------------------------
@@ -305,22 +306,19 @@ void BRnRmCode::Evaluate(BArray<BDat>& y, const BArray<BDat>& x)
   }
 }
 
-
-
-
 //--------------------------------------------------------------------
 BRnRCode::BRnRCode(BInt   n,  const BCode& eval)
 //--------------------------------------------------------------------
-    : BRnRFunction(n), eval_(eval)
+    : BRnRFunction(n), eval_(eval), vectorType_(NULL)
+
 {
+    vectorType_ = eval_.Operator()->GrammarForArg(1);
     isGood_ = 1;
-    /*
-      eval_.Operator() &&
-      (eval_.Grammar() == GraMatrix()) &&
+      (eval_.Grammar() == GraReal()) &&
       (eval_.Operator()->MinArg() == 1) &&
       (eval_.Operator()->MaxArg() == 1) &&
-      (eval_.Operator()->GrammarForArg(1) == GraMatrix());
-    */
+      ( (vectorType_ == GraMatrix ()) ||
+        (vectorType_ == GraVMatrix())   );
 //   Std(BText("\nBRnRmCode::IsGood = ")+isGood_);
 }
 
@@ -332,27 +330,40 @@ void BRnRCode::Evaluate(BDat& y, const BArray<BDat>& x)
  */
 //--------------------------------------------------------------------
 {
-  if(x.Size()!=n_)
+  if(!isGood_) 
   {
-    Error(I2("Invalid dimension for function ",
-    "Dimensiones no válidas para función ")+"R^"+n_+" -> "+"R >> "+x.Size());
+    Error(I2("Invalid definition for function",
+    "Definición no válida para función")+" R^"+n_+" -> "+"R >> "+x.Size());
     return;
   }
-  if(isGood_)
+  if(x.Size()!=n_)
+  {
+    Error(I2("Invalid dimension for function",
+    "Dimensiones no válidas para función")+" R^"+n_+" -> "+"R >> "+x.Size());
+    return;
+  }
+  BSyntaxObject* uX = NULL;
+  if(vectorType_==GraMatrix ())
   {
 	   BMatrix<BDat>  X(x.Size(), 1,x.Buffer());
-	   BUserMat*      uX  = new BContensMat(X);
-	   BList*         lst = NCons(uX);
-	   BSyntaxObject* bs  = eval_.Evaluator(lst);
-	   BUserDat*      uY  = UDat(bs);
-	   if(uY)
-	   {
-	     y = Dat(uY);
-	     DESTROY(uY);
-	   }
-    else
-    {
-	     DESTROY(lst);
-    }
+	   uX  = new BContensMat(X);
+  }
+  else if(vectorType_==GraVMatrix ())
+  {
+	   BVMat X;
+     X.BlasRDense(x.Size(), 1, (const double*)x.Buffer());
+	   uX  = new BContensVMat(X);
+  }
+  BList*         lst = NCons(uX);
+  BSyntaxObject* bs  = eval_.Evaluator(lst);
+  BUserDat*      uY  = UDat(bs);
+  if(uY)
+  {
+    y = Dat(uY);
+    DESTROY(uY);
+  }
+  else
+  {
+    DESTROY(lst);
   }
 }

@@ -137,6 +137,7 @@ class BRnRCode : public BRnRFunction
   private :
     const BCode& eval_;
     BBool  isGood_;
+    BGrammar* vectorType_;
   public:
     BRnRCode(BInt n, const BCode& eval);
     void  Evaluate(BDat& y, const BArray<BDat>& x);
