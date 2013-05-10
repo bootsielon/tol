@@ -275,6 +275,25 @@ void BDatStoredBytes::CalcContens()
   contens_ = v.PutCell(i,j,d);
 }
 
+//--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatPutVMatCells);
+  DefExtOpr(1, BDatPutVMatCells, "PutVMatCells", 2, 2, "VMatrix Matrix",
+  "(VMatrix mat, Matrix triplet)",
+  I2("Changes in a virtual matrix the value of a list of cells given by a "
+     "(i,j,x) triplet matrix, and returns true if success.",
+     "Cambia en una matriz virtual el valor de una lista de celdas dada "
+     "por una matriz de tripletas (i,j,x), y devuelve cierto "
+     "si ha sido posible.")+warn_readonly_non_stored(),
+     BOperClassify::Conversion_);
+  void BDatPutVMatCells::CalcContens()
+//--------------------------------------------------------------------
+{
+  if(CheckNonDeclarativeAction("PutVMatCells")) { return; }
+  BVMat& v = VMat(Arg(1));
+  BMat& triplet = Mat(Arg(2));
+  contens_ = v.PutCells((const BMatrix<double>&)triplet);
+}
+
 
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatPutVMatBlock);

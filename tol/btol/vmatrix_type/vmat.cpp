@@ -1187,6 +1187,92 @@ static int intCmp_(const void* v1, const void* v2)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+  int BVMat::PutCells(const BMatrix<double>& triplet)
+////////////////////////////////////////////////////////////////////////////////
+{
+  static char* name = "PutCells";
+  int r = triplet.Rows();
+  int c = triplet.Columns();
+  int rows = Rows();
+  int cols = Columns();
+  if(c!=3)
+  {
+    Error(BText(name)+" Second argument must be a triplet matrix (i,j,x)"); 
+    return(0);
+  }
+  int i,j,k;
+  if(code_==ESC_blasRdense)
+  {
+    const double* t = triplet.Data().Buffer();
+    double* d = (double*)s_.blasRdense_->x;
+    for(k=0; k<r; k++)
+    { 
+      i = (int)(*(t++))-1;
+      j = (int)(*(t++))-1;
+      if((i>=0)&&(i<rows)&&(j>=0)&&(j<cols))
+      {
+        d[j*rows+i] = *(t++);
+      }
+      else
+      {
+        Error(BText(name)+" Cannot access to cell ("+i+","+j+")"); 
+        return(0);
+      }
+    }
+  }
+/*
+  else if((code_==ESC_chlmRtriplet)||(code_==ESC_chlmRsparse))
+  {
+    int accessCode;
+    BVMat* T = this;
+    if(code_==ESC_chlmRsparse)
+    {
+      T = new BVMat(*this,ESC_chlmRtriplet);
+    }
+    int nnz = T->s_.chlmRtriplet_->nnz;
+    int nnzr = nnz+r;
+    CholmodReallocateTriplet(nnzr, T->s_.chlmRtriplet_, common_);
+    int*    i_=(int*)   tr.s_.chlmRtriplet_->i;
+    int*    j_=(int*)   tr.s_.chlmRtriplet_->j;
+    double* x_=(double*)tr.s_.chlmRtriplet_->x;
+
+    for(k=0; k<r; k++)
+    { 
+      i = (int)triplet(k,0)-1;
+      j = (int)triplet(k,1)-1;
+      if((i>=0)&&(i<rows)&&(j>=0)&&(j<cols))
+      {
+        int h = nnz+k;
+        i_[h] = i;
+        j_[h] = j;
+        x_[h] = triplet(k,2);
+        T->s_.chlmRtriplet_->nnz++;
+      }
+      else
+      {
+        Error(BText(name)+" Cannot access to cell ("+i+","+j+")"); 
+        return(0);
+      }
+    }
+    if(code_==ESC_chlmRsparse)
+    {
+      Convert(*T,ESC_chlmRsparse);
+        
+    }
+
+  }
+*/
+  else 
+  {
+    Error(BText(name)+" is implemented only for dense matrices"); 
+    return(0);
+  }
+
+  return(1);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
   int BVMat::bRd_bRd_PutBlock(int i0, int j0, const BVMat& x_, int& accessCode)
 ////////////////////////////////////////////////////////////////////////////////
 {

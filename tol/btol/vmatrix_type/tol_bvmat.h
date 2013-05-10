@@ -298,6 +298,7 @@ public:
 //Partial access
   double GetCell(int i, int j) const;
   int    PutCell(int i, int j, const double& x);
+  int    PutCells(const BMatrix<double>& triplet);
   int    PutBlock(int i0, int j0, const BVMat& x);
 
   int  StoredCells() const;
