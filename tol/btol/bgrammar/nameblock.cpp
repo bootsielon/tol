@@ -116,7 +116,7 @@ static bool BNameBlock_IsInitialized()
 //--------------------------------------------------------------------
 : BObject  (),
   public_  (),
-  private_ (), 
+//private_ (), 
   evLevel_ (BGrammar::Level()),
   level_   (-999999999),
   set_     (),
@@ -130,7 +130,7 @@ static bool BNameBlock_IsInitialized()
   startedPackage(false)
 {
   SetEmptyKey(public_ ,emptyHashKey_);
-  SetEmptyKey(private_,emptyHashKey_);
+//SetEmptyKey(private_,emptyHashKey_);
 #if (__USE_POOL__==__POOL_BFSMEM__)
   short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->GetPageNum());
 #else
@@ -144,7 +144,7 @@ BNameBlock::BNameBlock(const BText& fullName, const BText& localName)
 //--------------------------------------------------------------------
 : BObject  (fullName), 
   public_  (),
-  private_ (),
+//private_ (),
   evLevel_ (BGrammar::Level()),
   level_   (-999999999),
   set_     (),
@@ -158,7 +158,7 @@ BNameBlock::BNameBlock(const BText& fullName, const BText& localName)
   startedPackage(false)
 {
   SetEmptyKey(public_ ,emptyHashKey_);
-  SetEmptyKey(private_,emptyHashKey_);
+//SetEmptyKey(private_,emptyHashKey_);
 #if (__USE_POOL__==__POOL_BFSMEM__)
   short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->GetPageNum());
 #else
@@ -172,7 +172,7 @@ BNameBlock::BNameBlock(const BNameBlock& ns)
 //--------------------------------------------------------------------
 : BObject  (), 
   public_  (),
-  private_ (),
+//private_ (),
   evLevel_ (BGrammar::Level()),
   level_   (-999999999),
   set_     (),
@@ -186,7 +186,7 @@ BNameBlock::BNameBlock(const BNameBlock& ns)
   startedPackage(false)
 {
   SetEmptyKey(public_ ,emptyHashKey_);
-  SetEmptyKey(private_,emptyHashKey_);
+//SetEmptyKey(private_,emptyHashKey_);
 #if (__USE_POOL__==__POOL_BFSMEM__)
   short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->GetPageNum());
 #else
@@ -231,7 +231,7 @@ void BNameBlock::Clean()
     }
   }
   public_.clear();
-  private_.clear();
+//private_.clear();
   set_.Delete();
   father_ = NULL;
   if(requiredPackages_)
@@ -472,7 +472,7 @@ const BText& BNameBlock::LocalName() const
   int ns_resultLevel = -1; 
   if(oldBuilding && !BStandardOperator::evaluatingFunctionArgument_)
   {
-    assert(name.HasName());
+  //assert(name.HasName());
     oldBuildingLevel = oldBuilding->Level();
     ns_resultLevel = ns_result->Level();
     if(oldBuildingLevel == level-1)
@@ -793,7 +793,8 @@ const BText& BNameBlock::LocalName() const
       }
 
     }
-    private_[name] = obj;
+  //private_[name] = obj;
+    public_[name] = obj;
   }
   if(obj->Grammar()==GraCode())
   {
@@ -864,6 +865,7 @@ const BText& BNameBlock::LocalName() const
       }
     }
   }
+/*
   for(iter=private_.begin(); iter!=private_.end(); iter++)
   {
     obj = iter->second;
@@ -888,6 +890,7 @@ const BText& BNameBlock::LocalName() const
       }
     }
   }
+*/
   return(true);
 }
 
@@ -957,6 +960,9 @@ const BText& BNameBlock::LocalName() const
 //--------------------------------------------------------------------
 {
 /* */
+  if(memberName[0]!='_') { return(NULL); }
+//if(memberName[1]=='.') { return(NULL); }
+//if(memberName=="_this") { result = owner_; }
   BSyntaxObject* result = NULL;
   if(Class())
   {
@@ -973,11 +979,12 @@ const BText& BNameBlock::LocalName() const
       result = met; 
     } 
   }
-/* */
   if(!result)
   {
-    BObjByNameHash::const_iterator found = private_.find(memberName);
-    if(found==private_.end())
+//  BObjByNameHash::const_iterator found = private_.find(memberName);
+//  if(found==private_.end())
+    BObjByNameHash::const_iterator found = public_.find(memberName);
+    if(found==public_.end())
     {
       if(memberName=="_this")
       {
@@ -989,6 +996,7 @@ const BText& BNameBlock::LocalName() const
       result = found->second;
     }
   }
+/* */
   return(result);
 }
 
@@ -1097,14 +1105,29 @@ bool BNameBlock::add_using_symbol(
   BObjByNameHash& pbm = ns.Public();
   for(iter=pbm.begin(); iter!=pbm.end(); iter++)
   {
-    ok = add_using_symbol(name, iter, false, false, usingAlsoSpecial);
+    bool uPr = false;
+    bool uRO = false;
+    if(name[0]=='_') 
+    {
+      if(name[1]=='.') 
+      {
+        uRO = usingAlsoReadOnly;
+      }
+      else
+      {
+        uPr = usingAlsoPrivate;
+      }
+    }
+    ok = add_using_symbol(name, iter, uRO, uPr, usingAlsoSpecial);
   }
+/*
   BObjByNameHash& prm = ns.Private();
   for(iter=prm.begin(); iter!=prm.end(); iter++)
   {
     ok = add_using_symbol(name, iter, 
      usingAlsoReadOnly, usingAlsoPrivate, usingAlsoSpecial);
   }
+*/
   return(ok);
 }
 
@@ -1235,6 +1258,7 @@ bool BNameBlock::add_using_symbol(
       lst = Cons(obj,lst);
     }
   }
+/*
   for(iter=private_.begin(); iter!=private_.end(); iter++)
   {
     obj = iter->second;
@@ -1253,6 +1277,7 @@ bool BNameBlock::add_using_symbol(
       lst = Cons(obj,lst);
     }
   }
+*/
   return(lst);
 }
 
@@ -1273,6 +1298,7 @@ bool BNameBlock::add_using_symbol(
       lst = unb->Contens().SelectMembersDeep(lst, oc);
     }
   }
+/*
   for(iter=private_.begin(); iter!=private_.end(); iter++)
   {
     obj = iter->second;
@@ -1283,6 +1309,7 @@ bool BNameBlock::add_using_symbol(
       lst = unb->Contens().SelectMembersDeep(lst, oc);
     }
   }
+*/
   return(lst);
 }
 
@@ -1321,6 +1348,7 @@ bool BNameBlock::add_using_symbol(
       unb->Contens().RebuildFullNameDeep(parentFullName, obj->Name());
     }
   }
+/*
   for(iter=private_.begin(); iter!=private_.end(); iter++)
   {
     obj = iter->second;
@@ -1331,6 +1359,7 @@ bool BNameBlock::add_using_symbol(
       unb->Contens().RebuildFullNameDeep(parentFullName, obj->Name());
     }
   }
+*/
   doingRebuildFullNameDeep = false;
 }
 
