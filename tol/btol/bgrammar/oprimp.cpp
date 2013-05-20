@@ -1911,6 +1911,10 @@ BSyntaxObject* BUserFunction::Evaluator(BList* argList) const
   BGrammar::PushStackLevel(Level()+1);
 #endif
   BArray<BSyntaxObject*> funArg(grammars_.Size());
+  for(n=0; n<grammars_.Size(); n++)
+  {
+    funArg[n] = NULL;
+  }
   for((n=0),(arg=argList); arg; n++, arg = Cdr(arg))
   {
     gra = (BGrammar*)(grammars_[n][0]);
