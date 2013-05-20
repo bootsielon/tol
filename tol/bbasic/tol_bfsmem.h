@@ -91,8 +91,8 @@ public:
 
 #define RedeclareClassNewDelete(ANY_) \
 public:	\
-  static char* BFSMEM_ClassName() { return(#ANY_); } \
-  static int BFSMEM_ClassSize() { return(sizeof(ANY_)); } \
+  static char* BFSMEM_ClassName(const ANY_& unused) { return(#ANY_); } \
+  static int BFSMEM_ClassSize(const ANY_& unused) { return(sizeof(ANY_)); } \
   BFixedSizeMemoryBase* GetMemHandler() const \
   { \
     assert(sizeof(ANY_)<BFSMEM_MAX_BASE_SIZE); \
@@ -138,12 +138,14 @@ public:	\
   } \
   static void* operator new(size_t size) \
   { \
-    BFSMEM_ADD_INSTANCES(BFSMEM_ClassName(),1,size); \
+    static ANY_ unused_; \
+    BFSMEM_ADD_INSTANCES(BFSMEM_ClassName(unused_),1,size); \
     return(malloc(size)); \
   } \
   static void operator delete(void* ptr) \
   { \
-    BFSMEM_REMOVE_INSTANCES(BFSMEM_ClassName(),1,BFSMEM_ClassSize()); \
+    static ANY_ unused_; \
+    BFSMEM_REMOVE_INSTANCES(BFSMEM_ClassName(unused_),1,BFSMEM_ClassSize(unused_)); \
     free(ptr); \
   } 
 
