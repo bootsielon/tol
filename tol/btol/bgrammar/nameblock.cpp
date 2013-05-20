@@ -1244,6 +1244,8 @@ bool BNameBlock::add_using_symbol(
   for(iter=public_.begin(); iter!=public_.end(); iter++)
   {
     obj = iter->second;
+    const BText& name = obj->Name();
+    if(name[0]=='_'&&name[1]!='.') { continue; }
     if((oc.mode_==BUSERFUNMODE) && 
        (obj->Mode()==BOBJECTMODE) && 
        (obj->Grammar()==GraCode()))
@@ -1258,26 +1260,6 @@ bool BNameBlock::add_using_symbol(
       lst = Cons(obj,lst);
     }
   }
-/*
-  for(iter=private_.begin(); iter!=private_.end(); iter++)
-  {
-    obj = iter->second;
-    if((obj->Name()[2]=='.')&&
-       (oc.mode_==BUSERFUNMODE) && 
-       (obj->Mode()==BOBJECTMODE) && 
-       (obj->Grammar()==GraCode()))
-    {
-      BUserCode* uc = (BUserCode*)obj;
-      obj = uc->Contens().Operator();
-    }
-    bool match = (obj->Grammar()==oc.grammar_) && (obj->Mode()==oc.mode_);
-    if(match)
-    {
-    //Std(BText("\n")+"  "+GetModeName(obj->Mode())+" "+obj->Grammar()->Name()+" "+obj->Name()+" matches? "+int(match));
-      lst = Cons(obj,lst);
-    }
-  }
-*/
   return(lst);
 }
 
@@ -1292,24 +1274,14 @@ bool BNameBlock::add_using_symbol(
   for(iter=public_.begin(); iter!=public_.end(); iter++)
   {
     obj = iter->second;
+    const BText& name = obj->Name();
+    if(name[0]=='_'&&name[1]!='.') { continue; }
     if((obj->Grammar()==GraNameBlock()) && (obj->Mode()==BOBJECTMODE))
     {
       BUserNameBlock* unb = (BUserNameBlock*)obj;
       lst = unb->Contens().SelectMembersDeep(lst, oc);
     }
   }
-/*
-  for(iter=private_.begin(); iter!=private_.end(); iter++)
-  {
-    obj = iter->second;
-    if((obj->Name()[2]=='.')&&
-       (obj->Grammar()==GraNameBlock()) && (obj->Mode()==BOBJECTMODE))
-    {
-      BUserNameBlock* unb = (BUserNameBlock*)obj;
-      lst = unb->Contens().SelectMembersDeep(lst, oc);
-    }
-  }
-*/
   return(lst);
 }
 
