@@ -26,7 +26,7 @@
 # if (__USE_POOL__==__POOL_NONE__)
 #  define DeclareClassNewDelete(ANY_)
 #  define RedeclareClassNewDelete(ANY_)
-#  define UndeclareClassNewDelete
+#  define UndeclareClassNewDelete(ANY_)
 # elif (__USE_POOL__==__POOL_BFSMEM__)
 #  include <tol/tol_bfsmem.h>
 # endif

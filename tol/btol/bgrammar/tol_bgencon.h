@@ -362,7 +362,6 @@ public:
     TRACE_MEMORY_SHOW(this,"BGraContensFND::~BGraContensFND");
   }
 
-  UndeclareClassNewDelete;
 };
 //Parameters Name_ and Description_ for template BGraContensFND
 //must be globally declared as 
@@ -666,7 +665,6 @@ class TOL_API BTmpContens: public BTmpObject< BGraContens<Any> >
     }
     return(this->contens_);
   }
-  UndeclareClassNewDelete;
 };
 
 

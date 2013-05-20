@@ -56,6 +56,7 @@ class BArg: public BObject
     BText Range();
     BText Help(const BText& prefix);
     BText State(const BText& prefix);
+  UndeclareClassNewDelete;
 };
 
 
@@ -148,6 +149,7 @@ public:
   // Text functions:
   BText Help();
   BText State();
+  UndeclareClassNewDelete;
 };
 
 

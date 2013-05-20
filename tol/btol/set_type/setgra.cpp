@@ -414,17 +414,6 @@ void BSetMemoryStatus::CalcContens()
   contens_.AddElement(NewFND(BDat,TotalVirtual,        BDat((double)statex.dwTotalVirtual)));
   contens_.AddElement(NewFND(BDat,AvailVirtual,        BDat((double)statex.dwAvailVirtual)));
 #endif
-
- int BText_count_instances();
- double BText_count__MegaBytes();
- Std(BText("NObject = ")+AliveObjects()+"\n");
- Std(BText("NCore = ")+BCore::NCore()+"\n");
- Std(BText("BText_count_instances = ")+BText_count_instances()+"\n");
- Std(BText("BText_count__MegaBytes = ")+BText_count__MegaBytes()+"\n");
- void bfsmem_show_table();
- bfsmem_show_table();
-
-
 }
 #endif
 
