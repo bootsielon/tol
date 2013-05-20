@@ -92,7 +92,7 @@ public:	\
   unsigned short _bfsm_PageNum__; \
   RedeclareClassNewDelete(ANY_);	
 
-#define UndeclareClassNewDelete(ANY_) \
+#define UndeclareClassNewDelete \
 public:	\
   short IsAssigned() const  \
   { \
