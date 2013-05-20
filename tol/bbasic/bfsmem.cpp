@@ -30,6 +30,7 @@
 #include <tol/tol_bfsmem.h>
 #include <tol/tol_bout.h>
 #include <tol/tol_init.h>
+#include <tol/tol_hash_map.h>
 
 BTraceInit("bfsmem.cpp");
 
@@ -673,5 +674,73 @@ void BFixedSizeMemoryHandler::ShowStats()
 */
   }
 }
+
+
+#ifdef BFSMEM_COUNT_BY_CLASS
+
+  static char* emptyHashKey_ = NULL;
+
+  static hash_map_by_name<int>::dense_ bfsmem_instances_by_class;
+  static hash_map_by_name<double>::dense_ bfsmem_megabytes_by_class;
+
+  static int bfsmem_count_hash_init(void)
+  {
+    SetEmptyKey(bfsmem_instances_by_class, emptyHashKey_);
+    SetEmptyKey(bfsmem_megabytes_by_class, emptyHashKey_);
+    return(1);
+  }
+  static int bfsmem_count_hash_init_ = bfsmem_count_hash_init();
+  void bfsmem_add_instances(char* className, int numItems, int size)
+  {
+    hash_map_by_name<int>::dense_::const_iterator found = bfsmem_instances_by_class.find(className);
+    if(found==bfsmem_instances_by_class.end())
+    {
+      bfsmem_instances_by_class[className] = numItems;
+      bfsmem_megabytes_by_class[className] = double(numItems*size)/(1024.0*1024.0);
+    }
+    else
+    {
+      bfsmem_instances_by_class[className] += numItems;
+      bfsmem_megabytes_by_class[className] += double(numItems*size)/(1024.0*1024.0);
+    }
+  }
+  void bfsmem_remove_instances(char* className, int numItems, int size)
+  {
+    bfsmem_instances_by_class[className] -= numItems;
+    bfsmem_megabytes_by_class[className] -= double(numItems*size)/(1024.0*1024.0);
+  }
+  int bfsmem_num_classes()
+  {
+    return(bfsmem_instances_by_class.size());
+  }
+  int bfsmem_class_instances(char* className)
+  {
+    hash_map_by_name<int>::dense_::const_iterator found = bfsmem_instances_by_class.find(className);
+    if(found==bfsmem_instances_by_class.end()) { return(0); }
+    else { return(bfsmem_instances_by_class[className]); }
+  }
+  double bfsmem_class_megabytes(char* className)
+  {
+    hash_map_by_name<double>::dense_::const_iterator found = bfsmem_megabytes_by_class.find(className);
+    if(found==bfsmem_megabytes_by_class.end()) { return(0); }
+    else { return(bfsmem_megabytes_by_class[className]); }
+  }
+
+  void bfsmem_show_table()
+  {
+    hash_map_by_name<int>::dense_::const_iterator iter;
+    int n=1;
+    Std("className\tinstances\tmegabytes\n");
+    for(iter=bfsmem_instances_by_class.begin(); iter!=bfsmem_instances_by_class.end(); iter++, n++)
+    {
+      BText className = iter->first;
+      int instances = bfsmem_instances_by_class[className];
+      double megabytes = bfsmem_megabytes_by_class[className];
+      Std(className+"\t"+instances+"\t"+megabytes+"\n");
+    }
+  }
+
+
+#endif
 
 #endif

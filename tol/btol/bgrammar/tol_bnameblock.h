@@ -75,7 +75,7 @@ private:
   static BObjByClassNameHash usingSymbolsByClass_;
   static BRequiredPackage globalRequiredPackages_;
   BObjByNameHash public_;
-  BObjByNameHash private_;
+//BObjByNameHash private_;
   BSet set_;
   const BNameBlock* father_;
   BClass* class_;
@@ -130,8 +130,8 @@ public:
   void PutLocalName(const BText& localName) { localName_ = localName; };
   const BObjByNameHash& Public () const { return(public_ ); }
         BObjByNameHash& Public ()       { return(public_ ); }
-  const BObjByNameHash& Private() const { return(private_); }
-        BObjByNameHash& Private()       { return(private_); }
+//const BObjByNameHash& Private() const { return(private_); }
+//      BObjByNameHash& Private()       { return(private_); }
   const BSet&       Set     () const { return(set_); }
         BSet&       Set     ()       { return(set_); }
   const BNameBlock* Father  () const { return(father_); }

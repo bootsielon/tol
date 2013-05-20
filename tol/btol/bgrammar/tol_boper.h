@@ -118,7 +118,6 @@ public:
   static BOperClassify* Find(const BText& className);
   static BList*	Instances();
   static void		InitInstances();
-  UndeclareClassNewDelete;
 };
 
 template class TOL_API BArray<BText>;

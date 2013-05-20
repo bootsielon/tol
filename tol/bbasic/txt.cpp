@@ -105,6 +105,17 @@ const BChar* BText::formatBInt64_;
 BText  BText::none_   (StaticInit());
 BText  BText::unknown_(StaticInit());
 
+#define _COUNT_TEXT_
+#ifdef _COUNT_TEXT_
+static int _count_instances_ = 0;
+static double _count_MegaBytes_ = 0;
+static double _megabyte_ = 1.0/(1024.0*1024.0);
+int BText_count_instances() { return(_count_instances_); }
+double BText_count__MegaBytes() { return(_count_MegaBytes_); }
+#else
+int BText_count_instances() { return(0); }
+double BText_count__MegaBytes() { return(0.0); }
+#endif 
 
 //--------------------------------------------------------------------
   DefIsAlreadyInitilialized(BText);
@@ -311,6 +322,10 @@ void BText::AllocItems(unsigned int numItems)
     Instance(baseSize)->New(baseSize,_bfsm_VectorPageNum__); 
 # endif
   assert(buffer_); 
+#ifdef _COUNT_TEXT_
+  _count_MegaBytes_ += numItems*_megabyte_;
+#endif 
+
 } 
 
 //--------------------------------------------------------------------
@@ -327,6 +342,9 @@ void BText::FreeItems()
     BFixedSizeMemoryBase::
       Instance(baseSize)->Delete(buffer_,_bfsm_VectorPageNum__);
 #   endif
+#ifdef _COUNT_TEXT_
+  _count_MegaBytes_ -= size_*_megabyte_;
+#endif 
     buffer_ = NULL; 
     size_ = 0; 
   }
@@ -350,6 +368,9 @@ BChar* BText::AllocItems(int numItems, unsigned short& pgNm)
     Instance(baseSize)->New(baseSize,pgNm);
 # endif
   assert(buffer_); 
+#ifdef _COUNT_TEXT_
+  _count_MegaBytes_ += numItems*_megabyte_;
+#endif 
   return(buffer); 
 } 
 
@@ -358,6 +379,9 @@ void BText::FreeItems(BChar* buffer, int numItems, unsigned short pgNm)
 //--------------------------------------------------------------------
 { 
   assert(buffer && numItems); 
+#ifdef _COUNT_TEXT_
+  _count_MegaBytes_ -= numItems*_megabyte_;
+#endif 
 # if (__USE_POOL__==__POOL_NONE__)
   delete [] buffer; 
 # elif (__USE_POOL__==__POOL_BFSMEM__)
@@ -375,6 +399,9 @@ BText::BText()
 //--------------------------------------------------------------------
 : buffer_(NULL), length_(0), size_(0)
 {
+#ifdef _COUNT_TEXT_
+  _count_instances_ ++;
+#endif 
   InitBuffer();
 }
 
@@ -389,6 +416,9 @@ BText::BText(BInt size)
 //--------------------------------------------------------------------
 : buffer_(NIL), length_(0), size_(0)
 {
+#ifdef _COUNT_TEXT_
+  _count_instances_ ++;
+#endif 
   if(size < 1) { size=1; }
   AllocItems(size);
   length_ = size_ - 1;
@@ -410,6 +440,9 @@ BText::BText(BInt size, BChar fill)
 //--------------------------------------------------------------------
 : buffer_(NIL), length_(0), size_(0)
 {
+#ifdef _COUNT_TEXT_
+  _count_instances_ ++;
+#endif 
   size++;
   if(size < 1) { size=1; }
   AllocItems(size);
@@ -433,6 +466,9 @@ BText::BText(const BChar* str)
 //--------------------------------------------------------------------
 : buffer_(NULL), length_(0), size_(0)
 {
+#ifdef _COUNT_TEXT_
+  _count_instances_ ++;
+#endif 
   InitBuffer();
   if(str && str[0]) 
   {
@@ -452,6 +488,9 @@ BText::BText(const BChar* str, BInt length)
 //--------------------------------------------------------------------
 : buffer_(NULL), length_(0), size_(0)
 {
+#ifdef _COUNT_TEXT_
+  _count_instances_ ++;
+#endif 
   InitBuffer();
   Copy(str, length);
 }
@@ -469,6 +508,9 @@ BText::BText(const BChar* str, BInt from, BInt until)
 //--------------------------------------------------------------------
 : buffer_(NULL), length_(0), size_(0)
 {
+#ifdef _COUNT_TEXT_
+  _count_instances_ ++;
+#endif 
   InitBuffer();
   if(str && str[from]) { Copy(str, from, until); }
 }
@@ -486,6 +528,9 @@ BText::BText(const BText& txt, BInt from, BInt until)
 //--------------------------------------------------------------------
 : buffer_(NULL), length_(0), size_(0)
 {
+#ifdef _COUNT_TEXT_
+  _count_instances_ ++;
+#endif 
   InitBuffer();
   Copy(txt, from, until);
 }
@@ -500,6 +545,9 @@ BText::BText(const BText& txt)
 //--------------------------------------------------------------------
 : buffer_(NULL), length_(0), size_(0)
 {
+#ifdef _COUNT_TEXT_
+  _count_instances_ ++;
+#endif 
   InitBuffer();
   Copy(txt);
 }
@@ -510,6 +558,9 @@ BText::BText(const BText& txt)
 */
 BText::~BText()
 {
+#ifdef _COUNT_TEXT_
+  _count_instances_ --;
+#endif 
   DeleteBuffer();
 }
 

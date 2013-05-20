@@ -26,6 +26,40 @@
 
 #define BFSMEM_MAX_BASE_SIZE  1024
 
+#define BFSMEM_COUNT_BY_CLASS
+#ifdef BFSMEM_COUNT_BY_CLASS
+
+  void bfsmem_add_instances(char* className, int numItems, int size);
+  #define BFSMEM_ADD_INSTANCES(className,numItems,size) \
+    bfsmem_add_instances(className,numItems,size)
+
+  void bfsmem_remove_instances(char* className, int numItems, int size);
+  #define BFSMEM_REMOVE_INSTANCES(className,numItems,size) \
+    bfsmem_remove_instances(className,numItems,size)
+
+  int bfsmem_num_classes();
+  #define BFSMEM_NUM_CLASSES \
+    bfsmem_num_classes()
+
+  int bfsmem_class_instances(char* className);
+  #define BFSMEM_CLASS_INSTANCES(className) \
+    bfsmem_class_instances(className)
+
+  double bfsmem_class_megabytes(char* className);
+  #define BFSMEM_CLASS_MEGABYTES(className) \
+    bfsmem_class_megabytes(className)
+
+  void bfsmem_show_table();
+
+#else
+  #define BFSMEM_ADD_INSTANCES(className,numItems,size)
+  #define BFSMEM_REMOVE_INSTANCES(className,numItems,size)
+  #define BFSMEM_NUM_CLASSES
+  #define BFSMEM_CLASS_INSTANCES(className)
+  #define BFSMEM_CLASS_MEGABYTES(className)
+  void bfsmem_show_table() {}
+#endif
+
 //--------------------------------------------------------------------
 class TOL_API BFixedSizeMemoryBase
 //--------------------------------------------------------------------
@@ -57,6 +91,8 @@ public:
 
 #define RedeclareClassNewDelete(ANY_) \
 public:	\
+  static char* BFSMEM_ClassName() { return(#ANY_); } \
+  static int BFSMEM_ClassSize() { return(sizeof(ANY_)); } \
   BFixedSizeMemoryBase* GetMemHandler() const \
   { \
     assert(sizeof(ANY_)<BFSMEM_MAX_BASE_SIZE); \
@@ -76,6 +112,7 @@ public:	\
   } \
   static void* operator new(size_t size) \
   { \
+    BFSMEM_ADD_INSTANCES(#ANY_,1,sizeof(ANY_)); \
     register unsigned short pageNum; \
     register ANY_* obj = (ANY_*)BFSMSingleton<sizeof(ANY_)>::Handler()->New(size, pageNum); \
     obj->_bfsm_PageNum__ = pageNum; \
@@ -83,6 +120,7 @@ public:	\
   } \
   static void operator delete(void* ptr) \
   { \
+    BFSMEM_REMOVE_INSTANCES(#ANY_,1,sizeof(ANY_)); \
     register ANY_* obj = (ANY_*)ptr; \
     BFSMSingleton<sizeof(ANY_)>::Handler()->Delete(obj,obj->_bfsm_PageNum__); \
   } 
@@ -100,10 +138,12 @@ public:	\
   } \
   static void* operator new(size_t size) \
   { \
+    BFSMEM_ADD_INSTANCES(BFSMEM_ClassName(),1,size); \
     return(malloc(size)); \
   } \
   static void operator delete(void* ptr) \
   { \
+    BFSMEM_REMOVE_INSTANCES(BFSMEM_ClassName(),1,BFSMEM_ClassSize()); \
     free(ptr); \
   } 
 

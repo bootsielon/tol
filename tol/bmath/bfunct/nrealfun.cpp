@@ -211,8 +211,43 @@ bool BRnRFunction::AutoScale (
     else
     {
       S[k] = Abs(Fk.NewtonSolve(x[k], 0));
+      if(!(S[k].IsFinite()))
+      {
+        BPartialFunction fk(*this, x, k);
+        BDat x0 = x[k];
+        BDat f0 = fk[x0];
+        BDat ha = tolerance;
+        BDat hb = tolerance;
+        BDat a,b,fa,fb,adf=0;
+        int iter = 0;
+        do
+        {
+          iter++;
+          a = x0-ha; 
+          b = x0+hb; 
+          fa = fk[a];
+          fb = fk[b];
+          if(!(fa.IsFinite())) { a = x0; fa=f0; ha=0; }
+          if(!(fb.IsFinite())) { b = x0; fb=f0; hb=0; }
+          adf = Abs(fb-fa);
+          if(adf<fDist)
+          {
+            ha *= 2.0;
+            hb *= 2.0;
+          }
+          else
+          {
+            ha *= 0.75;
+            hb *= 0.75;
+          }
+        }
+        while((Abs(adf-fDist)>tolerance) && (ha>0 || hb>0) && (iter<=100));
+        if(iter<=100) { S[k] = ha+hb; }
+        else { S[k] = 1; }
+      }
     }
   }
+  if(!(S[k].IsFinite())) { S[k]=1; }
   return(true);
 /*
   BDat f, f0, df, a,b,c;
