@@ -195,7 +195,7 @@ bool BRnRFunction::AutoScale (
   fDist = Abs(fDist);
   for(k=0; k<n_; k++)
   {
-    if(xMin[k].IsFinite() && xMin[k]==xMax[k]) { continue; }
+    if(xMin[k].IsFinite() && xMin[k]==xMax[k]) { S[k]=1; continue; }
     if(verbose)
     {
       Std(BText("  [BRnRFunction::AutoScale] Adjusting scale of variable ")+
