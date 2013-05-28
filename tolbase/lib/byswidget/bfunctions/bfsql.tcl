@@ -24,6 +24,7 @@ proc Sql2Tol { typ } {
     "decimal" -
     "numeric" -
     "float" -
+	"float8" -
     "real" -
     "bit" -
     "integer" -
@@ -238,7 +239,8 @@ proc SqlValidateData {P typFie} {
       set ok [expr ([string is double $P] && 10>=$np && 4>=$ns)]
     }
     # Numéricos con aproximación
-    "float" {
+    "float" -
+	"float8" {
       #Un número de punto flotante es un valor comprendido entre 
       # -1.79E + 308 y 1.79E + 308. n es el número de bits que se
       # utilizan para almacenar la mantisa del número float en notación 
@@ -330,6 +332,7 @@ proc SqlValidateData {P typFie} {
       "money"      -
       "smallmoney" -
       "float"      -
+	  "float8"     -
       "double"     -
       "real"       { set valFor $value }
       "date"       -
@@ -401,6 +404,7 @@ proc SqlValidateData {P typFie} {
     }
     # Numéricos con aproximación
     "float"  -
+	"float8" -
     "real" {
       # no necesita ningun delimitador
     }
