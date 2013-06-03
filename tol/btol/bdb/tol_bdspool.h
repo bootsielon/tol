@@ -22,6 +22,8 @@
 #ifndef TOL_BDSPOOL_H
 #define TOL_BDSPOOL_H 1
 
+#include <stdlib.h>
+
 class BSet;
 class BList;
 
@@ -40,6 +42,9 @@ enum TypeDataBase
 extern int dbOpenODBC(const char* alias, const char *user, const char *pwd);
 extern int dbOpenDirect(const char* alias, const char *user, const char *pwd, BSet * dbset=0);
 extern int dbClose(const char *alias);
+extern int dbGetDBMSName(char *dbms, size_t size);
+extern int dbGetDBMSVersion(char *version, size_t size);
+extern int dbGetDataBaseName(char *database, size_t size);
 extern int dbActivate(const char *alias);
 extern BList *dbGetOpened(const char *dbtype);
 extern int dbOpenQuery(const char *query);
@@ -61,5 +66,8 @@ extern int dbGetAsDate(int nfield,
 		       unsigned short& minute,
 		       unsigned short& second,
 		       unsigned short& msecond);
+extern int dbGetDBMSName(char *dbmsName, size_t size);
+extern int dbGetDBMSVersion(char *dbmsVersion, size_t size);
+extern int dbGetDataBaseName(char *database, size_t size);
 
 #endif // TOL_BDSPOOL_H

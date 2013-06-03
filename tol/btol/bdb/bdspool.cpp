@@ -334,6 +334,63 @@ void BDatCloseDataBase::CalcContens()
 }
 
 //--------------------------------------------------------------------
+DeclareContensClass(BText, BTxtTemporary, BTxtGetDBMSName);
+DefExtOpr(1, BTxtGetDBMSName, "GetDBMSName", 1, 1, "Real", "(Real void)",
+          I2("Return the name of the DBMS for the active connection",
+             "Retorna el nombre del gestor para la conexión activa"),
+          BOperClassify::BayesDataBase_);
+//--------------------------------------------------------------------
+void BTxtGetDBMSName::CalcContens()
+//--------------------------------------------------------------------
+{
+  char buffer[256];
+
+  if (!dbGetDBMSName(buffer, 255))
+    {
+    buffer[0] = '\0';
+    }
+  contens_ = buffer;
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BText, BTxtTemporary, BTxtGetDBMSVersion);
+DefExtOpr(1, BTxtGetDBMSVersion, "GetDBMSVersion", 1, 1, "Real", "(Real void)",
+          I2("Return the version of the DBMS for the active connection",
+             "Retorna la versión del gestor para la conexión activa"),
+          BOperClassify::BayesDataBase_);
+//--------------------------------------------------------------------
+void BTxtGetDBMSVersion::CalcContens()
+//--------------------------------------------------------------------
+{
+  char buffer[256];
+
+  if (!dbGetDBMSVersion(buffer, 255))
+    {
+    buffer[0] = '\0';
+    }
+  contens_ = buffer;
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BText, BTxtTemporary, BTxtGetDataBaseName);
+DefExtOpr(1, BTxtGetDataBaseName, "GetDataBaseName", 1, 1, "Real", "(Real void)",
+          I2("Return name of the data base for the active connection",
+             "Retorna el nombre de la base de datos para la conexión activa"),
+          BOperClassify::BayesDataBase_);
+//--------------------------------------------------------------------
+void BTxtGetDataBaseName::CalcContens()
+//--------------------------------------------------------------------
+{
+  char buffer[256];
+
+  if (!dbGetDataBaseName(buffer, 255))
+    {
+    buffer[0] = '\0';
+    }
+  contens_ = buffer;
+}
+
+//--------------------------------------------------------------------
 DeclareContensClass(BDat, BDatTemporary, BDatDBExecQuery);
 DefExtOpr(1, BDatDBExecQuery, "DBExecQuery", 1, 1, "Text",
 	  I2("(Text query)", "(Text consulta)"),

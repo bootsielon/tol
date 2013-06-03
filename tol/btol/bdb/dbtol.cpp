@@ -84,6 +84,9 @@ struct dateStruct
 typedef int (*dbPutHCIWriter_fpt)(void**);
 typedef void* (*dbOpen_fpt)(void**);
 typedef int (*dbClose_fpt)(void*);
+typedef int (*dbGetDBMSName_fpt)(void*, char *, size_t);
+typedef int (*dbGetDBMSVersion_fpt)(void*, char *, size_t);
+typedef int (*dbGetDataBaseName_fpt)(void*, char *, size_t);
 typedef int (*dbOpenQuery_fpt)(void *, const char *);
 typedef int (*dbExecQuery_fpt)(void *, const char *);
 typedef int (*dbCloseQuery_fpt)(void *);
@@ -107,6 +110,9 @@ typedef struct dbm_hdl
   dbPutHCIWriter_fpt dbPutHCIWriter_fp;
   dbOpen_fpt dbOpen_fp;
   dbClose_fpt dbClose_fp;
+  dbGetDBMSName_fpt dbGetDBMSName_fp;
+  dbGetDBMSVersion_fpt dbGetDBMSVersion_fp;
+  dbGetDataBaseName_fpt dbGetDataBaseName_fp;
   dbOpenQuery_fpt dbOpenQuery_fp;
   dbExecQuery_fpt dbExecQuery_fp;
   dbCloseQuery_fpt dbCloseQuery_fp;
@@ -188,6 +194,9 @@ int loadFunctions(int index)
   FUNCTION_LOAD_DECLARATION(PutHCIWriter);
   FUNCTION_LOAD_DECLARATION(Open);
   FUNCTION_LOAD_DECLARATION(Close);
+  FUNCTION_LOAD_DECLARATION(GetDBMSName);
+  FUNCTION_LOAD_DECLARATION(GetDBMSVersion);
+  FUNCTION_LOAD_DECLARATION(GetDataBaseName);
   FUNCTION_LOAD_DECLARATION(OpenQuery);
   FUNCTION_LOAD_DECLARATION(ExecQuery);
   FUNCTION_LOAD_DECLARATION(CloseQuery);
@@ -460,6 +469,45 @@ int dbClose(const char* alias)
   updateDBTotalCPUTime(clock()-dbInitPointCPUClock_);
 #endif
   return rc;
+}
+
+int dbGetDBMSName(char *dbms, size_t size)
+{
+  if(!active_db_) {
+    Error(I2("There is no database connection.\n",
+	     "No existe una conexión activa a BB.DD.\n"));
+    return 0;
+  }
+  DBM_hdl *dbm_hdl = NULL;
+
+  dbm_hdl = dbm_handlers_[active_db_->hdl_idx];
+  return dbm_hdl->dbGetDBMSName_fp(active_db_->dbd, dbms, size);
+}
+
+int dbGetDBMSVersion(char *version, size_t size)
+{
+  if(!active_db_) {
+    Error(I2("There is no database connection.\n",
+	     "No existe una conexión activa a BB.DD.\n"));
+    return 0;
+  }
+  DBM_hdl *dbm_hdl = NULL;
+
+  dbm_hdl = dbm_handlers_[active_db_->hdl_idx];
+  return dbm_hdl->dbGetDBMSVersion_fp(active_db_->dbd, version, size);
+}
+
+int dbGetDataBaseName(char *database, size_t size)
+{
+  if(!active_db_) {
+    Error(I2("There is no database connection.\n",
+	     "No existe una conexión activa a BB.DD.\n"));
+    return 0;
+  }
+  DBM_hdl *dbm_hdl = NULL;
+
+  dbm_hdl = dbm_handlers_[active_db_->hdl_idx];
+  return dbm_hdl->dbGetDataBaseName_fp(active_db_->dbd, database, size);
 }
 
 //-------------------------------------------------------------------
