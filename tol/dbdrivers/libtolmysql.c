@@ -132,6 +132,26 @@ DLLEXPORT(int) mysql_Close(mysqld *dbd)
   return 1;
 }
 
+DLLEXPORT(int) mysql_GetDBMSName(mysqld *dbd, char *dbmsName, size_t size)
+{
+  const char* mysqlName = "mysql";
+  strncpy(dbmsName, mysqlName, size);
+  return 1;
+}
+
+DLLEXPORT(int) mysql_GetDBMSVersion(mysqld *dbd, char *dbmsVersion, size_t size)
+{
+  strncpy(dbmsVersion, dbd->desc->server_version, size);
+  return 1;
+}
+
+DLLEXPORT(int) mysql_GetDataBaseName(mysqld *dbd, char *database, size_t size)
+{
+  const char* unknownName = "unknown";
+  strncpy(database, unknownName, size);
+  return 1;
+}
+
 //--------------------------------------------------------------------
 /*! Opens a query (executing it).
  * \return 1 if success, 0 in case of error.

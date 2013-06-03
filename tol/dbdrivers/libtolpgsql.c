@@ -137,6 +137,30 @@ DLLEXPORT(int) postgres_Close(pgsqld *dbd)
   return 1;
 }
 
+DLLEXPORT(int) postgres_GetDBMSName(pgsqld *dbd, char *dbmsName, size_t size)
+{
+  const char* pgsqlName = "postgres";
+  strncpy(dbmsName, pgsqlName, sizeof(pgsqlName)-1);
+  return 1;
+}
+
+DLLEXPORT(int) postgres_GetDBMSVersion(pgsqld *dbd, char *dbmsVersion, size_t size)
+{
+  int version = PQserverVersion(dbd->conn);
+  int major = version / 10000;
+  int min_rev = version - major*10000;
+  int minor = (min_rev) / 100;
+  int revision = (min_rev - minor*100);
+  snprintf(dbmsVersion, size, "%d.%d.%d", major, minor, revision);
+  return 1;
+}
+
+DLLEXPORT(int) postgres_GetDataBaseName(pgsqld *dbd, char *database, size_t size)
+{
+  strncpy(database, PQdb(dbd->conn), size);
+  return 1;
+}
+
 //--------------------------------------------------------------------
 /*! Opens a query (executing it)
  * \return 1 if sucess, 0 in case of error

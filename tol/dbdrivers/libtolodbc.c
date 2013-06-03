@@ -324,6 +324,36 @@ DLLEXPORT(odbcd *) odbc_Open(void **args)
   return dbd;
 }
 
+DLLEXPORT(int) odbc_GetDBMSName(odbcd *dbd, char *dbmsName, size_t size)
+{
+  SQLSMALLINT BufferLength = (SQLSMALLINT)size;
+  SQLSMALLINT ActualLength;
+  
+  SQLRETURN status = SQLGetInfo(dbd->hdbc, SQL_DBMS_NAME,
+                                dbmsName, BufferLength, &ActualLength);
+  return checkSQLRet(status, dbd->hdbc, __LINE__, GET_DIAG_DBC);
+}
+
+DLLEXPORT(int) odbc_GetDBMSVersion(odbcd *dbd, char *dbmsVersion, size_t size)
+{
+  SQLSMALLINT BufferLength = (SQLSMALLINT)size;
+  SQLSMALLINT ActualLength;
+  
+  SQLRETURN status = SQLGetInfo(dbd->hdbc, SQL_DBMS_VER,
+                                dbmsVersion, BufferLength, &ActualLength);
+  return checkSQLRet(status, dbd->hdbc, __LINE__, GET_DIAG_DBC);
+}
+
+DLLEXPORT(int) odbc_GetDataBaseName(odbcd *dbd, char *database, size_t size)
+{
+  SQLSMALLINT BufferLength = (SQLSMALLINT)size;
+  SQLSMALLINT ActualLength;
+  
+  SQLRETURN status = SQLGetInfo(dbd->hdbc, SQL_DATABASE_NAME,
+                                database, BufferLength, &ActualLength);
+  return checkSQLRet(status, dbd->hdbc, __LINE__, GET_DIAG_DBC);
+}
+
 //-------------------------------------------------------------------
 /*! \return Returns 1 if the connection has been successfully 
  * closed, or 0 upon failure.
