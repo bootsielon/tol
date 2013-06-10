@@ -1,0 +1,38 @@
+Real A(Real void)
+{
+  Set For(0,100000,Real A_For1(Real k)
+    {
+    Real If(!(k%5000),
+      {
+      WriteLn("A iteration: " << k);
+      Real k
+      }, 0)
+    });
+  Real B(?);
+  Set For(100001,2*100000,Real A_For2(Real k)
+    {
+    Real If(!(k%5000),
+      {
+      WriteLn("A iteration: " << k);
+      Real k
+      }, 0)
+    });
+  Real 0
+};
+
+Real B(Real void)
+{
+  Set For(0,100000,Real B_For1(Real k)
+    {
+    Real If(!(k%5000),
+      {
+      WriteLn("B iteration: " << k);
+      Real k
+      }, 0)
+    });
+  Real 0
+};
+
+Real TolOprProfiler.Init(1);
+Real A(?);
+Real TolOprProfiler.Dump(GetAbsolutePath("./")+"TestProfiler");
