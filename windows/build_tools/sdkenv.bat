@@ -1,22 +1,24 @@
 @Echo Off
 SetLocal ENABLEEXTENSIONS ENABLEDELAYEDEXPANSION
 Set _sdkenv=
-For /D %%d In ("%ProgramFiles%\Microsoft Platform SDK*") Do (
-  Echo %%d
-  If Exist "%%d\SetEnv.cmd" (
-    Set _sdkenv=%%d\SetEnv.cmd
+For /F "tokens=*" %%S In ('dir /ad /b "%ProgramFiles%\Microsoft*SDK*"') Do (
+  For /F "tokens=*" %%B In ('dir /s /ad /b "%ProgramFiles%\%%S\*Bin"') Do (
+    If Exist "%%B\SetEnv.cmd" (
+      Echo %%B\SetEnv.cmd
+      Set _sdkenv=%%B\SetEnv.cmd
+    )
   )
 )
 If Defined _sdkenv (
   EndLocal
   For /D %%d In (%SystemRoot%) Do (
     If /I "%%~dd\WINDOWS"=="%SystemRoot%" (
-      Set plat=/XP32
+      Set plat=/x86
     ) Else (
       Set plat=/2000jym
     )
   )
-  call "%_sdkenv%" !plat! /RETAIL
+  call "%_sdkenv%" !plat! /RELEASE
   Set plat=
   SetLocal ENABLEEXTENSIONS ENABLEDELAYEDEXPANSION
 ) Else (
