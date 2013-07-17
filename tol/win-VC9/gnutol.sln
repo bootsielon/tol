@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+# Visual C++ Express 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tollib", "tollib.vcproj", "{9DFD4DC8-3362-4F04-A5FB-AFAF343CDF43}"
 	ProjectSection(ProjectDependencies) = postProject
 		{24C5C2A9-CA02-465E-A717-E002BD576BF2} = {24C5C2A9-CA02-465E-A717-E002BD576BF2}
@@ -10,6 +10,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tollib", "tollib.vcproj", "
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tolcon", "tolcon.vcproj", "{2207A1D7-F7B9-4870-A392-3A49D399CFAC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9DFD4DC8-3362-4F04-A5FB-AFAF343CDF43} = {9DFD4DC8-3362-4F04-A5FB-AFAF343CDF43}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtolpgsql", "libtolpgsql\libtolpgsql.vcproj", "{10793CDE-F71F-4DAB-919F-CA5CD86C98EE}"
 EndProject
