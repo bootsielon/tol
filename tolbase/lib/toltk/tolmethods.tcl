@@ -136,6 +136,7 @@ proc Tol_SerieChartMethod { sergrp fileDest } {
     ::bayesGraph::GrapOptApplyAxisTicks $Instance ${Instance}::options gr,0
     # Save graph ?
     if {$isphoto} {
+      ::bayesGraph::ZoomExtend $Instance
       ::bayesGraph::TakePhoto $Instance $filetosave
       after idle "destroy $tl"
     }
