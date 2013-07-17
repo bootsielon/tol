@@ -19,13 +19,13 @@
 EXTRA_DIST = Jamfile
 
 SUBDIRS	= mathobjects dcdflib barith bfunct blinalg \
-	  bprdist bstat gsl_ext csparse
+	  bprdist bstat gsl_ext csparse fftw
 
 SUBLIBS	= mathobjects/libmathobjects.la dcdflib/libdcdflib.la \
 	  barith/libbarith.la        bfunct/libbfunct.la      \
 	  blinalg/libblinalg.la      bprdist/libbprdist.la    \
 	  bstat/libbstat.la          gsl_ext/libgslext.la     \
-	  csparse/libcspack.la
+	  csparse/libcspack.la       fftw/libfftw.la
 
 noinst_LTLIBRARIES	= libbmath.la
 pkginclude_HEADERS	= tol_bmatfun.h
