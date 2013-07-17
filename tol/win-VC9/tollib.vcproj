@@ -2042,14 +2042,6 @@
 							/>
 						</FileConfiguration>
 					</File>
-					<File
-						RelativePath="..\bmath\mathobjects\dlmalloc.c"
-						>
-					</File>
-					<File
-						RelativePath="..\bmath\mathobjects\mpreal.cpp"
-						>
-					</File>
 				</Filter>
 				<Filter
 					Name="gsl_ext"
