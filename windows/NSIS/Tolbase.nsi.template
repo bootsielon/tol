@@ -70,6 +70,7 @@ Section "Principal" SEC01
   ##CreateDirAndFiles##
 
   CreateDirectory "$SMPROGRAMS\${APP_NAMEV}"
+  CreateShortCut "$INSTDIR\bin\tolbase.lnk" "$INSTDIR\bin\tolbase.exe"
   CreateShortCut "$SMPROGRAMS\${APP_NAMEV}\Tolbase.lnk" "$INSTDIR\bin\tolbase.exe"
   CreateShortCut "$DESKTOP\${APP_NAMEV}.lnk" "$INSTDIR\bin\tolbase.exe"
   
