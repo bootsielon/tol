@@ -525,14 +525,20 @@ BBool BTimeSet::IsCompatibleWith(const BTimeSet& tms,
   CheckCache(this);
   if(!first.HasValue()) { first = BDate::DefaultFirst(); }
   if(!last .HasValue()) { last	= BDate::DefaultLast (); }
-  BDate d1 = FirstNoGreat(first);
-  BDate d2 = tms.FirstNoGreat(first);
-  if(d1!=d2) { return(BFALSE); }
-  while(d1<=last)
+  if(first.IsUnknown()) { first = BDate::DefaultFirst(); }
+  if(last .IsUnknown()) { last  = BDate::DefaultLast (); }
+  BDate d1 = first;
+  BDate d2 = first;
+  if(!Contain(d1)) 
   {
     d1 = Successor(d1);
     d2 = tms.Successor(d2);
+  }
+  while(d1<=last)
+  {
     if(d1!=d2) { return(BFALSE); }
+    d1 = Successor(d1);
+    d2 = tms.Successor(d2);
   }
   return(BTRUE);
 }
