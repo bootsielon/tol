@@ -21,8 +21,8 @@ Text new.desc.x = Description(b::x);
 Text new.desc.f = Description(b::f);
 
 Set ok.all = [[
-  Real old.desc.x.ok = old.desc.x == "";
-  Real old.desc.f.ok = old.desc.f == "";
+  Real old.desc.x.ok = old.desc.x != "Descripción nueva de x";
+  Real old.desc.f.ok = old.desc.f != "Descripción nueva de f";
   Real new.desc.x.ok = new.desc.x == "Descripción nueva de x";
   Real new.desc.f.ok = new.desc.f == "Descripción nueva de f"
 ]];

@@ -41,11 +41,11 @@ Set ok.all = [[
   Real ok.warning.1 = numWar1 == numWar0;
   Real ok.error.2   = numErr2 == numErr0+2;
   Real ok.warning.2 = numWar2 == numWar0+2;
-  Real ok.desc.clase.1  = desc.clase.1 == "";
+  Real ok.desc.clase.1  = desc.clase.1 != "Descripción de clase de modulo";
   Real ok.desc.clase.2  = desc.clase.2 == "Descripción de clase de modulo";
   Real ok.desc.struct.1  = desc.struct.1 == "@struct;member;";
   Real ok.desc.struct.2  = desc.struct.2 == "Descripción de struct de modulo";
-  Real ok.desc.publico.1  = desc.publico.1 == "";
+  Real ok.desc.publico.1  = desc.publico.1 != "Descripción del miembro publico de modulo";
   Real ok.desc.publico.2  = desc.publico.2 == "Descripción del miembro publico de modulo"
 ]];
 

@@ -39,9 +39,9 @@ Real numWar1 = Copy(NWarning);
 Set ok.all = [[
   Real ok.error         = numErr1 == numErr0;
   Real ok.warning       = numWar1 == numWar0;
-  Real ok.desc.a.A.0    = desc.a.A.0    == "";
-  Real ok.desc.a.GetA.0 = desc.a.GetA.0 == "";
-  Real ok.desc.a.A      = desc.a.A      == "";
+  Real ok.desc.a.A.0    = desc.a.A.0    == "Real _.A=1";
+  Real ok.desc.a.GetA.0 = desc.a.GetA.0 == "Real GetA(Real void) al void{   {_.A} al void}";
+  Real ok.desc.a.A      = desc.a.A      == "Real _.A=1";
   Real ok.desc.a.GetA   = desc.a.GetA   == "Devuelve el valor de @A::_.A";
   Real ok.desc.b.A      = desc.b.A      == "Atributo @A::_.A";
   Real ok.desc.b.GetA   = desc.b.GetA   == "Devuelve el valor de @A::_.A"
