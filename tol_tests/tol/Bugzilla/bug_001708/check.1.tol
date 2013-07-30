@@ -1,0 +1,22 @@
+Real RandInteger(Real min, Real max) { Floor(Rand(min,max+1)) };
+Set _RandCharacter.Set = Characters("abcdefghijklmnopqrstuvwxyz"
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZ_");
+Text RandCharacter(Real void) {
+  _RandCharacter.Set[RandInteger(1,53)] 
+};
+Text RandName(Real length) {
+  SetSum(For(1, length, Text (Real i) { RandCharacter(?) }))
+};
+
+// Generación de nombres:
+Set names = For(1, 10000, Set (Real i) {
+  [[ Text RandName(32), Text Repeat("A", 32) ]]
+});
+
+/*
+Set For(1, 10000, Set (Real i) {
+  Set [[
+    Real Eval("Real "<<names[i][1]<<" = 1")
+  ]]
+});
+*/

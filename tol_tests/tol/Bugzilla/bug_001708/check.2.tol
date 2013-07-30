@@ -1,0 +1,13 @@
+Set mem.0 = MemoryStatus(?);
+
+Set For(1, 10000, Set (Real i) {
+  Set [[
+    Real Eval("Real "<<names[i][1]<<" = 1")
+  ]]
+});
+
+Set mem.1 = MemoryStatus(?);
+
+Real lostMem = mem.0::AvailPageFile-mem.1::AvailPageFile;
+
+Real ok = lostMem < 2^21; //2MB
