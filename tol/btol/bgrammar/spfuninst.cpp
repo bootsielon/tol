@@ -1067,40 +1067,38 @@ static BSyntaxObject* EvPutName(BGrammar* gra, const List* tre, BBool left)
   static BText _name_ = "PutName";
   if(CheckNonDeclarativeAction(_name_)) { return(NULL); }
   BGrammar::IncLevel();
-    BSyntaxObject* result = NIL;
-    BInt nb = BSpecialFunction::NumBranches(tre);
-    if(BSpecialFunction::TestNumArg(_name_, 2, nb, 2))
-    {
-	BSyntaxObject* namObj = GraText()->EvaluateTree(Branch(tre,1));
-  BGrammar::PutLast(gra);
-	BSyntaxObject* obj	  = gra->LeftEvaluateTree(Branch(tre,2));
-	if(namObj && obj)
-	{
+  BSyntaxObject* result = NIL;
+  BInt nb = BSpecialFunction::NumBranches(tre);
+  if(BSpecialFunction::TestNumArg(_name_, 2, nb, 2))
+  {
+	  BSyntaxObject* namObj = GraText()->EvaluateTree(Branch(tre,1));
+    BGrammar::PutLast(gra);
+	  BSyntaxObject* obj	  = gra->LeftEvaluateTree(Branch(tre,2));
+	  if(namObj && obj)  
+	  {
 	    BText newName = Text(namObj);
 	    BText oldName = obj->Name();
       BSyntaxObject* found = gra->FindVariable(newName);
-	    if (found && found->Level()==BGrammar::Level()) {
-		Error(I2("Cannot make ","No se puede hacer ") + 
-		      "PutName : "+newName+
-		      I2(" already exists", " existe todavía"));
-	    } else {
-		gra->DelObject(obj);
-		obj->PutName(newName);
-        if(BParser::DefaultParser()->Filter()->IsIdentifier(newName))
-        {
-		  gra->AddObject(obj);
-        }
-		result = obj;
+	    if (found && found->Level()==BGrammar::Level()) 
+      {
+		    Error(I2("Cannot make ","No se puede hacer ") + 
+		             "PutName : "+newName+
+		          I2(" already exists", " existe todavía"));
+	    } 
+      else 
+      {
+		    gra->ChangeName(obj,newName);
+    		result = obj;
 	    }
-	}
-	else
-	{
+	  }
+	  else
+	  {
 	    BSpecialFunction::TestResult(_name_,NIL,tre,NIL,BTRUE);
-	}
-	SAFE_DESTROY(namObj,obj);
-    }
+	  }
+	  SAFE_DESTROY(namObj,obj);
+  }
   BGrammar::DecLevel();
-    return(result);
+  return(result);
 }
 
 

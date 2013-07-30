@@ -127,6 +127,7 @@ NameBlock MergeOptions(NameBlock default, NameBlock config, Text prefix)
   {
     Text gra = Grammar(element);
     Text name = Name(element);
+    Text fullName = prefix+name;
     Case(
     TextBeginWith(name, "_.autodoc.member."), 
     {

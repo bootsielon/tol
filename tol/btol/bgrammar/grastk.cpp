@@ -29,18 +29,114 @@
 
 BTraceInit("grastl.cpp");
 
+//! Error manager function
+static void SendError(const BText& msg)
+{
+  Error(BText("[Stack Manager FATAL]\n")+msg);
+}
+
+class BStackNode;
+class BDictionaryEntryNode
+/* Dictionary entry node.
+ * References to an object and the next entry node in reversed creating order
+ */
+{
+public:
+  BSyntaxObject*        obj_;  //!<Object reference
+  BStackNode*           stackNode_;
+  BDictionaryEntryNode* next_; //!<Next entry node
+
+  BDictionaryEntryNode(
+    BSyntaxObject* obj, 
+    BDictionaryEntryNode* next,
+    BStackNode* stackNode)
+  : obj_(obj), next_(next), stackNode_(stackNode)
+  {}
+  DeclareClassNewDelete(BDictionaryEntryNode);
+};
+class BDictionaryEntry
+/* Dictionary entry stack.
+ * Each dictionary node has a stack of entries corresponding to objects with
+ * the same name.
+ */
+{
+public:
+  BDictionaryEntryNode* heap_;
+  BDictionaryEntry() : heap_(NULL) {}
+
+  //! Enters a new dictionary entry node at stack top level
+  void Push(BSyntaxObject* obj, BStackNode* stack)
+  {
+    heap_ = new BDictionaryEntryNode(obj, heap_, stack);
+  }
+  //! Releases the dictionary entry node at stack top level
+  void Pop()
+  {
+    if(!heap_)
+    { SendError("Heap is already empty. Cannot delete any object."); }
+    BDictionaryEntryNode* next = heap_->next_;
+    delete heap_;
+    heap_ = next;
+  }
+};
+
+#define _STACK_USE_GOOGLE_HASH_DENSE
+
+#ifdef _STACK_USE_GOOGLE_HASH_DENSE
+typedef hash_map_by_name<BDictionaryEntry*>::dense_ BDictionaryHash;
+#elif defined _STACK_USE_GOOGLE_HASH_SPARSE
+typedef hash_map_by_name<BDictionaryEntry*>::sparse_ BDictionaryHash;
+#else
+#include <unordered_map>
+struct eqstr
+{
+  bool operator()(const char* s1, const char* s2) const
+  {
+    return strcmp(s1, s2) == 0;
+  }
+};
+//std::tr1::unordered_map<std::string, BDictionaryEntry*> stackHash_;
+typedef std::tr1::unordered_map<
+  const char*, 
+  BDictionaryEntry*, 
+  std::tr1::hash<const char*>, 
+  eqstr> 
+BDictionaryHash;
+#endif
+
+static BDictionaryHash stackHash_;
+
+
+class BStackNode
+/* Stack node.
+ * Stores references to all objects in reversed creating order pointing also
+ * the dictionary node where the object has its correspondent entry in order
+ * to delete it from the dictionary without any searching cost.
+ * When an object is added increments its number of references.
+ * When an object is deleetd decrements its number of references.
+ */
+{
+public:
+  BSyntaxObject*    obj_;   //!< Referenced object
+  BStackNode*       next_;  //!< Next stack node
+  BDictionaryEntry* entry_;
+
+  BStackNode(BSyntaxObject*    obj,
+             BStackNode*       next,
+             BDictionaryEntry* entry)
+  : obj_(obj), next_(next), entry_(entry)
+  {
+    assert(obj);
+    assert(entry);
+  }
+  DeclareClassNewDelete(BStackNode);
+};
 
 //--------------------------------------------------------------------
 // INICIALIZATION
 //   Global variables (static in the class BStackManager and internal 
 //   classes).
 //--------------------------------------------------------------------
-short BStackManager::numAllowedChar_ =     0;
-int   BStackManager::branchPoolSize_ = 65536;
-short BStackManager::branchPoolLen_  =   978;
-BArray<BStackManager::BDictionaryNode*> 
-       BStackManager::BDictionaryNode::branchPool_;
-int    BStackManager::BDictionaryNode::currentBranch_ = 0;
 
 //#define _DEBUG_STACK_
 
@@ -48,102 +144,27 @@ int    BStackManager::BDictionaryNode::currentBranch_ = 0;
 static BText objName_ = "";
 #endif
 
-//--------------------------------------------------------------------
-  bool BStackManager::BDictionaryNode::Initialize()
-//! Initializes the dictionary static members
-//--------------------------------------------------------------------
-{
-  short i=0;
-  short c;
-  BFilter* filter = BParser::DefaultParser()->Filter();
-  for(c=0; c<256; c++) 
-  { 
-    if(filter->StartIdentifier((char)c) ||
-       filter->IsIdentifier   ((char)c))
-    {
-      allowed_[charPos_[c] = i++]=(char)c; 
-    }
-    else
-    {
-      charPos_[c] = -1; 
-    }
-  }
-/*
-  for(c=0; c<256; c++) { charPos_[c] = -1; }
-  for(c='a'; c<='z'; c++) { allowed_[charPos_[c] = i++] = (char)c; }
-  for(c='A'; c<='Z'; c++) { allowed_[charPos_[c] = i++] = (char)c; }
-  for(c='0'; c<='9'; c++) { allowed_[charPos_[c] = i++] = (char)c; }
-  allowed_[(int)(charPos_[(int)'_' ] = i++)] = '_';
-  allowed_[(int)(charPos_[(int)'.' ] = i++)] = '.';
-  allowed_[(int)(charPos_[(int)'\''] = i++)] = '\'';
-*/
-  numAllowedChar_ = i;
-  branchPool_.AllocBuffer(32);
-  branchPool_.AllocBuffer(0);
-  currentBranch_=branchPoolLen_;
-  return(true);
-}
-
-//--------------------------------------------------------------------
-  void BStackManager::BDictionaryNode::CreateBranches()
-//! Creates the array of branches
-//--------------------------------------------------------------------
-{
-//branch_ = new BDictionaryNode[numAllowedChar_];
-
-  int n = branchPool_.Size()-1;
-  if(currentBranch_==branchPoolLen_)
-  {
-    n++;
-    currentBranch_ = 0;
-    if(n==branchPool_.MaxSize()-1)
-    {
-      branchPool_.ReallocBuffer((n*120)/100);
-    //Std(BText("\nBStackManager::BDictionaryNode::CreateBranches ")+ (n*branchPoolLen_));
-    }
-    branchPool_.ReallocBuffer(n+1);
-    branchPool_[n] = new BDictionaryNode[branchPoolLen_*numAllowedChar_];
-  //Std(BText("\nBStackManager::BDictionaryNode::CreateBranches ")+ (n*branchPoolLen_));
-  }
-  branch_ = branchPool_[n]+currentBranch_*numAllowedChar_;
-  currentBranch_++;
-
-}
-
-//--------------------------------------------------------------------
-  BStackManager::BDictionaryNode*
-  BStackManager::BDictionaryNode::Find(const BText& name, short n)
-//! Finds recursively the dictionary node correspondent of a name begining
-//! from n-th character
-//--------------------------------------------------------------------
-{
-  if(name.Length()==n)
-  {
-    return(this);
-  }
-  else
-  {
-    short  c = name[n];
-    if(c<0) { c+=256; }
-    short i = charPos_[c];
-    if(i<0)
-    { return(NULL); }
-    if(!branch_) { CreateBranches(); }
-    return(branch_[i].Find(name, n+1));
-  }
-}
+//! Heap of the stack of all available objects in reversed creating order
+static BStackNode*      stack_ = NULL;
+static char* emptyHashKey_ = NULL;
+int   BStackManager::currentEntries_ = 0;
 
 //--------------------------------------------------------------------
   bool BStackManager::Initialize()
 //! Initializes the stack handler
 //--------------------------------------------------------------------
 {
-  bool ok = BDictionaryNode::Initialize();
-  root_ = new BDictionaryNode();
-  root_->CreateBranches();
-  return(ok);
+  BStackManager::currentEntries_ = 0;
+  stack_ = NULL;
+#ifdef _STACK_USE_GOOGLE_HASH_DENSE
+  SetEmptyKey  (stackHash_, emptyHashKey_);
+  SetDeletedKey(stackHash_, name_del_key());
+#endif
+#ifdef _STACK_USE_GOOGLE_HASH_SPARSE
+  SetDeletedKey(stackHash_, name_del_key());
+#endif
+  return(true);
 }
-
 
 //--------------------------------------------------------------------
   void BStackManager::Push(BSyntaxObject* obj)
@@ -153,108 +174,66 @@ static BText objName_ = "";
   const BText* name__ = &obj->LocalName();
   if(!name__->HasName()) { name__ = &obj->Name(); }
   const BText& name = *name__;
-//if(!name.HasName())
-//{ SendError("Cannot push unnamed objects."); }
+  if(!name.HasName())
+  { SendError("Cannot push unnamed objects."); }
 
-#ifdef _DEBUG_STACK_
-  if(!objName_.HasName() || (name==objName_))
-  Std(BText("\nBStackManager::Push[")+currentEntries_+"]"+obj->Grammar()->Name()+" "+name+" at level "+obj->Level());
-#endif
-
-  BDictionaryNode* dNode = root_->Find(name,0);
-  if(dNode)
-  { 
-    dNode->entry_.Push(obj);
+  BDictionaryEntry* entry = NULL;
+  BDictionaryHash::const_iterator found;
+  found = stackHash_.find(name);
+  if(found==stackHash_.end())
+  {
+    entry = new BDictionaryEntry;
+    stackHash_[name] = entry;
   }
-  stack_ = new BStackNode(obj, stack_, dNode);
+  else
+  {
+    entry = found->second;
+  }
+  assert(entry); 
+  stack_ = new BStackNode(obj, stack_, entry);
+  entry->Push(obj, stack_);
   obj->IncNRefs();
   currentEntries_++;
+//if(name=="pkgRecord") Std(BText("TRACE [BStackManager::Push] ")+name+" : "<<currentEntries_); 
 }
 
 //--------------------------------------------------------------------
-  BSyntaxObject* BStackManager::Find(const BText& name)
-//! Returns the last created object with specified name if exists or null else
+  void BStackManager::ChangeName(BSyntaxObject* obj, const BText& newName)
 //--------------------------------------------------------------------
 {
-#ifdef _DEBUG_STACK_
-  if(!objName_.HasName() || (name==objName_))
-  Std(BText("\nBStackManager::Find ")+name+" at level "+BGrammar::Level());
-#endif
-  if(!name.HasName())
-  { return(NULL); }
-//{ SendError("Cannot find unnamed objects."); }
-
-  BDictionaryNode* dNode = root_->Find(name,0);
-  if(!dNode || !dNode->entry_.heap_)
+  const BText& name = obj->Name();
+  if(name==newName) { return; }
+  if(!name.HasName()) { return; }
+  if(!newName.HasName()) { return; }
+  BDictionaryEntry* entry = NULL;
+  BDictionaryHash::const_iterator found;
+  found = stackHash_.find(name);
+  if(found==stackHash_.end()) { return; }
+  entry = found->second;
+  if(entry->heap_->obj_!=obj) { return; }
+  BStackNode* stackNode = entry->heap_->stackNode_;
+  entry->Pop();
+  if(!entry->heap_)
   {
-# ifdef _DEBUG_STACK_
-    if(!objName_.HasName() || (name==objName_))
-      Std(BText("\nBStackManager::Find NOT Found ")+name);
-#  endif
-    return(NULL);
+    stackHash_.erase(name);
+    delete entry;
+  }
+  obj->PutName(newName);
+  BDictionaryEntry* newEntry = NULL;
+  found = stackHash_.find(name);
+  if(found==stackHash_.end())
+  {
+    newEntry = new BDictionaryEntry;
+    stackHash_[name] = newEntry;
   }
   else
   {
-# ifdef _DEBUG_STACK_
-    BSyntaxObject* obj = dNode->entry_.heap_->obj_;
-    if(!objName_.HasName() || (name==objName_))
-      Std(BText("\nBStackManager::Found ")+obj->Grammar()->Name()+" "+name+" from level "+obj->Level());
-#  endif
-    return(dNode->entry_.heap_->obj_);
+    newEntry = found->second;
   }
-}
-
-
-//--------------------------------------------------------------------
-  BStruct* BStackManager::FindStruct(const BText& name)
-//! Returns the last created struct with specified name if exists or null else
-//--------------------------------------------------------------------
-{
-  if(!name.HasName())
-  { SendError("Cannot push unnamed structures."); }
-  BDictionaryNode* dNode = root_->Find(name,0);
-  if(!dNode || !dNode->entry_.heap_)
-  {
-    return(NULL);
-  }
-  else
-  {
-    BStruct* bstr=NULL;
-    BDictionaryEntryNode* lst = dNode->entry_.heap_;
-    while(lst && !bstr)
-    {
-      if(lst->obj_->Mode()==BSTRUCTMODE) { bstr=(BStruct*)lst->obj_; }
-      lst = lst->next_;
-    }
-    return(bstr);
-  }
-}
-
-//--------------------------------------------------------------------
-  BClass* BStackManager::FindClass(const BText& name)
-//! Returns the last created struct with specified name if exists or null else
-//--------------------------------------------------------------------
-{
-  if(!name.HasName())
-  { SendError("Cannot push unnamed classes."); }
-  BDictionaryNode* dNode = root_->Find(name,0);
-  if(!dNode || !dNode->entry_.heap_)
-  {
-    return(NULL);
-  }
-  else
-  {
-    BClass* bcls=NULL;
-    BDictionaryEntryNode* lst = dNode->entry_.heap_;
-    while(lst && !bcls)
-    {
-      if(lst->obj_->Mode()==BCLASSMODE) { bcls=(BClass*)lst->obj_; }
-      lst = lst->next_;
-    }
-    return(bcls);
-  }
-}
-
+  newEntry->Push(obj, stackNode);
+  stackNode->entry_ = newEntry;
+  assert(stackHash_.find(newName)!=stackHash_.end());
+};
 
 //--------------------------------------------------------------------
   void BStackManager::Pop(BSyntaxObject* except)
@@ -264,28 +243,18 @@ static BText objName_ = "";
 //--------------------------------------------------------------------
 {
   BSyntaxObject* obj=stack_->obj_;
+  BDictionaryEntry* entry=stack_->entry_;
   assert(obj);
-#ifdef _DEBUG_STACK_
-  const BText* name__ = &obj->LocalName();
-  if(!name__->HasName()) { name__ = &obj->Name(); }
-  const BText& name = *name__;
-  if(!name.HasName())
-  { SendError("Cannot push unnamed objects."); }
-
-  if(name==objName_)
-  Std(BText("\nBStackManager::Pop[")+currentEntries_+"]"+obj->Grammar()->Name()+" "+name+" from level "+obj->Level());
-#endif
-/* */
-  if(stack_->dNode_ && stack_->dNode_->entry_.heap_)
+  assert(entry);
+  assert(entry->heap_->obj_==obj);
+  entry->Pop();
+  if(!entry->heap_) 
   {
-    if(stack_->dNode_->entry_.heap_->obj_!=obj)
-    { 
-      SendError("Corrupted local dictionary."); 
-    }
-    else
-    {
-      stack_->dNode_->entry_.Pop();
-    }
+    const BText* name__ = &obj->LocalName();
+    if(!name__->HasName()) { name__ = &obj->Name(); }
+    const BText& name = *name__;
+    stackHash_.erase(name);
+    delete entry;
   }
   BStackNode* next = stack_->next_;
   delete stack_;
@@ -314,4 +283,70 @@ static BText objName_ = "";
 //--------------------------------------------------------------------
 {
   while(currentEntries_>size) { Pop(except); }
+}
+
+
+//--------------------------------------------------------------------
+  BSyntaxObject* BStackManager::Find(const BText& name)
+//! Returns the last created object with specified name if exists or null else
+//--------------------------------------------------------------------
+{
+  if(!name.HasName())
+  { return(NULL); }
+  BDictionaryEntry* entry = NULL;
+  BSyntaxObject* obj = NULL;
+  BDictionaryHash::const_iterator found;
+  found = stackHash_.find(name);
+  if(found!=stackHash_.end())
+  {
+    entry = found->second;
+    if(entry && entry->heap_)
+    {
+      obj = entry->heap_->obj_;
+    }
+  }
+  return(obj);
+}
+
+
+//--------------------------------------------------------------------
+  BStruct* BStackManager::FindStruct(const BText& name)
+//! Returns the last created struct with specified name if exists or null else
+//--------------------------------------------------------------------
+{
+  if(!name.HasName())
+  { SendError("Cannot push unnamed structures."); }
+  BStruct* bstr=NULL;
+  BDictionaryHash::const_iterator found;
+  found = stackHash_.find(name);
+  if(found!=stackHash_.end() && found->second)
+  {
+    BDictionaryEntryNode* lst = found->second->heap_;
+    while(lst && !bstr)
+    {
+      if(lst->obj_->Mode()==BSTRUCTMODE) { bstr=(BStruct*)lst->obj_; }
+      lst = lst->next_;
+    }
+  }
+  return(bstr);
+}
+
+//--------------------------------------------------------------------
+  BClass* BStackManager::FindClass(const BText& name)
+//! Returns the last created struct with specified name if exists or null else
+//--------------------------------------------------------------------
+{
+  BClass* bcls=NULL;
+  BDictionaryHash::const_iterator found;
+  found = stackHash_.find(name);
+  if(found!=stackHash_.end() && found->second)
+  {
+    BDictionaryEntryNode* lst = found->second->heap_;
+    while(lst && !bcls)
+    {
+      if(lst->obj_->Mode()==BCLASSMODE) { bcls=(BClass*)lst->obj_; }
+      lst = lst->next_;
+    }
+  }
+  return(bcls);
 }

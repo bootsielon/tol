@@ -264,6 +264,7 @@ public:
   //! is global or else to stack. Any way puts current level
   //! to object
   static void AddObject(BSyntaxObject* obj);
+  static void ChangeName(BSyntaxObject* obj, const BText& newName);
   static void DestroyStackUntil(BInt stackPos, BSyntaxObject* except)
   {
     BStackManager::DestroyUntil(stackPos,except);

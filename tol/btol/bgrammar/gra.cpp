@@ -51,13 +51,6 @@ BDat	         BGrammar::unparseNodes_  = 2;
 BDat           BGrammar::unparseNodes_  = 0;
 #endif
 
-short BStackManager::BDictionaryNode::charPos_ [256];
-char  BStackManager::BDictionaryNode::allowed_ [256];
-int   BStackManager::currentEntries_ = 0;
-
-BStackManager::BStackNode*      BStackManager::stack_ = NULL;
-BStackManager::BDictionaryNode* BStackManager::root_  = NULL;
-
 
 //------------------------------
 #ifndef __USE_DYNSCOPE__
