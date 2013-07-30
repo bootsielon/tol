@@ -1,3 +1,4 @@
+Real Sleep(2);
 Set mem.0 = MemoryStatus(?);
 
 Set For(1, 10000, Set (Real i) {
@@ -5,9 +6,9 @@ Set For(1, 10000, Set (Real i) {
     Real Eval("Real "<<names[i][1]<<" = 1")
   ]]
 });
-
+Real Sleep(2);
 Set mem.1 = MemoryStatus(?);
 
 Real lostMem = mem.0::AvailPageFile-mem.1::AvailPageFile;
 
-Real ok = lostMem < 2^21; //2MB
+Real ok = lostMem < 20*2^20; //20MB
