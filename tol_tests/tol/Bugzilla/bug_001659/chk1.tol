@@ -18,4 +18,5 @@ Real result_1_b = {
   data + 1
 }; // =>
 
+Real numErr1 = Copy(NError);
 

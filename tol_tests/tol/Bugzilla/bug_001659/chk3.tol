@@ -1,0 +1,25 @@
+
+
+Set ok.3.local = {
+  Text AA_local = "LOCAL";
+  Text PutName("BB_local",AA_local);
+  [[
+    Real AA.notExist = !ObjectExist("Text","AA_local");
+    Real BB.Exist    =  ObjectExist("Text","BB_local")
+  ]]
+};
+
+Text AA = "GLOBAL";
+
+Text PutName("BB",AA);
+
+Set ok.3.global = 
+[[
+  Real AA.notExist = !ObjectExist("Text","AA");
+  Real BB.Exist    =  ObjectExist("Text","BB")
+]];
+
+Set ok.3.all = ok.3.local << ok.3.global;
+
+Real numErr3 = Copy(NError);
+

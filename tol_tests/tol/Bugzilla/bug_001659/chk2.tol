@@ -12,3 +12,6 @@ Real result_2_b = {
   Real a = 2;
   a
 }; // =>
+
+Real numErr2 = Copy(NError);
+
