@@ -93,33 +93,6 @@ void BGrammar::AddObject(BSyntaxObject* obj)
   }
 }
 
-
-//--------------------------------------------------------------------
-void BGrammar::ChangeName(BSyntaxObject* obj, const BText& newName)
-//--------------------------------------------------------------------
-{
-  if(obj)
-  {
-    if(obj->Level())
-    {
-      if(newName.HasName() && (obj->HasName() || obj->LocalName().HasName()))
-      {
-        BStackManager::ChangeName(obj, newName);
-      }
-    }
-    else if(newName.HasName() && obj->HasName() && obj->IsHashed())
-    {
-      if(obj->Name()==newName) { return; }
-      obj->IncNRefs();       
-      DelObject(obj);
-      obj->PutName(newName);
-      AddObject(obj);
-      obj->DecNRefs();       
-    }
-    obj->PutName(newName);
-  }
-}
-
 //- DYNAMIC SCOPE --------------
 #ifdef __USE_DYNSCOPE__
 

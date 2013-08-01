@@ -695,11 +695,11 @@ BSyntaxObject* BGrammar::EvaluateTree(
         BToken* line = BParser::treToken(Tree::treNode(b));
         if(line && (line->TokenType()==TYPE) && (newGrammar=TknFindGrammar(line)))
         {
-          result = newGrammar->EvaluateTree((const List*) Tree::treNode(b),false,true);
+          result = newGrammar->EvaluateTree((const List*) Tree::treNode(b),from_UF,true);
         } 
         else 
         {
-          result = EvaluateTree((const List*) Tree::treNode(b),false,forceType);
+          result = EvaluateTree((const List*) Tree::treNode(b),from_UF,forceType);
         }
         if(result) 
         {
@@ -732,7 +732,7 @@ BSyntaxObject* BGrammar::EvaluateTree(
   else if((type == TYPE) && (newGrammar=TknFindGrammar(tok)))
   {
     TRACE_SHOW_MEDIUM(fun,"2.3");
-    result = newGrammar->EvaluateTree(Tree::treLeft((List*)tre),false,false);
+    result = newGrammar->EvaluateTree(Tree::treLeft((List*)tre),from_UF,false);
     if(result && (result->Grammar()!=newGrammar)) { newGrammar=result->Grammar(); }
     enableCasting = BTRUE;
   // is an orphan object with a level_>0 and must be removed
@@ -750,7 +750,7 @@ BSyntaxObject* BGrammar::EvaluateTree(
       BToken* leftTok  = BParser::treToken(left);
       if(leftTok && (leftTok->TokenType()!=ARGUMENT))
       { 
-        result = GraNameBlock()->EvaluateTree(Tree::treLeft((List*)tre),false,true);
+        result = GraNameBlock()->EvaluateTree(Tree::treLeft((List*)tre),from_UF,true);
       }
       if(result)
       {
@@ -791,7 +791,7 @@ BSyntaxObject* BGrammar::EvaluateTree(
     if(!f_gra)
     {
       int oldObjNum = BSyntaxObject::NSyntaxObject();
-      first_arg = GraAnything()->EvaluateTree(Tree::treNode(args),false,false);
+      first_arg = GraAnything()->EvaluateTree(Tree::treNode(args),from_UF,false);
       bool delete_first_arg = (oldObjNum < BSyntaxObject::NSyntaxObject());
       //BGrammar* f_gra = NULL; // unused
       if (first_arg) 
@@ -869,7 +869,7 @@ BSyntaxObject* BGrammar::EvaluateTree(
     }
   }
   TRACE_SHOW_MEDIUM(fun,"4");
-  if(incLevel /* && !from_UF */) 
+  if(incLevel) 
   {
     TRACE_SHOW_MEDIUM(fun,"4.1");
     if(result) result->IncNRefs();

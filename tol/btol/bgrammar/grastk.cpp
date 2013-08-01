@@ -61,8 +61,9 @@ class BDictionaryEntry
  */
 {
 public:
+  BText                 name_;
   BDictionaryEntryNode* heap_;
-  BDictionaryEntry() : heap_(NULL) {}
+  BDictionaryEntry(const BText& name) : name_(name), heap_(NULL) {}
 
   //! Enters a new dictionary entry node at stack top level
   void Push(BSyntaxObject* obj, BStackNode* stack)
@@ -104,8 +105,6 @@ typedef std::tr1::unordered_map<
 BDictionaryHash;
 #endif
 
-static BDictionaryHash stackHash_;
-
 
 class BStackNode
 /* Stack node.
@@ -145,6 +144,7 @@ static BText objName_ = "";
 #endif
 
 //! Heap of the stack of all available objects in reversed creating order
+static BDictionaryHash stackHash_;
 static BStackNode*      stack_ = NULL;
 static char* emptyHashKey_ = NULL;
 int   BStackManager::currentEntries_ = 0;
@@ -176,14 +176,13 @@ int   BStackManager::currentEntries_ = 0;
   const BText& name = *name__;
   if(!name.HasName())
   { SendError("Cannot push unnamed objects."); }
-
   BDictionaryEntry* entry = NULL;
   BDictionaryHash::const_iterator found;
   found = stackHash_.find(name);
   if(found==stackHash_.end())
   {
-    entry = new BDictionaryEntry;
-    stackHash_[name] = entry;
+    entry = new BDictionaryEntry(name);
+    stackHash_[ entry->name_ ] = entry;
   }
   else
   {
@@ -194,46 +193,9 @@ int   BStackManager::currentEntries_ = 0;
   entry->Push(obj, stack_);
   obj->IncNRefs();
   currentEntries_++;
-//if(name=="pkgRecord") Std(BText("TRACE [BStackManager::Push] ")+name+" : "<<currentEntries_); 
+  if(name=="dec") 
+    printf(""); 
 }
-
-//--------------------------------------------------------------------
-  void BStackManager::ChangeName(BSyntaxObject* obj, const BText& newName)
-//--------------------------------------------------------------------
-{
-  const BText& name = obj->Name();
-  if(name==newName) { return; }
-  if(!name.HasName()) { return; }
-  if(!newName.HasName()) { return; }
-  BDictionaryEntry* entry = NULL;
-  BDictionaryHash::const_iterator found;
-  found = stackHash_.find(name);
-  if(found==stackHash_.end()) { return; }
-  entry = found->second;
-  if(entry->heap_->obj_!=obj) { return; }
-  BStackNode* stackNode = entry->heap_->stackNode_;
-  entry->Pop();
-  if(!entry->heap_)
-  {
-    stackHash_.erase(name);
-    delete entry;
-  }
-  obj->PutName(newName);
-  BDictionaryEntry* newEntry = NULL;
-  found = stackHash_.find(name);
-  if(found==stackHash_.end())
-  {
-    newEntry = new BDictionaryEntry;
-    stackHash_[name] = newEntry;
-  }
-  else
-  {
-    newEntry = found->second;
-  }
-  newEntry->Push(obj, stackNode);
-  stackNode->entry_ = newEntry;
-  assert(stackHash_.find(newName)!=stackHash_.end());
-};
 
 //--------------------------------------------------------------------
   void BStackManager::Pop(BSyntaxObject* except)
@@ -248,6 +210,7 @@ int   BStackManager::currentEntries_ = 0;
   assert(entry);
   assert(entry->heap_->obj_==obj);
   entry->Pop();
+/*
   if(!entry->heap_) 
   {
     const BText* name__ = &obj->LocalName();
@@ -256,6 +219,7 @@ int   BStackManager::currentEntries_ = 0;
     stackHash_.erase(name);
     delete entry;
   }
+*/
   BStackNode* next = stack_->next_;
   delete stack_;
   stack_ = next;
@@ -300,10 +264,19 @@ int   BStackManager::currentEntries_ = 0;
   if(found!=stackHash_.end())
   {
     entry = found->second;
-    if(entry && entry->heap_)
+    if(!entry)
+    {
+      printf("");
+    }
+    else if(!entry->heap_)
+    {
+      printf("");
+    }
+    else
     {
       obj = entry->heap_->obj_;
     }
+        
   }
   return(obj);
 }

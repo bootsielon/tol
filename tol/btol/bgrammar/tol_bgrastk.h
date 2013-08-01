@@ -35,6 +35,17 @@ class BClass;
 // Objects are stored in a classical stack and also a dicionary tree.
 //--------------------------------------------------------------------
 {
+public:
+
+  // Internal definitions
+  static short numAllowedChar_;
+  static int   branchPoolSize_;
+  static short branchPoolLen_;
+
+public:
+  // Internal classes
+
+
 private:
   //! Number of currently stack size
   static int currentEntries_;
@@ -47,8 +58,6 @@ public:
   //! dictionary entry node that must be on the top of referenced dictionary
   //! node. If object is not the except one then destroy it
   static void Pop (BSyntaxObject* except);
-  //Changes the name of a local object
-  static void ChangeName(BSyntaxObject* obj, const BText& newName);
   //! Removes objects from the stack top until stack size is the specified one
   //! All released objects but except one will be deleted
   static void DestroyUntil(int size, BSyntaxObject* except=NULL);

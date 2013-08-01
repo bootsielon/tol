@@ -1906,7 +1906,7 @@ BSyntaxObject* BUserFunction::Evaluator(BList* argList) const
   BList* argInstances = NIL;
   BInt   stackPos     = BGrammar::StackSize();
   int    arglistOK    = 1;
-//Std(BText("TRACE [BUserFunction::Evaluator] ")+Name()+" stackPos="<<stackPos<<"\n");
+    
 #ifndef __USE_DYNSCOPE__
   BGrammar::PushStackLevel(Level()+1);
 #endif
@@ -1984,10 +1984,14 @@ BSyntaxObject* BUserFunction::Evaluator(BList* argList) const
     BClass::currentStatic_ = oldStaticOwner;
     BNameBlock::SetCurrent(oldNameBlock);
   }
+  for(n=0; n<funArg.Size(); n++)
+  {
+    if(funArg[n]) { funArg[n]->PutLocalName(""); }
+  }
+
   if(result)
   {
     result->IncNRefs();
-  //Std(BText("TRACE [BUserFunction::Evaluator] ")+Name()+" destroying stack until="<<stackPos<<"\n");
     BGrammar::DestroyStackUntil(stackPos, result);
     DESTROY(argInstances);
     result->DecNRefs();
@@ -2009,11 +2013,9 @@ BSyntaxObject* BUserFunction::Evaluator(BList* argList) const
               Name() + "\"");
       }
     }
-  //Std(BText("TRACE [BUserFunction::Evaluator] ")+Name()+" destroying stack until="<<stackPos<<"\n");
     BGrammar::DestroyStackUntil(stackPos, NIL);
     SAFE_DESTROY(argInstances,result);
   }
-//for(n=0; n<funArg.Size(); n++)  {  if(funArg[n]) { funArg[n]->PutLocalName(""); } }
   SAFE_DESTROY(argList,result);
 
 #ifndef __USE_DYNSCOPE__
