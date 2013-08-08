@@ -179,6 +179,16 @@ public:
       delete[] array_; 
     }
   }
+
+  void ForgetArgs() { 
+    if(array_ && args_) 
+    { 
+      DESTROY(args_); 
+      delete[] array_; 
+      array_ = NULL;
+    }
+    card_ = 0;
+  }
   // Implementation: inline
   
   BSyntaxObject* Arg(BInt n) const 
