@@ -247,7 +247,6 @@ BDate BTimer::TimeToDate(time_t t)
  */
 //--------------------------------------------------------------------
 {
-  BReal c = ClockToSecond(clock());
 /*
 struct tm {
    int tm_sec;
@@ -280,7 +279,7 @@ struct tm {
       timeStruct->tm_mday,
       timeStruct->tm_hour,
       timeStruct->tm_min,
-      timeStruct->tm_sec+(c-floor(c))
+      BReal(timeStruct->tm_sec) // #1505
     );
     return(dte);
   }
