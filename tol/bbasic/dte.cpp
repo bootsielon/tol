@@ -267,7 +267,7 @@ BDate::BDate(BInt y, BMonth m, BInt d, BInt h, BInt mi, BReal s)
  * \param s  Seconds of date
  */
 //--------------------------------------------------------------------
-    : year_(y), month_(m), day_(d), hour_(h), minute_(mi), second_(s)
+    : year_(y), month_(m), day_(d), hour_(h), minute_(mi), second_(SECONDROUND(s))
 {
 }
 

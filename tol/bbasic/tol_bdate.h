@@ -28,28 +28,28 @@
 //--------------------------------------------------------------------
 // types
 //--------------------------------------------------------------------
-#define BMonth BInt
-#define JANUARY	   1
+#define BMonth  BInt
+#define JANUARY    1
 #define FEBRUARY   2
-#define MARCH	     3
-#define APRIL	     4
-#define MAY	       5
-#define JUNE	     6
-#define JULY	     7
-#define AUGUST	   8
+#define MARCH      3
+#define APRIL      4
+#define MAY        5
+#define JUNE       6
+#define JULY       7
+#define AUGUST     8
 #define SEPTEMBER  9
-#define OCTOBER	  10
+#define OCTOBER   10
 #define NOVEMBER  11
 #define DECEMBER  12
 
 #define BWeekDay BInt
-#define MONDAY	   1
-#define TUESDAY	   2
-#define WEDNESDAY  3
-#define THURSDAY   4
-#define FRIDAY	   5
-#define SATURDAY   6
-#define SUNDAY	   7
+#define MONDAY      1
+#define TUESDAY     2
+#define WEDNESDAY   3
+#define THURSDAY    4
+#define FRIDAY      5
+#define SATURDAY    6
+#define SUNDAY      7
 
 
 //--------------------------------------------------------------------
@@ -66,6 +66,8 @@
 //! Days in a non leap year cicle
 #define DAYSCICLE1   (BInt)    365
 
+#define SECONDPARTS 100
+#define SECONDROUND(S) round(S*SECONDPARTS)/SECONDPARTS
 
 //--------------------------------------------------------------------
 // forward references
@@ -279,7 +281,7 @@ public:
   //! Sets minute for the actual date
   void	PutMinute   (BInt    minute) { minute_	= minute; }
   //! Sets second to the actual date
-  void	PutSecond   (BReal   second) { second_	= second; }
+  void	PutSecond   (BReal   second) { second_	= SECONDROUND(second); }
   //! Sets hours, minutes and seconds corresponding to a given day fraction
   void	PutFraction (BReal   fraction);
   //! Sets the date corresponding to an index (amount of days pass from the 
@@ -297,7 +299,7 @@ public:
     day_=d;
     hour_=h;
     minute_=mi;
-    second_=s;
+    second_=SECONDROUND(s);
   }
   //! Sets date attributes from a Text \a txt (containig a date) and a DateFormat \a format
   void	PutDate(const BText& txt,

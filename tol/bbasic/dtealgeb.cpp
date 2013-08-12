@@ -30,7 +30,7 @@
 
 BTraceInit("dtealgeb.cpp");
 
-static const BInt  dsByDay_  = 24*3600*100;
+static const BInt  dsByDay_  = 24*3600*SECONDPARTS;
 static const BReal dsScale_  = 1.0/dsByDay_;
 static BDateFormat dateFormat_[] =
 {
@@ -267,11 +267,20 @@ BText BDate::Name() const
 //  if(second_+minute_+hour_+day_+month_ >2) { txt = BText("m")+month_+txt; }
 //  txt = BText("y")+year_+txt;
 
-    if(second_+minute_+hour_		 >0)
+    if(second_+minute_+hour_>0)
     {
-      char theTime[64];
-      BInt n = sprintf(theTime,"h%02di%02ds%06.3lf",hour_,minute_,second_);
-      txt.Copy(theTime,n);
+      if(round(second_)==second_)
+      {
+        char theTime[64];
+        BInt n = sprintf(theTime,"h%02di%02ds%02d",hour_,minute_,int(round(second_)));
+        txt.Copy(theTime,n);
+      }
+      else 
+      {
+        char theTime[64];
+        BInt n = sprintf(theTime,"h%02di%02ds%05.2lf",hour_,minute_,second_);
+        txt.Copy(theTime,n);
+      }
     }
     char theDate[64];
     BInt n = sprintf(theDate,"y%04dm%02dd%02d",year_,month_,day_);
@@ -614,11 +623,10 @@ void BDate::PutIndex(BReal index)
 //--------------------------------------------------------------------
 {
 	double idx = index;
-  if(index == -300000) { *this = unknown_; return; }
-  if(index <= -115782) { *this = begin_; return; }
-  if(index >=  219147) { *this = end_; return; }
-	double frac = modf(floor(index*dsByDay_)/dsByDay_, &idx);
-
+	if(index == -300000) { *this = unknown_; return; }
+	if(index <= -115782) { *this = begin_; return; }
+	if(index >=  219147) { *this = end_; return; }
+	double frac = modf(round(index*dsByDay_)/dsByDay_, &idx);
 	PutDayIndex(int(idx));
 	PutFraction(frac);
 }
@@ -1002,17 +1010,17 @@ void BDate::PutFraction (BReal fraction)
 {
     if(fraction>0)
     {
-	BInt fr = int(round(dsByDay_*fraction));
-	hour_ = 24*fr/dsByDay_;
-	fr -= hour_*dsByDay_/24;
-	minute_ = 24*60*fr/dsByDay_;
-	fr -= minute_*dsByDay_/(24*60);
-	second_ = BReal(24*3600*fr)/dsByDay_;
+		BInt fr = int(round(dsByDay_*fraction));
+		hour_ = int(floor(fr/double(round(dsByDay_/24))));
+		fr -= hour_*int(round(dsByDay_/24));
+		minute_ = int(floor(fr/double(round(dsByDay_/(24*60)))));
+		fr -= minute_*int(round(dsByDay_/(24*60)));
+		second_ = BReal(SECONDROUND(fr/double(round(dsByDay_/(24*60*60)))));
     }
     else
     {
-	hour_ = minute_ = 0;
-	second_ = 0.0;
+		hour_ = minute_ = 0;
+		second_ = 0.0;
     }
 }
 
@@ -1081,7 +1089,7 @@ void BDate::IncSecond(BReal s)
       sec += 60.0;
     min = ((long int)(ss-sec))/60;
     IncMinute(min);
-    second_ = sec;
+    second_ = SECONDROUND(sec);
     /*BInt  s  = (ss>0)?1:-1;
     IncMinute(s*Div(s*ss,60));
     second_ = Mod(ss,60);*/
