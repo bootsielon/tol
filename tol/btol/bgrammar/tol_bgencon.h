@@ -663,7 +663,7 @@ class TOL_API BTmpContens: public BTmpObject< BGraContens<Any> >
     { 
       this->CalcContens(); 
       this->flags_.calculated_=BTRUE; /*args_=NIL;*/ 
-      ForgetArgs();
+      this->ForgetArgs();
     }
     return(this->contens_);
   }
