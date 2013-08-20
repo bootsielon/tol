@@ -209,7 +209,7 @@ Class @Catalog
           }, False)
         });
         Real If(Card(selection), SetIndexByName(selection));
-        Eval(Name(subrecords)+"=selection")
+        PutName(Name(subrecords), selection)
       }), Card);
       Real SetIndexByName(records);
       records
@@ -264,10 +264,10 @@ Class @Catalog
         Set lastRecord = subrecords[1];
         Set refLastRecord = refSubrecords[1];
         If(lastRecord::high > refLastRecord::high, {
-          [[ Eval(lastRecord::identifier+"=lastRecord") ]]
+          [[ PutName(lastRecord::identifier, lastRecord) ]]
         }, {
           If(lastRecord::low > refLastRecord::low, {
-            [[ Eval(lastRecord::identifier+"=lastRecord") ]]
+            [[ PutName(lastRecord::identifier, lastRecord) ]]
           }, Empty)
         })
       }, Empty)
@@ -290,10 +290,10 @@ Class @Catalog
         Set lastRecord = subrecords[1];
         Set refLastRecord = refSubrecords[1];
         If(lastRecord::high > refLastRecord::high, {
-          [[ Eval(lastRecord::identifier+"=lastRecord") ]]
+          [[ PutName(lastRecord::identifier, lastRecord) ]]
         }, {
           If(lastRecord::low > refLastRecord::low, {
-            [[ Eval(lastRecord::identifier+"=lastRecord") ]]
+            [[ PutName(lastRecord::identifier, lastRecord) ]]
           }, Empty)
         })
       }, Empty)
@@ -405,7 +405,7 @@ Class @Catalog
           Text maxTolVersion = row[6];
           Set freeDependencies = freeDeps
         ]];
-        Eval(row[3]+"=pkgRecord")
+        PutName(row[3], pkgRecord)
       });
       @Catalog::ClassifyRecords(records)
     })
@@ -431,7 +431,7 @@ Class @Catalog
       Set freeDependencies = Unique(EvalSet(autodoc::_.autodoc.dependencies,
         Text (Text dep) { Tokenizer(dep, ".")[1] }))
     ]];
-    Eval(pkgRecord::identifier+"=pkgRecord")
+    PutName(pkgRecord::identifier, pkgRecord)
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -448,7 +448,7 @@ Class @Catalog
       Text _.autodoc.maxTolVersion = record::maxTolVersion;
       Set _.autodoc.dependencies = record::freeDependencies
     ]];
-    Eval(record::identifier+"=autodoc")
+    PutName(record::identifier, autodoc)
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -463,7 +463,7 @@ Class @Catalog
         If(compareHigh, compareHigh, Compare(rec2::low, rec1::low)) 
       });
       Real SetIndexByName(sortedClass);
-      Eval(class[1]["name"]+"=sortedClass")
+      PutName(class[1]["name"], sortedClass)
     });
     Real SetIndexByName(hierCatalog);
     hierCatalog
@@ -480,7 +480,7 @@ Class @Catalog
         Set class2 = Sort(class, Real (Set rec1, Set rec2) { 
           Compare(rec2::low, rec1::low) 
         });
-        Eval(class[1]["name"]<<"."<<class[1]["high"]+"=class2") 
+        PutName(class[1]["name"]<<"."<<class[1]["high"], class2) 
       })
     }))
   }
