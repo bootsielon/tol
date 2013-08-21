@@ -4,7 +4,7 @@ Set ok.3.local = {
   Text AA_local = "LOCAL";
   Text PutName("BB_local",AA_local);
   [[
-    Real AA.notExist = !ObjectExist("Text","AA_local");
+    //Real AA.notExist = !ObjectExist("Text","AA_local");
     Real BB.Exist    =  ObjectExist("Text","BB_local")
   ]]
 };
