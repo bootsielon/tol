@@ -22,7 +22,7 @@ Real OSCmdWait(upload_version_info);
 Text remote_mkdir = " plink toldevel@tolp.localbayes.es \"mkdir "
   "'/var/www/packages/win32/history/"+TolVersionId+"' ";
 WriteLn(remote_mkdir);
-Real OSCmdWait(remote_cp);
+Real OSCmdWait(remote_mkdir);
 Text remote_cp = " plink toldevel@tolp.localbayes.es \"cp "
   "'/var/www/packages/win32/tolbase-"+TolVersionId+"-setup.exe' "
   "'/var/www/packages/win32/history/"+TolVersionId+"/tolbase-"+ToName(Version)+"-setup.exe' ";
