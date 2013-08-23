@@ -120,12 +120,6 @@ void BSerieGroup::PrepareOperate()
     BUserTimeSerie* ser = Serie(n);
 	  if(ser && (ser->Grammar()==GraSerie()))
 	  {
-      if(ser->IsEmpty()) 
-      { 
-        maxFirst_ = BDate::End();
-        minLast_ = BDate::Begin();
-        break;
-      } 
 	    first  = ser->FirstDate();
 	    last   = ser->LastDate();
 	    //Std(BText("\nSerie ")+n+" ("+first+","+last+")");
