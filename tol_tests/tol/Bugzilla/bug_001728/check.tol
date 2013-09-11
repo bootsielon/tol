@@ -1,0 +1,8 @@
+Set a = [[
+  Set b = @Anything(2)
+]];
+Set a::b := Copy(Empty); 
+// No se borra la estructura de a:
+Text structName = StructName(a::b); // -> "@Anything"
+// Esto da problemas al copiarlo:
+Set DeepCopy(a);
