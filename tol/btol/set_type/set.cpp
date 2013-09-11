@@ -383,16 +383,21 @@ void BSet::PutStruct(BStruct* str)
 //--------------------------------------------------------------------
 {
   BStruct* str_=BStruct::Alive(str,false);
-  if(str_ && str_->Match(*this))
-  {
+  if (str_ == NULL)
+    {
+    struct_ = NULL;
+    PutSubType(BSet::Generic);
+    }
+  else if(str_->Match(*this))
+    {
     struct_ = str_;
     PutSubType(BSet::Structured);
-  }
-  else if(str_)
-  {
+    }
+  else
+    {
     Error(I2("Cannot apply structure ",
              "No se puede aplicar la estructura ")+str_->Name());
-  }
+    }
 }
 
 
