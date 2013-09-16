@@ -1,0 +1,32 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a fixed bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+Real bugNum_ = 1732;
+Text email_ = "jsperez@bayesforecast.com"; 
+Text summary_ = "La redefinición de conjuntos no elimina la estructur";
+Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+Real numErr0 = Copy(NError);
+Real numWarn0 = Copy(NWarning);
+
+Set Include("a.tol");
+
+Real numErr1 = Copy(NError);
+Real numWarn1 = Copy(NWarning);
+
+Set partialResults_ = [[numErr0, numErr1, numWarn0, numWarn1]];
+
+//This is a messure of the success of the test 
+Real quality_ = If(EQ(numErr0+2, numErr1) & EQ(numWarn0+1, numWarn1), 1, 0);
+
+//Return the results 
+Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                                "Partial results = "<<partialResults_,
+                                "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                                email_);
+WriteLn(""<<resultStr_);
+resultStr_

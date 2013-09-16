@@ -1,0 +1,10 @@
+Class @A { Static Real void = 1 };
+
+@A n = [[
+// b.tol
+Real b = 1;
+Real If(False, ?);
+// c.tol
+Real c = 1
+]];
+// => Tira TOL

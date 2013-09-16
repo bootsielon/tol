@@ -1,0 +1,7 @@
+Class @A { Static Real void = 1 };
+
+@A n = [[
+  #Embed "b.tol";
+  #Embed "c.tol"
+]];
+// => Tira TOL
