@@ -6,7 +6,7 @@
 //Sets the bugzilla identifier number, your e-mail and the bug´s summary 
 Real bugNum_ = 1732;
 Text email_ = "jsperez@bayesforecast.com"; 
-Text summary_ = "La redefinición de conjuntos no elimina la estructur";
+Text summary_ = "Problema con #Embed: TOL cae";
 Text link_ = GetTolBugzillaLink(bugNum_);
 
 //Write here the initial test TOL code if needed
