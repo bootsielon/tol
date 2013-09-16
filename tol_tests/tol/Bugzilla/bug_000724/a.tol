@@ -1,0 +1,4 @@
+NameBlock n = [[
+  #Embed "b.tol";
+  #Embed "c.tol" // No se incluye
+]];

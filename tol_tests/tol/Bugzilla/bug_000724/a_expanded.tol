@@ -1,0 +1,8 @@
+NameBlock n = [[
+
+Real b = 1;
+
+Real c = 1
+]];
+
+Set View([[n]], "");
