@@ -369,6 +369,70 @@ namespace eval ::TolPkgGUI {
       5STzQsB6EPRHPPH8QVDLARu0iD76LFLzzhAFBAA7
     }
   }
+
+  if { [ lsearch [ image names ] pck_ok_16 ] == -1 } {
+    image create photo pck_ok_16 -data {
+      R0lGODlhEAAQAMZBAAB6AAB7AAB8AAB9AAB+AAB/AACAAAOBAgWCAgmFBQqFBQuGBgyGBg6ICA+I
+      CBOKChWLCxaMDBiNDRuPDx2PDx2PECOTEySUFCiVFSqXFzyhIT6jI0CjI0moKEyqKk6qKlKtLVew
+      MF60NGa3N2u7O227O267O3S/P3XAP3bAQHfBQXrCQn/FRYDGRoXISITJSYrLS4zNTY3NTZDPT5HP
+      T5LPT5LQUJPQUJPRUZTRUZXRUZbSUpfSUpjTU5nTU5nUVJrUVP//////////////////////////
+      ////////////////////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////yH5
+      BAEKAH8ALAAAAAAQABAAAAemgH+CggQCAQIDg4qCBQkaKjItIBEEi38FFzs2mzY0OiIGipidnDQ2
+      MzQllYIKO6acNiYIMTcYBX8EG7CdKAQsnS4BfwIrsJ4HH6RAC38BNbA4HBE+nDwTwy82LCQqMwAp
+      rzY9D38DITQ0EQEVFjywPIl/Ejk0Ow4DJOE2HasEI6Yz8sHagUCRgROkBjKwRCADjB87evTwUNDS
+      pQANKEAgsMqiR0WBAAA7
+    }
+  }
+
+  if { [ lsearch [ image names ] pck_new_16 ] == -1 } {
+    image create photo pck_new_16 -data {
+      R0lGODlhEAAQAKU9ACVSiixYjS1YjS1Zji5Zji9aji9ajzBbjjFcjzJcjzJckDJdkDNdkDRdkDRe
+      kTVekTVfkTZfkTdgkjlikz5llUVqmEhtmUlumkpumlZ3n1t7oWSCpmqGqHKMrHONrHmSr4KYs4eb
+      tY6huJurvpyrvq65xrS9ybjByrzDzMDGzsbL0crN0szP09DS1dHT1dXW19bW2NbX19jY2NnZ2dra
+      2dvb2tzb2t3b2t3c2t7d29/d2+De3OXi3v///////////yH5BAEKAD8ALAAAAAAQABAAAAahwJ9Q
+      2CgMCIihUgiphFKwFUnDWP4iJt1sRpvJcCaJ0mGiybyis9cUET44u+3sBXjJZ5zHb+FSz+t3LgU/
+      BXFydHZyOxY/BIZbiHc7GYRxIxEtiC0RIzM7Fz8KfTIdDiwALA4dMjIxgz8YOVwfFA8UH10zHg5C
+      DipeNiABIDasKmJDESo6MjYoxTUnE1YOGyU3PDclGwlWQhIJBAYCB97m3kEAOw==
+    }
+  }
+
+  if { [ lsearch [ image names ] pck_upg_16 ] == -1 } {
+    image create photo pck_upg_16 -data {
+      R0lGODlhEAAQAKUpAJAzN5A0N5Q2NZU3NKNALaRBLOJmAONpBeNpBuNqB+NqCONrCONrCeRrCeRs
+      CuZtCOlvBuRxE+xxBe9zA+d9JuiCL+iFNOmFNOqPReqQRuqQR+qRR+qSSfO+lPO/lfO/lvbPr/ja
+      wvjdx/ngy/niz/rl1Pzt4/zy6v79/P//////////////////////////////////////////////
+      /////////////////////////////////////////////yH5BAEKAD8ALAAAAAAQABAAAAZ3wAFg
+      SCwSBT/ABMJsOiGSwi8AcVivWMeDMK1eFRYKdtvFGkafMZdqHnnUZQeDcX7PtesqoxKpMy5WZGwO
+      JigIIx0YKRsMgnoNJSckIikcDHhxDgkhKSkaC4F5WAggGQpXjlkHl6hcSk+wUT9CRrUASD+5uru8
+      P0EAOw==
+    }
+  }
+
+  if { [ lsearch [ image names ] pck_upd_16 ] == -1 } {
+    image create photo pck_upd_16 -data {
+      R0lGODlhEAAQAKUzALgAALsAAL0AAL4AAL8AAMAAAMEEAMIHAMQNAMQOAMYTAMcVAMshAMsiAMwl
+      AM4qAM8vAM8wANM7ANZGANdGANhLANtTANtUAN1ZAN1aAN5eAOBkAOFlAOJpAO2KAPGXAPKaAPqw
+      APqxAPqyAPu1AP6+AP6/AP/AAP/BAP/CAP/EAP/FAP/GAP/IAP/MAP/OAP/PAP/TAP/UAP//////
+      /////////////////////////////////////////////yH5BAEKAD8ALAAAAAAQABAAAAZswJ9w
+      SCwaj8hhIVksIAbMoWC0iP4ImRUIyhyoIi/JEknwwAAvEfd4QL3QqA7hWAid3q+TaUwkPDgQMgAx
+      DRwfc0QGJSkDFwEUAykoVUMDGHoqAwFeeiSIPwovLKMuAy6jLC0TcwOtrq+wVkVBADs=
+    }
+  }
+
+  if { [ lsearch [ image names ] pck_upg_upd_16 ] == -1 } {
+    image create photo pck_upg_upd_16 -data {
+      R0lGODlhEAAQAKU2ALgAALsAAL0AAL4AAL8AAMAAAMEEAMIHAMQNAMQOAMYTAMcVAMshAMsiAMwl
+      AM4qAJU3Nc8vAM8wANM7ANZGANdGANhLANtTANtUAN1ZAN1aAN5eAOBkAOFlAOJpAORsCuVvCu2K
+      APGXAPKaAPqwAPqxAPqyAPu1AP6+AP6/AP/AAP/BAP/CAP/EAP/FAP/GAP/IAP/MAP/OAP/PAP/T
+      AP/UAP///////////////////////////////////////yH5BAEKAD8ALAAAAAAQABAAAAZ9wIFw
+      SCz+Bp+kcqkcHJmfAtSJXBYQ1eZzKTAtmNQlQeMaZT/hJGjQGsgm0mT6QwjN3KXs/LCSuVceBHJb
+      BSQqfjIqKXFhBA8dETUDNA0dIoJhBigsAxgDFQMsK19UAxmKbUItiicEVAoyL7IxAzGyLzAUpUW8
+      Qj+/wMHCv0EAOw==
+    }
+  }
+
   if { [ lsearch [ image names ] clowd_down_16 ] == -1 } {
     image create photo clowd_down_16 -data {
       R0lGODlhEAAQAKU1AABVmABVmQBWmQBrqwBtrGpqamtrawCLxQCMxgCPyHd3d3h4eHx8fACu3gCw
@@ -641,19 +705,19 @@ proc ::TolPkgGUI::GetPkgNode { T url p } {
     set lastlocal $packSync(lastlocal)
     set lastremote $packSync(lastremote)
     if { $lastlocal eq "" } {
-      set img "clowd_down_16"
+      set img "pck_new_16"
       set nodeStatus new
       set statusLabel [ mc "new (%s)" $lastremote ]
     } else {
       set idx [ CmpVersion $lastremote $lastlocal ]
       if { $idx <= 0 } {
         # could be -1 (because of date error)
-        set img "cdr_tick_16"
+        set img "pck_ok_16"
         set nodeStatus ok
         set statusLabel [ mc "ok" ]
       } else {
         puts "$lastremote > $lastlocal"
-        set img "system_software_update_16"
+        set img "pck_upg_16"
         set nodeStatus upgrade
         set statusLabel [ mc "upgrade (%s)" $lastremote ]
       }
@@ -728,19 +792,19 @@ proc ::TolPkgGUI::FillTreeInfo { T } {
       set dateremote $versSync(dateremote)
       set datelocal $versSync(datelocal)
       if { $datelocal eq "TheBegin" } {
-        set img "clowd_down_16"
+        set img "pck_new_16"
         set nodeStatus new
         set statusLabel [ mc "new" ]
       } else {
         set idx [ string compare $dateremote $datelocal ]
         if { $idx <= 0 } {
           # could be -1 (because of date error)
-          set img "cdr_tick_16"
+          set img "pck_ok_16"
           set nodeStatus ok
           set statusLabel [ mc "ok" ]
         } else {
           puts "$pv OUTDATED : $dateremote > $datelocal"
-          set img "view_refresh_16"
+          set img "pck_upd_16"
           set nodeStatus update
           set statusLabel [ mc "update" ]
         }
@@ -761,13 +825,13 @@ proc ::TolPkgGUI::FillTreeInfo { T } {
       if { $nodesInfo($parent,status) ne "update" } {
         if { $nodesInfo($parent,status) eq "upgrade" } {
           set nodesInfo($parent,status) "upgupd"
-          $T itemcolumn $parent NAME {image "software_update_urgent_16"}
+          $T itemcolumn $parent NAME {image "pck_upg_upd_16"}
           set txtUpgrade [ lindex [ lindex [ $T itemcolumn $parent STATUS text ] 0 ] 1 ]
           $T itemcolumn $parent STATUS \
               [ list text [ mc "update/%s" $txtUpgrade ] ]
         } elseif { $nodesInfo($parent,status) ne "upgupd"} {
           set nodesInfo($parent,status) "update"
-          $T itemcolumn $parent NAME {image "view_refresh_16"}
+          $T itemcolumn $parent NAME {image "pck_upd_16"}
           $T itemcolumn $parent STATUS [list text [ mc "update" ] ]
         }
       }
