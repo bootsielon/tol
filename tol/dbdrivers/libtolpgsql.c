@@ -163,7 +163,7 @@ DLLEXPORT(int) postgres_Close(pgsqld *dbd)
 DLLEXPORT(int) postgres_GetDBMSName(pgsqld *dbd, char *dbmsName, size_t size)
 {
   const char* pgsqlName = "postgres";
-  strncpy(dbmsName, pgsqlName, sizeof(pgsqlName)-1);
+  strncpy(dbmsName, pgsqlName, size);
   return 1;
 }
 
