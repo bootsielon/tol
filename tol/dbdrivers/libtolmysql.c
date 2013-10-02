@@ -134,7 +134,7 @@ DLLEXPORT(int) mysql_Close(mysqld *dbd)
 
 DLLEXPORT(int) mysql_GetDBMSName(mysqld *dbd, char *dbmsName, size_t size)
 {
-  const char* mysqlName = "mysql";
+  const char* mysqlName = "MySQL";
   strncpy(dbmsName, mysqlName, size);
   return 1;
 }
