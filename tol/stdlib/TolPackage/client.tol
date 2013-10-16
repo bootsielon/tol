@@ -141,10 +141,10 @@ Text _.autodoc.member.Client =
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Real ExportPackage(Text identifier, Text destinationRoot) // GUI
+  Real ExportPackage(Text pkg.ver, Text destinationRoot) // GUI
   ////////////////////////////////////////////////////////////////////////////
   {
-    Text pkg.loc = _.localRoot<<identifier;
+    Text pkg.loc = _.localRoot<<pkg.ver;
     Text zip.loc = pkg.loc+".zip";
     Text zip.dest = destinationRoot+pkg.ver+".zip";
     //Ensures that local.oza is locally created
