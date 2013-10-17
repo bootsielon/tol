@@ -1,0 +1,47 @@
+Set area = { Include("area.oza") };
+Set area.max = EvalSet(area,Real(Serie s) { MaxS(s) });
+
+Set area.divMax = EvalSet(area,Serie(Serie s)
+{
+  Serie n = s / Max(1,MaxS(s));
+  Eval(Name(s)+".divMax=n")
+});
+
+Set trend = EvalSet(area,Real(Serie s)
+{
+  AvrS(SubSer((1-B):Log(s+1),y2010,y2100))
+});
+Set class = KMeans(
+  SerSetMat(area.divMax) |
+  Log(SetCol(area.max)+1) |  
+  EQ(SetCol(area.max),0) 
+  ,8);
+
+Set centers = MatSerSet(class::Centers,Yearly,First(area[1]));
+Set assignment = MatSet(Tra(class::Assignments))[1];
+Set aux.1 = Classify(Range(1,Card(area),1),Real(Real a, Real b)
+{
+  Compare(assignment[a],assignment[b])
+});
+Set aux.2 = EvalSet(aux.1,Set(Set c) { ExtractByIndex(area,c) });
+Set aux.3 = EvalSet(aux.2, Serie(Set c) { SetAvr(c) });
+Set order = Sort(Range(1,Card(aux.3),1),Real(Real a, Real b)
+{
+  Compare(AvrS(aux.3[a]),AvrS(aux.3[b]))
+});
+
+Set aux.4 = For(1,Card(order), Set(Real k)
+{
+  Set s = aux.2[order[k] ];
+  Eval("Group."<<(k-1)+"=s")
+});
+
+Set aux.5 = For(1,Card(order), Serie(Real k)
+{
+  Serie s = aux.3[order[k] ];
+  Eval("Group."<<(k-1)+"=s")
+});
+
+Set aux.6 = EvalSet(aux.4, Serie(Set c) { SetSum(c) });
+Set aux.7 = EvalSet(aux.4, Real(Set c) { Card(c) });
+
