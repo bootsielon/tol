@@ -17,7 +17,6 @@ Set class = KMeans(
   EQ(SetCol(area.max),0) 
   ,8);
 
-Set centers = MatSerSet(class::Centers,Yearly,First(area[1]));
 Set assignment = MatSet(Tra(class::Assignments))[1];
 Set aux.1 = Classify(Range(1,Card(area),1),Real(Real a, Real b)
 {
@@ -44,4 +43,5 @@ Set aux.5 = For(1,Card(order), Serie(Real k)
 
 Set aux.6 = EvalSet(aux.4, Serie(Set c) { SetSum(c) });
 Set aux.7 = EvalSet(aux.4, Real(Set c) { Card(c) });
+WriteLn("Groups cardinals = "<<aux.7);
 
