@@ -1,0 +1,6 @@
+
+
+Real Preço = 2;
+
+Real Ois.Store([[Preço]],"check.01.oza");
+
