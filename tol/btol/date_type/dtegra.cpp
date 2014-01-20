@@ -399,6 +399,31 @@ void BDteFirstNotEqual::CalcContens()
     contens_ = first;
 }
 
+//--------------------------------------------------------------------
+DeclareContensClass(BDate, BDteTemporary, BDteLastNotEqual);
+DefExtOpr(1, BDteLastNotEqual, "LastNotEqual", 3, 3, "Serie Date Real",
+  I2("(Serie ser, Date from, Real value)",
+     "(Serie ser, Date desde, Real valor)"),
+  I2("Returns the first previuos date to a given date, for the one which "
+     "the value of a series is different of a given value.",
+     "Devuelve la primera fecha anterior a una dada para la que el valor de "
+     "una serie es distinto de un valor dado."),
+	  BOperClassify::TimeAlgebra_);
+//--------------------------------------------------------------------
+void BDteLastNotEqual::CalcContens()
+//--------------------------------------------------------------------
+{
+    BUserTimeSerie* ser	= Tsr (Arg(1));
+    BUserTimeSet*	  tms	= ser->Dating();
+    BDate		  first = Date (Arg(2));
+    BDat		  val	= Dat  (Arg(3));
+    
+    if(!tms) { contens_ = BDate::Unknown(); return; }
+    while((*ser)[first]==val) { first-=tms; } ;
+    contens_ = first;
+}
+
+
 
 //--------------------------------------------------------------------
 DeclareContensClass(BDte, BDteTemporary, BDteIndexToDate);
