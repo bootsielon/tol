@@ -1048,7 +1048,6 @@ void InvPartAutoCor(const BArray<BDat>& cor, BArray<BDat>& p)
     PartAutoCor(q,p);
 }
 
-
 //--------------------------------------------------------------------
 BDat BoxPierceACF(const BArray<BDat>& acf, BInt m, BInt s)
 
@@ -1515,13 +1514,13 @@ bool Diagnostic_NormalReg_ParamSignif(
   BDat& refuseProb,
   const BArray<BDat>& mean,
   const BArray<BDat>& stdErr,
-  int dataLength)
+  int freeDeg)
 //--------------------------------------------------------------------
 {
   int numParam = mean.Size();
   if(!numParam) { return(false); }
 
-  BTStudentDist T(dataLength-numParam);
+  BTStudentDist T(freeDeg);
   BInt i;
   statValue=BDat::PosInf();
   for(i=0; i<numParam; i++)

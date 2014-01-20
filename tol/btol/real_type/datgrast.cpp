@@ -31,6 +31,8 @@
 #include <tol/tol_bout.h>
 #include <tol/tol_bstat.h>
 #include <tol/tol_btest.h>
+#include <tol/tol_btsrgra.h>
+#include <tol/tol_bvmatgra.h>
 
 //--------------------------------------------------------------------
 // Forze linker functions
@@ -1045,12 +1047,67 @@ BTraceInit("datgrast.cpp");
   contens_ = R2Coefficient(v1, v2);
 }
 
+//--------------------------------------------------------------------
+  bool fillVectorType(
+    const BText& caller, 
+    const BText& argument, 
+    BArray<BDat>& vec, 
+    const BSyntaxObject* obj)
+//--------------------------------------------------------------------
+{
+  BGrammarId gid = obj->Grammar()->Gid();
+  switch(gid)
+  {
+    case BGI_Serie : 
+    {
+      BUserTimeSerie* serie = (BUserTimeSerie*)obj;
+      BData data;
+      serie->GetData(data);
+      vec.Copy(data.Size(), data.Buffer());
+      return(true);
+    };
+    case BGI_Matrix : 
+    {
+      BUserMat* mat  = (BUserMat*)obj;
+      vec = mat->Contens().Data();
+      return(true);
+    };
+    case BGI_VMatrix : 
+    {
+      BUserVMat* vmat  = (BUserVMat*)obj;
+      BMatrix<BDat> mat;
+      vmat->Contens().DMat2dense(*((BMatrix<double>*)(&mat)));
+      vec = mat.Data();
+      return(true);
+    };
+    case BGI_Set : 
+    {
+      BUserSet* uset  = (BUserSet*)obj;
+      BSet& set = uset->Contens();
+      if(!CheckRealElement(caller,set)) { return(false); }
+      vec.ReallocBuffer(set.Card());
+      for(BInt n=0; n<vec.Size(); n++)
+      {
+        vec[n] = Dat(set[n+1]);
+      }
+      return(true);
+    }  
+    default : 
+    {
+      Error(BText("[")+caller+"] Not allowed type "+obj->Grammar()->Name()+
+      " for vectorial argument "<<argument+"\n"
+      "Allowed vectorial types are: Set, Matrix, VMatrix, Serie");
+      return false;
+    }
+  };
+};
+
 
 //--------------------------------------------------------------------
   DeclareContensClass(BSet, BSetTemporary, BSetHannShapiroWTest);
-  DefExtOpr(1, BSetHannShapiroWTest, "HannShapiroWTest", 2, 2, "Set Real",
-  I2("(Set set, Real alfa)",
-     "(Set conjunto, Real alfa)"),
+  DefExtOpr(1, BSetHannShapiroWTest, "HannShapiroWTest", 2, 2, 
+    "{Set|Matrix|VMatrix|Serie} Real",
+    "({Set|Matrix|VMatrix|Serie} sample, Real alfa)",
   I2(".",
      "Contruye el test de normalidad de Hann-Shapiro para una muestra con el "
      "nivel de siginficación alfa. Este test está recomendado si la muestra "
@@ -1065,15 +1122,9 @@ BTraceInit("datgrast.cpp");
   void BSetHannShapiroWTest::CalcContens()
 //--------------------------------------------------------------------
 {
-  BSet& set  = Set(Arg(1));
-  if(!CheckRealElement("HannShapiroWTest",set)) { return; }
-  BDat	alfa = Dat(Arg(2));
   BArray<BDat> vec;
-  vec.ReallocBuffer(set.Card());
-  for(BInt n=0; n<vec.Size(); n++)
-  {
-    vec[n] = Dat(set[n+1]);
-  }
+  if(!fillVectorType("HannShapiroWTest","sample",vec,Arg(1))) { return; }
+  BDat	alfa = Dat(Arg(2));
   BDat	b2;
   BDat W = HannShapiroW(vec,b2);
   BDat Test = HannShapiroWTest(W,vec.Size(),alfa);
@@ -1088,9 +1139,9 @@ BTraceInit("datgrast.cpp");
 
 //--------------------------------------------------------------------
   DeclareContensClass(BSet, BSetTemporary, BSetDAgostinoDTest);
-  DefExtOpr(1, BSetDAgostinoDTest, "DAgostinoDTest", 2, 2, "Set Real",
-  I2("(Set set, Real alfa)",
-     "(Set conjunto, Real alfa)"),
+  DefExtOpr(1, BSetDAgostinoDTest, "DAgostinoDTest", 2, 2, 
+  "{Set|Matrix|VMatrix|Serie} Real",
+  "({Set|Matrix|VMatrix|Serie} sample, Real alfa)",
   I2(".",
      "Contruye el test de normalidad de DAgostinoD para una muestra con el "
      "nivel de siginficación alfa. Este test está recomendado si la muestra "
@@ -1105,15 +1156,9 @@ BTraceInit("datgrast.cpp");
   void BSetDAgostinoDTest::CalcContens()
 //--------------------------------------------------------------------
 {
-  BSet& set  = Set(Arg(1));
-  BDat	alfa = Dat(Arg(2));
-  if(!CheckRealElement("DAgostinoDTest",set)) { return; }
   BArray<BDat> vec;
-  vec.ReallocBuffer(set.Card());
-  for(BInt n=0; n<vec.Size(); n++)
-  {
-    vec[n] = Dat(set[n+1]);
-  }
+  if(!fillVectorType("DAgostinoDTest","sample",vec,Arg(1))) { return; }
+  BDat	alfa = Dat(Arg(2));
   BDat T;
   BDat D = DAgostinoD(vec, T);
   BDat Test = DAgostinoDTest(D,vec.Size(),alfa);
@@ -1126,4 +1171,141 @@ BTraceInit("datgrast.cpp");
 }
 
 
+bool Diagnostic_NormalReg_Res_Pearson(
+  BDat& statValue,
+  BDat& refuseProb,
+  const BArray<BDat>& res);
 
+
+//--------------------------------------------------------------------
+  DeclareContensClass(BSet, BSetTemporary, BSetNormalPearsonChiSqrTest);
+  DefExtOpr(1, BSetNormalPearsonChiSqrTest, "NormalPearsonChiSqrTest", 1, 1,
+  "{Set|Matrix|VMatrix|Serie}",
+  "({Set|Matrix|VMatrix|Serie} sample)",
+  "Performs Pearson chi-square test of normality for a given sample.\n"
+  "http://en.wikipedia.org/wiki/Pearson%27s_chi-squared_test",
+     BOperClassify::Statistic_);
+  void BSetNormalPearsonChiSqrTest::CalcContens()
+//--------------------------------------------------------------------
+{
+  BArray<BDat> vec;
+  if(!fillVectorType("NormalPearsonChiSqrTest","sample",vec,Arg(1))) { return; }
+  BDat statValue;
+  BDat refuseProb;
+  Diagnostic_NormalReg_Res_Pearson(statValue,refuseProb,vec);
+  BList* lst	= NIL;
+  BList* aux	= NIL;
+  LstFastAppend(lst,aux, BContensDat::New("StatValue",  statValue,  "Chi-square value"));
+  LstFastAppend(lst,aux, BContensDat::New("RefuseProb", refuseProb, "Refuse probability"));
+  contens_.RobElement(lst);
+}
+
+void AutoCor(const BArray<BDat>& vec,BArray<BDat>& cor,BInt order,BInt demean);
+
+bool Diagnostic_ARIMA_ResAcf_BoxPierceLjung(
+  BDat& statValue,
+  BDat& refuseProb,
+  const BArray<BDat>& acf,
+  int dataLength,
+  int p,
+  int q);
+
+//--------------------------------------------------------------------
+  DeclareContensClass(BSet, BSetTemporary, BSetBoxPierceLjungTest);
+  DefExtOpr(1, BSetBoxPierceLjungTest, "BoxPierceLjungTest", 3, 3,
+  "{Set|Matrix|VMatrix|Serie} Real Real",
+  "({Set|Matrix|VMatrix|Serie} sample, Real numAcf, Real freeDegree)",
+  "The Ljung–Box test (named for Greta M. Ljung and George E. P. Box) "
+  "is a type of statistical test of whether any of a group of numAcf "
+  "autocorrelations of a time series are different from zero. Instead "
+  "of testing randomness at each distinct lag, it tests the overall "
+  "randomness based on a number of lags, and is therefore a portmanteau "
+  "test.\n"
+  "http://en.wikipedia.org/wiki/Ljung%E2%80%93Box_test",
+     BOperClassify::Statistic_);
+  void BSetBoxPierceLjungTest::CalcContens()
+//--------------------------------------------------------------------
+{
+  BArray<BDat> vec, acf;
+  if(!fillVectorType("BoxPierceLjungTest","sample",vec,Arg(1))) { return; }
+  int numAcf = (int)Real(Arg(2));
+  int freeDegree = (int)Real(Arg(3));
+  BDat statValue;
+  BDat refuseProb;
+  int dataLength = vec.Size();
+  AutoCor(vec,acf,numAcf,1);
+  Diagnostic_ARIMA_ResAcf_BoxPierceLjung(statValue,refuseProb,acf,dataLength,freeDegree,0);
+  BList* lst	= NIL;
+  BList* aux	= NIL;
+  LstFastAppend(lst,aux, BContensDat::New("StatValue",  statValue,  "Chi-square value"));
+  LstFastAppend(lst,aux, BContensDat::New("RefuseProb", refuseProb, "Refuse probability"));
+  contens_.RobElement(lst);
+}
+
+bool Diagnostic_ARIMA_ResAcf_BoxPierceMod(
+  BDat& statValue,
+  BDat& refuseProb,
+  const BArray<BDat>& acf,
+  int dataLength,
+  int p,
+  int q);
+  
+//--------------------------------------------------------------------
+  DeclareContensClass(BSet, BSetTemporary, BSetBoxPierceModifiedTest);
+  DefExtOpr(1, BSetBoxPierceModifiedTest, "BoxPierceModified", 3, 3,
+  "{Set|Matrix|VMatrix|Serie} Real Real",
+  "({Set|Matrix|VMatrix|Serie} sample, Real numAcf, Real freeDegree)",
+  "Performs the Chung-Ming Kuan modified version of serial "
+  "uncorrelatedness test of Box-Pierce.\n"
+  "http://homepage.ntu.edu.tw/~ckuan/pdf/Lec-DiagTest_0902.pdf",
+     BOperClassify::Statistic_);
+  void BSetBoxPierceModifiedTest::CalcContens()
+//--------------------------------------------------------------------
+{
+  BArray<BDat> vec, acf;
+  if(!fillVectorType("BoxPierceModified","sample",vec,Arg(1))) { return; }
+  int numAcf = (int)Real(Arg(2));
+  int freeDegree = (int)Real(Arg(3));
+  BDat statValue;
+  BDat refuseProb;
+  int dataLength = vec.Size();
+  AutoCor(vec,acf,numAcf,1);
+  Diagnostic_ARIMA_ResAcf_BoxPierceMod(statValue,refuseProb,acf,dataLength,freeDegree,0);
+  BList* lst	= NIL;
+  BList* aux	= NIL;
+  LstFastAppend(lst,aux, BContensDat::New("StatValue",  statValue,  "Chi-square value"));
+  LstFastAppend(lst,aux, BContensDat::New("RefuseProb", refuseProb, "Refuse probability"));
+  contens_.RobElement(lst);
+}
+
+  
+/*  
+void Frequency(const BArray<BDat>& vec, BMatrix<BDat>& M ,
+	       BInt parts, BDat min, BDat max);
+
+//--------------------------------------------------------------------
+  DeclareContensClass(BMat, BMatTemporary, BMatFrequenceHistogram);
+  DefExtOpr(1, BMatFrequenceHistogram, "FrequenceHistogram", 1, 4,
+  "{Set|Matrix|VMatrix|Serie}, Real, Real, Real",
+  "({Set|Matrix|VMatrix|Serie} sample "
+  "[, Real parts=100, Real min=-1/0, Real max = +1/0])",
+  "Builds the histogram of frequencies of a given sample",
+     BOperClassify::Statistic_);
+  void BMatFrequenceHistogram::CalcContens()
+//--------------------------------------------------------------------
+{
+  BArray<BDat> vec;
+  if(!fillVectorType("FrequenceHistogram","sample",vec,Arg(1))) { return; }
+  BInt parts  =100; 
+  BDat min = BDat::NegInf(); 
+  BDat max = BDat::PosInf();
+  if(Arg(2)) { parts = Dat(Arg(2); }
+  if(Arg(3)) { min = Dat(Arg(3); }
+  if(Arg(4)) { max = Dat(Arg(4); }
+  
+void Frequency(const BArray<BDat>& vec, BMatrix<BDat>& M ,
+	       BInt parts, BDat min, BDat max);
+  
+}
+    
+*/    
