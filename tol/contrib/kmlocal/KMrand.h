@@ -37,6 +37,8 @@ extern	int	kmIdum;			// used for random number generation
 //  External entry points
 //----------------------------------------------------------------------
 
+void kmInitialice(int seed);
+
 int kmRanInt(			// random integer
 	int		n);		// in the range [0,n-1]
 

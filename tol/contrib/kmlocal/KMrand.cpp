@@ -43,21 +43,14 @@ int	kmIdum = 0;			// used for random number generation
 //	system-supplied routine "random()". Set kmIdum to any negative value
 //	to initialise or reinitialise the sequence.
 //------------------------------------------------------------------------
-
-static double kmRan0()
+void kmInitialice(int seed)
 {
-    int j;
+      int j;
 
     static double y, maxran, v[98];	// The exact number 98 is unimportant
-    static int iff = 0;
 
-    // As a precaution against misuse, we will always initialize on the first
-    // call, even if "kmIdum" is not set negative. Determine "maxran", the
-    // next integer after the largest representable value of type int. We
-    // assume this is a factor of 2 smaller than the corresponding value of
-    // type unsigned int. 
+  	kmIdum = seed;
 
-    if (kmIdum < 0 || iff == 0) {	// initialize
 		/* compute maximum random number */
 #ifdef WIN32				// Microsoft Visual C++
 	maxran = RAND_MAX;
@@ -70,10 +63,8 @@ static double kmRan0()
 	} while (i);
 	maxran = (double) k;
 #endif
- 	iff = 1;
-  
+
 	srandom(kmIdum);
-	kmIdum = 1;
 
 	for (j = 1; j <= 97; j++)	// exercise the system routine
 	    random();			// (value intentionally ignored)
@@ -81,7 +72,15 @@ static double kmRan0()
 	for (j = 1; j <= 97; j++)	// Then save 97 values and a 98th
 	    v[j] = random();
 	y = random();
-     }
+}
+
+
+
+static double kmRan0()
+{
+    int j;
+
+    static double y, maxran, v[98];	// The exact number 98 is unimportant
 
     // This is where we start if not initializing. Use the previously saved
     // random number y to get an index j between 1 and 97. Then use the
