@@ -58,7 +58,7 @@
 #define SQLMAXWORD 128
 #define MAX_TEXT_FIELD_LENGTH 2048
 
-#define TRACE_DEEP 1
+//#define TRACE_DEEP 1
 
 #ifdef _MSC_VER
 
