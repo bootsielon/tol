@@ -25,12 +25,25 @@ sudo rpm -Uvh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noa
 # para poder hacer X11 remoto
 sudo yum install xauth
 
+sudo yum rlwrap
+
 # Instalamos los paquetes base
 sudo yum install bc unzip wget cvs subversion glibc-devel gcc-gfortran libstdc++-devel autoconf make bzip2-devel.i686 gsl-devel.i686 boost-devel.i686 mysql-devel.i686 postgresql-devel.i686 openssl-devel.i686 zlib-devel.i686 libtool-ltdl-devel.i686 libX11-devel.i686
 
 # unixODBC-devel.i686 no ya que usamos el fuente unixODBC-2.3.0
-# tcl-devel.i686 tk-devel.i686 tk.i686 no ya que compilamos desde el fuente el 8.4
+cd ${TOLROOT}/contribs
+wget ftp://ftp.unixodbc.org/pub/unixODBC/unixODBC-2.3.2.tar.gz
+tar zxf unixODBC-2.3.2.tar.gz
+cd unixODBC-2.3.2
+mkdir build
+cd build
+CC='gcc -m32' CXX='g++ -m32' ../configure
+make
+sudo make install
 
+
+# tcl-devel.i686 tk-devel.i686 tk.i686 no ya que compilamos desde el fuente el 8.4
+cd ${TOLROOT}/contribs
 wget http://downloads.sourceforge.net/project/tcl/Tcl/8.4.20/tcl8.4.20-src.tar.gz
 tar zxf tcl8.4.20-src.tar.gz
 cd tcl8.4.20
@@ -208,7 +221,7 @@ cd ..
 # compilamos toltcl: el puente con tcl.
 #
 cd ${TOLROOT}/tolp/trunk/toltcl/release
-CC='gcc -m32' CXX='g++ -m32' ./default_config.sh --with-tol=/usr/local/tol32 --with-tcl=/usr/local/tcl8.4/lib
+CC='gcc -m32' CXX='g++ -m32' ./default_config.sh --with-tol=/usr/local/tol32 --with-tcl=/usr/local/tcl8.4.20/lib
 make
 sudo make install
 
@@ -217,7 +230,9 @@ sudo make install
 cd ${TOLROOT}/contribs
 wget https://github.com/tcltk/tcllib/archive/tcllib_1_16.tar.gz
 tar zxf tcllib_1_16.tar.gz
-./configure --prefix=/usr/local/tcl8.4.2
+cd tcllib-tcllib_1_16/
+./configure --prefix=/usr/local/tcl8.4.20
+sudo make install
 
 # 
 # compilamos tolsh: la consola de tol con Tcl_EvalEx
@@ -225,6 +240,9 @@ tar zxf tcllib_1_16.tar.gz
 cd ${TOLROOT}/tolp/trunk/tolsh
 sudo cp -r tolsh.vfs/lib/app-tolsh /usr/local/tcl8.4.20/lib/.
 sudo cp -r tolsh.vfs/lib/tequila /usr/local/tcl8.4.20/lib/.
-cp -r tolsh.vfs/lib/tlogger /usr/local/tcl8.4.20/lib/.
+sudo cp -r tolsh.vfs/lib/tlogger /usr/local/tcl8.4.20/lib/.
 sudo cp -r tolsh.vfs/lib/tolcomm /usr/local/tcl8.4.20/lib/.
-
+echo '#!/bin/bash' > /tmp/tolsh
+echo 'LD_LIBRARY_PATH=/usr/local/lib /usr/local/tcl8.4.20/bin/tclsh8.4 /usr/local/tcl8.4.20/lib/app-tolsh/tolsh.tcl ${1+"$@"}' >> /tmp/tolsh
+chmod a+x /tmp/tolsh
+sudo mv /tmp/tolsh /usr/local/tol32/bin/tolsh
