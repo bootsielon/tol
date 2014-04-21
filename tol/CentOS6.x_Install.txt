@@ -246,3 +246,6 @@ echo '#!/bin/bash' > /tmp/tolsh
 echo 'LD_LIBRARY_PATH=/usr/local/lib /usr/local/tcl8.4.20/bin/tclsh8.4 /usr/local/tcl8.4.20/lib/app-tolsh/tolsh.tcl ${1+"$@"}' >> /tmp/tolsh
 chmod a+x /tmp/tolsh
 sudo mv /tmp/tolsh /usr/local/tol32/bin/tolsh
+
+# incluir en ~/.bash_profile
+export TOLSessionPath=/usr/local/tol32/bin/tolsh
