@@ -1,0 +1,24 @@
+# -*- mode: conf -*-
+import os ;
+
+path HOME  : [ os.environ HOME ] ;
+path TOLROOT  : [ os.environ TOLROOT ] ;
+configure prefix : /usr/local/tol ;
+configure lib : gsl ;
+configure lib : gslcblas ;
+configure lib : blas : <name>f77blas <search>/usr/lib/atlas-sse2 ;
+configure lib : lapack : <search>/usr/lib/atlas-sse2 ;
+configure lib : cholmod ;
+configure lib : odbc : <name>odbc <prefix>/usr/local/unixODBC-2.3.0 ;
+configure lib : mysql : <name>mysqlclient <search>/usr/lib/mysql <include>/usr/include/mysql ;
+configure lib : pgsql : <name>pq ;
+configure lib : bz2 ;
+configure lib : ziparch  : <include>$(TOLROOT)/contribs/ZipArchive/ZipArchive <search>$(TOLROOT)/contribs/ZipArchive/ZipArchive ;
+configure lib 
+          : Cint_headers 
+          : <include>/usr/include/root ;
+configure lib : ANN : <prefix>$(TOLROOT)/contribs/ann_1.1.2 ;
+configure build : tolodbc tolmysql tolpgsql ;
+configure lib : fftw : <name>fftw3 <prefix>/usr/local/fftw-3.3.1 ;
+configure lib : boost_thread : <name>boost_thread-mt ;
+configure lib : boost_system : <name>boost_system-mt ;

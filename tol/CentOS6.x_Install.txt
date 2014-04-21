@@ -1,0 +1,230 @@
+
+#
+# instrucciones para compilar tol/tolbase en centos 5.4 X86_64,
+# concretamente:
+#
+# Linux brw07.localbayes.es 2.6.18-164.el5 #1 SMP Thu Sep 3 03:28:30 EDT 2009 x86_64 x86_64 x86_64 GNU/Linux
+#
+# asumimos que existe una variable de entorno TOLROOT debajo de la cual 
+# compilaremos TOL
+#
+#  export TOLROOT=/home/toldevel/TOL
+
+#
+# creamos directorios de trabajo
+#
+mkdir ${TOLROOT}/tools
+mkdir ${TOLROOT}/contribs
+mkdir -p ${TOLROOT}/contribs/rpms
+
+#
+# incorporamos el repositorio EPEL
+#
+sudo rpm -Uvh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+
+# para poder hacer X11 remoto
+sudo yum install xauth
+
+# Instalamos los paquetes base
+sudo yum install bc unzip wget cvs subversion glibc-devel gcc-gfortran libstdc++-devel autoconf make bzip2-devel.i686 gsl-devel.i686 boost-devel.i686 mysql-devel.i686 postgresql-devel.i686 openssl-devel.i686 zlib-devel.i686 libtool-ltdl-devel.i686 libX11-devel.i686
+
+# unixODBC-devel.i686 no ya que usamos el fuente unixODBC-2.3.0
+# tcl-devel.i686 tk-devel.i686 tk.i686 no ya que compilamos desde el fuente el 8.4
+
+wget http://downloads.sourceforge.net/project/tcl/Tcl/8.4.20/tcl8.4.20-src.tar.gz
+tar zxf tcl8.4.20-src.tar.gz
+cd tcl8.4.20
+mkdir build
+cd build
+CC='gcc -m32' CXX='g++ -m32' ../unix/configure --prefix=/usr/local/tcl8.4.20 --enable-threads --enable-shared 
+make
+sudo make install install-private-headers
+wget http://downloads.sourceforge.net/project/tcl/Tcl/8.4.20/tk8.4.20-src.tar.gz
+tar zxf tk8.4.20-src.tar.gz
+cd tk8.4.20
+mkdir build
+cd build
+CC='gcc -m32' CXX='g++ -m32' ../unix/configure --prefix=/usr/local/tcl8.4.20 --enable-threads --enable-shared --with-tcl=/usr/local/tcl8.4.20/lib
+sudo make install install-private-headers
+
+#
+# instalamos atlas/blas/lapack, estos pasos parten de la base que el
+# procesador implementa las extensiones sse2, algo que puede saberse
+# ejecutando:
+#
+# cat /proc/cpuinfo | grep flags
+#
+# en nuestro caso las extensiones son sse2
+sudo yum install atlas-sse2.i686 atlas-sse2-devel.i686
+
+# bash_profile
+export BLAPI_BLAS_LIB=/usr/lib/atlas-sse2/libf77blas
+export BLAPI_LAPACK_LIB=/usr/lib/atlas-sse2/liblapack
+
+#
+# instalamos R-project
+# quizas se puede instalar el R de 64 bits, ya que se usa en modo comando
+sudo yum install R-core.i686 R-devel.i686
+echo 'options(repos="http://cran.r-project.org")' > /tmp/Rinstall.R
+echo 'install.packages("coda")' >> /tmp/Rinstall.R
+echo 'install.packages("quadprog")' >> /tmp/Rinstall.R
+echo 'install.packages("Rglpk")' >> /tmp/Rinstall.R
+sudo R BATCH -f /tmp/Rinstall.R
+rm /tmp/Rinstall.R
+
+#
+# instalo Boost Build 2: bjam
+#
+cd ${TOLROOT}/tools
+wget http://www.boost.org/boost-build2/boost-build.tar.bz2
+tar jxf boost-build.tar.bz2
+cd boost-build/engine
+./build.sh
+# lo copio en bin pues su debe encontrarlo para hacer tareas de instalacion
+sudo cp bin.linuxx86_64/bjam /usr/bin/.
+cd ..
+export BOOST_BUILD_PATH=`pwd`
+echo export BOOST_BUILD_PATH=`pwd` >> ${HOME}/.bash_profile
+
+#
+# instalo google sparse hash
+#
+sudo yum install sparsehash-devel
+
+#
+# compilo ZipArchive
+#
+cd ${TOLROOT}/contribs
+mkdir ZipArchive
+cd ZipArchive
+wget http://packages.tol-project.org/linux/sources/ziparchive_src.zip
+unzip ziparchive_src.zip
+cp _projects/Linux/Makefile ZipArchive/.
+cd ZipArchive
+sed -e 's/$(CC)/g++ -m32 -fPIC/' -e 's/$(CCC)/gcc -m32 -fPIC/' < Makefile > Makefile.fix
+make -e -f Makefile.fix
+
+#
+# compilo fftw3
+cd ${TOLROOT}/contribs
+wget http://packages.tol-project.org/linux/sources/fftw-3.3.1.tar.gz
+tar zxf fftw-3.3.1.tar.gz
+cd fftw-3.3.1
+CC='gcc -m32' CXX='g++ -m32' ./configure --prefix=/usr/local/fftw-3.3.1
+make
+sudo make install
+
+#
+# compilamos ANN
+#
+cd ${TOLROOT}/contribs/
+#wget http://www.cs.umd.edu/%7Emount/ANN/Files/1.1.2/ann_1.1.2.tar.gz
+wget http://packages.tol-project.org/linux/sources/ann_1.1.2.tar.gz
+tar zxf ann_1.1.2.tar.gz
+cd ann_1.1.2
+cp Make-config Make-config.original
+sed 's/"C++ = g++"/"C++ = g++ -m32"/' < Make-config.original > Make-config
+make -e linux-g++
+
+#
+# instalamos Cint: C interpretado
+#
+sudo yum install root-cint.i686
+
+#
+#
+# compilamos GBLA
+#
+cd ${TOLROOT}
+svn co https://www.tol-project.org/svn/gbla
+cd gbla/trunk/libltdl
+chmod +x configure
+CC='gcc -m32' CXX='g++ -m32' ./configure
+cd ..
+bjam address-model=32 release
+# verificamos que el codigo generado funciona, pasamos los test de blas
+# BLAPI_BLAS_LIB=/usr/lib/R/lib/libRblas.so BLAPI_LAPACK_LIB=/usr/lib/R/lib/libRlapack.so
+cd examples/blas
+bjam address-model=32 release
+bin/gcc-4.4.7/release/address-model-32/blas1_check
+bin/gcc-4.4.7/release/address-model-32/blas2_check
+bin/gcc-4.4.7/release/address-model-32/blas3_check
+cd ${TOLROOT}/gbla/trunk
+sudo BOOST_BUILD_PATH=`echo $BOOST_BUILD_PATH` bjam address-model=32 release install
+
+#
+# compilamos SuiteSparse_TOL
+#
+cd ${TOLROOT}/contribs/
+wget http://packages.tol-project.org/linux/sources/SuiteSparse_TOL.tar.bz2
+tar jxf SuiteSparse_TOL.tar.bz2
+cd SuiteSparse_TOL/BB2/CHOLMOD
+===========================================================================
+edit the metis-4.0/Lib/rename.h file and replace the last line in the file:
+
+#define log2    __log2
+
+with the following:
+
+#define log2    METIS__log2
+===========================================================================
+
+bjam address-model=32 release
+sudo BOOST_BUILD_PATH=`echo $BOOST_BUILD_PATH` bjam address-model=32 release install
+
+sudo yum install libcurl-devel.i686
+# compilamos tclcurl, observar que se compila con -m32
+cd ${TOLROOT}/contribs
+wget http://packages.tol-project.org/linux/sources/TclCurl-7.19.6.tar.gz
+tar zxf TclCurl-7.19.6.tar.gz
+cd TclCurl-7.19.6
+CC='gcc -m32' CXX='g++ -m32' ./configure --with-tcl=/usr/local/tcl8.4.20/lib
+make -e
+sudo make install
+
+
+#
+# Compilamos TOL: vamos a por tol!!!!
+#
+cd ${TOLROOT}
+#sudo ln -s /usr/include /usr/include/postgresql
+svn co https://www.tol-project.org/svn/tolp
+cd tolp/trunk/tol
+cp prj-config.jam.CentOS6x prj-config.jam
+./bjam-gcc-release address-model=32
+./sudo_install address-model=32
+
+# verificamos que arranca bien 
+cd ..
+# esto falla ya que necesita de tolsh para descargar StdLib!!!!
+/usr/local/tol32/bin/tolcon -c"WriteLn(\"Hola soy TOL \")"
+
+# puede dar problemas al arrancar
+# cannot restore segment prot after reloc: Permission denied
+# sudo /usr/sbin/setenforce 0
+# vease http://www.appistry.com/community/forums/content/cannot-restore-segment-prot-after-reloc-permission-denied
+
+#
+# compilamos toltcl: el puente con tcl.
+#
+cd ${TOLROOT}/tolp/trunk/toltcl/release
+CC='gcc -m32' CXX='g++ -m32' ./default_config.sh --with-tol=/usr/local/tol32 --with-tcl=/usr/local/tcl8.4/lib
+make
+sudo make install
+
+# instalamos tcllib
+
+cd ${TOLROOT}/contribs
+wget https://github.com/tcltk/tcllib/archive/tcllib_1_16.tar.gz
+tar zxf tcllib_1_16.tar.gz
+./configure --prefix=/usr/local/tcl8.4.2
+
+# 
+# compilamos tolsh: la consola de tol con Tcl_EvalEx
+#
+cd ${TOLROOT}/tolp/trunk/tolsh
+sudo cp -r tolsh.vfs/lib/app-tolsh /usr/local/tcl8.4.20/lib/.
+sudo cp -r tolsh.vfs/lib/tequila /usr/local/tcl8.4.20/lib/.
+cp -r tolsh.vfs/lib/tlogger /usr/local/tcl8.4.20/lib/.
+sudo cp -r tolsh.vfs/lib/tolcomm /usr/local/tcl8.4.20/lib/.
+
