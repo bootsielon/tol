@@ -8,13 +8,13 @@
 # asumimos que existe una variable de entorno TOLROOT debajo de la cual 
 # compilaremos TOL
 #
-#  export TOLROOT=/home/toldevel/TOL
+#  export TOLROOT=${HOME}/TOL
 
 #
 # creamos directorios de trabajo
 #
-mkdir ${TOLROOT}/tools
-mkdir ${TOLROOT}/contribs
+mkdir -p ${TOLROOT}/tools
+mkdir -p ${TOLROOT}/contribs
 mkdir -p ${TOLROOT}/contribs/rpms
 
 #
@@ -25,7 +25,7 @@ sudo rpm -Uvh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noa
 # para poder hacer X11 remoto
 sudo yum install xauth
 
-sudo yum rlwrap
+sudo yum install rlwrap
 
 # Instalamos los paquetes base
 sudo yum install bc unzip wget cvs subversion glibc-devel gcc-gfortran libstdc++-devel autoconf make bzip2-devel.i686 gsl-devel.i686 boost-devel.i686 mysql-devel.i686 postgresql-devel.i686 openssl-devel.i686 zlib-devel.i686 libtool-ltdl-devel.i686 libX11-devel.i686
@@ -37,7 +37,7 @@ tar zxf unixODBC-2.3.2.tar.gz
 cd unixODBC-2.3.2
 mkdir build
 cd build
-CC='gcc -m32' CXX='g++ -m32' ../configure
+CC='gcc -m32' CXX='g++ -m32' ../configure --prefix=/usr/local/unixODBC-2.3.0
 make
 sudo make install
 
@@ -52,6 +52,7 @@ cd build
 CC='gcc -m32' CXX='g++ -m32' ../unix/configure --prefix=/usr/local/tcl8.4.20 --enable-threads --enable-shared 
 make
 sudo make install install-private-headers
+cd ${TOLROOT}/contribs
 wget http://downloads.sourceforge.net/project/tcl/Tcl/8.4.20/tk8.4.20-src.tar.gz
 tar zxf tk8.4.20-src.tar.gz
 cd tk8.4.20
@@ -156,7 +157,6 @@ CC='gcc -m32' CXX='g++ -m32' ./configure
 cd ..
 bjam address-model=32 release
 # verificamos que el codigo generado funciona, pasamos los test de blas
-# BLAPI_BLAS_LIB=/usr/lib/R/lib/libRblas.so BLAPI_LAPACK_LIB=/usr/lib/R/lib/libRlapack.so
 cd examples/blas
 bjam address-model=32 release
 bin/gcc-4.4.7/release/address-model-32/blas1_check
