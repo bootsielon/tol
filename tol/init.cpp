@@ -39,6 +39,7 @@
 #include <tol/tol_bdatgra.h>
 #include <tol/tol_bcmpgra.h>
 #include <tol/tol_bmatgra.h>
+#include <tol/tol_bpolmatgra.h>
 #include <tol/tol_bvmatgra.h>
 #include <tol/tol_bvmat_bsr.h>
 #include <tol/tol_bpolgra.h>
@@ -835,6 +836,15 @@ BBool InitGrammars(char* calledProgram)
   BFunArgContens<BVMat>::NewLocal);
 //BUserVMat::OwnGrammar()->AddCasting(BUserMat::OwnGrammar());
 
+  //--------------------------------------------------
+    TrcIGS("PolMatrix");
+  //--------------------------------------------------
+  BUserPolMat::InitGrammar(14, "PolMatrix",
+  I2("Type matrix of polynomial of real coefficients.\n",
+     "Tipo matriz de polinomios de coeficientes reales.\n"),
+  BCopyContens<BPolMat>::New,
+  BFunArgContens<BPolMat>::NewLocal);
+
     TrcIG ("Syntax elements: ");
     TrcIGS("Code Classify");
     BOperClassify::InitInstances();
@@ -870,6 +880,9 @@ BBool InitGrammars(char* calledProgram)
     InitCommonInstances(GraSerie());
     TrcIGS("Anything");
     InitCommonInstances(GraAnything());
+    TrcIGS("PolMat");
+    InitCommonInstances(GraPolMat());
+    
 #ifdef __USE_TC__
     TrcIGS("CTime");
     InitCommonInstances(GraCTime());

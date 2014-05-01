@@ -121,6 +121,7 @@ BGrammar* GraText     () { return(BUserText       ::OwnGrammar()); }
 BGrammar* GraTimeSet  () { return(BUserTimeSet    ::OwnGrammar()); }
 BGrammar* GraSerie    () { return(BUserTimeSerie  ::OwnGrammar()); }
 BGrammar* GraNameBlock() { return(BUserNameBlock  ::OwnGrammar()); }
+BGrammar* GraPolMat   () { return(BUserPolMat     ::OwnGrammar()); }
 
 static BStruct* _str_ref_Anything  = NULL;
 static BStruct* _str_ref_Code      = NULL;
@@ -136,6 +137,7 @@ static BStruct* _str_ref_NameBlock = NULL;
 static BStruct* _str_ref_Text      = NULL;
 static BStruct* _str_ref_TimeSet   = NULL;
 static BStruct* _str_ref_Serie     = NULL;
+static BStruct* _str_ref_PolMat    = NULL;
 
 BStruct* RefAnything()  { return(_str_ref_Anything); }
 BStruct* RefCode()      { return(_str_ref_Code); }
@@ -151,6 +153,7 @@ BStruct* RefNameBlock() { return(_str_ref_NameBlock); }
 BStruct* RefText()      { return(_str_ref_Text); }
 BStruct* RefTimeSet()   { return(_str_ref_TimeSet); }
 BStruct* RefSerie()     { return(_str_ref_Serie); }
+BStruct* RefPolMat()    { return(_str_ref_PolMat); }
 
 //--------------------------------------------------------------------
 bool InitRefStructs()
@@ -171,6 +174,7 @@ bool InitRefStructs()
   _str_ref_Text = NewStructSymbol("@Text","Text:V");
   _str_ref_TimeSet = NewStructSymbol("@TimeSet","TimeSet:V");
   _str_ref_Serie = NewStructSymbol("@Serie","Serie:V");
+  _str_ref_PolMat = NewStructSymbol("@PolMat","PolMat:V");
 }
 
 
@@ -244,17 +248,17 @@ void InteractiveTOLHelp()
   "============================\n"
   "Comandos de TOL Interactivo:\n" 
   "============================\n"
-  "  <tol expression>  : ejecuta una expresi�n TOL\n"
+  "  <tol expression>  : ejecuta una expresión TOL\n"
   "  $HELP             : muestra esta ayuda\n" 
   "  $SYS <command>    : ejecuta un comando del sistema operativo\n" 
-  "  $GRAMMAR          : especifica la gram�tica por defecto\n" 
+  "  $GRAMMAR          : especifica la gramática por defecto\n" 
   "  $DELETE           : borra objetos TOL creados previamente\n" 
   "  $DUMP             : muestra un objeto TOL\n" 
-  "  $STATUS           : muestra algunas estatid�sticas acerca del estado de TOL\n" 
-  "  $SHOW_CLASS_SIZES : muestra el tama�o de algunas clases C++ internas\n" 
+  "  $STATUS           : muestra algunas estatidísticas acerca del estado de TOL\n" 
+  "  $SHOW_CLASS_SIZES : muestra el tamaño de algunas clases C++ internas\n" 
   "  $OIS              : visualizador interactivo de imagenes OIS\n" 
   "  $END              : sale del modo interactivo de TOL\n"
-  "Si no visualiza correctamente las tildes o la � en el modo de di�logo "
+  "Si no visualiza correctamente las tildes o la ñ en el modo de diálogo "
   "escoja un tipo de letra adecuado como el 'lucilda console' y ejecute "
   "el comando:\n"
   "$SYS chcp 1252\n";
@@ -445,6 +449,7 @@ void InteractiveTOL()
       TRACE_TEMPLATE_TYPE_SIZE(BCmp);
       TRACE_TEMPLATE_TYPE_SIZE(BPol);
       TRACE_TEMPLATE_TYPE_SIZE(BRat);
+      TRACE_TEMPLATE_TYPE_SIZE(BPolMat);
     }
     else if(command=="$HELP")
     {

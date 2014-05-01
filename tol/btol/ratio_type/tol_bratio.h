@@ -51,6 +51,10 @@ public:
 	: numerator_   (rat.Numerator()),
 	  denominator_ (rat.Denominator()) { }
 
+  BRational (double x)
+	: numerator_   (x),
+	  denominator_ (1.0) { }
+
   BRational operator= (const BRational<Any>&  rat)
   {
     if(this!=&rat)
@@ -422,4 +426,60 @@ BRational<Any>	operator /  (const BPolyn<Any> & P, const BPolyn<Any> & Q)
     return rat;
 }
 
+//--------------------------------------------------------------------
+template <class Any>
+BRational<Any> Abs(const BRational<Any>& p)
+
+/*! Returns a copy of "*this" ^= "exponent". ( See operator ^= )
+ */
+//--------------------------------------------------------------------
+{
+  BRational<Any> x(Abs(p.Numerator()),Abs(p.Denominator()));
+  return (x);
+}
+
+//--------------------------------------------------------------------
+template <class Any>
+BRational<Any> Sqrt(const BRational<Any>& p)
+
+/*! Returns a copy of "*this" ^= "exponent". ( See operator ^= )
+ */
+//--------------------------------------------------------------------
+{
+  BRational<Any> x(Sqrt(p.Numerator()),Sqrt(p.Denominator()));
+  return (x);
+}
+
+//--------------------------------------------------------------------
+template<class Any>
+bool	operator <  (const BRational<Any> & P, const BRational<Any> & Q)
+//--------------------------------------------------------------------
+{
+  return true;
+}
+
+//--------------------------------------------------------------------
+template<class Any>
+bool	operator >  (const BRational<Any> & P, const BRational<Any> & Q)
+//--------------------------------------------------------------------
+{
+  return true;
+}
+
+//--------------------------------------------------------------------
+template <class Any>
+BBool IsKnown(const BRational<Any>& p)
+//--------------------------------------------------------------------
+{
+  return(p.IsKnown());
+}
+
+//--------------------------------------------------------------------
+template <class Any>
+BText operator<< (const BText& txt, const BRational<Any>& p)
+//--------------------------------------------------------------------
+{
+  BText t = txt;
+  return(t<<p.Name());
+}
 #endif // TOL_BRATION_H

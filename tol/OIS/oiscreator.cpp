@@ -746,6 +746,7 @@ if(!BDir::CheckIsDir(dir))                                \
   else if(tol_type == BGI_VMatrix   ) { return(WriteData(UVMat      (v))); }
   else if(tol_type == BGI_Polyn     ) { return(WriteData(UPol       (v))); }
   else if(tol_type == BGI_Ratio     ) { return(WriteData(URat       (v))); }
+  else if(tol_type == BGI_PolMat    ) { return(WriteData(UPolMat    (v))); }
   return(true);
 }
 
@@ -1109,6 +1110,25 @@ if(!BDir::CheckIsDir(dir))                                \
   return(x.Write(*this, matrix_));
 };
 
+//--------------------------------------------------------------------
+  bool BOisCreator::WriteData(BUserPolMat* v)
+//--------------------------------------------------------------------
+{
+  EWrite(matrix_->GetPos(), object_);
+  BPolMat& x = v->Contens();
+  int r = x.Rows(), c = x.Columns(), s = x.Data().Size();
+  EWrite(r, matrix_);
+  EWrite(c, matrix_);
+  if(x.Data().Size()==r*c)
+  {
+    register BPol* p = x.GetData().GetBuffer();
+    for(int k=0; k<s; k++, p++)
+    {
+      EWrite(*p, matrix_);
+    }
+  }
+  return(true);
+};
 
 //--------------------------------------------------------------------
   bool BOisCreator::WriteData(BUserPol* v)

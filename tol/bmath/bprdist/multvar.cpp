@@ -273,7 +273,7 @@ bool RandTruncatedMultNormal(         BMatrix<BDat>& tn,
     return(false);
   }
   BDat s = Sqrt(s2);
-  BMat a=(A-nu)/s, b=(B-nu)/s, x, y;
+  BMat a=(A-nu)*(1.0/s), b=(B-nu)*(1.0/s), x, y;
   tn.Alloc(n,num);
   y.Alloc(n,1);
   for(k=0; k<num; k++)
@@ -325,7 +325,7 @@ BDat LogDensTruncatedMultNormal(const BMatrix<BDat>& y,
   }
   BDat logDens;
   BDat s = Sqrt(s2);
-  BMat a=(A-nu)/s, b=(B-nu)/s, x;
+  BMat a=(A-nu)*(1.0/s), b=(B-nu)*(1.0/s), x;
   logDens = 0; 
   for(i=0; i<n; i++)
   {
@@ -369,7 +369,7 @@ bool RandTruncatedMultNormal(      BMatrix<BDat>& tn,
   }
   tn.Alloc(n,num);
   BDat s = Sqrt(s2);
-  BMat a=(A-nu)/s, b=(B-nu)/s, y(n,1), x;
+  BMat a=(A-nu)*(1.0/s), b=(B-nu)*(1.0/s), y(n,1), x;
   for(k=0; k<num; k++)
   {
     for(i=0; i<n; i++)
@@ -455,7 +455,7 @@ BDat LogDensTruncatedMultNormal(const BMatrix<BDat>& x,
   }
   BDat logDens;
   BDat s = Sqrt(s2);
-  BMat a=(A-nu)/s, b=(B-nu)/s, y=LiCov*(x-nu)/s;
+  BMat a=(A-nu)*(1.0/s), b=(B-nu)*(1.0/s), y=LiCov*(x-nu)*(1.0/s);
   logDens = 0; 
   for(i=0; i<n; i++)
   {

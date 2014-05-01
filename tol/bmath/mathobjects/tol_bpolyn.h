@@ -43,11 +43,24 @@ public:
   BPolyn()
   : BArray< BMonome<Any> >() {}
 
-  BPolyn(BInt size, const BMonome<Any>* buf=NIL)
+  BPolyn(BInt size, const BMonome<Any>* buf)
   : BArray< BMonome<Any> >(size, buf) { Aggregate(); }
 
   BPolyn(const BMonome<Any>& mon)
   : BArray< BMonome<Any> >(1, &mon) { }
+
+  BPolyn(Any x)
+  : BArray< BMonome<Any> >() 
+  {
+    AllocBuffer(1);
+    buffer_[0].PutCoef(x);
+  }
+  BPolyn(double x)
+  : BArray< BMonome<Any> >() 
+  {
+    AllocBuffer(1);
+    buffer_[0].PutCoef(x);
+  }
 
   BPolyn(const BArray< BMonome<Any> >& arr)
   : BArray< BMonome<Any> >(arr.Size(), arr.Buffer())
@@ -738,6 +751,48 @@ BPolyn<Any> BPolyn<Any>::Integrate() const
     }
     }
     return(p);
+}
+
+//--------------------------------------------------------------------
+template <class Any>
+BPolyn<Any> Abs(const BPolyn<Any>& p)
+
+/*! Returns a copy of "*this" ^= "exponent". ( See operator ^= )
+ */
+//--------------------------------------------------------------------
+{
+  BPolyn<Any> x(p);
+  for(BInt i=0; i<p.Size(); i++) { x(i).PutCoef(Abs(x(i).Coef())); }
+  return (x);
+}
+//--------------------------------------------------------------------
+template <class Any>
+BPolyn<Any> Sqrt(const BPolyn<Any>& p)
+
+/*! Returns a copy of "*this" ^= "exponent". ( See operator ^= )
+ */
+//--------------------------------------------------------------------
+{
+  BPolyn<Any> x(p);
+  for(BInt i=0; i<p.Size(); i++) { x(i).PutCoef(Sqrt(x(i).Coef())); }
+  return (x);
+}
+
+//--------------------------------------------------------------------
+template <class Any>
+BBool IsKnown(const BPolyn<Any>& p)
+//--------------------------------------------------------------------
+{
+  return(p.IsKnown());
+}
+
+//--------------------------------------------------------------------
+template <class Any>
+BText operator<< (const BText& txt, const BPolyn<Any>& p)
+//--------------------------------------------------------------------
+{
+  BText t = txt;
+  return(t<<p.Name());
 }
 
 #endif // TOL_BPOLYN_H

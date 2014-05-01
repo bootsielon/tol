@@ -96,6 +96,7 @@ bool BGrammar::Initialize()
   gidByName_["Code"     ]=BGI_Code;
   gidByName_["NameBlock"]=BGI_NameBlock;
   gidByName_["VMatrix"  ]=BGI_VMatrix;
+  gidByName_["PolMatrix"]=BGI_PolMat;
 
   symbolTable_ = new BSymbolTable; 
 

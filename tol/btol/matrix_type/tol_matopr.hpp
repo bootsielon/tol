@@ -22,8 +22,7 @@
 
 //--------------------------------------------------------------------
 template <class Any>
-BMatA
-Not (const BMatA& M)
+BMatA Not (const BMatA& M)
 //--------------------------------------------------------------------
 {
     BInt i,j, n=M.Columns(), m=M.Rows();
@@ -41,8 +40,7 @@ Not (const BMatA& M)
 
 //--------------------------------------------------------------------
 template <class Any>
-BMatA 
-And (const BMatA& A, const BMatA& B)
+BMatA And (const BMatA& A, const BMatA& B)
 //--------------------------------------------------------------------
 {
     BInt i,j, n=A.Columns(), m=A.Rows();
@@ -62,8 +60,7 @@ And (const BMatA& A, const BMatA& B)
 
 //--------------------------------------------------------------------
 template <class Any>
-BMatA 
-Or (const BMatA& A, const BMatA& B)
+BMatA Or (const BMatA& A, const BMatA& B)
 //--------------------------------------------------------------------
 {
     BInt i,j, n=A.Columns(), m=A.Rows();
@@ -83,8 +80,31 @@ Or (const BMatA& A, const BMatA& B)
 
 //--------------------------------------------------------------------
 template <class Any>
-BMatA 
-operator * (const BMatA& M, const BDiMA& D)
+BMatA operator * (const BMatA& A, const BMatA& B)
+//--------------------------------------------------------------------
+{
+    BInt i,j,h, n=B.Columns(), m=A.Rows(), k=A.Columns();
+    BMatA X;
+    if(k!=B.Rows()) { return(X); }
+    X.Alloc(m,n);
+    for(i=0; i<m; i++)
+    {
+      for(j=0; j<n; j++)
+      {
+        Any x=0;
+        for(h=0; h<k; h++)
+        {
+          x+= A(i,h)*B(h,j);
+        }
+        X(i,j) = x;
+      }
+    }
+    return(X);
+}
+
+//--------------------------------------------------------------------
+template <class Any>
+BMatA operator * (const BMatA& M, const BDiMA& D)
 //--------------------------------------------------------------------
 {
     BInt i,j, n=M.Columns(), m=M.Rows();
@@ -103,8 +123,7 @@ operator * (const BMatA& M, const BDiMA& D)
 
 //--------------------------------------------------------------------
 template <class Any>
-BSyMA 
-operator * (const BSyMA& M, const BDiMA& D)
+BSyMA operator * (const BSyMA& M, const BDiMA& D)
 //--------------------------------------------------------------------
 {
     BInt i,j, n=M.Columns();
@@ -124,8 +143,7 @@ operator * (const BSyMA& M, const BDiMA& D)
 
 //--------------------------------------------------------------------
 template <class Any>
-BLTMA 
-operator * (const BLTMA& M, const BDiMA& D)
+BLTMA operator * (const BLTMA& M, const BDiMA& D)
 //--------------------------------------------------------------------
     
 {
@@ -145,8 +163,7 @@ operator * (const BLTMA& M, const BDiMA& D)
 
 //--------------------------------------------------------------------
 template <class Any>
-BUTMA 
-operator * (const BUTMA& M, const BDiMA& D)  
+BUTMA operator * (const BUTMA& M, const BDiMA& D)  
 //--------------------------------------------------------------------
 {
     BInt i,j, n=M.Columns();
@@ -165,8 +182,7 @@ operator * (const BUTMA& M, const BDiMA& D)
 
 //--------------------------------------------------------------------
 template <class Any>
-BMatA 
-operator * (const BDiMA& D, const BMatA& M)
+BMatA operator * (const BDiMA& D, const BMatA& M)
 //--------------------------------------------------------------------
 {
     BInt i,j, n=M.Columns(), m=M.Rows();
@@ -186,8 +202,7 @@ operator * (const BDiMA& D, const BMatA& M)
 
 //--------------------------------------------------------------------
 template <class Any>
-BSyMA 
-operator * (const BDiMA& D, const BSyMA& M)
+BSyMA operator * (const BDiMA& D, const BSyMA& M)
 //--------------------------------------------------------------------
 {
     BInt i,j, n=M.Columns(), m=M.Rows();
@@ -206,8 +221,7 @@ operator * (const BDiMA& D, const BSyMA& M)
 
 //--------------------------------------------------------------------
 template <class Any>
-BLTMA 
-operator * (const BDiMA& D, const BLTMA& M)
+BLTMA operator * (const BDiMA& D, const BLTMA& M)
 //--------------------------------------------------------------------
 {
     BInt i,j, n=M.Columns(), m=M.Rows();
@@ -226,8 +240,7 @@ operator * (const BDiMA& D, const BLTMA& M)
 
 //--------------------------------------------------------------------
 template <class Any>
-BUTMA 
-operator * (const BDiMA& D, const BUTMA& M)
+BUTMA operator * (const BDiMA& D, const BUTMA& M)
 //--------------------------------------------------------------------
 {
     BInt i,j, n=M.Columns(), m=M.Rows();
@@ -248,8 +261,7 @@ operator * (const BDiMA& D, const BUTMA& M)
 
 //--------------------------------------------------------------------
 template <class Any>
-BSyMA 
-operator + (const BSyMA& M, const BDiMA& D)
+BSyMA operator + (const BSyMA& M, const BDiMA& D)
 //--------------------------------------------------------------------
 {
     BSyMA X;
@@ -262,8 +274,7 @@ operator + (const BSyMA& M, const BDiMA& D)
 
 //--------------------------------------------------------------------
 template <class Any>
-BLTMA 
-operator + (const BLTMA& M, const BDiMA& D)
+BLTMA operator + (const BLTMA& M, const BDiMA& D)
 //--------------------------------------------------------------------   
 {
     BLTMA X;
@@ -276,8 +287,7 @@ operator + (const BLTMA& M, const BDiMA& D)
 
 //--------------------------------------------------------------------
 template <class Any>
-BUTMA 
-operator + (const BUTMA& M, const BDiMA& D)   
+BUTMA operator + (const BUTMA& M, const BDiMA& D)   
 //--------------------------------------------------------------------
 {
     BUTMA X;
@@ -290,8 +300,7 @@ operator + (const BUTMA& M, const BDiMA& D)
 
 //--------------------------------------------------------------------
 template <class Any>
-BSyMA 
-operator - (const BSyMA& M, const BDiMA& D)
+BSyMA operator - (const BSyMA& M, const BDiMA& D)
 //--------------------------------------------------------------------
 {
     BSyMA X;
@@ -304,8 +313,7 @@ operator - (const BSyMA& M, const BDiMA& D)
 
 //--------------------------------------------------------------------
 template <class Any>
-BLTMA 
-operator - (const BLTMA& M, const BDiMA& D)
+BLTMA operator - (const BLTMA& M, const BDiMA& D)
 //--------------------------------------------------------------------
 {
     BLTMA X;
@@ -318,8 +326,7 @@ operator - (const BLTMA& M, const BDiMA& D)
 
 //--------------------------------------------------------------------
 template <class Any>
-BUTMA 
-operator - (const BUTMA& M, const BDiMA& D)
+BUTMA operator - (const BUTMA& M, const BDiMA& D)
 //--------------------------------------------------------------------
 {
   BUTMA X;
@@ -333,8 +340,7 @@ operator - (const BUTMA& M, const BDiMA& D)
 
 //--------------------------------------------------------------------
 template <class Any>
-void 
-DiagNormColumnsDecomp (const BMatA& A, BMatA& N, BDiMA& D)
+void DiagNormColumnsDecomp (const BMatA& A, BMatA& N, BDiMA& D)
 
 /*! Performs the matrix decomposition
  *
@@ -352,8 +358,7 @@ DiagNormColumnsDecomp (const BMatA& A, BMatA& N, BDiMA& D)
 
 //--------------------------------------------------------------------
 template <class Any>
-void 
-DiagMaxAbsColumnsDecomp (const BMatA& A, BMatA& N, BDiMA& D)
+void DiagMaxAbsColumnsDecomp (const BMatA& A, BMatA& N, BDiMA& D)
 
 /*! Performs the matrix decomposition
  *
@@ -372,8 +377,7 @@ DiagMaxAbsColumnsDecomp (const BMatA& A, BMatA& N, BDiMA& D)
 
 //--------------------------------------------------------------------
 template <class Any>
-void 
-SymmDiagNormalDecomp (const BSyMA& A, BSyMA& N, BDiMA& D)
+void SymmDiagNormalDecomp (const BSyMA& A, BSyMA& N, BDiMA& D)
     
 /*! Decomposes the symmetric and definite positive matrix A like
  *
@@ -402,8 +406,7 @@ SymmDiagNormalDecomp (const BSyMA& A, BSyMA& N, BDiMA& D)
 
 //--------------------------------------------------------------------
 template <class Any>
-void 
-ColumnNormPivots(const BMatA& A, BArray<BInt>& pivot)
+void ColumnNormPivots(const BMatA& A, BArray<BInt>& pivot)
 //--------------------------------------------------------------------
 {
     BInt i,j,m = A.Rows(), n = A.Columns();
@@ -418,8 +421,7 @@ ColumnNormPivots(const BMatA& A, BArray<BInt>& pivot)
 
 //--------------------------------------------------------------------
 template <class Any>
-void 
-ColumnMaxAbsNormPivots(const BMatA& A, BArray<BInt>& pivot)
+void ColumnMaxAbsNormPivots(const BMatA& A, BArray<BInt>& pivot)
 //--------------------------------------------------------------------
 {
     BInt i,j,m = A.Rows(), n = A.Columns();
@@ -434,8 +436,7 @@ ColumnMaxAbsNormPivots(const BMatA& A, BArray<BInt>& pivot)
 
 //--------------------------------------------------------------------
 template <class Any>
-void 
-ColumnPivots(const BMatA& A, BArray<BInt>& pivot)
+void ColumnPivots(const BMatA& A, BArray<BInt>& pivot)
 //--------------------------------------------------------------------
 {
   BInt i,j,m = A.Rows(), n = A.Columns();
@@ -465,8 +466,7 @@ ColumnPivots(const BMatA& A, BArray<BInt>& pivot)
 
 //--------------------------------------------------------------------
 template <class Any>
-void 
-RowPivots(const BMatA& A, BArray<BInt>& pivot)
+void RowPivots(const BMatA& A, BArray<BInt>& pivot)
 //--------------------------------------------------------------------
 {
   BInt i,j,n = A.Rows(), m = A.Columns();
@@ -496,8 +496,7 @@ RowPivots(const BMatA& A, BArray<BInt>& pivot)
 
 //--------------------------------------------------------------------
 template <class Any>
-void 
-PivotByColumns(BMatA& A, const BArray<BInt>& pivot)
+void PivotByColumns(BMatA& A, const BArray<BInt>& pivot)
 //--------------------------------------------------------------------
 {
   BInt i,j,k,m = A.Rows(), n = A.Columns();
@@ -535,8 +534,7 @@ PivotByColumns(BMatA& A, const BArray<BInt>& pivot)
 
 //--------------------------------------------------------------------
 template <class Any>
-void 
-PivotByRows(BMatA& A, const BArray<BInt>& pivot)
+void PivotByRows(BMatA& A, const BArray<BInt>& pivot)
 //--------------------------------------------------------------------
 {
   BInt i,j,k,n = A.Rows(), m = A.Columns();

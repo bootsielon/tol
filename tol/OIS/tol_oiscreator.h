@@ -28,6 +28,7 @@
 #include <tol/tol_bpolgra.h>
 #include <tol/tol_bcodgra.h>
 #include <tol/tol_bmatgra.h>
+#include <tol/tol_bpolmatgra.h>
 #include <tol/tol_bratgra.h>
 #include <tol/tol_btsrgra.h>
 #include <tol/tol_bclass.h>
@@ -114,6 +115,7 @@ public:
   bool WriteData(BUserPol*       v);
   bool WriteData(BUserRat*       v);
   bool WriteData(BUserNameBlock* v);
+  bool WriteData(BUserPolMat*    v);
   bool WriteSource(int n, int size, const BText& path);
 
   void SetControl    ();

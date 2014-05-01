@@ -617,7 +617,6 @@ DefExtOpr(1, BSetPutStruct, "PutStructure", 2, 2, "Text Set",
 	     "de otro conjunto cuyos elementos sean compatibles con "
 	     "los campos de dicha estructura. \n"),
 	  BOperClassify::System_);
-
 //--------------------------------------------------------------------
 void BSetPutStruct::CalcContens()
 //--------------------------------------------------------------------

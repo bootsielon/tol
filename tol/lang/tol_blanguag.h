@@ -58,6 +58,7 @@ TOL_API BGrammar* GraNameBlock();
 TOL_API BGrammar* GraText();
 TOL_API BGrammar* GraTimeSet();
 TOL_API BGrammar* GraSerie();
+TOL_API BGrammar* GraPolMat();
 
 TOL_API BStruct* RefAnything();
 TOL_API BStruct* RefCode();

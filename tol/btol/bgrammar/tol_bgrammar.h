@@ -102,7 +102,8 @@ typedef BSyntaxObject* (*BCreator)     (const BText&, BSyntaxObject*);
   BGI_Code      = 11,
   BGI_NameBlock = 12,
   BGI_VMatrix   = 13,
-  BGI_LastId    = 14
+  BGI_PolMat    = 14,
+  BGI_LastId    = 15
 };
 
 typedef hash_map_by_name<BGrammarId>::dense_ BGidHashByName;

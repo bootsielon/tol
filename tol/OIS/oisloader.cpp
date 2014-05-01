@@ -35,6 +35,7 @@
 #include <tol/tol_btsrgra.h>
 #include <tol/tol_bmatgra.h>
 #include <tol/tol_bvmatgra.h>
+#include <tol/tol_bpolmatgra.h>
 #include <tol/tol_bratgra.h>
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bdtegra.h>
@@ -990,6 +991,24 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           BMat& x = Mat(result);
           x.Alloc(r,c);
           Ensure(Read(x.GetData().GetBuffer(),r*c,matrix_));
+          result=PutVariableName(result,name,is_referenceable);
+        }
+        else if(tol_type == BGI_PolMat) 
+        {
+          BINT64 offset;
+          ERead(offset, object_);
+          matrix_->SetPos(offset);
+          int r,c,k;
+          ERead(r, matrix_);
+          ERead(c, matrix_);
+          result = new BContensPolMat("", BPolMat(0,0), description);
+          BPolMat& x = PolMat(result);
+          x.Alloc(r,c);
+          BPol* p = x.GetData().GetBuffer();
+          for(k=0; k<s; k++, p++)
+          {
+            ERead(*p, matrix_)
+          }
           result=PutVariableName(result,name,is_referenceable);
         }
         else if(tol_type == BGI_VMatrix) 
