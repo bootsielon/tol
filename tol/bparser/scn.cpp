@@ -368,6 +368,7 @@ static BTypeToken defTyp_[] =
   BTypeToken("CSeries",   BTypeToken::BSYSTEM),
   BTypeToken("Code",      BTypeToken::BSYSTEM),
   BTypeToken("NameBlock", BTypeToken::BSYSTEM),
+  BTypeToken("PolMatrix", BTypeToken::BSYSTEM),
   BTypeToken("#Require",  BTypeToken::BSYSTEM)
 };
 
