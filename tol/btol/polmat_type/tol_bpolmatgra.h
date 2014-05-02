@@ -25,6 +25,7 @@
 #include <tol/tol_bpolyn.h>
 #include <tol/tol_bratio.h>
 #include <tol/tol_bmatrixgen.h>
+#include <tol/tol_matgen.hpp>
 #include <tol/tol_bgencon.h>
 
 //--------------------------------------------------------------------

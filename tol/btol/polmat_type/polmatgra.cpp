@@ -24,7 +24,6 @@
 #endif
 
 #include <tol/tol_bpolmatgra.h>
-#include <tol/tol_matgen.hpp>
 #include <tol/tol_bdatgra.h>
 #include <tol/tol_bpolgra.h>
 #include <tol/tol_bsetgra.h>
@@ -111,8 +110,8 @@ BSyntaxObject* BGraContensBase<BPolMat>::Casting(BSyntaxObject* obj)
 DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatIdentity);
 DefIntOpr(1, BPolMatIdentity, " + ", 1, 1,
   "(PolMatrix mat)",
-  I2("Returns the same matrix.",
-     "Devuelve la misma matriz."),
+  I2("Returns the same polynomial matrix.",
+     "Devuelve la misma matriz polinomial."),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BPolMatIdentity::CalcContens()
@@ -126,8 +125,8 @@ void BPolMatIdentity::CalcContens()
 DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatMinus);
 DefIntOpr(1, BPolMatMinus, " - ", 1, 1,
   "(PolMatrix mat)",
-  I2("Returns a matrix width the opposite sign.",
-     "Devuelve la matriz con el signo contrario."),
+  I2("Returns a polynomial matrix width the opposite sign.",
+     "Devuelve la matriz polinomial con el signo contrario."),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BPolMatMinus::CalcContens()
@@ -141,9 +140,9 @@ void BPolMatMinus::CalcContens()
 DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatT);
 DefIntOpr(1, BPolMatT, "Tra", 1, 1,
   "(PolMatrix mat)",
-  I2("Returns the transposed matrix, that is to say, "
+  I2("Returns the transposed polynomial matrix, that is to say, "
      "the result of changing rows by columns.",
-     "Devuelve la matriz traspuesta, es decir, el resultado de cambiar "
+     "Devuelve la matriz polinomial traspuesta, es decir, el resultado de cambiar "
      "filas por columnas."),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
@@ -158,8 +157,8 @@ void BPolMatT::CalcContens()
 DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatReverse);
 DefIntOpr(1, BPolMatReverse, "Reverse", 1, 1,
   "(PolMatrix mat)",
-  I2("Returns the matrix of rows and columns with inverse order.",
-     "Devuelve la matriz con las filas y columnas en orden inverso."),
+  I2("Returns the polynomial matrix of rows and columns with inverse order.",
+     "Devuelve la matriz polinomial con las filas y columnas en orden inverso."),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BPolMatReverse::CalcContens()
@@ -174,9 +173,9 @@ void BPolMatReverse::CalcContens()
 DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatSum2);
 DefExtOpr(1, BPolMatSum2, "+", 2, 2, "PolMatrix {PolMatrix|Real}",
   "mat1 + mat2 {PolMatrix mat1, {PolMatrix|Real} mat2}",
-  I2("Returns the sum of two matrices with the same dimensions."
+  I2("Returns the sum of two polynomial matrices with the same dimensions."
      "Second one may be also a real number",
-     "Devuelve la suma de dos matrices con las mismas dimensiones."
+     "Devuelve la suma de dos matrices polinomiales con las mismas dimensiones."
      "El segundo argumento puede ser tambien un numero Real"),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
@@ -206,9 +205,9 @@ void BPolMatSum2::CalcContens()
 DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatDifference);
 DefExtOpr(1, BPolMatDifference, "-", 2, 2,"PolMatrix {PolMatrix|Real}",
   "mat1 - mat2 {PolMatrix mat1, {PolMatrix|Real} mat2}",
-  I2("Returns the subtraction of two matrixs with the same dimensions."
+  I2("Returns the subtraction of two polynomial matrices with the same dimensions."
      "Second one may be also a real number",
-     "Devuelve la resta de dos matrices con las mismas dimensiones."
+     "Devuelve la resta de dos matrices polinomiales con las mismas dimensiones."
      "El segundo argumento puede ser tambien un numero Real"),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
@@ -236,28 +235,57 @@ void BPolMatDifference::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatProduct2);
-DefExtOpr(1, BPolMatProduct2, "*", 2, 2,"PolMatrix {PolMatrix|Real}",
-  "mat1 * mat2 {PolMatrix mat1, {PolMatrix|Real} mat2}",
-  I2("Returns the product of two matrixs such that the number of columns "
-     "of the first matrix will be equal to the number of rows of the second."
-     "Second one may be also a real number",
-     "Devuelve el producto de dos matrices tales que el numero de "
-     "columnas de la primera matriz sea igual al numero de filas "
+DefExtOpr(1, BPolMatProduct2, "*", 2, 2,"PolMatrix {PolMatrix|Real|Polyn|Matrix}",
+  "P * Q {PolMatrix P, {PolMatrix|Real|Polyn|Matrix} Q}",
+  I2("Returns the product of two polynomial polynomial matrices such that the number of columns "
+     "of the first polynomial matrix will be equal to the number of rows of the second."
+     "Second one may be also a real number, a polynomial or a real "
+     "matrix with same dimensions.",
+     "Devuelve el producto de dos matrices polinomiales tales que el numero de "
+     "columnas de la primera matriz polinomial sea igual al numero de filas "
      "de la segunda. "
-     "El segundo argumento puede ser tambien un numero Real"),
+     "El segundo argumento puede ser tambien un numero Real, un polinomio "
+     "o una matriz polinomial real con las mismas dimensiones"),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BPolMatProduct2::CalcContens()
 //--------------------------------------------------------------------
 {
   BGrammar* gra = Arg(2)->Grammar();
+  BPolMat& P = PolMat(Arg(1));
   if(gra==GraMatrix()) 
   { 
-    MatMult(PolMat(Arg(1)),PolMat(Arg(2)),contens_); 
+    MatMult(P,PolMat(Arg(2)),contens_); 
   }
   else if(gra==GraReal()) 
   { 
-    contens_ = PolMat(Arg(1)) * Real(Arg(2)); 
+    contens_ = P * Real(Arg(2)); 
+  }
+  else if(gra==GraPolyn()) 
+  { 
+    contens_ = P * Pol(Arg(2)); 
+  }
+  else if(gra==GraMatrix()) 
+  { 
+    BMat& a = Mat(Arg(2));
+    const BPol* p = P.Data().Buffer(); 
+    BPol *z, *y = contens_.GetData().GetBuffer(); 
+    int k,r,c,s;
+    const BDat* x = a.Data().Buffer();
+    r = P.Rows();
+    c = P.Columns();
+    s = P.Data().Size();
+    if((r!=a.Rows())||(c!=a.Columns()))
+    {
+      Error("[PolMatrix Matrix product] Invalid dimensions of polynomial matrices");
+      return;
+    }
+    contens_.Alloc(r,c);
+    z=y;
+    for(k=0; k<s; k++, x++, z++, p++)
+    {
+      *z = *p * *x;
+    }
   }
   else
   {
@@ -265,15 +293,15 @@ void BPolMatProduct2::CalcContens()
           I2("is not a valid type for PolMatrix *",
              "no es un tipo valido para PolMatrix *"));
     contens_ = BPolMat::Unknown();
-  }}
-
+  }
+}
 
 //--------------------------------------------------------------------
 DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatMtMSqr);
 DefIntOpr(1, BPolMatMtMSqr, "MtMSqr", 1, 1,
   "(PolMatrix mat)",
-  I2("Returns the product of the transpose of a matrix by itself.",
-     "Devuelve el producto de una matriz por si misma"),
+  I2("Returns the product of the transpose of a polynomial matrix by itself.",
+     "Devuelve el producto de una matriz polinomial por si misma"),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BPolMatMtMSqr::CalcContens()
@@ -292,8 +320,8 @@ static BText WeightProdDescription()
   I2("Returns the cell to cell product of matricess mat1[i,j]*mat2[i,j]."
      "Both m1 and m2 must have same dimensions." 
      "Next both expressions are identical and valids in TOL mat1$*mat2==WeightProd(mat1,mat2)",
-     "Devuelve la matriz de productos celda a celda mat1[i,j]*mat2[i,j]."
-     "Ambas matrices deben tener las mismas dimensiones."
+     "Devuelve la matriz polinomial de productos celda a celda mat1[i,j]*mat2[i,j]."
+     "Ambas matrices polinomiales deben tener las mismas dimensiones."
      "Las siguientes dos expresiones son identicas y validas en TOL mat1$*at2==WeightProd(mat1,mat2)");
 };
 
@@ -320,13 +348,13 @@ void BPolMatWeightProd::CalcContens()
 DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatPowReal);
 DefExtOpr(1, BPolMatPowReal, "RPow", 2, 2, "PolMatrix Real",
   "(PolMatrix mat, Real x)",
-  I2("Returns the power of each element of a matrix to a real number.",
-    "Devuelve la potencia de cada elemnto de una matriz a un numero real."),
+  I2("Returns the power of each element of a polynomial matrix to a integer number.",
+    "Devuelve la potencia de cada elemnto de una matriz polinomial a un numero entero."),
     BOperClassify::MatrixAlgebra_);
 DefExtOpr(2, BPolMatPowReal, "^", 2, 2, "PolMatrix Real",
   "mat ^ x {PolMatrix mat, Real x}",
-  I2("Returns the power of each element of a matrix to a real number.",
-    "Devuelve la potencia de cada elemnto de una matriz a un numero real."),
+  I2("Returns the power of each element of a polynomial matrix to a integer number.",
+    "Devuelve la potencia de cada elemnto de una matriz polinomial a un numero entero."),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BPolMatPowReal::CalcContens()
@@ -347,8 +375,8 @@ void BPolMatPowReal::CalcContens()
 DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatProductReal);
 DefExtOpr(1, BPolMatProductReal, "RProd", 2, 2, "PolMatrix Real",
   "(PolMatrix mat, Real x)",
-  I2("Returns the product of each element of a matrix by a real number.",
-    "Devuelve el producto de cada elemento de una matriz por un numero real."),
+  I2("Returns the product of each element of a polynomial matrix by a real number.",
+    "Devuelve el producto de cada elemento de una matriz polinomial por un numero real."),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BPolMatProductReal::CalcContens()
@@ -364,8 +392,8 @@ void BPolMatProductReal::CalcContens()
 DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatSumReal);
 DefExtOpr(1, BPolMatSumReal, "RSum", 2, 2, "PolMatrix Real",
   "(PolMatrix mat, Real x)",
-  I2("Returns the summ of each element of a matrix and a real number.",
-     "Devuelve la suma de cada elemnto de una matriz y un numero real."),
+  I2("Returns the summ of each element of a polynomial matrix and a real number.",
+     "Devuelve la suma de cada elemnto de una matriz polinomial y un numero real."),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BPolMatSumReal::CalcContens()
@@ -380,8 +408,8 @@ void BPolMatSumReal::CalcContens()
 DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatProductPol);
 DefExtOpr(1, BPolMatProductPol, "PolProd", 2, 2, "PolMatrix Polyn",
   "(PolMatrix mat, Polyn p)",
-  I2("Returns the product of each element of a matrix by a polynomial.",
-    "Devuelve el producto de cada elemento de una matriz por un polinomio."),
+  I2("Returns the product of each element of a polynomial matrix by a polynomial.",
+    "Devuelve el producto de cada elemento de una matriz polinomial por un polinomio."),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BPolMatProductPol::CalcContens()
@@ -397,8 +425,8 @@ void BPolMatProductPol::CalcContens()
 DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatSumPol);
 DefExtOpr(1, BPolMatSumPol, "PolSum", 2, 2, "PolMatrix Polyn",
   "(PolMatrix mat, Polyn p)",
-  I2("Returns the summ of each element of a matrix and a polynomial.",
-     "Devuelve la suma de cada elemnto de una matriz y un polinomio."),
+  I2("Returns the summ of each element of a polynomial matrix and a polynomial.",
+     "Devuelve la suma de cada elemento de una matriz polinomial y un polinomio."),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BPolMatSumPol::CalcContens()
@@ -413,8 +441,8 @@ void BPolMatSumPol::CalcContens()
 DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatSetSum);
 DefExtOpr(1, BPolMatSetSum, "SetSum", 1, 1, "Set",
   I2("(Set set)","(Set cto)"),
-  I2("Returns the global summatory of all matrices of a set.",
-     "Devuelve el sumatorio de todas las matrices de un conjunto."),
+  I2("Returns the global summatory of all polynomial matrices of a set.",
+     "Devuelve el sumatorio de todas las matrices polinomiales de un conjunto."),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BPolMatSetSum::CalcContens()
@@ -461,7 +489,7 @@ void BPolMatSetMat2PolMat::CalcContens()
   {
     if(set[n]->Grammar()==GraMatrix())
     {
-      Error("[SetMat2PolMat] Only matrices are allowed in argument A");
+      Error("[SetMat2PolMat] Only real matrices are allowed in argument A");
       return;
     }
     BMat& a = Mat(set[n]);
@@ -576,8 +604,8 @@ DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatZeros);
 DefExtOpr(1, BPolMatZeros, "Zeros",  1, 2, 
   "Real Real",
   "(Real nrow [, Real ncol=nrow])",
-  I2("Creates a matrix with all elements equal to zero.",
-     "Devuelve una matriz cuyas celdas son todas cero."),
+  I2("Creates a polynomial matrix with all elements equal to zero.",
+     "Devuelve una matriz polinomial cuyas celdas son todas cero."),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BPolMatZeros::CalcContens()
@@ -600,8 +628,8 @@ DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatConstant);
 DefExtOpr(1, BPolMatConstant, "Constant",  3, 3, 
   "Real Real Polyn",
   "(Real nrow, Real ncol, Polyn value])",
-  I2("Creates a matrix with all elements equal to given value.",
-     "Devuelve una matriz cuyas celdas son todas iguales al valor "
+  I2("Creates a polynomial matrix with all elements equal to given value.",
+     "Devuelve una matriz polinomial cuyas celdas son todas iguales al valor "
      "especificado."),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
@@ -629,8 +657,8 @@ bool internal_builtin_SetMat(
 //--------------------------------------------------------------------
 {
   BInt i, j;
-  BText _mid = I2("Converting set to matrix with ",
-                  "Convirtiendo de conjunto a matriz con ")+fun_id;
+  BText _mid = I2("Converting set to polynomial matrix with ",
+                  "Convirtiendo de conjunto a matriz polinomial con ")+fun_id;
   BText _wrongFormat = 
     _mid+I2("Wrong set format: all elements should "
             "be sets with the same number of reals ",
@@ -646,8 +674,8 @@ bool internal_builtin_SetMat(
   BInt  numCol = Set(set[1]).Card();
   if(!numRow)
   {
-    Warning(_mid+I2("Emty set is converted in empty matrix",
-             "El conjunto vacío se convierte en la matriz vacía"));
+    Warning(_mid+I2("Emty set is converted in empty polynomial matrix",
+             "El conjunto vacío se convierte en la matriz polinomial vacía"));
     mat = BPolMat::Unknown();
   }
   else if(!numCol)
@@ -694,8 +722,8 @@ bool internal_builtin_SetMat(
 DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatSetMat);
 DefExtOpr(1, BPolMatSetMat,   "SetMat", 1, 1, "Set",
   "(Set s)",
-  I2("Returns a matrix as of a set of sets of real numbers.",
-     "Devuelve una matriz a partir de un conjunto de conjuntos de numeros "
+  I2("Returns a polynomial matrix as of a set of sets of real numbers.",
+     "Devuelve una matriz polinomial a partir de un conjunto de conjuntos de numeros "
      "reales."),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
@@ -711,16 +739,16 @@ DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatConcatCol);
 //DefExtOpr(1, BPolMatConcatCol,  "CatCol", 1, 0, "PolMatrix PolMatrix",
 DefExtOpr(1, BPolMatConcatCol,  "ConcatColumns", 1, 0, "PolMatrix PolMatrix",
   "(PolMatrix mat1 [, PolMatrix mat2, ...])",
-  I2("Concatenates all the columns of a matrixs list with the same number "
+  I2("Concatenates all the columns of a polynomial matrices list with the same number "
      "of rows.",
-     "Concatena todas las columnas de una lista de matrices con el mismo "
+     "Concatena todas las columnas de una lista de matrices polinomiales con el mismo "
      "numero de filas."),
   BOperClassify::MatrixAlgebra_);
   DefExtOpr(2, BPolMatConcatCol,  "|", 2, 2, "PolMatrix PolMatrix",
   "mat1 | mat2 {PolMatrix mat1 , PolMatrix mat2}",
-  I2("Concatenates all the columns of two matrixs with the same number "
+  I2("Concatenates all the columns of two polynomial matrices with the same number "
      "of rows.",
-     "Concatena todas las columnas de dos matrices con el mismo "
+     "Concatena todas las columnas de dos matrices polinomiales con el mismo "
      "numero de filas."),
       BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
@@ -745,7 +773,7 @@ void BPolMatConcatCol::CalcContens()
       Error(I2("Wrong number of rows for ConcatColumns (or | operator) "
                "in argument number ",
                "Numero de filas erroneo para ConcatColumns (o el "
-               "operador | )en la matriz numero ")+
+               "operador | )en la matriz polinomial numero ")+
             i + ".");
       contens_ = BPolMat::Unknown();
       return;
@@ -781,16 +809,16 @@ DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatConcatRow);
 //DefExtOpr(1, BPolMatConcatRow,  "CatRow", 1, 0, "PolMatrix PolMatrix",
 DefExtOpr(1, BPolMatConcatRow,  "ConcatRows", 1, 0, "PolMatrix PolMatrix",
   "(PolMatrix mat1 [, PolMatrix mat2, ...])",
-  I2("Concats all the rows from a matrixs list with the same number of "
+  I2("Concats all the rows from a polynomial matrices list with the same number of "
      "columns.",
-     "Concatena todas las filas de una lista de matrices con el mismo "
+     "Concatena todas las filas de una lista de matrices polinomiales con el mismo "
      "numero de columnas."),
   BOperClassify::MatrixAlgebra_);
   DefExtOpr(2, BPolMatConcatRow,  "<<", 2, 2, "PolMatrix PolMatrix",
   "mat1 << mat2 {PolMatrix mat1, PolMatrix mat2}",
-  I2("Concats all the rows from two matrixs with the same number of "
+  I2("Concats all the rows from two polynomial matrices with the same number of "
      "columns.",
-     "Concatena todas las filas de de dos matrices con el mismo "
+     "Concatena todas las filas de de dos matrices polinomiales con el mismo "
      "numero de columnas."),
       BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
@@ -817,7 +845,7 @@ void BPolMatConcatRow::CalcContens()
       Error(I2("Wrong number of columns for ConcatRows ( or << "
                "operator ) in argument number ",
                "Numero de columnas erroneo para ConcatRows ( o "
-               "el operador << ) en la matriz numero ")+
+               "el operador << ) en la matriz polinomial numero ")+
             i + ".");
       contens_ = BPolMat::Unknown();
       return;
@@ -854,13 +882,13 @@ void BPolMatConcatRow::CalcContens()
 DeclareContensClass(BDat, BDatTemporary, BDatAppendPolRows);
 DefExtOpr(1, BDatAppendPolRows,  "AppendPolRows", 2, 2, "PolMatrix PolMatrix",
   "(PolMatrix matRef, PolMatrix newRows)",
-  I2("Modifies first matrix adding all the rows from second one."
+  I2("Modifies first polynomial matrix adding all the rows from second one."
      "If both matrices have not the same number of columns then "
      "does nothing and returns 0, else returns the total number of "
      "rows.",
-     "Modifica la primera matriz añadiéndole todas las filas de la"
+     "Modifica la primera matriz polinomial añadiéndole todas las filas de la"
      "segunda. En caso de éxito, devuelve el número total de filas,"
-     "pero si las dos matrices no tienen el mismo número de columnas "
+     "pero si las dos matrices polinomiales no tienen el mismo número de columnas "
      "no hace nada y devuelve 0."),
       BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
@@ -894,8 +922,8 @@ DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatExtractDiag);
 DefExtOpr(1, BPolMatExtractDiag,    "SubDiag", 2, 2, "PolMatrix Real",
   I2("(PolMatrix m, Real diagIndex)",
      "(PolMatrix m, Real indiceDeDiagonal)"),
-  I2("Extracts from the matrix m the indicated diagonal.",
-     "Extrae de la matriz la diagonal indicada. La diagonal principal es "
+  I2("Extracts from the polynomial matrix m the indicated diagonal.",
+     "Extrae de la matriz polinomial la diagonal indicada. La diagonal principal es "
      "la de indice 0, las diagonales inferiores tienen indices negativos "
      "y las superiores los tienen positivos."),
     BOperClassify::MatrixAlgebra_);
@@ -927,8 +955,8 @@ DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatSetDiag);
 DefExtOpr(1, BPolMatSetDiag,   "SetDiag", 1, 1, "Set",
   I2("(Set diagValues)",
      "(Set diagValues)"),
-  I2("Creates a diagonal matrix with the elements of a set of real numbers.",
-     "Crea una matriz diagonal con los elementos de un conjunto de numeros "
+  I2("Creates a diagonal polynomial matrix with the elements of a set of real numbers.",
+     "Crea una matriz polinomial diagonal con los elementos de un conjunto de numeros "
      "reales."),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
@@ -952,21 +980,21 @@ void BPolMatSetDiag::CalcContens()
 DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatSubTriang);
 DefExtOpr(1, BPolMatSubTriang,    "SubTriang", 2, 2, "PolMatrix Text",
   "(PolMatrix m, Text UPLO)",
-  I2("Extracts from the matrix <m> a row vector containing \n"
+  I2("Extracts from the polynomial matrix <m> a row vector containing \n"
      "  the upper triangular part if <UPLO>==\"U\" \n"
      "  the lower triangular part if <UPLO>==\"L\" \n"
-     "If matrix is non square only principal minor submatrix will be used.\n"
+     "If polynomial matrix is non square only principal minor submatrix will be used.\n"
      "If the dimension of this principal minor is n then the size of "
      "resulting vector will be k=n*(n+1)/2\n"
-     "Use SetTriang to restore the triangular matrix.",
-     "Extrae de la matriz <m> un vector fila conteniendo:\n"
+     "Use SetTriang to restore the triangular polynomial matrix.",
+     "Extrae de la matriz polinomial <m> un vector fila conteniendo:\n"
      "  la parte triangular superior si <UPLO>==\"U\" \n"
      "  la parte triangular inferior si <UPLO>==\"L\" \n"
-     "Si la matriz no es cuadrada silo se tendra en cuenta la submatriz "
+     "Si la matriz polinomial no es cuadrada silo se tendra en cuenta la submatriz "
      "menor principal.\n"
      "Si el tamaño de <m> es n entonces el tamaño del vector devuelto "
      "sera k=n*(n+1)/2\n" 
-     "Para restaurar la matriz triangular use SetTriang"),
+     "Para restaurar la matriz polinomial triangular use SetTriang"),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BPolMatSubTriang::CalcContens()
@@ -1009,17 +1037,17 @@ DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatSetTriang);
 DefExtOpr(1, BPolMatSetTriang, "SetTriang", 2, 2, "PolMatrix Text",
   "(PolMatrix v, Text UPLOSI)",
   I2("Converts a row vector in:\n"
-     "  a upper triangular matrix if <UPLOSI>==\"U\" \n"
-     "  a lower triangular matrix if <UPLOSI>==\"L\" \n"
-     "  a symmetric matrix if <UPLOSI>==\"S\" \n"
+     "  a upper triangular polynomial matrix if <UPLOSI>==\"U\" \n"
+     "  a lower triangular polynomial matrix if <UPLOSI>==\"L\" \n"
+     "  a symmetric polynomial matrix if <UPLOSI>==\"S\" \n"
      "The size of vector <v> must be an integer k matching "
-     "k=n*(n+1)/2, being n the size of resulting square matrix",
+     "k=n*(n+1)/2, being n the size of resulting square polynomial matrix",
      "Convierte un vector fila en:\n"
-     "  una matriz triangular superior si <UPLOSI>==\"U\" \n"
-     "  una matriz triangular inferior si <UPLOSI>==\"L\" \n"
-     "  una matriz simetrica si <UPLOSI>==\"S\" \n"
+     "  una matriz polinomial triangular superior si <UPLOSI>==\"U\" \n"
+     "  una matriz polinomial triangular inferior si <UPLOSI>==\"L\" \n"
+     "  una matriz polinomial simetrica si <UPLOSI>==\"S\" \n"
      "El tamaño del vector <v> debe ser un entero k tal que "
-     "k=n*(n+1)/2, siendo n el tamaño de la matriz cuadrada "
+     "k=n*(n+1)/2, siendo n el tamaño de la matriz polinomial cuadrada "
      "resultante"),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
@@ -1074,8 +1102,8 @@ DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatExtractRow);
 DefExtOpr(1, BPolMatExtractRow,   "SubRow", 2, 2, "PolMatrix Set",
   I2("(PolMatrix m , Set rowsIndex)",
      "(PolMatrix m , Set indiceDeFilas)"),
-  I2("Extracts from the matrix m the indicated rows.",
-     "Extrae de la matriz las filas indicadas."),
+  I2("Extracts from the polynomial matrix m the indicated rows.",
+     "Extrae de la matriz polinomial las filas indicadas."),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BPolMatExtractRow::CalcContens()
@@ -1127,8 +1155,8 @@ DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatExtractColumns);
 DefExtOpr(1, BPolMatExtractColumns,   "SubCol", 2, 2, "PolMatrix Set",
   I2("(PolMatrix m , Set columnsIndex)",
      "(PolMatrix m , Set indiceDeColumnas)"),
-  I2("Extracts from the matrix m the indicated columns.",
-     "Extrae de la matriz las columnas indicadas."),
+  I2("Extracts from the polynomial matrix m the indicated columns.",
+     "Extrae de la matriz polinomial las columnas indicadas."),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BPolMatExtractColumns::CalcContens()
@@ -1186,9 +1214,9 @@ DefExtOpr(1, BPolMatExtractRectangle, "Sub", 5, 5,
   "PolMatrix Real Real Real Real",
   I2("(PolMatrix m, Real row, Real column, Real height, Real width)",
      "(PolMatrix m, Real fila, Real columna, Real alto, Real ancho)"),
-  I2("Extracts of the matrix the submatrix that starts in the given row and "
+  I2("Extracts of the polynomial matrix the submatrix that starts in the given row and "
      "column and that it has the indicated height and width.",
-     "Extrae de la matriz la submatriz que comienza en la fila y la columna "
+     "Extrae de la matriz polinomial la submatriz que comienza en la fila y la columna "
      "dadas y que tiene el alto y ancho indicados."),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
