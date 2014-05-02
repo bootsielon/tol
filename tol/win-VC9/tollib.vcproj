@@ -4171,6 +4171,14 @@
 						>
 					</File>
 				</Filter>
+				<Filter
+					Name="polmat_type"
+					>
+					<File
+						RelativePath="..\btol\polmat_type\polmatgra.cpp"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="contrib"
@@ -4927,14 +4935,6 @@
 				>
 				<File
 					RelativePath="..\LoadDynLib\LoadDynLib.cpp"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="polmat_type"
-				>
-				<File
-					RelativePath="..\btol\polmat_type\polmatgra.cpp"
 					>
 				</File>
 			</Filter>
