@@ -52,14 +52,14 @@ public:
   BPolyn(Any x)
   : BArray< BMonome<Any> >() 
   {
-    AllocBuffer(1);
-    buffer_[0].PutCoef(x);
+    this->AllocBuffer(1);
+    this->buffer_[0].PutCoef(x);
   }
   BPolyn(double x)
   : BArray< BMonome<Any> >() 
   {
-    AllocBuffer(1);
-    buffer_[0].PutCoef(x);
+    this->AllocBuffer(1);
+    this->buffer_[0].PutCoef(x);
   }
 
   BPolyn(const BArray< BMonome<Any> >& arr)
