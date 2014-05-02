@@ -207,6 +207,13 @@ cp prj-config.jam.CentOS6x prj-config.jam
 ./bjam-gcc-release address-model=32
 ./sudo_install address-model=32
 
+# script de arranque de tolcon
+sudo mv /usr/local/tol32/bin/tolcon /usr/local/tol32/bin/tolcon.bin 
+echo '#!/bin/bash' > /tmp/tolcon
+echo 'LD_LIBRARY_PATH=/usr/local/lib:/usr/local/unixODBC-2.3.0 BLAPI_BLAS_LIB=/usr/lib/atlas-sse2/libf77blas BLAPI_LAPACK_LIB=/usr/lib/atlas-sse2/liblapack /usr/local/tol32/bin/tolcon.bin  ${1+"$@"}' >> /tmp/tolcon
+chmod a+x /tmp/tolcon
+sudo mv /tmp/tolcon /usr/local/tol32/bin/tolcon
+
 # verificamos que arranca bien 
 cd ..
 # esto falla ya que necesita de tolsh para descargar StdLib!!!!
@@ -243,9 +250,7 @@ sudo cp -r tolsh.vfs/lib/tequila /usr/local/tcl8.4.20/lib/.
 sudo cp -r tolsh.vfs/lib/tlogger /usr/local/tcl8.4.20/lib/.
 sudo cp -r tolsh.vfs/lib/tolcomm /usr/local/tcl8.4.20/lib/.
 echo '#!/bin/bash' > /tmp/tolsh
-echo 'LD_LIBRARY_PATH=/usr/local/lib /usr/local/tcl8.4.20/bin/tclsh8.4 /usr/local/tcl8.4.20/lib/app-tolsh/tolsh.tcl ${1+"$@"}' >> /tmp/tolsh
+echo 'LD_LIBRARY_PATH=/usr/local/lib BLAPI_BLAS_LIB=/usr/lib/atlas-sse2/libf77blas BLAPI_LAPACK_LIB=/usr/lib/atlas-sse2/liblapack TOLSessionPath=/usr/local/tol32/bin/tolsh /usr/local/tcl8.4.20/bin/tclsh8.4 /usr/local/tcl8.4.20/lib/app-tolsh/tolsh.tcl ${1+"$@"}' >> /tmp/tolsh
 chmod a+x /tmp/tolsh
 sudo mv /tmp/tolsh /usr/local/tol32/bin/tolsh
 
-# incluir en ~/.bash_profile
-export TOLSessionPath=/usr/local/tol32/bin/tolsh
