@@ -54,7 +54,8 @@ enum BMatrixStoreType
   BMST_symmetric_ = 3,
   BMST_lowTriang_ = 4,
   BMST_uppTriang_ = 5,
-  BMST_diagonal_  = 6
+  BMST_diagonal_  = 6,
+  BMST_dynamic_   = 7
 };
 
 

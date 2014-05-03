@@ -1,4 +1,44 @@
-PolMatrix X = (Rand(2,2,-1,1) * (B^0)) + (Rand(2,2,-1,1) * (B^1));
-Set PolMat2SetMat(X);
+Real r = 4;
+Real c = 3;
+Real d = 2;
+Set A = For(1,d,Matrix(Real k)
+{
+  Rand(r,c,-1,1)
+});
+
+PolMatrix X = A[1]*1 + A[2]*B;
+
+Set A_ = PolMat2SetMat(X);
+PolMatrix XA = SetMat2PolMat(A_);
+
+Set P  = PolMat2TabPol(X);
+
+PolMatrix XP =  SetMat(P);
+
+Set P_ = PolMat2TabPol(XP);
+
+PolMatrix XQ = TabPol2PolMat(P_);
+Set Q = PolMat2TabPol(XQ);
+
+PolMatrix dif.XA = X - XA;
+PolMatrix dif.XP = X - XP;
+PolMatrix dif.XQ = X - XQ;
+
+Set PolMat2TabPol(dif.XA);
+
+Real quality.dif.XA = 1-SetMax(For(1,d,Real(Real k)
+{
+  MatMax(Abs(EvalPolMatrix(dif.XA,Rand(-1,1))))
+}));
+
+Real quality.dif.XP = 1-SetMax(For(1,d,Real(Real k)
+{
+  MatMax(Abs(EvalPolMatrix(dif.XP,Rand(-1,1))))
+}));
+
+Real quality.dif.XQ = 1-SetMax(For(1,d,Real(Real k)
+{
+  MatMax(Abs(EvalPolMatrix(dif.XQ,Rand(-1,1))))
+}));
 
 

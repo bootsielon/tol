@@ -129,6 +129,8 @@ public:
   BMatrix<Any>	operator *  (const Any& m1) const;
   BMatrix<Any>	operator /  (const Any& m1) const;
 
+  Any Determinant() const;
+
   BInt	GaussReduction (BInt firstColumns);
   BBool Solve	       (const BMatrix<Any>& x, BMatrix<Any>& y);
   BInt	LinCombSpace   (BMatrix<Any>& equations);

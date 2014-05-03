@@ -34,6 +34,7 @@
 #include <tol/tol_bdatgra.h>
 #include <tol/tol_bcmpgra.h>
 #include <tol/tol_bdtegra.h>
+#include <tol/tol_bpolmatgra.h>
 #include <tol/tol_ois.h>
 #ifdef __USE_TC__
 #  include <tol/tol_bctmigra.h>
@@ -1290,56 +1291,79 @@ static BSyntaxObject* EvCopy(BGrammar* gra, const List* tre, BBool left)
 //--------------------------------------------------------------------
 BSyntaxObject* CopyReal(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos)
 {
-    BDat dat = Dat(obj);
-    if(p.Size()) { dat = p[pos++]; }
-    return(new BContensDat("",dat,""));
+  BDat dat = Dat(obj);
+  if(p.Size()) { dat = p[pos++]; }
+  return(new BContensDat("",dat,""));
 };
 
 //--------------------------------------------------------------------
 BSyntaxObject* CopyPolyn(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos)
 {
-    BPol pol = Pol(obj);
-    pol.Aggregate();
-    BInt j;
-    if(p.Size()&&((pol.Size()!=1)||(pol[0].Coef()!=0)))
-    {
-	for(j=0; j<pol.Size(); j++) { pol[j].PutCoef(p[pos++]); }
-    }
-    return(new BContensPol("",pol,""));
+  BPol pol = Pol(obj);
+//pol.Aggregate();
+  BInt j;
+  if(p.Size()&&((pol.Size()!=1)||(pol[0].Coef()!=0)))
+  {
+	  for(j=0; j<pol.Size(); j++) { pol[j].PutCoef(p[pos++]); }
+  }
+  return(new BContensPol("",pol,""));
 };
 
 //--------------------------------------------------------------------
 BSyntaxObject* CopyRatio(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos)
 {
-    BRat rat = Rat(obj);
-    BPol num = rat.Numerator  ();
-    BPol den = rat.Denominator();
-    BInt j;
-    if(p.Size())
-    {
-	for(j=1; j<num.Size(); j++) { num[j].PutCoef(p[pos++]); }
-	for(j=1; j<den.Size(); j++) { den[j].PutCoef(p[pos++]); }
-	rat.PutNumerator  (num);
-	rat.PutDenominator(den);
-    }
-    return(new BContensRat("",rat,""));
+  BRat rat = Rat(obj);
+  BPol num = rat.Numerator  ();
+  BPol den = rat.Denominator();
+  BInt j;
+  if(p.Size())
+  {
+	  for(j=1; j<num.Size(); j++) { num[j].PutCoef(p[pos++]); }
+	  for(j=1; j<den.Size(); j++) { den[j].PutCoef(p[pos++]); }
+	  rat.PutNumerator  (num);
+	  rat.PutDenominator(den);
+  }
+  return(new BContensRat("",rat,""));
 };
 
 //--------------------------------------------------------------------
 BSyntaxObject* CopyMatrix(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos)
 {
-    BMat mat = Mat(obj);
-    if(p.Size())
-    {
-	for(BInt i=0; i<mat.Rows(); i++)
-	{
+  BMat mat = Mat(obj);
+  if(p.Size())
+  {
+	  for(BInt i=0; i<mat.Rows(); i++)
+	  {
 	    for(BInt j=0; j<mat.Columns(); j++)
 	    {
-		mat(i,j) = p[pos++];
+		    mat(i,j) = p[pos++];
 	    }
-	}
-    }
-    return(new BContensMat("",mat,""));
+	  }
+  }
+  return(new BContensMat("",mat,""));
+};
+
+//--------------------------------------------------------------------
+BSyntaxObject* CopyPolMat(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos)
+{
+  BPolMat P = PolMat(obj);
+  int i,j,k,r=P.Rows(),c=P.Columns();
+  if(p.Size())
+  {
+    for(i=0; i<r; i++)
+	  {
+	    for(j=0; j<c; j++)
+	    {
+        BPol& pol = P(i,j);
+      //pol.Aggregate();
+        if(((pol.Size()!=1)||(pol[0].Coef()!=0)))
+        {
+	        for(k=0; k<pol.Size(); k++) { pol[k].PutCoef(p[pos++]); }
+        }	    
+	    }
+	  }
+  }
+  return(new BContensPolMat("",P,""));
 };
 
 //--------------------------------------------------------------------
@@ -1409,6 +1433,7 @@ void DeepCopy(const BSet& sample,BSet& copy,const BArray<BDat>& p,BInt& pos)
       else if(gra==GraPolyn  ()) { obj = CopyPolyn  (sample[i],p,pos); }
       else if(gra==GraRatio  ()) { obj = CopyRatio  (sample[i],p,pos); }
       else if(gra==GraMatrix ()) { obj = CopyMatrix (sample[i],p,pos); }
+      else if(gra==GraPolMat ()) { obj = CopyPolMat (sample[i],p,pos); }
       else if(gra==GraSet    ()) { obj = CopySet    (sample[i],p,pos); }
       else if(gra==GraCode   ()) { obj = CopyCode   (sample[i]);       }
       else		                   { obj = sample[i]->CopyContens ();    }

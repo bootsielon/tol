@@ -45,4 +45,6 @@ template class TOL_API BGraContens     < BPolMat >;
 
 CastingsDeclaration(PolMat);
 
+int Degree(const BPolMat& P);
+
 #endif // TOL_BPOLMATGRA_H

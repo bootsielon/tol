@@ -106,6 +106,109 @@ BSyntaxObject* BGraContensBase<BPolMat>::Casting(BSyntaxObject* obj)
 // Algebraic temporary class declarations.
 //--------------------------------------------------------------------
 
+
+//--------------------------------------------------------------------
+int Degree(const BPolMat& P)
+//--------------------------------------------------------------------
+{
+  int k, s=P.Data().Size();
+  const BPol* p = P.Data().Buffer();
+  int deg,  maxDeg = 0;
+  for(k=0; k<s; k++, p++)
+  {
+    deg = p->Degree();
+    if(deg>maxDeg) { maxDeg = deg; }
+  }
+  return(maxDeg);
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatPolMatDegree);
+DefExtOpr(1, BDatPolMatDegree, "PolMatDegree", 1, 1, "PolMatrix",
+  "(PolMatrix p)",
+  I2("Returns the degree of a polynomial matrix",
+     "Devuelve el grado de una matriz polinomial."),
+    BOperClassify::RetardPolynomial_);
+//--------------------------------------------------------------------
+void BDatPolMatDegree::CalcContens()
+//--------------------------------------------------------------------
+{
+  BPolMat& P = PolMat(Arg(1));
+  contens_ = Degree(P);
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatPolMatRows);
+DefExtOpr(1, BDatPolMatRows, "PolMatRows", 1, 1, "PolMatrix",
+  "(PolMatrix p)",
+  I2("Returns the number of rows of a polynomial matrix",
+     "Devuelve el número de filas de una matriz polinomial."),
+    BOperClassify::RetardPolynomial_);
+//--------------------------------------------------------------------
+void BDatPolMatRows::CalcContens()
+//--------------------------------------------------------------------
+{
+  BPolMat& P = PolMat(Arg(1));
+  contens_ = P.Rows();
+}
+
+
+//--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatPolMatColumns);
+DefExtOpr(1, BDatPolMatColumns, "PolMatColumns", 1, 1, "PolMatrix",
+  "(PolMatrix p)",
+  I2("Returns the number of columns of a polynomial matrix",
+     "Devuelve el número de columnas de una matriz polinomial."),
+    BOperClassify::RetardPolynomial_);
+//--------------------------------------------------------------------
+void BDatPolMatColumns::CalcContens()
+//--------------------------------------------------------------------
+{
+  BPolMat& P = PolMat(Arg(1));
+  contens_ = P.Columns();
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BPol, BPolTemporary, BPolDeterminant);
+DefExtOpr(1, BPolDeterminant, "Determinant", 1, 1, "PolMatrix",
+  "(PolMatrix p)",
+  I2("Returns the determinant of a polynomial matrix",
+     "Devuelve el determinante de una matriz polinomial."),
+    BOperClassify::RetardPolynomial_);
+//--------------------------------------------------------------------
+void BPolDeterminant::CalcContens()
+//--------------------------------------------------------------------
+{
+  BPolMat& P = PolMat(Arg(1));
+  contens_ = P.Determinant();
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatEvalPolMatrix);
+DefExtOpr(1, BMatEvalPolMatrix, "EvalPolMatrix", 2, 2, "PolMatrix Real",
+  "(PolMatrix p, Real x)",
+  I2("Evaluates a polynomial matrix in a real value.",
+     "Evalua una matriz polinomial en un valor real."),
+    BOperClassify::RetardPolynomial_);
+//--------------------------------------------------------------------
+void BMatEvalPolMatrix::CalcContens()
+//--------------------------------------------------------------------
+{
+  BPolMat& P = PolMat(Arg(1));
+  BDat &x   = Dat(Arg(2));
+  BInt k, r, c, s;
+  r = P.Rows();
+  c = P.Columns();
+  s = P.Data().Size();
+  contens_.Alloc(r,c);
+  const BPol* p = P.Data().Buffer();
+  BDat* y = contens_.GetData().GetBuffer();
+  for(k=0; k<s; k++, y++, p++)
+  {
+    *y = p->Eval(x);
+  }
+}
+
 //--------------------------------------------------------------------
 DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatIdentity);
 DefIntOpr(1, BPolMatIdentity, " + ", 1, 1,
@@ -172,7 +275,7 @@ void BPolMatReverse::CalcContens()
 //--------------------------------------------------------------------
 DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatSum2);
 DefExtOpr(1, BPolMatSum2, "+", 2, 2, "PolMatrix {PolMatrix|Real}",
-  "mat1 + mat2 {PolMatrix mat1, {PolMatrix|Real} mat2}",
+  "a + b {PolMatrix a, {PolMatrix|Real} b}",
   I2("Returns the sum of two polynomial matrices with the same dimensions."
      "Second one may be also a real number",
      "Devuelve la suma de dos matrices polinomiales con las mismas dimensiones."
@@ -183,7 +286,7 @@ void BPolMatSum2::CalcContens()
 //--------------------------------------------------------------------
 {
   BGrammar* gra = Arg(2)->Grammar();
-  if(gra==GraMatrix()) 
+  if(gra==GraPolMat()) 
   { 
     contens_ = PolMat(Arg(1)) + PolMat(Arg(2)); 
   }
@@ -204,7 +307,7 @@ void BPolMatSum2::CalcContens()
 //--------------------------------------------------------------------
 DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatDifference);
 DefExtOpr(1, BPolMatDifference, "-", 2, 2,"PolMatrix {PolMatrix|Real}",
-  "mat1 - mat2 {PolMatrix mat1, {PolMatrix|Real} mat2}",
+  "a - b {PolMatrix a, {PolMatrix|Real} b}",
   I2("Returns the subtraction of two polynomial matrices with the same dimensions."
      "Second one may be also a real number",
      "Devuelve la resta de dos matrices polinomiales con las mismas dimensiones."
@@ -215,7 +318,7 @@ void BPolMatDifference::CalcContens()
 //--------------------------------------------------------------------
 {
   BGrammar* gra = Arg(2)->Grammar();
-  if(gra==GraMatrix()) 
+  if(gra==GraPolMat()) 
   { 
     contens_ = PolMat(Arg(1)) - PolMat(Arg(2)); 
   }
@@ -235,8 +338,8 @@ void BPolMatDifference::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatProduct2);
-DefExtOpr(1, BPolMatProduct2, "*", 2, 2,"PolMatrix {PolMatrix|Real|Polyn|Matrix}",
-  "P * Q {PolMatrix P, {PolMatrix|Real|Polyn|Matrix} Q}",
+DefExtOpr(1, BPolMatProduct2, "*", 2, 2,"{PolMatrix|Matrix} {PolMatrix|Real|Polyn|Matrix}",
+  "a * b {{PolMatrix|Matrix} a, {PolMatrix|Real|Polyn|Matrix} b}",
   I2("Returns the product of two polynomial polynomial matrices such that the number of columns "
      "of the first polynomial matrix will be equal to the number of rows of the second."
      "Second one may be also a real number, a polynomial or a real "
@@ -251,37 +354,57 @@ DefExtOpr(1, BPolMatProduct2, "*", 2, 2,"PolMatrix {PolMatrix|Real|Polyn|Matrix}
 void BPolMatProduct2::CalcContens()
 //--------------------------------------------------------------------
 {
-  BGrammar* gra = Arg(2)->Grammar();
-  BPolMat& P = PolMat(Arg(1));
-  if(gra==GraMatrix()) 
-  { 
-    MatMult(P,PolMat(Arg(2)),contens_); 
-  }
-  else if(gra==GraReal()) 
-  { 
-    contens_ = P * Real(Arg(2)); 
-  }
-  else if(gra==GraPolyn()) 
-  { 
-    contens_ = P * Pol(Arg(2)); 
-  }
-  else if(gra==GraMatrix()) 
-  { 
-    BMat& a = Mat(Arg(2));
-    const BPol* p = P.Data().Buffer(); 
-    BPol *z, *y = contens_.GetData().GetBuffer(); 
-    int k,r,c,s;
-    const BDat* x = a.Data().Buffer();
+  BGrammar* g1 = Arg(1)->Grammar();
+  BGrammar* g2 = Arg(2)->Grammar();
+  BPolMat P;
+  int r,c,s,k;
+  if(g1==GraPolMat())
+  {
+    P = PolMat(Arg(1));
     r = P.Rows();
     c = P.Columns();
     s = P.Data().Size();
+  }
+  else if(g1==GraMatrix())
+  {
+    BMat& a = Mat(Arg(1));
+    const BDat* x = a.Data().Buffer();
+    r = a.Rows();
+    c = a.Columns();
+    s = a.Data().Size();
+    P.Alloc(r,c); 
+    BPol *z = P.GetData().GetBuffer(); 
+    for(k=0; k<s; k++, x++, z++)
+    {
+      *z = BPol(*x);
+    }    
+  }
+  if(g2==GraPolMat()) 
+  { 
+    MatMult(P,PolMat(Arg(2)),contens_); 
+  }
+  else if(g2==GraReal()) 
+  { 
+    contens_ = P * Real(Arg(2)); 
+  }
+  else if(g2==GraPolyn()) 
+  { 
+    contens_ = P;
+    contens_ *= Pol(Arg(2)); 
+  }
+  else if(g2==GraMatrix()) 
+  { 
+    BMat& a = Mat(Arg(2));
+    const BDat* x = a.Data().Buffer();
+    const BPol* p = P.Data().Buffer(); 
     if((r!=a.Rows())||(c!=a.Columns()))
     {
       Error("[PolMatrix Matrix product] Invalid dimensions of polynomial matrices");
       return;
     }
+   
     contens_.Alloc(r,c);
-    z=y;
+    BPol *z = contens_.GetData().GetBuffer(); 
     for(k=0; k<s; k++, x++, z++, p++)
     {
       *z = *p * *x;
@@ -289,7 +412,7 @@ void BPolMatProduct2::CalcContens()
   }
   else
   {
-    Error(gra->Name()+" <"+Arg(2)->Identify()+">"+
+    Error(g2->Name()+" <"+Arg(2)->Identify()+">"+
           I2("is not a valid type for PolMatrix *",
              "no es un tipo valido para PolMatrix *"));
     contens_ = BPolMat::Unknown();
@@ -454,7 +577,7 @@ void BPolMatSetSum::CalcContens()
   bool init = false;
   for(BInt n=1; n<=set.Card(); n++)
   {
-    if(set[n]->Grammar()==GraMatrix())
+    if(set[n]->Grammar()==GraPolMat())
     {
       if(!init) { C  = PolMat(set[n]); init = true; }
       else      { C += PolMat(set[n]); }
@@ -469,7 +592,7 @@ void BPolMatSetSum::CalcContens()
 //--------------------------------------------------------------------
 DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatSetMat2PolMat);
 DefExtOpr(1, BPolMatSetMat2PolMat, "SetMat2PolMat", 1, 1, "Set",
-  I2("(Set A)","(Set cto)"),
+  "(Set A)",
   "Given a set of real matrices A, returns the polynomial matrix "
   "A[1]+A[2]*B+...+A[n]*B^(n-1)",
     BOperClassify::MatrixAlgebra_);
@@ -483,24 +606,24 @@ void BPolMatSetMat2PolMat::CalcContens()
   bool init = false; 
   int k, s, r, c;
   const BDat* x;
-  BPol* z, *y = C.GetData().GetBuffer();
   BMonome<BDat> m;
   for(BInt n=1; n<=set.Card(); n++)
   {
-    if(set[n]->Grammar()==GraMatrix())
+    if(set[n]->Grammar()!=GraMatrix())
     {
       Error("[SetMat2PolMat] Only real matrices are allowed in argument A");
       return;
     }
     BMat& a = Mat(set[n]);
     x = a.Data().Buffer();
+    BPol* z, *y;
     if(n==1)
     { 
       r = a.Rows();
       c = a.Columns();
       s = a.Data().Size();
       C.Alloc(r,c);
-      z=y;
+      z = y = C.GetData().GetBuffer();
       for(k=0; k<s; k++, x++, z++)
       {
         m.PutCoef(*x);
@@ -561,6 +684,79 @@ void BSetPolMat2SetMat::CalcContens()
     {
       *a = p->Coef(d);
     }    
+  }
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BPolMat, BPolMatTemporary, BPolMatTabPol2PolMat);
+DefExtOpr(1, BPolMatTabPol2PolMat, "TabPol2PolMat", 1, 1, "Set",
+  "(Set A)",
+  "Given a table-set of polynomials, returns the polynomial matrix "
+  "A[i][j]",
+    BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BPolMatTabPol2PolMat::CalcContens()
+//--------------------------------------------------------------------
+{
+  BPolMat & C = contens_;
+  BSet& set = Set(Arg(1));
+  if(!set.Card()) { return; }
+  bool init = false; 
+  int i, j, r=set.Card(), c;
+  for(i=1; i<=r; i++)
+  {
+    if(set[i]->Grammar()!=GraSet())
+    {
+      Error("[TabPol2PolMat] Only set of sets of polynomials are allowed in argument A");
+      return;
+    }
+    BSet& row = Set(set[i]);
+    if(i==1) 
+    {
+      c = row.Card(); 
+      contens_.Alloc(r,c);
+    }
+    for(j=1; j<=c; j++)
+    {
+      if(row[j]->Grammar()!=GraPolyn())
+      {
+        Error("[TabPol2PolMat] Only set of sets of polynomials are allowed in argument A");
+        return;
+      }
+      contens_(i-1,j-1) = Pol(row[j]);
+    }
+  }
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BSet, BSetTemporary, BSetPolMat2TabPol);
+DefExtOpr(1, BSetPolMat2TabPol, "PolMat2TabPol", 1, 1, "PolMatrix",
+"(PolMatrix P)",
+I2("Returns the table-set of polynomials of a polynomial matrix",
+   "Devuelve el conjunto-table de polinomios de una matriz polynomial"),
+BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BSetPolMat2TabPol::CalcContens()
+//--------------------------------------------------------------------
+{
+  BPolMat& P = PolMat(Arg(1));
+  int r=P.Rows();
+  int c=P.Columns();
+  int s=P.Data().Size();
+  int i,j;
+  contens_.PrepareStore(r);
+  for(i=0; i<r; i++)
+  {
+    BSet s;
+  	BUserSet* uSet = new BContensSet("",s,"");
+    BSet& set = Set(uSet);
+    set.PrepareStore(c);
+    for(j=0; j<c; j++)
+    {
+    	BUserPol* uPol = new BContensPol("",P(i,j),"");
+      set.AddElement(uPol);
+    }
+    contens_.AddElement(uSet);
   }
 }
 
@@ -664,7 +860,7 @@ bool internal_builtin_SetMat(
             "be sets with the same number of reals ",
             "Fallo en formato de conjunto: todos sus elementos "
             "deberían ser conjuntos con el mismo número de reales");
-  if(!set.Card() || (set[1]->Grammar()->Name()!="Set"))
+  if(!set.Card() || (set[1]->Grammar()!=GraSet()))
   {
     Error(_wrongFormat);
     mat = BPolMat::Unknown();
@@ -825,7 +1021,7 @@ DefExtOpr(1, BPolMatConcatRow,  "ConcatRows", 1, 0, "PolMatrix PolMatrix",
 void BPolMatConcatRow::CalcContens()
 //--------------------------------------------------------------------
 {
-  BInt  i, k=0;
+  BInt  i, j, l, k=0;
   BInt  numCol = 0;
   BInt  numRow = 0;
   BInt  numMat = NumArgs();
@@ -861,11 +1057,6 @@ void BPolMatConcatRow::CalcContens()
     int aCol = Mi.Columns();
     if(aRow && (aCol==numCol))
     {
-      const BPol* a = Mi.Data().Buffer();
-      int aLen = aRow*aCol;
-      memcpy(c,a,aLen*sizeof(BPol));
-      c+=aLen;
-/*
       for(j=0; j < Mi.Rows(); j++, k++) 
       {
         for(l=0; l < numCol; l++) 
@@ -873,48 +1064,8 @@ void BPolMatConcatRow::CalcContens()
           contens_(k,l)=Mi(j,l); 
         } 
       }
-*/
     }
   }
-}
-
-//--------------------------------------------------------------------
-DeclareContensClass(BDat, BDatTemporary, BDatAppendPolRows);
-DefExtOpr(1, BDatAppendPolRows,  "AppendPolRows", 2, 2, "PolMatrix PolMatrix",
-  "(PolMatrix matRef, PolMatrix newRows)",
-  I2("Modifies first polynomial matrix adding all the rows from second one."
-     "If both matrices have not the same number of columns then "
-     "does nothing and returns 0, else returns the total number of "
-     "rows.",
-     "Modifica la primera matriz polinomial añadiéndole todas las filas de la"
-     "segunda. En caso de éxito, devuelve el número total de filas,"
-     "pero si las dos matrices polinomiales no tienen el mismo número de columnas "
-     "no hace nada y devuelve 0."),
-      BOperClassify::MatrixAlgebra_);
-//--------------------------------------------------------------------
-void BDatAppendPolRows::CalcContens()
-//--------------------------------------------------------------------
-{
-  BPolMat& M1 = PolMat(Arg(1));
-  BPolMat& M2 = PolMat(Arg(2));
-  int c1 = M1.Columns();
-  int c2 = M2.Columns();
-  int r1 = M1.Rows();
-  int r2 = M2.Rows();
-  if(c1!=c2) { contens_ = 0; }
-  else if(r2==0)  { contens_ = r1; }
-  else
-  {
-    int r = r1+r2;
-    int s1 = r1*c1*sizeof(BPol);
-    int s2 = r2*c2*sizeof(BPol);
-    M1.Alloc(r,c1);
-    BPol* addPnt = M1.GetData().GetBuffer()+(r1*c1);
-    const BPol* newPnt = M2.Data().Buffer();
-    memcpy(addPnt,newPnt,s2);
-    contens_ = r;
-  }
-
 }
 
 //--------------------------------------------------------------------
@@ -1256,4 +1407,5 @@ void BPolMatExtractRectangle::CalcContens()
       Arg(4)->Dump()+","+Arg(5)->Dump()+")");
   }
 }
+
 

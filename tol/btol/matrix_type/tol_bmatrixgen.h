@@ -22,6 +22,7 @@
 #ifndef TOL_BMATRIXGEN_H
 #define TOL_BMATRIXGEN_H 1
 
+#include <tol/tol_matrix_previous.h>
 #include <tol/tol_bindex.h>
 #include <tol/tol_barith.h>
 
@@ -39,12 +40,12 @@ public:
   BMatrixGen(BInt r, BInt c, const Any* buffer=NIL);
   BMatrixGen(const BMatrixGen<Any>& m);
   virtual ~BMatrixGen();
-  virtual  BMatrixStoreType StoreType() const { return(BMST_dense_); }
+  virtual  BMatrixStoreType StoreType() const { return(BMST_dynamic_); }
   //Internal manipulation
           void Alloc   (BInt r, BInt c);
   virtual void Alloc   (BInt r)		{ Alloc(r,r); }
 
-  BMatrixGen<Any>& GenCopy(const BMatrixGen<Any>* m);
+  virtual BMatrixGen<Any>& Copy(const BMatrixGen<Any>* m);
   BMatrixGen<Any>& operator = (const  BMatrixGen<Any>& m);
 
   void SetAllValuesTo(const Any& x);
@@ -52,10 +53,10 @@ public:
   //Access & manipulation:
   BInt Rows   () const { return(rows_   );}
   BInt Columns() const { return(columns_);}
-  void EnsureDimensions(BInt i, BInt j) const;
 
   virtual Any  Get	  (BInt i, BInt j) const
   {
+  //BMAT_ENSURE_DIM(i,j);
     if((i<0)||(j<0)||(i>=rows_)||(j>=columns_))
     { return(BArray<Any>::Overflow()); }
     else
@@ -64,8 +65,11 @@ public:
 
   virtual Any& operator() (BInt i, BInt j) const
   {
+    BMAT_ENSURE_DIM(i,j);
     return(buffer_[firstBuffer_[i]+j]);
   }
+
+  void EnsureDimensions(BInt i, BInt j) const;
 
   const BArray<Any >& Data   () const { return(data_); }
         BArray<Any >& GetData()       { return(data_); }
@@ -114,6 +118,7 @@ public:
   void	Reverse();
   BMatrixGen<Any>	PermutateRows	(const BArray<BInt>& perm);
   BMatrixGen<Any>	PermutateColumns(const BArray<BInt>& perm);
+  Any Determinant() const;
 
   static BMatrixGen<Any>& Unknown();
   static BDat Compare(const BMatrixGen<Any>*, const BMatrixGen<Any>*) {

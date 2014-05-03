@@ -105,7 +105,7 @@ BMatrixGen<Any>::BMatrixGen(const BMatrixGen<Any>& m)
 //--------------------------------------------------------------------
     : firstOfRow_(), data_(), rows_(0), columns_(0)
 {
-  GenCopy(&m);
+  operator=(m);
 }
 
 
@@ -182,7 +182,7 @@ void BMatrixGen<Any>::SetAllValuesTo(const Any& x0)
 
 //--------------------------------------------------------------------
 template <class Any>
-BMatrixGen<Any>& BMatrixGen<Any>::GenCopy(const BMatrixGen<Any>* m)
+BMatrixGen<Any>& BMatrixGen<Any>::Copy(const BMatrixGen<Any>* m)
 
 /*! Sets in this diagonal matrix the principal diagonal of a general
  *  matrix m.
@@ -220,7 +220,7 @@ BMatrixGen<Any>& BMatrixGen<Any>::GenCopy(const BMatrixGen<Any>* m)
 
 template <class Any>
 BMatrixGen<Any>& BMatrixGen<Any>::operator=(const BMatrixGen<Any>& m)  
-{ return(GenCopy(&m)); }
+{ return(Copy(&m)); }
 
 //--------------------------------------------------------------------
 // Access and manipulation functions for BMatrixGen class.
@@ -385,7 +385,7 @@ BMatrixGen<Any>::operator -= (const BMatrixGen<Any>& m)
       {
         for(j=0; j<c; j++)
         {
-          (*this)(i,j) += m(i,j);
+          (*this)(i,j) -= m(i,j);
         }
       }
     }
@@ -991,5 +991,40 @@ BMatrixGen<Any>::IsKnown() const
   return BTRUE;
 }
 
+
+//--------------------------------------------------------------------
+template <class Any>
+Any BMatrixGen<Any>::Determinant() const
+{
+  const BMatrixGen<Any>& T = *this;
+  if(rows_!=columns_) { return(Any(0.0)); }
+  if(rows_==1) { return(T(0,0)); }
+  if(rows_==2) { return(T(0,0)*T(1,1)-T(0,1)*T(1,0)); }
+  if(rows_==3) { return(
+    T(0,0)*T(1,1)*T(2,2)
+   +T(0,1)*T(1,2)*T(2,0)
+   +T(0,2)*T(1,0)*T(2,1)
+   -T(0,0)*T(1,2)*T(2,1)
+   -T(0,1)*T(1,1)*T(2,2)
+   -T(0,2)*T(1,0)*T(2,0)
+  ); }
+  Any d = Any(0);
+  int i,j,k,r;
+  for(k=0; k<rows_; k++)
+  {
+    Any c = T(k-1,0)*Any(pow(-1.0,k));
+    r = rows_-1;
+    BMatrixGen<Any> A(r,r);
+    for(i=0; i<r; i++)
+    {
+      for(j=0; j<r; j++)
+      {
+        A(i,j) = T(i+(i>=k),j+(j>=k));
+      }
+    }
+    d += A.Determinant()*c;
+  }
+  return(d);
+};
 
 

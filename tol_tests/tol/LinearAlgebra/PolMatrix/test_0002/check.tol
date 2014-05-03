@@ -1,0 +1,16 @@
+#Require VariableChange;
+
+Real dim = 2;
+Real deg = 3;
+
+Matrix x = VariableChange::StableMatrixPolyn::
+  SquareSetGen.Rand(dim, deg, -1, 1, 0.001);
+
+Set PHI = VariableChange::StableMatrixPolyn::
+  DuffinSchurBinFact(dim, deg, (x));
+Polyn determinant = VecSer::PolynMatrixDeterminant(PHI);
+
+
+PolMatrix P = TabPol2PolMat(PHI);
+
+Polyn determinant_ = Determinant(P);
