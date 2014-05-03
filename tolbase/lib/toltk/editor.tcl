@@ -1507,7 +1507,7 @@ proc ::Editor::VariableMap {this} {
   # Luego de compilar, obtengo la lista de variables creadas.
   # "const" sera lista de palabras que nunca seran variables
   set const [list Anything Code Complex CDate CTimeSet Date Matrix Polyn \
-                  Ratio Ration Real Serie Set Special Struct Text TimeSet ]
+                  Ratio Ration Real Serie Set Special Struct Text TimeSet PolMatrix]
     
   #Obtener lista de variables y funciones ya compiladas desde editor
   #controla el numero de linea mientras recorre el txt del editor

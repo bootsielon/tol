@@ -1095,7 +1095,7 @@ proc ::BayesText::init_tolctext { w } {
 #/////////////////////////////////////////////////////////////////////////////
   ctext::addHighlightClass $w grammars black [list Anything Code Complex \
     CDate CTimeSet Date Matrix NameBlock Polyn Ration Real Serie Set Special Struct \
-    Text TimeSet VMatrix Class \#Embed \#Require Static ]  
+    Text TimeSet VMatrix PolMatrix Class \#Embed \#Require Static ]  
 
   ctext::addHighlightClass $w stackControl purple {BinGroup Case Copy Dating\
     Do Element Eval EvalArg Field Find Group IF If MakeGlobal PutDescription\
