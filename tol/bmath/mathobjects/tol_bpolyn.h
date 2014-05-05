@@ -104,7 +104,7 @@ public:
   void Sort()  { BArray< BMonome<Any> >::Sort(BMonome<Any>::BMonomeOrder); }
   BInt Find(BInt searched) const
   {
-    return(FindSorted(BMonome<Any>(0.0,searched),BMonome<Any>::BMonomeOrder));
+    return(this->FindSorted(BMonome<Any>(0.0,searched),BMonome<Any>::BMonomeOrder));
   }
 
   void Aggregate();
@@ -214,7 +214,7 @@ BPolyn<Any>& BPolyn<Any>::operator= (const BPolyn<Any>& pol)
 //--------------------------------------------------------------------
 {
     this->DeleteBuffer();
-    Copy(pol.Size(), pol.Buffer());
+    this->Copy(pol.Size(), pol.Buffer());
     return (*this);
 }
 
@@ -229,7 +229,7 @@ BPolyn<Any>& BPolyn<Any>::operator= (const BMonome<Any>& mon)
 //--------------------------------------------------------------------
 {
     this->DeleteBuffer();
-    Replicate(mon);
+    this->Replicate(mon);
     return (*this);
 }
 
@@ -328,7 +328,7 @@ template <class Any>
 void BPolyn<Any>::ChangeBF(const BPolyn<Any>& pol)
 //--------------------------------------------------------------------
 {
-    ReallocBuffer(pol.Size());
+    this->ReallocBuffer(pol.Size());
     for(BInt n=0; n<this->Size(); n++)
     {
     (*this)(n) = pol(this->Size()-1-n);
@@ -427,7 +427,7 @@ BPolyn<Any>& BPolyn<Any>::operator += (const BPolyn<Any>& pol)
  */
 //--------------------------------------------------------------------
 {
-    AutoConcat(pol);
+    this->AutoConcat(pol);
     Sort();
     Aggregate();
     return (*this);
@@ -458,7 +458,7 @@ BPolyn<Any>& BPolyn<Any>::operator *= (const BPolyn<Any>& pol)
 {
     BInt i,j,oldSize=this->Size();
 
-    ReallocBuffer(this->Size()*pol.Size());
+    this->ReallocBuffer(this->Size()*pol.Size());
     for(j=pol.Size()-1; j>=0; j--)
     {
     for(i=oldSize-1; i>=0; i--)
