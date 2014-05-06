@@ -998,12 +998,13 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           BINT64 offset;
           ERead(offset, object_);
           matrix_->SetPos(offset);
-          int r,c,k;
+          int r,c,k,s;
           ERead(r, matrix_);
           ERead(c, matrix_);
           result = new BContensPolMat("", BPolMat(0,0), description);
           BPolMat& x = PolMat(result);
           x.Alloc(r,c);
+          s = x.Data().Size();
           BPol* p = x.GetData().GetBuffer();
           for(k=0; k<s; k++, p++)
           {

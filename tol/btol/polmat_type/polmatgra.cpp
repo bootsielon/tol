@@ -29,8 +29,10 @@
 #include <tol/tol_bsetgra.h>
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bmatgra.h>
+#include <tol/tol_bvmatgra.h>
 #include <tol/tol_bgrammar.h>
 #include <tol/tol_blanguag.h>
+#include <tol/tol_bar.h>
 
 
 //--------------------------------------------------------------------
@@ -123,6 +125,78 @@ int Degree(const BPolMat& P)
 }
 
 //--------------------------------------------------------------------
+bool IsStationary(const BPolMat& P)
+//--------------------------------------------------------------------
+{
+  BPol det = P.Determinant();
+  return(IsStationary(det));
+}
+
+//--------------------------------------------------------------------
+bool ApplyMatPol(const BPolMat& P, const BMat& X, BMat& Y)
+//--------------------------------------------------------------------
+{
+  int i,j,t,h,r=P.Rows(), c = P.Columns(), T = X.Rows();
+  if(X.Columns()!=c) { return(false); }
+  BArray< BArray<BDat> > x(c);
+  for(j=0; j<c; j++)
+  {
+    x(j) = X.SubCol(j).Data();
+  }
+  int d = Degree(P);
+  int Td = T-d;
+  Y.Alloc(Td,r);
+  Y.SetAllValuesTo(0.0);
+  
+  for(i=0; i<r; i++)
+  {
+    for(j=0; j<c; j++)
+    {
+      BArray<BDat> z;
+      const BArray<BDat>& xj = x(j);      
+      ApplyPolyn(P(i,j),xj,z);
+      for(t=Td-1,h=z.Size()-1; t>=0; t--, h--)
+      {
+        Y(t,i) += z(h);
+      }
+    }
+  }
+  return(true);
+}
+
+//--------------------------------------------------------------------
+bool BuildCompanionMatrix(const BPolMat& P, BVMat& Y)
+//--------------------------------------------------------------------
+{
+  int i, j, k, d;
+  int D = Degree(P);
+  int r = P.Rows();
+  int c = P.Columns();
+  if(r!=c) { return(false); }
+  if(D<1) { return(false); }
+
+  BVMat Y1,Y21,Y22;
+  Y1.BlasRDense(r,r*D);
+  for(k=0,d=1; d<=D; d++)
+  {
+    for(j=0; j<r; j++, k++)
+    {
+      for(i=0; i<r; i++)
+      {
+        Y1.PutCell(i,k,-P(i,j).Coef(d).Value());
+      }
+    }
+  }
+  if(D==1) { Y = Y1; }
+  else
+  {
+    Y21.Eye(r*(D-1));
+    Y22.Zeros(r*(D-1),r);
+    Y = Y1 << (Y21 | Y22);
+  }
+}
+
+//--------------------------------------------------------------------
 DeclareContensClass(BDat, BDatTemporary, BDatPolMatDegree);
 DefExtOpr(1, BDatPolMatDegree, "PolMatDegree", 1, 1, "PolMatrix",
   "(PolMatrix p)",
@@ -184,6 +258,22 @@ void BPolDeterminant::CalcContens()
 }
 
 //--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatPolMatIsStationary);
+DefExtOpr(1, BDatPolMatIsStationary, "PolMatIsStationary", 1, 1, "PolMatrix",
+  "(PolMatrix p)",
+  I2("Returns true if the polynomial matrix is stationary",
+     "Devuelve cierto si la matriz polinomial es estacionaria."),
+    BOperClassify::RetardPolynomial_);
+//--------------------------------------------------------------------
+void BDatPolMatIsStationary::CalcContens()
+//--------------------------------------------------------------------
+{
+  BPolMat& P = PolMat(Arg(1));
+  contens_ = IsStationary(P);
+}
+
+
+//--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatEvalPolMatrix);
 DefExtOpr(1, BMatEvalPolMatrix, "EvalPolMatrix", 2, 2, "PolMatrix Real",
   "(PolMatrix p, Real x)",
@@ -207,6 +297,43 @@ void BMatEvalPolMatrix::CalcContens()
   {
     *y = p->Eval(x);
   }
+}
+
+
+//--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatApplyPolMatrix);
+DefExtOpr(1, BMatApplyPolMatrix, ":", 2, 2, "PolMatrix Matrix",
+  "(PolMatrix p, Matrix x)",
+  I2("Aplies the multivariant backward operator of degree d corresponding to "
+     "a polynomial rxc matrix backward operator of degree d "
+     "to a Txc real matrix building a (T-d)xr matrix.",
+     "Aplica el operador de retardo multivariante de grado d correspondiente a "
+     "una matriz polinomial rxc a una matriz real Txc para construir "
+     "una matriz real (T-d)xr."),
+    BOperClassify::RetardPolynomial_);
+//--------------------------------------------------------------------
+void BMatApplyPolMatrix::CalcContens()
+//--------------------------------------------------------------------
+{
+  BPolMat& P = PolMat(Arg(1));
+  BMat &x   = Mat(Arg(2));
+  ApplyMatPol(P,x,contens_);
+}
+
+
+//--------------------------------------------------------------------
+DeclareContensClass(BVMat, BVMatTemporary, BVMatCompanionMatrix);
+DefExtOpr(1, BVMatCompanionMatrix, "CompanionMatrix", 1, 1, "PolMatrix",
+  "(PolMatrix p)",
+  I2("Reurns the companion matrix of a VAR process.",
+     "Devuelve la matriz de acompañamiento de un proceso VAR."),
+    BOperClassify::RetardPolynomial_);
+//--------------------------------------------------------------------
+void BVMatCompanionMatrix::CalcContens()
+//--------------------------------------------------------------------
+{
+  BPolMat& P = PolMat(Arg(1));
+  BuildCompanionMatrix(P,contens_);
 }
 
 //--------------------------------------------------------------------

@@ -1119,13 +1119,10 @@ if(!BDir::CheckIsDir(dir))                                \
   int r = x.Rows(), c = x.Columns(), s = x.Data().Size();
   EWrite(r, matrix_);
   EWrite(c, matrix_);
-  if(x.Data().Size()==r*c)
+  register BPol* p = x.GetData().GetBuffer();
+  for(int k=0; k<s; k++, p++)
   {
-    register BPol* p = x.GetData().GetBuffer();
-    for(int k=0; k<s; k++, p++)
-    {
-      EWrite(*p, matrix_);
-    }
+    EWrite(*p, matrix_);
   }
   return(true);
 };

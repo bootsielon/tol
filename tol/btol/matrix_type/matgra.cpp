@@ -39,6 +39,7 @@
 #include <tol/tol_bcodgra.h>
 #include <tol/tol_bdtegra.h>
 #include <tol/tol_btxtgra.h>
+#include <tol/tol_bpolmatgra.h>
 #include <tol/tol_bstat.h>
 #include <tol/tol_blinalg.h>
 #include <tol/tol_barma.h>
@@ -4910,6 +4911,23 @@ void GetMatrix(BSyntaxObject* obj, BArray<BDat>& p)
     }
 };
 
+void GetPolMat(BSyntaxObject* obj, BArray<BDat>& p)
+{
+  BPolMat& P = PolMat(obj);
+  int i,j,k,r=P.Rows(),c=P.Columns();
+  for(i=0; i<r; i++)
+  {
+    for(j=0; j<c; j++)
+    {
+      BPol& pol = P(i,j);
+      if((pol.Size()!=1)||(pol[0].Coef()!=0))
+      {
+         for(k=0; k<pol.Size(); k++) { p.Add(pol[k].Coef()); }
+      }      
+    }
+  }
+};
+
 
 void GetSet(BSyntaxObject* obj, BArray<BDat>& p)
 {
@@ -4924,6 +4942,7 @@ void GetSet(BSyntaxObject* obj, BArray<BDat>& p)
       else if(gra==GraPolyn  ()) { GetPolyn  (sample[i],p); }
       else if(gra==GraRatio  ()) { GetRatio  (sample[i],p); }
       else if(gra==GraMatrix ()) { GetMatrix (sample[i],p); }
+      else if(gra==GraPolMat ()) { GetPolMat (sample[i],p); }
       else if(gra==GraSet    ()) { GetSet    (sample[i],p); }
   }
     }

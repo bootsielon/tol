@@ -1026,6 +1026,8 @@ static BSyntaxObject* EvPutValue(BGrammar* gra, const List* tre, BBool left)
           UMat(result)->PutContens(Mat(val)); }
         else if(type==GraVMatrix()) {
           ((BUserVMat*)(result))->PutContens(VMat(val)); }
+        else if(type==GraPolMat()) {
+          UPolMat(result)->PutContens(PolMat(val)); }
         else if(type==GraSet()) {
           USet(result)->PutContens(Set(val)); }
         else if(type==GraCode()) {
@@ -1300,7 +1302,7 @@ BSyntaxObject* CopyReal(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos)
 BSyntaxObject* CopyPolyn(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos)
 {
   BPol pol = Pol(obj);
-//pol.Aggregate();
+  pol.Aggregate();
   BInt j;
   if(p.Size()&&((pol.Size()!=1)||(pol[0].Coef()!=0)))
   {
@@ -1355,7 +1357,7 @@ BSyntaxObject* CopyPolMat(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos)
 	    for(j=0; j<c; j++)
 	    {
         BPol& pol = P(i,j);
-      //pol.Aggregate();
+       pol.Aggregate();
         if(((pol.Size()!=1)||(pol[0].Coef()!=0)))
         {
 	        for(k=0; k<pol.Size(); k++) { pol[k].PutCoef(p[pos++]); }

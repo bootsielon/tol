@@ -56,11 +56,11 @@ void ApplyPolyn(const BPolyn<BDat>& pol,
   BInt dif = (maxDeg-minDeg);
 //Std(BText("\nApplyPolyn realloc ") + (x.Size()-dif));
   y.ReallocBuffer(x.Size()-dif);
-  BInt t = 0, k=dif;
+  BInt i, t = 0, k=dif;
   for(; t<y.Size(); t++, k++)
   {
     y(t) = 0;
-    for(BInt i=0; i<pol.Size(); i++)
+    for( i=0; i<pol.Size(); i++)
     {
       y(t) += pol(i).Coef()*x(k-pol(i).Degree());
     }

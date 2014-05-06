@@ -1012,7 +1012,7 @@ Any BMatrixGen<Any>::Determinant() const
   int i,j,k,r;
   for(k=0; k<rows_; k++)
   {
-    Any c = T(k-1,0)*Any(pow(-1.0,k));
+    Any c = T(k,0)*Any(pow(-1.0,k));
     r = rows_-1;
     BMatrixGen<Any> A(r,r);
     for(i=0; i<r; i++)

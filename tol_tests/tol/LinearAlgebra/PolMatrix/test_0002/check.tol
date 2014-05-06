@@ -1,16 +1,47 @@
 #Require VariableChange;
+#Require AlgLib;
+#Require MPM;
 
 Real dim = 2;
-Real deg = 3;
+Real deg = 2;
+Real T = 100;
 
-Matrix x = VariableChange::StableMatrixPolyn::
+Matrix x = VariableChange::@StableMatrixPolyn::
   SquareSetGen.Rand(dim, deg, -1, 1, 0.001);
 
-Set PHI = VariableChange::StableMatrixPolyn::
+Set PHI = VariableChange::@StableMatrixPolyn::
   DuffinSchurBinFact(dim, deg, (x));
 Polyn determinant = VecSer::PolynMatrixDeterminant(PHI);
-
 
 PolMatrix P = TabPol2PolMat(PHI);
 
 Polyn determinant_ = Determinant(P);
+Set PHI.det.roots = MPM::@ModuleVAR::PolynRootsReport(determinant_);
+Real root.abs.min = PHI.det.roots[1][3];
+Real P.isStationary = PolMatIsStationary(P);
+
+Real inequality_constraint_ = -Log(StationaryValue(determinant));
+
+Matrix X = Rand(T,dim,-1,1);
+
+Matrix Y = P:X;
+
+
+VMatrix C = CompanionMatrix(P);
+Matrix eigen = AlgLib::CppTools::rmatrixevd.eigen(VMat2Mat(C));
+Matrix eigen.module = Sqrt(eigen^2 * Col(1,1));
+Real eigen.module.max = MatMax(eigen.module);
+Real eigen.module.max.inv = 1/eigen.module.max;
+
+
+/*
+Real m = VRows(C);
+Real S=10000*m;
+VMatrix U = Gaussian(m,S,0,1);
+VMatrix V = C*U;
+VMatrix u2 = (U^2)*Constant(S,1,1/S);
+VMatrix v2 = (V^2)*Constant(S,1,1/S);
+VMatrix r2 = v2 $/ u2;
+//VMatrix R = MtMSqr(V) $/ MtMSqr(U);
+//Real VMatMax(R)
+/* */

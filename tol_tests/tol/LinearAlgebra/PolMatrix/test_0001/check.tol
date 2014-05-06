@@ -41,4 +41,13 @@ Real quality.dif.XQ = 1-SetMax(For(1,d,Real(Real k)
   MatMax(Abs(EvalPolMatrix(dif.XQ,Rand(-1,1))))
 }));
 
+Matrix x = GetNumeric([[X]]);
+Matrix xP = GetNumeric([[XP]]);
+
+Real quality.dif.xP = 1-MatMax(Abs(x-xP));
+
+Set X2 = DeepCopy([[X]],x*2);
+Matrix x2 = GetNumeric([[X2]]);
+Real quality.dif.x2 = 1-MatMax(Abs(x2-x*2));
+
 
