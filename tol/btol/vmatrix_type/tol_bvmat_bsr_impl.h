@@ -23,6 +23,8 @@
 #include <win_tolinc.h>
 #endif
 
+#include <boost/version.hpp>
+
 //#define BOOST_SPIRIT_DEBUG
 
 #include <tol/tol_bvmat_bsr.h>
@@ -42,6 +44,16 @@
 
 #include <iostream>
 
+#if (BOOST_VERSION / 100000 > 1) || (BOOST_VERSION / 100)> 47
+#include <boost/spirit/include/classic_core.hpp>
+#include <boost/spirit/include/classic_symbols.hpp>
+#include <boost/spirit/include/classic_actor.hpp>
+#include <boost/spirit/include/classic_exceptions.hpp>
+#include <boost/spirit/include/classic_file_iterator.hpp>
+#include <boost/spirit/include/classic_position_iterator.hpp>
+#include <boost/spirit/include/classic_utility.hpp>
+#include <boost/spirit/include/classic_stored_rule.hpp>
+#else
 #include <boost/spirit/core.hpp>
 #include <boost/spirit/symbols/symbols.hpp>
 #include <boost/spirit/actor.hpp>
@@ -50,13 +62,14 @@
 #include <boost/spirit/iterator/position_iterator.hpp>
 #include <boost/spirit/utility.hpp>
 #include <boost/spirit/dynamic/stored_rule.hpp>
+#endif
 
 namespace BysSparseReg {
 
 
 ///////////////////////////////////////////////////////////////////////////////
 using namespace std;
-using namespace boost::spirit;
+using namespace boost::spirit::classic;
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
