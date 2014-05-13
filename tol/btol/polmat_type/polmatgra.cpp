@@ -174,7 +174,7 @@ bool BuildCompanionMatrix(const BPolMat& P, BVMat& Y)
   int c = P.Columns();
   if(r!=c) { return(false); }
   if(D<1) { return(false); }
-
+  
   BVMat Y1,Y21,Y22;
   Y1.BlasRDense(r,r*D);
   for(k=0,d=1; d<=D; d++)

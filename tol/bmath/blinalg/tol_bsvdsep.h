@@ -28,33 +28,33 @@
 // external functions
 //--------------------------------------------------------------------
 
-void LanczosBidiagonalization(const BMat&   A_,
+TOL_API void LanczosBidiagonalization(const BMat&   A_,
 			      BMat&   U_,
 			      BMat&   B_,
 			      BMat&   V_,
 			      BDat&   anorm_);
 
-void LanczosBidiagonalization(const BMat&   A,
+TOL_API void LanczosBidiagonalization(const BMat&   A,
 			      const BMat&   b,
 			      BMat&   U,
 			      BMat&   B,
 			      BMat&   V,
 			      BDat&   anorm);
 
-void TridiagSEPDivideAndConquer
+TOL_API void TridiagSEPDivideAndConquer
 (
     const BSymMatrix  <BDat>& T,
     BMatrix     <BDat>& U,
     BDiagMatrix <BDat>& D
 );
 
-BInt TridiagSEPNegCount
+TOL_API BInt TridiagSEPNegCount
 (
     const BSymMatrix<BDat>& A,
     BDat z
 );
 
-BInt TridiagSEPBisection
+TOL_API BInt TridiagSEPBisection
 (
     const BSymMatrix<BDat>& A,
     BDat a, BDat b,
@@ -62,20 +62,20 @@ BInt TridiagSEPBisection
     BDat tolerance
 );
 
-void SingularValueDecomposition(const BMat& A,
+TOL_API void SingularValueDecomposition(const BMat& A,
 				BMat& U,
 				BDiagMatrix<BDat>& D,
 				BMat& V);
 
 
-void gsl_SingularValueDecomposition(const BMatrix<BDat>& A,
+TOL_API void gsl_SingularValueDecomposition(const BMatrix<BDat>& A,
 				    BMatrix<BDat>& U,
 				    BDiagMatrix<BDat>& D,
 				    BMatrix<BDat>& V,
 				    BText method);
 
 
-void SymmetricEigenvalueProblem(const BSymMatrix<BDat>& A,
+TOL_API void SymmetricEigenvalueProblem(const BSymMatrix<BDat>& A,
 				BMat& U,
 				BDiagMatrix<BDat>& D);
 

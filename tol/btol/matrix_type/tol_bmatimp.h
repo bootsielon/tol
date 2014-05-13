@@ -38,36 +38,36 @@ double Abs      (double a);
 double IsKnown  (double a);
 #endif
 
-void BArrDouble2BDat(const BArray<double>& A, BArray<BDat>& B);
-void BArrBDat2Double(const BArray<BDat>& A, BArray<double>& B);
-void BMatDouble2BDat(const DMat& A, BMat& B);
-void BMatBDat2Double(const BMat& A, DMat& B);
+TOL_API void BArrDouble2BDat(const BArray<double>& A, BArray<BDat>& B);
+TOL_API void BArrBDat2Double(const BArray<BDat>& A, BArray<double>& B);
+TOL_API void BMatDouble2BDat(const DMat& A, BMat& B);
+TOL_API void BMatBDat2Double(const BMat& A, DMat& B);
 
 
 void MatrixInitialize();
 
-void InversePivots(const BArray<BInt>& pivot,
+TOL_API void InversePivots(const BArray<BInt>& pivot,
 		   BArray<BInt>& pivotInv,
 		   BInt max);
 
-void InversePivots(const BArray<BInt>& pivot,
+TOL_API void InversePivots(const BArray<BInt>& pivot,
 		   BArray<BInt>& pivotInv);
 
 
-BBool Choleski(const BSymMatrix<double>& a,
+TOL_API BBool Choleski(const BSymMatrix<double>& a,
 	             BLowTrMatrix<double>& l);
 
-BBool Inverse(const BSymMatrix<double>& s, BSymMatrix<double>& inv);
+TOL_API BBool Inverse(const BSymMatrix<double>& s, BSymMatrix<double>& inv);
 
-void Inverse(const BLowTrMatrix<double>& m, BLowTrMatrix<double>& inv);
+TOL_API void Inverse(const BLowTrMatrix<double>& m, BLowTrMatrix<double>& inv);
 
 
-BBool Choleski(const BSymMatrix<BDat>& a,
+TOL_API BBool Choleski(const BSymMatrix<BDat>& a,
 	             BLowTrMatrix<BDat>& l);
 
-BBool Inverse(const BSymMatrix<BDat>& s, BSymMatrix<BDat>& inv);
+TOL_API BBool Inverse(const BSymMatrix<BDat>& s, BSymMatrix<BDat>& inv);
 
-void Inverse(const BLowTrMatrix<BDat>& m, BLowTrMatrix<BDat>& inv);
+TOL_API void Inverse(const BLowTrMatrix<BDat>& m, BLowTrMatrix<BDat>& inv);
 
 
 

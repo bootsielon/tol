@@ -30,21 +30,21 @@
 // external functions
 //--------------------------------------------------------------------
 
-BDat MatTraze   (const BMat& A);
+TOL_API BDat MatTraze   (const BMat& A);
 
-BMatrix<BDat> gsl_MinimumResidualsSolve
+TOL_API BMatrix<BDat> gsl_MinimumResidualsSolve
 (
   const BMatrix<BDat>& A,
   const BMatrix<BDat>& b
 );
 
-BMatrix<BDat> gsl_linalgHHSolve
+TOL_API BMatrix<BDat> gsl_linalgHHSolve
 (
   const BMatrix<BDat>& A,
   const BMatrix<BDat>& b
 );
 
-BMat MinimumResidualsSolve
+TOL_API BMat MinimumResidualsSolve
 (
   const BMat& A,
   const BMat& b,
@@ -53,7 +53,7 @@ BMat MinimumResidualsSolve
   int maxIter = -1
 );
 
-BMat MinimumResidualsSolve
+TOL_API BMat MinimumResidualsSolve
 (
   const BMat& A,
   const BMat& b,
@@ -61,16 +61,16 @@ BMat MinimumResidualsSolve
   int maxIter = -1
 );
 
-BMatrix<double> CholeskiMinimumResidualsSolve(
+TOL_API BMatrix<double> CholeskiMinimumResidualsSolve(
   const BMatrix<double>& A, 
   const BMatrix<double>& b);
-BMat CholeskiMinimumResidualsSolve(
+TOL_API BMat CholeskiMinimumResidualsSolve(
   const BMat& A, 
   const BMat& b);
 
-BMat SvdMinimumResidualsSolve(const BMat& A, const BMat& b);
+TOL_API BMat SvdMinimumResidualsSolve(const BMat& A, const BMat& b);
 
-BDat LinearLeastSquareSolve
+TOL_API BDat LinearLeastSquareSolve
 (
   const BMatrix<BDat>&	  A,
   const BMatrix<BDat>&	  Y,
@@ -85,7 +85,7 @@ BDat LinearLeastSquareSolve
 	BBool		  onlySolve
 );
 
-BDat LinearLeastSquareSolve
+TOL_API BDat LinearLeastSquareSolve
 (
   const BMatrix<BDat>&	  A,
   const BMatrix<BDat>&	  Y,
@@ -93,14 +93,14 @@ BDat LinearLeastSquareSolve
 	BMatrix<BDat>&	  R
 );
 
-BMat Kernel(const BMat& A);
+TOL_API BMat Kernel(const BMat& A);
 
-void OrthonormalCompletion(BMat& U, BInt m);
+TOL_API void OrthonormalCompletion(BMat& U, BInt m);
 
-void WriteRowNullEquations(const BMatrix<BDat >& A,
+TOL_API void WriteRowNullEquations(const BMatrix<BDat >& A,
 			   const BArray <BText>& name);
 
-void EliminateLinearRelations(const BMatrix<BDat>&  kernel,
+TOL_API void EliminateLinearRelations(const BMatrix<BDat>&  kernel,
 			      const BArray <BText>& name,
 			      BArray <BBool>& varElim);
 
@@ -108,28 +108,28 @@ void EliminateLinearRelations(const BMatrix<BDat>&  kernel,
 #ifdef __USE_DEPRECATED_LINALG_METHOD__
 //Old deprecated methods that has been abandoned
 //are saved here for a few months
-BBool MatDiagDom (const BMat& A);
-BBool FirstComponent(BMatrix<BDat>& S,
+TOL_API BBool MatDiagDom (const BMat& A);
+TOL_API BBool FirstComponent(BMatrix<BDat>& S,
 			       BMat& b,
 			       BDat& lambda,
 			       BDat tol=BDat::Tolerance());
-BBool JordanIterative(BMatrix<BDat> S,
+TOL_API BBool JordanIterative(BMatrix<BDat> S,
 		      BMatrix<BDat>& B,
 		      BDiagMatrix<BDat>& lambda,
 		      BDat t=BDat::Tolerance());
-BMat GaussSeidelSolve
+TOL_API BMat GaussSeidelSolve
 (
   const BMat& A,
   const BMat& b,
   const BMat& x0
 );
-BMat ConjugateGradientSolve
+TOL_API BMat ConjugateGradientSolve
 (
   const BMat& A,
   const BMat& b,
   const BMat& x0
 );
-BMat BiconjugateGradientSolve
+TOL_API BMat BiconjugateGradientSolve
 (
   const BMat& A,
   const BMat& b,

@@ -24,25 +24,25 @@
 
 #include <tol/tol_bmatimp.h>
 
-BDat& StrassenCutoff();
+TOL_API BDat& StrassenCutoff();
 
 
 //Products of BMatrix and inherited matrix classes 
-int MatProd(const BMatrix<double>& A_, 
+TOL_API int MatProd(const BMatrix<double>& A_, 
             const BMatrix<double>& B_,
                   BMatrix<double>& C);
-BMatrix<double> operator *(const BMatrix<double>& A, 
+TOL_API BMatrix<double> operator *(const BMatrix<double>& A, 
                            const BMatrix<double>& B);
-BSymMatrix<double> MtMSqr(const BMatrix<double>& A);
-BSymMatrix<double> MtMSqr(const BMatrix<double>& A);
+TOL_API BSymMatrix<double> MtMSqr(const BMatrix<double>& A);
+TOL_API BSymMatrix<double> MtMSqr(const BMatrix<double>& A);
 
-int MatProd(const BMatrix<BDat>& A_, 
+TOL_API int MatProd(const BMatrix<BDat>& A_, 
             const BMatrix<BDat>& B_,
                   BMatrix<BDat>& C);
-BMatrix<BDat> operator *(const BMatrix<BDat>& A, 
+TOL_API BMatrix<BDat> operator *(const BMatrix<BDat>& A, 
                          const BMatrix<BDat>& B);
-int MtMSqr(const BMatrix<BDat>& A, BSymMatrix<BDat>& S);
-BSymMatrix<BDat> MtMSqr(const BMatrix<BDat>& A);
+TOL_API int MtMSqr(const BMatrix<BDat>& A, BSymMatrix<BDat>& S);
+TOL_API BSymMatrix<BDat> MtMSqr(const BMatrix<BDat>& A);
 
 
 #endif	// TOL_BMFSTPRO_H

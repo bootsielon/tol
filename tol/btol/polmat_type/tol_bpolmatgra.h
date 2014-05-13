@@ -45,7 +45,7 @@ template class TOL_API BGraContens     < BPolMat >;
 
 CastingsDeclaration(PolMat);
 
-int Degree(const BPolMat& P);
-bool IsStationary(const BPolMat& P);
+TOL_API int Degree(const BPolMat& P);
+TOL_API bool IsStationary(const BPolMat& P);
 
 #endif // TOL_BPOLMATGRA_H
