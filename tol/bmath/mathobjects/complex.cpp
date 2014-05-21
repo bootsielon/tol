@@ -430,6 +430,11 @@ int ComplexRootCmp(const void* v1, const void* v2)
 //--------------------------------------------------------------------
 {
   int gcd = pol.Period();
+  if(!gcd) 
+  { 
+    row.AllocBuffer(0);
+    return; 
+  }
   int n = pol.Degree() / gcd;
   int s = pol.Size();
   BArray<double> a(n+1);

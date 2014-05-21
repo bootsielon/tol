@@ -51,7 +51,7 @@ void ApplyPolyn(const BPolyn<BDat>& pol,
 //--------------------------------------------------------------------
 {
   if(!pol.Size()) { return; }
-  BInt minDeg = pol(0).Degree();
+  BInt minDeg = 0; //pol(0).Degree();
   BInt maxDeg = pol(pol.Size()-1).Degree();
   BInt dif = (maxDeg-minDeg);
 //Std(BText("\nApplyPolyn realloc ") + (x.Size()-dif));
