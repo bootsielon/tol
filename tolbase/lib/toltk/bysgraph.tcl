@@ -656,15 +656,15 @@ proc ::bayesGraph::CreateColorTable { table ncolors } {
     set tmpOpt(var,yAxisMin) [lindex $values_y 0]
     set tmpOpt(var,yAxisMax) [lindex $values_y 1]
     ::bayesGraph::GrapOptApplyAxisLimits $this y \
-      [expr $tmpOpt(var,yAxisMin) - ($tmpOpt(var,yAxisMin) / 100)] \
-      [expr $tmpOpt(var,yAxisMax) + ($tmpOpt(var,yAxisMax) / 100)]
+      [expr $tmpOpt(var,yAxisMin) - abs($tmpOpt(var,yAxisMin) / 100)] \
+      [expr $tmpOpt(var,yAxisMax) + abs($tmpOpt(var,yAxisMax) / 100)]
   }
   if {([info exists values_y2]) && ([llength $values_y2])} {
     set tmpOpt(var,y2AxisMin) [lindex $values_y2 0]
     set tmpOpt(var,y2AxisMax) [lindex $values_y2 1]
     ::bayesGraph::GrapOptApplyAxisLimits $this y2 \
-      [expr $tmpOpt(var,y2AxisMin) - ($tmpOpt(var,y2AxisMin) / 100)] \
-      [expr $tmpOpt(var,y2AxisMax) + ($tmpOpt(var,y2AxisMax) / 100)]
+      [expr $tmpOpt(var,y2AxisMin) - abs($tmpOpt(var,y2AxisMin) / 100)] \
+      [expr $tmpOpt(var,y2AxisMax) + abs($tmpOpt(var,y2AxisMax) / 100)]
   }
   if {([info exists values_x]) && ([llength $values_x])} {
     set tmpOpt(var,xAxisMin) [lindex $values_x 0]
