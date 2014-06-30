@@ -16,7 +16,7 @@ NameBlock TolPackage =
   // Versión mínima de TOL (a nivel informativo)
   Text _.autodoc.minTolVersion = "v3.2";
   Real _.autodoc.version.high = 3;
-  Real _.autodoc.version.low = 1;
+  Real _.autodoc.version.low = 2;
 
   Text _.version = ""<<_.autodoc.version.high<<"."<<_.autodoc.version.low;
   // Se usa la version alta para todas las rutas locales

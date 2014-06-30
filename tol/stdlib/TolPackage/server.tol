@@ -153,7 +153,10 @@ Text _.autodoc.member.Server =
               OR te_url          = '"<<url<<"repository.php' ) 
     ";
     Set repository = DBTable(repository.query);
-    (repository[1])::id_repository
+    If(Card(repository)==0, {
+      WriteLn("La url '"<<url<<"' es desconocida. Revise el campo "
+        "_.autodoc.url del paquete.", "E");
+    ?}, (repository[1])::id_repository)
   };
 
   ////////////////////////////////////////////////////////////////////////////

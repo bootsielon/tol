@@ -71,7 +71,7 @@ Class @Catalog
       }, identifier=="#NotCompatible", {
         Text msg = If(tolVersion=="any", "", " para la versión de TOL '"
           <<tolVersion<<"'");
-        Text msg2 = If(""<<date=="Unknown", "", {
+        Text msg2 = If(""<<date=="Unknown", If(TextLength(msg), msg, ""), {
           If(TextLength(msg), msg<<" y", " para")<<" la fecha "<<date
         });
         WriteLn("[TolPackage::@Catalog "<<_.type
