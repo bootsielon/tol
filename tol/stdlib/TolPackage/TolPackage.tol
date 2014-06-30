@@ -12,7 +12,8 @@ NameBlock TolPackage =
   Text _.autodoc.description = "Utilidades para el manejo de paquetes TOL: "
     "instalación, actualización, borrado, consulta de estado, etc.";
   Set _.autodoc.keys = [["TOL", "Package", "Repository", "Modularity"]];
-  Set _.autodoc.authors = [["vdebuen@tol-project.org", "pgea@bayesinf.com"]];
+  Set _.autodoc.authors = [["vdebuen@tol-project.org", 
+    "pgea@bayesforecast.com"]];
   // Versión mínima de TOL (a nivel informativo)
   Text _.autodoc.minTolVersion = "v3.2";
   Real _.autodoc.version.high = 3;
