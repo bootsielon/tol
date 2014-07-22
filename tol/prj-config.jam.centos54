@@ -18,4 +18,4 @@ configure lib
           : <include>/usr/include/root ;
 configure lib : ANN : <prefix>$(HOME)/contribs/ann_1.1.2 ;
 configure build : tolodbc tolmysql tolpgsql ;
-configure lib : fftw : <name>fftw3 <prefix>/usr/local/fftw-3.3.1
+configure lib : fftw : <name>fftw3 <prefix>/usr/local/fftw-3.3.1 ;
