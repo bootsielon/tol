@@ -49,6 +49,7 @@ mkdir -p ${TOLROOT}/contribs/rpms
 sudo yum install R-core.i386 R-devel.i386
 echo 'options(repos="http://cran.r-project.org")' > /tmp/Rinstall.R
 echo 'install.packages("coda")' >> /tmp/Rinstall.R
+echo 'install.packages("mcgibbsit")' >> /tmp/Rinstall.R
 echo 'install.packages("quadprog")' >> /tmp/Rinstall.R
 echo 'install.packages("Rglpk")' >> /tmp/Rinstall.R
 sudo R BATCH -f /tmp/Rinstall.R
@@ -225,13 +226,27 @@ CC='gcc -m32' CXX='g++ -m32' ./default_config.sh --with-tol=/usr/local/tol32 --w
 make
 sudo make install
 
+# instalamos tcllib
+
+pushd ${TOLROOT}/contribs
+wget http://packages.tol-project.org/src/contrib/tcllib_1_16.tar.gz
+tar zxf tcllib_1_16.tar.gz
+cd tcllib-tcllib_1_16/
+./configure --prefix=/usr/local/tcl8.4
+sudo make install
+
 # 
 # compilamos tolsh: la consola de tol con Tcl_EvalEx
 #
-cd ${TOLROOT}/tolp/trunk/tolsh
-./build.sh
-sudo cp Linux/tolsh3.2 /usr/local/tol32/bin/.
-
+pushd ${TOLROOT}/tolsh
+sudo cp -r tolsh.vfs/lib/app-tolsh /usr/local/tcl8.4/lib/.
+sudo cp -r tolsh.vfs/lib/tequila /usr/local/tcl8.4/lib/.
+sudo cp -r tolsh.vfs/lib/tlogger /usr/local/tcl8.4/lib/.
+sudo cp -r tolsh.vfs/lib/tolcomm /usr/local/tcl8.4/lib/.
+echo '#!/bin/bash' > /tmp/tolsh
+echo 'LD_LIBRARY_PATH=/usr/local/lib:/usr/local/unixODBC-2.3.0 BLAPI_BLAS_LIB=/usr/lib/atlas-sse2/libf77blas BLAPI_LAPACK_LIB=/usr/lib/atlas-sse2/liblapack TOLSessionPath=/usr/local/tol32/bin/tolsh /usr/local/tcl8.4/bin/tclsh8.4 /usr/local/tcl8.4/lib/app-tolsh/tolsh.tcl ${1+"$@"}' >> /tmp/tolsh
+chmod a+x /tmp/tolsh
+sudo mv /tmp/tolsh /usr/local/tol32/bin/tolsh
 
 #
 # Requerimientos de Tolbase
