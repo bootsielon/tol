@@ -251,14 +251,15 @@ alias libziparch : ziparch : <zarch>yes ;
 alias libziparch :         : <zarch>no ;
 
 config.genlib z ;
-alias libz : z/<link>static : <zarch>yes ;
-alias libz :   : <zarch>no ;
+#alias libz : z/<link>static : <zarch>yes ;
+#alias libz :   : <zarch>no ;
+alias libz : z ;
 
 lib ltdl ;
 
 lib dl ;
 
-all_libs = gsl lapack cholmod fftw/<link>static bz2/<link>static libziparch ANN libz ltdl/<link>static boost_thread/<link>static boost_system/<link>static dl ;
+all_libs = gsl lapack cholmod fftw bz2 libziparch ANN libz ltdl boost_thread boost_system dl ;
 
 lib tol
     : init $(all-obj-aliases) $(all_libs)
