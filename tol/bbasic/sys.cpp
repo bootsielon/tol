@@ -380,6 +380,7 @@ BBool BSys::System(const BText& command)
 
 
 #ifndef UNIX
+
 //--------------------------------------------------------------------
 BBool BSys::WinExecuteFile(const BText& fileName)
 
@@ -434,7 +435,7 @@ bool ShowLastError(const BText& action, bool force)
 };
 
 //--------------------------------------------------------------------
-  BBool BSys::WinSystem  (const BText& command, BInt showMode, bool wait)
+BBool BSys::WinSystem  (const BText& command, BInt showMode, bool wait)
 //--------------------------------------------------------------------
 {
   SetLastError(0);
@@ -492,7 +493,7 @@ bool ShowLastError(const BText& action, bool force)
         remove(errNam.String());
       }
     }
-    else if(wait)
+    else if(wait) //(pgea) y esto ?
     {
       result=WaitForSingleObject(piProcInfo.hProcess, 0);
       if( result != WAIT_OBJECT_0 )
@@ -507,58 +508,120 @@ bool ShowLastError(const BText& action, bool force)
   return(ok);
 }
 
-
 //--------------------------------------------------------------------
-//BBool BSys::WinSystem  (const BText& command, BInt showMode)
-
-/*! Windows operating system call.
- * /
+BBool BSys::WinSystemQuiet(const BText& command, 
+                           BText& output, BText& error)
 //--------------------------------------------------------------------
 {
-  BInt errNum = WinExec(command.String(),showMode);
-  
-  BBool err=(errNum<=31);
-  BText msg;
-  switch(errNum)
+  SetLastError(0);
+
+  SECURITY_ATTRIBUTES secattr; 
+  memset(&secattr, 0, sizeof(secattr));
+  secattr.nLength = sizeof(secattr);
+  secattr.bInheritHandle = TRUE;
+  HANDLE rPipe, wPipe, rPipeE, wPipeE;
+  CreatePipe(&rPipe,&wPipe,&secattr,0);
+  CreatePipe(&rPipeE,&wPipeE,&secattr,0);
+
+  STARTUPINFO sInfo; 
+  memset(&sInfo, 0, sizeof(sInfo));
+  PROCESS_INFORMATION pInfo; 
+  memset(&pInfo, 0, sizeof(pInfo));
+  sInfo.cb = sizeof(sInfo);
+  sInfo.dwFlags = STARTF_USESTDHANDLES; 
+  sInfo.hStdInput = NULL; 
+  sInfo.hStdOutput = wPipe; 
+  sInfo.hStdError = wPipeE;
+
+  BText cmdRedirected = BText("cmd /c ") + command;
+  char* cmd = (char*)cmdRedirected.String();
+
+  int result = 0;
+  bool ok = true; 
+
+  if (!CreateProcess(NULL, cmd, NULL, NULL,
+       TRUE, NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW, 
+       NULL, NULL, &sInfo, &pInfo))
   {
-    case 0:
+    error = I2("Creating process \n", 
+               "Creando el proceso \n") + command;
+    ok = false;
+  }
+  else
+  {
+    result = WaitForSingleObject(pInfo.hProcess, INFINITE);
+    if(result != WAIT_OBJECT_0)
     {
-      msg = I2("The system is out of memory or resources.",
-               "El sistema no tiene memoria o recursos");
-      break;
+      error = I2("Waiting for result of process \n", 
+                 "Esperando el resultado del proceso \n") +  command;
+      ok = false;
     }
-    case ERROR_BAD_FORMAT:
+    else
     {
-      msg = I2("The .EXE file is invalid","El fichero .EXE no es válido.");
-      break;
-    }
-    case ERROR_FILE_NOT_FOUND:
-    {
-      msg = I2("The specified file was not found.",
-               "No se encuentra el fichero especificado");
-      break;
-    }
-    case ERROR_PATH_NOT_FOUND :
-    {
-      msg = I2("The specified path was not found.",
-               "No se encuentra el camino especificado.");
+      CloseHandle(wPipe);
+      CloseHandle(wPipeE);
+
+      BChar buffer[128];
+      DWORD reDword;
+      BOOL res = false;
+      do {
+        res=::ReadFile(rPipe, buffer, 128, &reDword, 0);
+        output += BText(buffer,0,reDword-1);
+      } while(res);
+      res = false;
+      do {
+        res=::ReadFile(rPipeE, buffer, 128, &reDword, 0);
+        error += BText(buffer,0,reDword-1);
+      } while(res);
+
+      if(error.HasName()) {
+        ok = false;
+      } else {
+        ok = true;
+      }
     }
   }
-  if(err)
-  {
-    Error(I2("Executing commad \n", "Ejecutando el comando \n") +
-              command + "\n" + msg);
-  }
-  return(!err);
+  return(ok);  
 }
-*/
-
-#else
-
 
 #endif
 
-
+//--------------------------------------------------------------------
+BBool BSys::PExecQuiet(const BText& command, 
+                       BText& output, BText& error)
+//--------------------------------------------------------------------
+{
+  SetLastError(0);
+  BText errNam = BSys::TempNam();
+  BText cmdRedirected = command + BText(" 2> ") + errNam;
+  bool ok = false;
+  FILE* pipe = popen(cmdRedirected, "r");
+  if(pipe) {
+    char buffer[128];
+    output = "";
+    while(!feof(pipe)) {
+      if(fgets(buffer, 128, pipe) != NULL)
+        output += buffer;
+    }
+    pclose(pipe);
+    if(CheckIsFile(errNam)) {
+      ReadFile(error,errNam);
+      remove(errNam.String());
+    }
+    if(error.HasName()) {
+      ok = false;
+    } else {
+      error = "";
+      ok = true;
+    }
+  } else {
+    output = "";
+    error = I2("Creating process \n",
+               "Creando el proceso \n") + command;
+    ok = false;
+  }
+  return(ok);
+};
 
 //--------------------------------------------------------------------
 BBool BSys::Print(const BText& fileName)

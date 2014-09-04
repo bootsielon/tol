@@ -2819,3 +2819,34 @@ void BDatCompareVersionString::CalcContens()
   const BText& v2 = Text(Arg(2));
   contens_ = CompareVersionString(&v1,&v2);
 }
+
+//--------------------------------------------------------------------
+  DeclareContensClass(BText, BTxtTemporary, BTextAnsSystem);
+  DefExtOpr(1, BTextAnsSystem, "AnsSystem", 1, 1, "Text", "(Text command)",
+  I2("Calls the operative system to execute a command line "
+     "and returns the standard output.",
+     "Llama al sistema operativo para ejecutar una línea de comandos "
+     "y devuelve la salida estándar de la llamada."),
+     BOperClassify::System_);
+  void BTextAnsSystem::CalcContens()
+//--------------------------------------------------------------------
+{
+  if(CheckNonDeclarativeAction("AnsSystem")) { return; }
+  const BText& command = Text(Arg(1));
+  BBool status;
+  BText output, error;
+#ifndef UNIX
+  // Se usa WinSystemQuiet ya que PExecQuiet 
+  // no puede evitar mostrar la ventana de la consola
+  status = BSys::WinSystemQuiet(command, output, error);
+#else
+  status = BSys::PExecQuiet(command, output, error);
+#endif
+  if(status) {
+    contens_ = output;
+  } else {
+    Error(I2("Operative system error \n",
+             "Error del sistema operativo \n")+error);
+    contens_ = BText("");
+  }
+}

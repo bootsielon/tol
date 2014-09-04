@@ -52,11 +52,6 @@
 
 #include "llkarma.h"
 
-#ifdef WIN32
-#define popen _popen
-#define pclose _pclose
-#endif
-
 //static const char* bayesVersionId =
 
 //--------------------------------------------------------------------
@@ -2921,7 +2916,7 @@ DefExtOpr(1, BSetPExec, "PExec", 1, 1,
 	  "Set", 
 	  "(Set Args)",
 	  I2("Execute an external program. The output of the program is returned in the member output.",
-	     "Ejecuta un programa externo. la salida del programa se retorna en el miembro ouput del conjunto resultado."),
+	     "Ejecuta un programa externo. La salida del programa se retorna en el elemento output del conjunto resultante."),
 	  BOperClassify::System_);
 
 #ifdef WIN32
@@ -2993,19 +2988,7 @@ void BSetPExec::CalcContens()
       cmd += escapedArg;
     }
     if ( !badArg ) {
-      //Std( BText( "*** '" ) + cmd + "' ***" );
-      FILE* pipe = popen(cmd, "r");
-      if ( pipe ) {
-        char buffer[128];
-        output = "";
-        while( !feof( pipe ) ) {
-          if( fgets( buffer, 128, pipe ) != NULL )
-            output += buffer;
-        }
-        status = 1;
-        desc = "";
-        pclose( pipe );
-      }
+      status = BSys::PExecQuiet(cmd, output, desc);
     } else {
       status = 0;
       BText desc = I2( "Could not execute: ", "No se pudo ejecutar: " );
@@ -3025,5 +3008,42 @@ void BSetPExec::CalcContens()
   so->PutName("description");
   result = Cons(so = new BContensText("", output), result);
   so->PutName("output");
+  contens_.RobElement(result);  
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BSet, BSetTemporary, BSetAnsSystemQuiet);
+DefExtOpr(1, BSetAnsSystemQuiet, "AnsSystemQuiet", 1, 1, "Text", 
+  "(Text command)",
+  I2("Calls the operative system to execute a command line "
+     "and returns the status, the standard output "
+     "and the standar error of the call in a set.",
+     "Llama al sistema operativo para ejecutar una línea de comandos "
+     "y devuelve un conjunto con el estado, "
+     "la salida estándar y los erorres de la llamada."),
+	  BOperClassify::System_);
+//--------------------------------------------------------------------
+void BSetAnsSystemQuiet::CalcContens()
+//--------------------------------------------------------------------
+{
+  if(CheckNonDeclarativeAction("AnsSystem")) { return; }
+  const BText& command = Text(Arg(1));
+  BBool status;
+  BText output, error;  
+#ifndef UNIX
+  // Se usa WinSystemQuiet ya que PExecQuiet 
+  // no puede evitar mostrar la ventana de la consola
+  status = BSys::WinSystemQuiet(command, output, error);
+#else
+  status = BSys::PExecQuiet(command, output, error);
+#endif
+  BList * result = NIL;
+  BSyntaxObject * so;
+  result = Cons(so = new BContensText("", error), result);
+  so->PutName("std_error");
+  result = Cons(so = new BContensText("", output), result);
+  so->PutName("std_output");
+  result = Cons(so = new BContensDat("", status), result);
+  so->PutName("status");
   contens_.RobElement(result);  
 }

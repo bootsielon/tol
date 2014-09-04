@@ -31,6 +31,11 @@
 #include <tol/tol_bout.h>
 #include <tol/tol_blist.h>
 
+#ifdef WIN32
+#define popen _popen
+#define pclose _pclose
+#endif
+
 //--------------------------------------------------------------------
 // types
 //--------------------------------------------------------------------
@@ -113,11 +118,14 @@ public:
   static BBool	System	   (const BText& command);
   
 #ifndef	  UNIX
-  static BBool	WinExecuteFile (const BText& fileName);
-  static BBool	WinSystem  (const BText& command,
-				                    BInt	showMode, 
-                            bool  wait=BFALSE);
+  static BBool	WinExecuteFile(const BText& fileName);
+  static BBool	WinSystem     (const BText& command,
+                               BInt  showMode, bool  wait=BFALSE);
+  static BBool	WinSystemQuiet(const BText& command,
+                               BText& output, BText& error);
 #endif
+  static BBool	PExecQuiet    (const BText& command, 
+                               BText& output, BText& error);
   static BBool ChildProcess(const BText& command);
   //! Prints a file in the default printer.
   static BBool Print(const BText& fileName);
