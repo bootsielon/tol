@@ -1,6 +1,6 @@
 
 #
-# instrucciones para compilar tol/tolbase en centos 5.4 X86_64,
+# instrucciones para compilar tol/tolbase en centos 6.x X86_64,
 # concretamente:
 #
 # Linux brw07.localbayes.es 2.6.18-164.el5 #1 SMP Thu Sep 3 03:28:30 EDT 2009 x86_64 x86_64 x86_64 GNU/Linux
@@ -8,7 +8,13 @@
 # asumimos que existe una variable de entorno TOLROOT debajo de la cual 
 # compilaremos TOL
 #
-#  export TOLROOT=${HOME}/TOL
+
+export TOLROOT=${HOME}/TOL
+
+# para asegurar que en siguientes sesiones este creada la variable
+# ejecutamos
+
+echo export TOLROOT=${HOME}/TOL >> ${HOME}/.bash_profile
 
 #
 # creamos directorios de trabajo
@@ -28,9 +34,9 @@ sudo yum install xauth
 sudo yum install rlwrap
 
 # Instalamos los paquetes base
-sudo yum install bc unzip wget cvs subversion glibc-devel gcc-gfortran libstdc++-devel autoconf make bzip2-devel.i686 gsl-devel.i686 boost-devel.i686 mysql-devel.i686 postgresql-devel.i686 openssl-devel.i686 zlib-devel.i686 libtool-ltdl-devel.i686 libX11-devel.i686
+sudo yum install bc unzip wget cvs subversion libgcc.i686 glibc.i686 glibc-devel.i686 gcc-gfortran.i686 libstdc++-devel libstdc++-devel.i686 autoconf make bzip2-devel.i686 gsl-devel.i686 boost-devel.i686 mysql-devel.i686 postgresql-devel.i686 openssl-devel.i686 zlib-devel.i686 libtool-ltdl-devel.i686 libX11-devel.i686 libX11.i686  libXt.i686 libXt-devel.i686
 
-# unixODBC-devel.i686 no ya que usamos el fuente unixODBC-2.3.0
+# unixODBC-devel.i686, no ya que usamos el fuente unixODBC-2.3.0
 cd ${TOLROOT}/contribs
 wget ftp://ftp.unixodbc.org/pub/unixODBC/unixODBC-2.3.2.tar.gz
 tar zxf unixODBC-2.3.2.tar.gz
@@ -191,7 +197,7 @@ cd ${TOLROOT}/contribs
 wget http://packages.tol-project.org/linux/sources/TclCurl-7.19.6.tar.gz
 tar zxf TclCurl-7.19.6.tar.gz
 cd TclCurl-7.19.6
-CC='gcc -m32' CXX='g++ -m32' ./configure --with-tcl=/usr/local/tcl8.4.20/lib
+PKG_CONFIG_PATH=/usr/lib/pkgconfig CC='gcc -m32' CXX='g++ -m32' ./configure --with-tcl=/usr/local/tcl8.4.20/lib
 make -e
 sudo make install
 
@@ -250,7 +256,7 @@ sudo cp -r tolsh.vfs/lib/tequila /usr/local/tcl8.4.20/lib/.
 sudo cp -r tolsh.vfs/lib/tlogger /usr/local/tcl8.4.20/lib/.
 sudo cp -r tolsh.vfs/lib/tolcomm /usr/local/tcl8.4.20/lib/.
 echo '#!/bin/bash' > /tmp/tolsh
-echo 'LD_LIBRARY_PATH=/usr/local/lib BLAPI_BLAS_LIB=/usr/lib/atlas-sse2/libf77blas BLAPI_LAPACK_LIB=/usr/lib/atlas-sse2/liblapack TOLSessionPath=/usr/local/tol32/bin/tolsh /usr/local/tcl8.4.20/bin/tclsh8.4 /usr/local/tcl8.4.20/lib/app-tolsh/tolsh.tcl ${1+"$@"}' >> /tmp/tolsh
+echo 'LD_LIBRARY_PATH=/usr/local/lib:/usr/local/unixODBC-2.3.0 BLAPI_BLAS_LIB=/usr/lib/atlas-sse2/libf77blas BLAPI_LAPACK_LIB=/usr/lib/atlas-sse2/liblapack TOLSessionPath=/usr/local/tol32/bin/tolsh /usr/local/tcl8.4.20/bin/tclsh8.4 /usr/local/tcl8.4.20/lib/app-tolsh/tolsh.tcl ${1+"$@"}' >> /tmp/tolsh
 chmod a+x /tmp/tolsh
 sudo mv /tmp/tolsh /usr/local/tol32/bin/tolsh
 
