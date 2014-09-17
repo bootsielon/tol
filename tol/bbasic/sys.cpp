@@ -591,7 +591,9 @@ BBool BSys::PExecQuiet(const BText& command,
                        BText& output, BText& error)
 //--------------------------------------------------------------------
 {
+#if defined(WIN32)
   SetLastError(0);
+#endif
   BText errNam = BSys::TempNam();
   BText cmdRedirected = command + BText(" 2> ") + errNam;
   bool ok = false;
