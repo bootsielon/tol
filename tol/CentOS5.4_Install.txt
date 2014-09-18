@@ -306,8 +306,8 @@ sudo make install
 cd ${TOLROOT}/contribs
 wget http://packages.tol-project.org/src/contrib/tclodbc.2.2.tgz
 tar zxf tclodbc.2.2.tgz
-cd tclodbc2.2
-CC='gcc -m32' CXX='g++ -m32' ./configure --with-tcl=/usr/local/tcl8.4/lib --with-tk=/usr/local/tcl8.4/lib --enable-threads
+cd tclodbc.2.2
+CC='gcc -m32' CXX='g++ -m32' ./configure --with-tcl=/usr/local/tcl8.4/lib --with-tk=/usr/local/tcl8.4/lib --enable-threads 
 # si el odbc que estamos usando es antiguo hay que desahabilitar el
 # uso de extensiones, esto lo hemos hecho con la siguientes instrucciones
 mv tclodbc.hxx tclodbc.ext.hxx
@@ -320,6 +320,7 @@ make -f Makefile.fix pkgIndex.tcl-hand
 sudo make install
 
 # instalo blt
+cd ${TOLROOT}/contribs
 wget http://packages.tol-project.org/linux/binaries/blt2.4.tgz
 tar zxf blt2.4.tgz
 sudo cp -r blt2.4 /usr/local/tcl8.4/lib/.
@@ -332,7 +333,7 @@ sudo find /usr/local/tcl8.4/lib/tolbase3.2  -name .svn | sudo xargs rm -r
 
 # creo el script de lanzamiento de tolbase
 echo '#!/bin/sh' > /tmp/tolbase3.2
-echo exec /usr/local/tcl8.4/bin/wish8.4 /usr/local/tcl8.4/lib/tolbase3.2/toltk/init_toltk.tcl '${1+"$@"}' >> /tmp/tolbase3.2
+echo 'LD_LIBRARY_PATH=/usr/local/lib:/usr/local/unixODBC-2.3.0/lib BLAPI_BLAS_LIB=/usr/lib/atlas-sse2/libf77blas BLAPI_LAPACK_LIB=/usr/lib/atlas-sse2/liblapack TOLSessionPath=/usr/local/tol32/bin/tolsh /usr/local/tcl8.4.20/bin/wish8.4 /usr/local/tcl8.4.20/lib/tolbase3.2/toltk/init_toltk.tcl ${1+"$@"}' >> /tmp/tolbase3.2
 chmod a+x /tmp/tolbase3.2
 sudo mv /tmp/tolbase3.2 /usr/local/tol32/bin/tolbase3.2
 
