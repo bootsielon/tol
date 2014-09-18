@@ -5,6 +5,12 @@
 #
 # Linux brw07.localbayes.es 2.6.18-164.el5 #1 SMP Thu Sep 3 03:28:30 EDT 2009 x86_64 x86_64 x86_64 GNU/Linux
 #
+
+# Se recomienda hacer un update para evitar posibles conflictos entre
+# los paquetes x86_64 y i686
+
+sudo yum update
+
 # asumimos que existe una variable de entorno TOLROOT debajo de la cual 
 # compilaremos TOL
 #
@@ -34,7 +40,10 @@ sudo yum install xauth
 sudo yum install rlwrap
 
 # Instalamos los paquetes base
-sudo yum install bc unzip wget cvs subversion libgcc.i686 glibc.i686 glibc-devel.i686 gcc-gfortran.i686 libstdc++-devel libstdc++-devel.i686 autoconf make bzip2-devel.i686 gsl-devel.i686 boost-devel.i686 mysql-devel.i686 postgresql-devel.i686 openssl-devel.i686 zlib-devel.i686 libtool-ltdl-devel.i686 libX11-devel.i686 libX11.i686  libXt.i686 libXt-devel.i686
+sudo yum install bc unzip wget cvs subversion gcc-c++ gcc-c++.i686 libgcc.i686 glibc.i686 glibc-devel.i686 gcc-gfortran.i686 libstdc++-devel libstdc++-devel.i686 autoconf make bzip2-devel.i686 gsl-devel.i686 boost-devel.i686 mysql-devel.i686 postgresql-devel.i686 openssl-devel.i686 zlib-devel.i686 libtool-ltdl-devel.i686 libX11-devel.i686 libX11.i686  libXt.i686 libXt-devel.i686
+
+# No package gcc-c++.i686 available.
+# No package gcc-gfortran.i686 available.
 
 # unixODBC-devel.i686, no ya que usamos el fuente unixODBC-2.3.0
 cd ${TOLROOT}/contribs
@@ -65,6 +74,7 @@ cd tk8.4.20
 mkdir build
 cd build
 CC='gcc -m32' CXX='g++ -m32' ../unix/configure --prefix=/usr/local/tcl8.4.20 --enable-threads --enable-shared --with-tcl=/usr/local/tcl8.4.20/lib
+make
 sudo make install install-private-headers
 
 #
@@ -84,7 +94,7 @@ export BLAPI_LAPACK_LIB=/usr/lib/atlas-sse2/liblapack
 #
 # instalamos R-project
 # quizas se puede instalar el R de 64 bits, ya que se usa en modo comando
-sudo yum install R-core.i686 R-devel.i686
+sudo yum install R-core.i686 R-devel.i686 glpk-devel.i686
 echo 'options(repos="http://cran.r-project.org")' > /tmp/Rinstall.R
 echo 'install.packages("coda")' >> /tmp/Rinstall.R
 echo 'install.packages("quadprog")' >> /tmp/Rinstall.R
@@ -207,8 +217,8 @@ sudo make install
 #
 cd ${TOLROOT}
 #sudo ln -s /usr/include /usr/include/postgresql
-svn co https://www.tol-project.org/svn/tolp
-cd tolp/trunk/tol
+svn co https://www.tol-project.org/svn/tolp/trunk
+cd trunk/tol
 cp prj-config.jam.CentOS6x prj-config.jam
 ./bjam-gcc-release address-model=32
 ./sudo_install address-model=32
@@ -222,8 +232,7 @@ sudo mv /tmp/tolcon /usr/local/tol32/bin/tolcon
 
 # verificamos que arranca bien 
 cd ..
-# esto falla ya que necesita de tolsh para descargar StdLib!!!!
-/usr/local/tol32/bin/tolcon -c"WriteLn(\"Hola soy TOL \")"
+/usr/local/tol32/bin/tolcon -ndp -i -c"WriteLn(\"Hola soy TOL \")"
 
 # puede dar problemas al arrancar
 # cannot restore segment prot after reloc: Permission denied
@@ -233,7 +242,7 @@ cd ..
 #
 # compilamos toltcl: el puente con tcl.
 #
-cd ${TOLROOT}/tolp/trunk/toltcl/release
+cd ${TOLROOT}/trunk/toltcl/release
 CC='gcc -m32' CXX='g++ -m32' ./default_config.sh --with-tol=/usr/local/tol32 --with-tcl=/usr/local/tcl8.4.20/lib
 make
 sudo make install
@@ -250,13 +259,13 @@ sudo make install
 # 
 # compilamos tolsh: la consola de tol con Tcl_EvalEx
 #
-cd ${TOLROOT}/tolp/trunk/tolsh
+cd ${TOLROOT}/trunk/tolsh
 sudo cp -r tolsh.vfs/lib/app-tolsh /usr/local/tcl8.4.20/lib/.
 sudo cp -r tolsh.vfs/lib/tequila /usr/local/tcl8.4.20/lib/.
 sudo cp -r tolsh.vfs/lib/tlogger /usr/local/tcl8.4.20/lib/.
 sudo cp -r tolsh.vfs/lib/tolcomm /usr/local/tcl8.4.20/lib/.
 echo '#!/bin/bash' > /tmp/tolsh
-echo 'LD_LIBRARY_PATH=/usr/local/lib:/usr/local/unixODBC-2.3.0 BLAPI_BLAS_LIB=/usr/lib/atlas-sse2/libf77blas BLAPI_LAPACK_LIB=/usr/lib/atlas-sse2/liblapack TOLSessionPath=/usr/local/tol32/bin/tolsh /usr/local/tcl8.4.20/bin/tclsh8.4 /usr/local/tcl8.4.20/lib/app-tolsh/tolsh.tcl ${1+"$@"}' >> /tmp/tolsh
+echo 'LD_LIBRARY_PATH=/usr/local/lib:/usr/local/unixODBC-2.3.0/lib BLAPI_BLAS_LIB=/usr/lib/atlas-sse2/libf77blas BLAPI_LAPACK_LIB=/usr/lib/atlas-sse2/liblapack TOLSessionPath=/usr/local/tol32/bin/tolsh /usr/local/tcl8.4.20/bin/tclsh8.4 /usr/local/tcl8.4.20/lib/app-tolsh/tolsh.tcl ${1+"$@"}' >> /tmp/tolsh
 chmod a+x /tmp/tolsh
 sudo mv /tmp/tolsh /usr/local/tol32/bin/tolsh
 
