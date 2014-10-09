@@ -1636,9 +1636,9 @@ I2("You can modify the maximum number of iterations by means of "
 
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatFibonacciSolve);
-  DefExtOpr(1, BDatFibonacciSolve, "FibonacciSolve", 5, 5,
-  "Code Real Real Real Real",
-  "(Code f, Real y, Real min, Real max, Real tolerance)",
+  DefExtOpr(1, BDatFibonacciSolve, "FibonacciSolve", 5, 6,
+  "Code Real Real Real Real Real",
+  "(Code f, Real y, Real a, Real b, Real tolerance [, Real maxEval])",
   I2("Solves the equation f(x) = y using the Fibonacci method between min "
      "and max with the given tolerance.",
      "Resuelve la ecuación f(x) = y usando el método de Fibonacci con valor "
@@ -1652,6 +1652,8 @@ I2("You can modify the maximum number of iterations by means of "
   BDat	  min  = Dat (Arg(3));
   BDat	  max  = Dat (Arg(4));
   BDat	  tol  = Dat (Arg(5));
+  int maxEval = -1;
+  if(Arg(6)) { maxEval = (int)Real(Arg(6)); }
   if(min>max)
   {
     Error(I2("Cannot use empty interval in ",
@@ -1667,15 +1669,16 @@ I2("You can modify the maximum number of iterations by means of "
   else
   {
     BRRCode f(code);
-    contens_ = BFibonacci::Solve(&f,y,min,max,tol);
+    contens_ = BFibonacci::Solve(&f,y,min,max,tol,maxEval);
   }
 }
 
+
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatFibonacciMin);
-  DefExtOpr(1, BDatFibonacciMin, "FibonacciMin", 5, 5,
-  "Code Real Real Real Real",
-  "(Code f, Real y, Real a, Real b, Real tolerance)",
+  DefExtOpr(1, BDatFibonacciMin, "FibonacciMin", 5, 6,
+  "Code Real Real Real Real Real",
+  "(Code f, Real y, Real a, Real b, Real tolerance [, Real maxEval])",
   I2("Minimizes the function f(x) between a and b using the Fibonacci method",
      "Minimiza la función f(x) entre a y b por el método de Fibonacci."),
      BOperClassify::NumericalAnalysis_);
@@ -1687,6 +1690,8 @@ I2("You can modify the maximum number of iterations by means of "
   BDat	  min  = Dat (Arg(3));
   BDat	  max  = Dat (Arg(4));
   BDat	  tol  = Dat (Arg(5));
+  int maxEval = -1;
+  if(Arg(6)) { maxEval = (int)Real(Arg(6)); }
   if(min>max)
   {
     Error(I2("Cannot use empty interval in ",
@@ -1702,7 +1707,7 @@ I2("You can modify the maximum number of iterations by means of "
   else
   {
     BRRCode f(code);
-    contens_ = BFibonacci::Minimum(&f,y,min,max,tol);
+    contens_ = BFibonacci::Minimum(&f,y,min,max,tol,maxEval);
   }
 }
 

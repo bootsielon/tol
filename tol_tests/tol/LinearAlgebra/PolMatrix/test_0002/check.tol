@@ -2,9 +2,11 @@
 #Require AlgLib;
 #Require MPM;
 
+Real PutRandomSeed(23453);
+
 Real dim = 2;
 Real deg = 2;
-Real T = 100;
+Real T = 1000;
 
 Matrix x = VariableChange::@StableMatrixPolyn::
   SquareSetGen.Rand(dim, deg, -1, 1, 0.001);
@@ -22,9 +24,26 @@ Real P.isStationary = PolMatIsStationary(P);
 
 Real inequality_constraint_ = -Log(StationaryValue(determinant));
 
-Matrix X = Rand(T,dim,-1,1);
+Matrix X0 = Rand(deg,dim,-1,1);
+Matrix X  = Rand(T,  dim,-1,1);
 
-Matrix Y = P:X;
+Matrix Y = P:(X0<<X);
+
+Matrix Y_ = Group("ConcatColumns",For(1, dim, Matrix(Real i)
+{
+  SetSum(For(1, dim, Matrix(Real j)
+  { 
+    DifEq(PHI[i][j]/1,SubCol(X,[[j]]),SubCol(X0,[[j]]))
+  }))
+}));
+
+Matrix Y_t = Group("ConcatColumns",For(1, dim, Matrix(Real i)
+{
+  SetSum(For(1, dim, Matrix(Real j)
+  { 
+    DifEq(PHI[j][i]/1,SubCol(X,[[j]]),SubCol(X0,[[j]]))
+  }))
+}));
 
 
 VMatrix C = CompanionMatrix(P);
@@ -32,6 +51,7 @@ Matrix eigen = AlgLib::CppTools::rmatrixevd.eigen(VMat2Mat(C));
 Matrix eigen.module = Sqrt(eigen^2 * Col(1,1));
 Real eigen.module.max = MatMax(eigen.module);
 Real eigen.module.max.inv = 1/eigen.module.max;
+
 
 
 /*

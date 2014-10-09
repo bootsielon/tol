@@ -880,7 +880,7 @@ BBool InitGrammars(char* calledProgram)
     InitCommonInstances(GraSerie());
     TrcIGS("Anything");
     InitCommonInstances(GraAnything());
-    TrcIGS("PolMat");
+    TrcIGS("PolMatrix");
     InitCommonInstances(GraPolMat());
     
 #ifdef __USE_TC__

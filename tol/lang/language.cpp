@@ -174,7 +174,7 @@ bool InitRefStructs()
   _str_ref_Text = NewStructSymbol("@Text","Text:V");
   _str_ref_TimeSet = NewStructSymbol("@TimeSet","TimeSet:V");
   _str_ref_Serie = NewStructSymbol("@Serie","Serie:V");
-  _str_ref_PolMat = NewStructSymbol("@PolMat","PolMat:V");
+  _str_ref_PolMat = NewStructSymbol("@PolMatrix","PolMatrix:V");
 }
 
 

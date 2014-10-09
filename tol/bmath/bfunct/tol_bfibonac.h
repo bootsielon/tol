@@ -52,12 +52,12 @@ class BFibonacci
 	 static BDat Minimum( BRRFunction* funcion,
 			BDat& minimumValue,
 			BDat ini, BDat fin,
-			BDat tolerance=1);
+			BDat tolerance=1, int maxEval=-1);
 
 	 static BDat Solve( BRRFunction* funcion,
 		      BDat value,
 		      BDat ini, BDat fin,
-		      BDat tolerance=1);
+		      BDat tolerance=1, int maxEval=-1);
 
 	 static BInt Number(BInt n);
 	 static BInt Inverse(BDat f);

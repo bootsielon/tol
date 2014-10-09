@@ -115,8 +115,8 @@ BInt BFibonacci::Inverse(BDat f)
 //--------------------------------------------------------------------
 BDat BFibonacci::Minimum( BRRFunction* function,
 			  BDat& minimumValue,
-			  BDat ini, BDat fin ,
-			  BDat tol)
+			  BDat ini, BDat fin,
+			  BDat tol, int maxEval)
     
 /*! Returns the minimum of fibonacci of function in the
  *  interval [ini, fin] with tolerance tol.
@@ -140,6 +140,7 @@ BDat BFibonacci::Minimum( BRRFunction* function,
   BDat length = (fin-ini)/tol;
   Generate(fib, length);
   BInt N = fib.Size()-1;
+  if((maxEval>0)&&(maxEval<N+1)) { N = maxEval-1; }
   incerInf = ini;
   incerSup = fin;
   incer = incerSup-incerInf;
@@ -246,7 +247,7 @@ BInt BFibonacci::Minimum( BRealSuc* function,
 BDat BFibonacci::Solve( BRRFunction* function,
 			BDat value,
 			BDat ini, BDat fin ,
-			BDat tol)
+			BDat tol, int maxEval)
     
 /*! Returns the minimum of fibonacci of function in the
  *  interval [ini, fin] with tolerance tol.
@@ -273,6 +274,7 @@ BDat BFibonacci::Solve( BRRFunction* function,
   BDat minimum=0;
   Generate(fib, (fin-ini)/(tol/2));
   BInt n, N = fib.Size()-1;
+  if((maxEval>0)&&(maxEval<N+1)) { N = maxEval-1; }
 //Std(BText("Fibonacci(")+N+")");
   incerInf = ini;
   incerSup = fin;

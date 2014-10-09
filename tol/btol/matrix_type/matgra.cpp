@@ -4639,6 +4639,34 @@ void BMatMatAutoCor::CalcContens()
 }
 
 //--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatMatPartAutoCor);
+DefExtOpr(1, BMatMatPartAutoCor,   "MatPartAutoCor", 2, 2, "Matrix Real",
+  "(Matrix M, Real n)",
+  I2("Returns the sample partial autocorrelations vector of dimension n of a vector.",
+     "Devuelve el vector de autocorrelaciones parciales muestrales de dimension n de "
+     "un vector."),
+    BOperClassify::Statistic_);
+//--------------------------------------------------------------------
+void BMatMatPartAutoCor::CalcContens()
+//--------------------------------------------------------------------
+{
+  const BMat& M = Mat(Arg(1));
+  BInt  order = (BInt)Real(Arg(2));
+  contens_.Alloc(order,3);
+  if(contens_.Rows()!=order) { return; }
+  BDat sigma = 1/Sqrt(M.Data().Size());
+  BArray<BDat> acf(order), pacf;
+  AutoCor(M.Data(), acf, order, 1);
+  PartAutoCor(acf, pacf);
+  for(BInt i=0; i<order; i++)
+  {
+    contens_(i,0)=i+1;
+    contens_(i,1)=acf(i);
+    contens_(i,2)=sigma;
+  }
+}
+
+//--------------------------------------------------------------------
 DeclareMatSeriesStatisticClass(BMatAutoCov);
 DefExtOpr(1, BMatAutoCov,   "AutoCov", 2, 2, "Serie Real",
   "(Serie ser, Real n)",

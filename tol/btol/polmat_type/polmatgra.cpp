@@ -33,6 +33,7 @@
 #include <tol/tol_bgrammar.h>
 #include <tol/tol_blanguag.h>
 #include <tol/tol_bar.h>
+#include <tol/tol_barma.h>
 
 
 //--------------------------------------------------------------------
@@ -132,33 +133,35 @@ bool IsStationary(const BPolMat& P)
   return(IsStationary(det));
 }
 
+void Backward(const BPolyn  <BDat>& P,
+       	      const BMatrix <BDat>& X0,
+	            const BMatrix <BDat>& X,
+	                  BMatrix <BDat>& Y);
+	                  
 //--------------------------------------------------------------------
 bool ApplyMatPol(const BPolMat& P, const BMat& X, BMat& Y)
 //--------------------------------------------------------------------
 {
-  int i,j,t,h,r=P.Rows(), c = P.Columns(), T = X.Rows();
+  int i,j,t,r=P.Rows(), c = P.Columns(), T = X.Rows();
   if(X.Columns()!=c) { return(false); }
-  BArray< BArray<BDat> > x(c);
-  for(j=0; j<c; j++)
-  {
-    x(j) = X.SubCol(j).Data();
-  }
   int d = Degree(P);
   int Td = T-d;
-  Y.Alloc(Td,r);
-  Y.SetAllValuesTo(0.0);
-  
+  Y.Alloc(Td,r); 
   for(i=0; i<r; i++)
   {
-    for(j=0; j<c; j++)
+    for(t=0; t<Td; t++)
     {
-      BArray<BDat> z;
-      const BArray<BDat>& xj = x(j);      
-      ApplyPolyn(P(i,j),xj,z);
-      for(t=Td-1,h=z.Size()-1; t>=0; t--, h--)
+      BDat y = 0;
+      for(j=0; j<c; j++)
       {
-        Y(t,i) += z(h);
+        for(int h=0; h<P(i,j).Size(); h++)
+        {
+          int k = P(i,j)[h].Degree();
+          BDat g = P(i,j)[h].Coef();
+          y+=X(t+d-k,j)*g;
+        }  
       }
+      Y(t,i) = y;
     }
   }
   return(true);
