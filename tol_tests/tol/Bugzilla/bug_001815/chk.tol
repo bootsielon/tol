@@ -1,0 +1,27 @@
+Real nObj0 = Copy(NObject);
+Real nCor0 = Copy(NCore);
+
+Set listado = For(1, 1000, Anything (Real i) {
+  Text name = SetSum(For(1, 10, Text (Real j) { Char(Rand(97,122)) }));
+  PutName(name, i)
+});
+
+Real nObj1 = Copy(NObject);
+Real nCor1 = Copy(NCore);
+Set For(1, 10, Real (Real n) {
+  SetSum(For(1, 100000, Real (Real i) {
+    ObjectExist("Anything", "listado::abcdefgh")
+  }))
+});  // incremento de unos 55500 KB de RAM
+Real nObj2 = Copy(NObject);
+Real nCor2 = Copy(NCore);
+
+Set For(1, 10, Real (Real n) {
+  SetSum(For(1, 100000, Real (Real i) {
+    FindIndexByName(listado, "abcdefgh")
+  }))
+}); // no se aprecia incremento de RAM
+
+Real nObj3 = Copy(NObject);
+Real nCor3 = Copy(NCore);
+
