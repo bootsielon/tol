@@ -1,27 +1,81 @@
-Real nObj0 = Copy(NObject);
-Real nCor0 = Copy(NCore);
+Set optionDef = 
+{[[
+  Set WordLebgth = [[8,16,24]];
+  Set SetCard = [[10,100,1000]];
+  Set Repeat = [[10,20,30]];
+  Set Searches = [[1000,5000,10000]]
+]]};
 
-Set listado = For(1, 1000, Anything (Real i) {
-  Text name = SetSum(For(1, 10, Text (Real j) { Char(Rand(97,122)) }));
-  PutName(name, i)
+Set options = Group("CartProd",optionDef);
+
+//Real k = 1;
+//Set opt = options[k];
+
+Set checkInfo = EvalSet(options,Set(Set opt)
+{
+  Real WordLebgth = opt[1];
+  Real SetCard = opt[2];
+  Real Repeat = opt[3];
+  Real Searches = opt[4];
+  WriteLn("Checking "<<opt);
+  Text target = Sub("abcdefghijklmnopqrstuvxyz",1,WordLebgth);
+  Text listado.target = "listado::"+target;
+  
+  Real nObj0 = Copy(NObject);
+  Real nCor0 = Copy(NCore);
+  Real t0 = Copy(Time);
+  Set mem0 = MemoryStatus(?);
+  
+  Set listado = For(1, SetCard, Text (Real i) {
+    Text name = SetSum(For(1, WordLebgth, Text (Real j) { Char(Rand(97,122)) }));
+    PutName(name, name)
+  });
+  Real SetIndexByName(listado);
+  
+  
+  Real nObj1 = Copy(NObject);
+  Real nCor1 = Copy(NCore);
+  Real t1 = Copy(Time);
+  Set mem1 = MemoryStatus(?);
+  
+  Set For(1, Repeat, Real (Real n) {
+    SetSum(For(1, Searches, Real (Real i) {
+      ObjectExist("Text", listado.target)
+    }))
+  });  
+  
+  Real nObj2 = Copy(NObject);
+  Real nCor2 = Copy(NCore);
+  Real t2 = Copy(Time);
+  Set mem2 = MemoryStatus(?);
+  
+  Set For(1, Repeat, Real (Real n) {
+    SetSum(For(1, Searches, Real (Real i) {
+      FindIndexByName(listado, target)
+    }))
+  });
+  
+  Real nObj3 = Copy(NObject);
+  Real nCor3 = Copy(NCore);
+  Real t3 = Copy(Time);
+  Set mem3 = MemoryStatus(?);
+  
+  Set info = [[
+    Real WordLebgth;
+    Real SetCard;
+    Real Repeat;
+    Real Searches;
+    Real TotSearches = Repeat*Searches;
+    Real OE.obj = nObj2-nObj1;
+    Real FI.obj = nObj3-nObj2; 
+    Real OE.cor = nCor2-nCor1;
+    Real FI.cor = nCor3-nCor2; 
+    Real OE.mem = mem1::AvailVirtual-mem2::AvailVirtual;
+    Real FI.mem = mem2::AvailVirtual-mem3::AvailVirtual;
+    Real OE.time = t2-t1;
+    Real FI.time = t3-t2 
+  ]]
 });
-
-Real nObj1 = Copy(NObject);
-Real nCor1 = Copy(NCore);
-Set For(1, 10, Real (Real n) {
-  SetSum(For(1, 100000, Real (Real i) {
-    ObjectExist("Anything", "listado::abcdefgh")
-  }))
-});  // incremento de unos 55500 KB de RAM
-Real nObj2 = Copy(NObject);
-Real nCor2 = Copy(NCore);
-
-Set For(1, 10, Real (Real n) {
-  SetSum(For(1, 100000, Real (Real i) {
-    FindIndexByName(listado, "abcdefgh")
-  }))
-}); // no se aprecia incremento de RAM
-
-Real nObj3 = Copy(NObject);
-Real nCor3 = Copy(NCore);
+  
+/* */
 
