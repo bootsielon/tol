@@ -21,7 +21,7 @@
    USA.
  */
 
-#include <contrib/cint/tolCint.h>
+#include "tolCint.h"
 
 #include <tol/tol_bdir.h>
 #include <tol/tol_blanguag.h>
