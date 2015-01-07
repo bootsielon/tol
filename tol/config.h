@@ -124,6 +124,12 @@
 /* Define to 1 if you have the <values.h> header file. */
 #define HAVE_VALUES_H 1
 
+/* Define to 1 if you have the <limits.h> header file. */
+#define HAVE_LIMITS_H 1
+
+/* Define to 1 if you have the <float.h> header file. */
+/* #undef HAVE_FLOAT_H */
+
 /* Define to 1 if you have the <varargs.h> header file. */
 /* #undef HAVE_VARARGS_H */
 
@@ -157,9 +163,13 @@
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
+#define HAVE_STDLIB_H 1
+#define HAVE_STRING_H 1
 
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #define TIME_WITH_SYS_TIME 1
+#define HAVE_SYS_TIME_H 1
+#define HAVE_TIME_H 1
 
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 /* #undef TM_IN_SYS_TIME */
