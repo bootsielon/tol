@@ -68,10 +68,15 @@ using namespace std;
 #include <ctype.h>
 #include <math.h>
 
-#if STDC_HEADERS
+#if HAVE_STDLIB_H
 #  include <stdlib.h>
+#endif
+
+#if HAVE_STRING_H
 #  include <string.h>
-#elif HAVE_STRINGS_H
+#endif
+
+#if HAVE_STRINGS_H
 #  include <strings.h>
 #endif
 
@@ -79,16 +84,13 @@ using namespace std;
 #  include <unistd.h>
 #endif
 
-#if TIME_WITH_SYS_TIME
-# include <sys/time.h>
-# include <time.h>
-#else
 # if HAVE_SYS_TIME_H
 #  include <sys/time.h>
-# else
+# endif
+
+# if HAVE_TIME_H
 #  include <time.h>
 # endif
-#endif
 
 #if defined(__GNUC__)
 #define _FILE_OFFSET_BITS 64
@@ -320,10 +322,11 @@ bool InitializeOrderedClasses();
 TOL_API const char * GetCompilationDate();
 TOL_API const char * GetCompilationTime();
 
-
-#if (defined(UNIX) || defined(DARWIN))
+#ifdef HAVE_LIMITS_H
 #  include <limits.h>
-#else
+#endif
+
+#ifdef HAVE_FLOAT_H
 #  include <float.h>
 #endif
 
@@ -350,10 +353,10 @@ TOL_API const char * GetCompilationTime();
   double round(double a);
 #endif
   
-struct TOL_API BIntPair { BInt r_; BInt c_; };
-  
 #endif
 
+struct TOL_API BIntPair { BInt r_; BInt c_; };
+  
 /* /////////////////////////////////////////////////////////////////////// */
 #ifdef DARWIN
 
