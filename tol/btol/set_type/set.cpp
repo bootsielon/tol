@@ -440,7 +440,7 @@ void BSet::AddElement(BSyntaxObject* syn)
 }
 
 
-static char* key_deleted = "~#key_deleted#¬";
+static const char* key_deleted = "~#key_deleted#¬";
 //--------------------------------------------------------------------
 void BSet::Append(const BSet& set, bool incrementalIndex)
 //--------------------------------------------------------------------
