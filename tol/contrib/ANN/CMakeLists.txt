@@ -1,1 +1,1 @@
-add_library( ANN OBJECT tolANN.cpp )
+add_tol_sublibrary( ANN tolANN.cpp )

@@ -1,3 +1,3 @@
 create_header_links( )
 
-add_library( date_type OBJECT dtegra.cpp )
+add_tol_sublibrary( date_type dtegra.cpp )

@@ -34,7 +34,7 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_sf_result.h>
 #include <gsl/gsl_sf_gamma.h>
-#include <../../contrib/kmlocal/KMrand.h>	
+#include "kmlocal/KMrand.h"
 
 BTraceInit("prd.cpp");
 

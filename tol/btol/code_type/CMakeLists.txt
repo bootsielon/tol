@@ -1,4 +1,4 @@
 create_header_links( )
 
-add_library( code_type OBJECT cod.cpp  codgra.cpp )
+add_tol_sublibrary( code_type cod.cpp  codgra.cpp )
 

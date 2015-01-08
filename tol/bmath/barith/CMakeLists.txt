@@ -1,3 +1,3 @@
 create_header_links( )
 
-add_library( barith OBJECT arith.cpp )
+add_tol_sublibrary( barith arith.cpp )

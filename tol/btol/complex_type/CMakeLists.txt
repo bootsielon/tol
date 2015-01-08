@@ -1,3 +1,3 @@
 create_header_links( )
 
-add_library( complex_type OBJECT cmpgra.cpp )
+add_tol_sublibrary( complex_type cmpgra.cpp )

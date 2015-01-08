@@ -1,3 +1,3 @@
 create_header_links( )
 
-add_library( mathobjects OBJECT complex.cpp dat.cpp )
+add_tol_sublibrary( mathobjects complex.cpp dat.cpp )

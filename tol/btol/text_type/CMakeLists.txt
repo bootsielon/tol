@@ -1,3 +1,3 @@
 create_header_links( )
 
-add_library( text_type OBJECT txtgra.cpp )
+add_tol_sublibrary( text_type txtgra.cpp )

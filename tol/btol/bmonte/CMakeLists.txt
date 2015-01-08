@@ -1,3 +1,2 @@
-
-add_library( bmonte OBJECT mc-integrator.cpp )
+add_tol_sublibrary( bmonte mc-integrator.cpp )
 

@@ -1,3 +1,3 @@
 create_header_links( )
 
-add_library( polmat_type OBJECT polmatgra.cpp )
+add_tol_sublibrary( polmat_type polmatgra.cpp )

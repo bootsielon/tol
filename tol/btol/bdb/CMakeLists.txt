@@ -1,3 +1,3 @@
 create_header_links( )
 
-add_library( bdb OBJECT bdb.cpp  bdspool.cpp  dbtol.cpp filehandle.cpp )
+add_tol_sublibrary( bdb bdb.cpp bdspool.cpp  dbtol.cpp filehandle.cpp )

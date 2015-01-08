@@ -1,6 +1,6 @@
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 
-add_library( alglib OBJECT
+add_tol_sublibrary( alglib 
   alglib_interp.cpp  ap.cpp  bdsvd.cpp  bidiagonal.cpp  blas.cpp
   leastsquares.cpp  levenbergmarquardt.cpp  lq.cpp  polinterpolation.cpp
   qr.cpp  ratinterpolation.cpp  reflections.cpp  rotations.cpp  spline3.cpp

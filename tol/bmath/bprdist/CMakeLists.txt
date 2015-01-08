@@ -1,3 +1,6 @@
 create_header_links( )
 
-add_library( bprdist OBJECT multvar.cpp  prd.cpp slice_sampler.cpp )
+add_tol_sublibrary( bprdist multvar.cpp  prd.cpp slice_sampler.cpp )
+target_include_directories( bprdist PRIVATE 
+  "${PROJECT_SOURCE_DIR}/contrib"
+  "${PROJECT_SOURCE_DIR}/bmath/gsl_ext" )

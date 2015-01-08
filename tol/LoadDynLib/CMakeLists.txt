@@ -1,3 +1,4 @@
 create_header_links( )
 
-add_library( LoadDynLib OBJECT LoadDynLib.cpp )
+add_tol_sublibrary( LoadDynLib LoadDynLib.cpp )
+target_include_directories( LoadDynLib PRIVATE ${LTDL_INCLUDE_DIR} )

@@ -1,7 +1,8 @@
 foreach( dir
-    kmlocal clusterlib alglib optimal_bw ANN cint )
+    kmlocal clusterlib alglib optimal_bw )
   add_subdirectory( ${dir} )
-  list( APPEND sublibs $<TARGET_OBJECTS:${dir}> )
 endforeach( )
 
-add_library( contrib ${sublibs} )
+if( CINT_HEADERS_FOUND )
+  add_subdirectory( cint )
+endif( )

@@ -2,4 +2,5 @@ ln-H tol_bmultvar.h tol_bprdist.h tol_bprdist_internal.h ;
 
 objects objs :
         multvar.cpp  prd.cpp slice_sampler.cpp
-        : <include>$(TOP)/bmath/gsl_ext ;
+        : 
+	<include>$(TOP)/bmath/gsl_ext ;

@@ -1,3 +1,4 @@
 create_header_links( )
 
-add_library( fftw OBJECT fftw.cpp )
+add_tol_sublibrary( fftw fftw.cpp )
+target_include_directories( fftw PRIVATE ${FFTW_INCLUDES} )
