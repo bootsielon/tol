@@ -51,7 +51,7 @@
 #include <tol/tol_bparser.h>
 #include <tol/tol_bsymboltable.h>
 #include <tol/tol_bnameblock.h>
-#include <contrib/cint/tolCint.h>
+#include "contrib/cint/tolCint.h"
 
 
 BTraceInit("spfuninst.cpp");
