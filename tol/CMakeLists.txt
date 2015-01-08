@@ -72,6 +72,9 @@ check_include_files( "float.h" HAVE_FLOAT_H )
 set( CMAKE_REQUIRED_LIBRARIES m )
 check_function_exists( round HAVE_ROUND )
 
+string( TIMESTAMP build_date "%Y-%m-%d" UTC )
+string( TIMESTAMP build_time "%H:%M:%S" UTC )
+
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in 
   ${CMAKE_CURRENT_BINARY_DIR}/tol/config.h)
 
@@ -84,9 +87,6 @@ add_definitions( -DHAVE_CONFIG_H -DUSE_DELAY_INIT -D__USE_ZIP_ARCHIVE__
 if ( CMAKE_SYSTEM_NAME STREQUAL "Linux" )
   add_definitions( -DUNIX )
 endif( )
-
-string( TIMESTAMP build_date "%Y-%m-%d" UTC )
-string( TIMESTAMP build_time "%H:%M:%S" UTC )
 
 # GSl configuration
 find_package( GSL REQUIRED )
