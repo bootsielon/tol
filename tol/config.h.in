@@ -1,0 +1,23 @@
+#cmakedefine HAVE_UTIME_H 1
+#cmakedefine HAVE_SYS_UTIME_H 1
+#cmakedefine HAVE_DIRENT_H 1
+#cmakedefine HAVE_SYS_NDIR_H 1
+#cmakedefine HAVE_SYS_DIR_H 1
+#cmakedefine HAVE_NDIR_H 1
+#cmakedefine HAVE_STRINGS_H 1
+#cmakedefine HAVE_UNISTD_H 1
+#cmakedefine HAVE_SYS_TIME_H 1
+#cmakedefine HAVE_TIME_H 1
+#cmakedefine HAVE_STDLIB_H 1
+#cmakedefine HAVE_STRING_H 1
+#cmakedefine HAVE_LIMITS_H 1
+#cmakedefine HAVE_FLOAT_H 1
+
+#cmakedefine HAVE_ROUND
+
+#define __TOL_BUILD_DATE__ "@build_date@"
+#define __TOL_BUILD_TIME__ "@build_time@"
+#define __TOL_BUILD_SVN_INFO__ \
+"@LAST_CHANGED_LOG@"
+
+#define DB_MODULES_SONAME 0
