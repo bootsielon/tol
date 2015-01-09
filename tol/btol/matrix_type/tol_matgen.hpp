@@ -20,14 +20,6 @@
  */
 
 
-#if HAVE_VALUES_H
-# include <values.h>
-#endif
-
-#if GCC_VERSION >= 40300
-#include <limits>
-#endif
-
 //--------------------------------------------------------------------
 template <class Any>
 Any& BMatrixGen<Any>::NullValue ()
