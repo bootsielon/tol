@@ -1,0 +1,21 @@
+if( ODBC_FOUND )
+  add_library( tolodbc SHARED libtolodbc.c )
+  set_target_properties( tolodbc PROPERTIES PREFIX "" )
+  target_include_directories( tolodbc PRIVATE ${ODBC_INCLUDE_DIR} )
+  target_link_libraries( tolodbc ${ODBC_LIBRARIES} )
+endif( )
+
+if( MYSQL_FOUND )
+  add_library( tolmysql SHARED libtolmysql.c )
+  set_target_properties( tolmysql PROPERTIES PREFIX "" )
+  target_include_directories( tolmysql PRIVATE ${MYSQL_INCLUDE_DIRECTORIES} )
+  target_link_libraries( tolmysql ${MYSQL_LIBRARY} )
+endif( )
+
+if( PostgreSQL_FOUND )
+  add_library( tolpgsql SHARED libtolpgsql.c )
+  set_target_properties( tolpgsql PROPERTIES PREFIX "" )
+  target_include_directories( tolpgsql PRIVATE ${PostgreSQL_INCLUDE_DIRS} )
+  target_link_libraries( tolpgsql ${PostgreSQL_LIBRARY} )
+endif( )
+
