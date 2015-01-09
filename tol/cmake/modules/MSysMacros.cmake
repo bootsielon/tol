@@ -1,0 +1,13 @@
+macro( msys_usr_path var )
+  get_filename_component( msys_x $ENV{WD} DIRECTORY PARENT_SCOPE )
+  set( ${var} ${msys_x} PARENT_SCOPE )
+endmacro( )
+
+macro( msys_convert_path var path )
+  if( MSYS )
+    msys_usr_path( msys_usr )
+    string( REGEX REPLACE ^/usr ${msys_usr} ${var} ${path} )
+  else( MSYS )
+    set( ${var} ${path} PARENT_SCOPE )
+  endif( MSYS )
+endmacro( )
