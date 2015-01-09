@@ -12,6 +12,8 @@
 #cmakedefine HAVE_STRING_H 1
 #cmakedefine HAVE_LIMITS_H 1
 #cmakedefine HAVE_FLOAT_H 1
+#cmakedefine HAVE_VALUES_H 1
+#cmakedefine HAVE_VARARGS_H 1
 
 #cmakedefine HAVE_ROUND
 
