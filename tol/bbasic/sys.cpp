@@ -1095,7 +1095,7 @@ FILE* BSys::FOpenAndLock(
    const char *filename,
    const char *mode,
    unsigned int timeOutInMilliseconds,
-   char* errorMessage)
+   const char* errorMessage)
 //--------------------------------------------------------------------
 {
   FILE* fil=NULL;

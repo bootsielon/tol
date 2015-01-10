@@ -172,7 +172,7 @@ public:
    const char *filename,
    const char *mode,
    unsigned int timeOutInMilliseconds,
-   char* errorMessage);
+   const char* errorMessage);
   //Unlocks a file and close it
   static bool FUnlockAndClose(FILE* file, const char *filename);
 };
