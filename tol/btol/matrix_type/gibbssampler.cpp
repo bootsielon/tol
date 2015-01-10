@@ -471,7 +471,7 @@ void BMatGibbsSampler::CalcContens()
   int i;
   BSyntaxObject * syn;
 
-  FullConditional ** conds = new (FullConditional*[card]);
+  FullConditional ** conds = new FullConditional*[card];
   BContensMat condparameters(BMatrix<BDat>(card,1));
   BDat * condpar_buffer = condparameters.Contens().GetData().GetBuffer();
   condparameters.IncNRefs();
