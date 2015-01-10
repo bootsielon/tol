@@ -77,7 +77,7 @@ bool Store::Initialize()
 //--------------------------------------------------------------------
 { 
   if(_isInitialized) { return(false); }
-  SetEmptyKey  (_instances, NULL);
+  SetEmptyKey  (_instances, 0);
   SetDeletedKey(_instances, -1);
   return(true);
 }
