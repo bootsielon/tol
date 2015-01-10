@@ -55,7 +55,7 @@ BFileDesc::BFileHashByHandle& BFileDesc::FileHandle()
   {
     fileHandle_ = new BFileHashByHandle; 
     BFileHashByHandle& fh = *fileHandle_; 
-    SetEmptyKey  (fh, NULL);
+    SetEmptyKey  (fh, 0);
     SetDeletedKey(fh, -1);
   }
   return(*fileHandle_);
