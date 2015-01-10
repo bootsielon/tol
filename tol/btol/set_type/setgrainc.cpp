@@ -45,15 +45,6 @@
 #  include <tol/tol_bctmsgra.h>
 #endif
 
-
-#ifndef OPENFLAG
-#  if (defined(UNIX) || (defined(_MSC_VER) && (_MSC_VER>=1300)))
-#    define OPENFLAG ios::in
-#  else
-#    define OPENFLAG ios::nocreate
-#  endif
-#endif
-
 #define BST  BText("(BST) ") + TolPath()
 #define BDC  BText("(BDC) ") + TolPath()
 

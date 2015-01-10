@@ -38,13 +38,7 @@
 #define GCC_VERSION 0
 #endif
 
-#ifndef OPENFLAG 
-#  if (defined(UNIX) || (defined(_MSC_VER) && (_MSC_VER>=1300)))
-#    define OPENFLAG ios::in
-#  else
-#    define OPENFLAG ios::nocreate
-#  endif
-#endif
+#define OPENFLAG ios::in
 
 #ifdef __cplusplus
 #  if ((defined(__GNUC__) && (__GNUC__>2)) || (defined(_MSC_VER) && (_MSC_VER>=1300)))
