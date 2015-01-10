@@ -538,7 +538,7 @@ int BVMat::Prod(const BVMat& A_, const BVMat& B_, BVMat& C)
 int BVMat::KroneckerProd(const BVMat& A, const BVMat& B, BVMat& C)
 ////////////////////////////////////////////////////////////////////////////////
 {
-  static char* fName = "KroneckerProd";
+  static const char* fName = "KroneckerProd";
   if(!A.CheckDefined(fName)) { return(-1); }
   if(!B.CheckDefined(fName)) { return(-1); }
   int rA = A.Rows(); 

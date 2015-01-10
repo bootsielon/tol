@@ -497,7 +497,7 @@ double BVMat::Quantile() const
 //   D*z <= d  
 ////////////////////////////////////////////////////////////////////////////////
 {
-  static char* fName = "GetBoundsInPolytope";
+  static const char* fName = "GetBoundsInPolytope";
   if(!D .CheckDefined(fName)) { return(-1); }
   if(!d_.CheckDefined(fName)) { return(-1); }
   if(!z_.CheckDefined(fName)) { return(-1); }
@@ -713,7 +713,7 @@ double BVMat::Quantile() const
 //Matrix instances
 ////////////////////////////////////////////////////////////////////////////////
 {
-  static char* fName = "TruncStdGaussian";
+  static const char* fName = "TruncStdGaussian";
   if(!D .CheckDefined(fName)) { return; }
   if(!d_.CheckDefined(fName)) { return; }
   if(!z0.CheckDefined(fName)) { return; }

@@ -588,7 +588,7 @@ void BVMat::restore_cholmod_common()
   common_->print          = 5;
   common_->print_function = cholmod_print_function;
   common_->error_handler  = cholmod_error_handler;
-  common_->try_catch      = NULL;
+  common_->try_catch      = 0;
 
   //Stop when non positive definite is found
   common_->quick_return_if_not_posdef = true;
@@ -1150,7 +1150,7 @@ static int intCmp_(const void* v1, const void* v2)
   double BVMat::GetCell(int i, int j) const
 ////////////////////////////////////////////////////////////////////////////////
 {
-  static char* name = "GetCell";
+  static const char* name = "GetCell";
   int accessCode;
   double* y = BVMat::checkCell(i, j, accessCode, true, name, true);
   if(y) { return(*y); }
@@ -1162,7 +1162,7 @@ static int intCmp_(const void* v1, const void* v2)
   int BVMat::PutCell(int i, int j, const double& x)
 ////////////////////////////////////////////////////////////////////////////////
 {
-  static char* name = "PutCell";
+  static const char* name = "PutCell";
   int accessCode;
   double* y = BVMat::checkCell(i, j, accessCode, false, name, true);
   if((accessCode==1)&&(x!=0.0))
@@ -1190,7 +1190,7 @@ static int intCmp_(const void* v1, const void* v2)
   int BVMat::PutCells(const BMatrix<double>& triplet)
 ////////////////////////////////////////////////////////////////////////////////
 {
-  static char* name = "PutCells";
+  static const char* name = "PutCells";
   int r = triplet.Rows();
   int c = triplet.Columns();
   int rows = Rows();
@@ -1399,7 +1399,7 @@ static int intCmp_(const void* v1, const void* v2)
   int BVMat::PutBlock(int i0, int j0, const BVMat& x)
 ////////////////////////////////////////////////////////////////////////////////
 {
-  static char* fName = "PutVMatBlock";
+  static const char* fName = "PutVMatBlock";
   int accessCode = false;
   int r=Rows();
   int c=Columns();
@@ -1502,7 +1502,7 @@ static int intCmp_(const void* v1, const void* v2)
 //Matrix instances
 ////////////////////////////////////////////////////////////////////////////////
 {
-  static char* fName = "Enlarge";
+  static const char* fName = "Enlarge";
   int result = 0;
   int *i, *j, k;
   switch(code_) {
@@ -1529,7 +1529,7 @@ static int intCmp_(const void* v1, const void* v2)
 //Matrix instances
 ////////////////////////////////////////////////////////////////////////////////
 {
-  static char* fName = "MergeRows";
+  static const char* fName = "MergeRows";
   int result = 0;
   int *i, *j, *rIdx, r, k, K, n, N = items.Card();
   Delete();
