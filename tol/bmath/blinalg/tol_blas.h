@@ -25,7 +25,11 @@
 #include <tol/tol_bcommon.h> 
 
 BEGIN_DECLS
-#include <cblas.h>
+#if defined( HAVE_CBLAS_H )
+#include "cblas.h"
+#else
+#include "gsl_cblas.h"
+#endif
 END_DECLS
 
 #include <tol/tol_bdat.h>

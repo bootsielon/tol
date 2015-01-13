@@ -131,7 +131,9 @@
 /* #undef HAVE_VALUES_H */
 
 /* Define to 1 if you have the <float.h> header file. */
-#define HAVE_float_H 1
+#define HAVE_FLOAT_H 1
+
+#define HAVE_CBLAS_H 1
 
 /* Define to 1 if the system has the type `_Bool'. */
 #define HAVE__BOOL 1

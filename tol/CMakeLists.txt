@@ -86,18 +86,31 @@ add_definitions( -DHAVE_CONFIG_H -DUSE_DELAY_INIT -D__USE_ZIP_ARCHIVE__
   -D__HASH_MAP_MSVC__=1 -D__HASH_MAP_GOOGLE__=2 -D__HASH_MAP_GCC__=3 
   -D__HASH_MAP_ICC__=4 -D__USE_HASH_MAP__=__HASH_MAP_GOOGLE__ )
 
-if ( CMAKE_SYSTEM_NAME STREQUAL "Linux" )
+if( CMAKE_SYSTEM_NAME STREQUAL "Linux" )
   add_definitions( -DUNIX )
 endif( )
 
 # GSl configuration
 find_package( GSL REQUIRED )
 
-if ( GSL_FOUND AND TRACE_COMPONENTS_FOUND )
+if( GSL_FOUND AND TRACE_COMPONENTS_FOUND )
   message("GSL_INCLUDE_DIRS = ${GSL_INCLUDE_DIRS}")
+  message("GSL_LIBRARY = ${GSL_LIBRARY}")
   message("GSL_LIBRARIES = ${GSL_LIBRARIES}")
 endif( )
 
+find_package( CBLAS )
+if( CBLAS_FOUND )
+  set( HAVE_CBLAS_H 1 CACHE INTERNAL "" )
+  if( TRACE_COMPONENTS_FOUND )
+    message( "CBLAS_LIBRARY = ${CBLAS_LIBRARY}" )
+    message( "CBLAS_INCLUDE_DIR = ${CBLAS_INCLUDE_DIR}" )
+  endif( TRACE_COMPONENTS_FOUND )
+else( CBLAS_FOUND )
+  message( STATUS "CBLAS not found, using gslcblas = ${GSLCBLAS_LIBRARY}" )
+  set( CBLAS_LIBRARY ${GSL_CBLAS_LIBRARY} )
+  set( CBLAS_INCLUDE_DIR ${GSL_INCLUDE_DIRS} )
+endif( CBLAS_FOUND )
 # BZIP2 configuration
 find_package( BZip2 REQUIRED )
 
@@ -205,7 +218,7 @@ foreach( d
 endforeach( )
 add_library( tol SHARED ${TOL_SUBLIBRARIES} )
 target_link_libraries( tol 
-  ${GSL_LIBRARIES} ${BZIP2_LIBRARIES} ${Boost_LIBRARIES}
+  ${GSL_LIBRARY} ${CBLAS_LIBRARY} ${BZIP2_LIBRARIES} ${Boost_LIBRARIES}
   ${LAPACK_LIBRARIES} ${FFTW_LIBRARIES} ${ZLIB_LIBRARIES}
   ${ZIPARCHIVE_LIBRARY} ${CHOLMOD_LIBRARIES} ${LTDL_LIBRARIES} )
 
