@@ -546,6 +546,26 @@ Text OSSvnInfo(Text path)
 })};
   
 //////////////////////////////////////////////////////////////////////////////
+Text OSWaitForLockedFile(Text file)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real handler = FOpen(file,"r+b");
+  While(!handler,
+  { 
+    WriteLn("File "+file+" is locked. Waiting ...");
+    Real Sleep(2);
+    Real handler := FOpen(file,"r+b")
+  });
+  Real If(handler, FClose(handler));
+  file
+};
+PutDescription(
+"Checks if a file is locked anf then waits until it is unlocked",
+OSWaitForLockedFile);
+//////////////////////////////////////////////////////////////////////////////
+
+  
+//////////////////////////////////////////////////////////////////////////////
 // Tests
 //////////////////////////////////////////////////////////////////////////////
 Set If(OSTraceLevel<2,Empty,Include("_system_test.tol"));
@@ -565,5 +585,6 @@ Text RemoveLastSlash(Text txt)
   Text last = Sub(txt,len,len);
   If(Or(last=="/",last=="\\"), Sub(txt,1,len-1), txt)
 };
+
 
 /* */
