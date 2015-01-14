@@ -8,4 +8,5 @@ add_tol_sublibrary( vmatrix_type
   vmat_iterative.cpp vmat_iterator.cpp vmatgra.cpp mmio.c )
 target_include_directories( vmatrix_type PRIVATE
   "${CHOLMOD_INCLUDE_DIR}"
-  "${PROJECT_SOURCE_DIR}/bmath/gsl_ext" )
+  "${PROJECT_SOURCE_DIR}/bmath/gsl_ext" 
+  "{$CBLAS_INCLUDE_DIR}" )

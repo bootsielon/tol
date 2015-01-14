@@ -90,7 +90,7 @@ if( CMAKE_SYSTEM_NAME STREQUAL "Linux" )
   add_definitions( -DUNIX )
 endif( )
 
-# GSl configuration
+# GSL configuration
 find_package( GSL REQUIRED )
 
 if( GSL_FOUND AND TRACE_COMPONENTS_FOUND )
@@ -99,18 +99,31 @@ if( GSL_FOUND AND TRACE_COMPONENTS_FOUND )
   message("GSL_LIBRARIES = ${GSL_LIBRARIES}")
 endif( )
 
+# CBLAS configuration
 find_package( CBLAS )
 if( CBLAS_FOUND )
   set( HAVE_CBLAS_H 1 CACHE INTERNAL "" )
   if( TRACE_COMPONENTS_FOUND )
-    message( "CBLAS_LIBRARY = ${CBLAS_LIBRARY}" )
     message( "CBLAS_INCLUDE_DIR = ${CBLAS_INCLUDE_DIR}" )
+    message( "CBLAS_LIBRARY = ${CBLAS_LIBRARY}" )
+    message( "CBLAS_LIBRARIES = ${CBLAS_LIBRARIES}" )
   endif( TRACE_COMPONENTS_FOUND )
 else( CBLAS_FOUND )
   message( STATUS "CBLAS not found, using gslcblas = ${GSLCBLAS_LIBRARY}" )
   set( CBLAS_LIBRARY ${GSL_CBLAS_LIBRARY} )
+  set( CBLAS_LIBRARIES ${GSL_CBLAS_LIBRARIES} )
   set( CBLAS_INCLUDE_DIR ${GSL_INCLUDE_DIRS} )
 endif( CBLAS_FOUND )
+
+# CLAPACK configuration
+find_package( CLAPACK REQUIRED )
+
+if( CLAPACK_FOUND AND TRACE_COMPONENTS_FOUND )
+  message("CLAPACK_INCLUDE_DIR = ${CLAPACK_INCLUDE_DIR}")
+  message("CLAPACK_LIBRARY = ${CLAPACK_LIBRARY}")
+  message("CLAPACK_LIBRARIES = ${CLAPACK_LIBRARIES}")
+endif( )
+
 # BZIP2 configuration
 find_package( BZip2 REQUIRED )
 
@@ -218,7 +231,8 @@ foreach( d
 endforeach( )
 add_library( tol SHARED ${TOL_SUBLIBRARIES} )
 target_link_libraries( tol 
-  ${GSL_LIBRARY} ${CBLAS_LIBRARY} ${BZIP2_LIBRARIES} ${Boost_LIBRARIES}
+  ${GSL_LIBRARY} ${CBLAS_LIBRARIES} ${CLAPACK_LIBRARIES}
+  ${BZIP2_LIBRARIES} ${Boost_LIBRARIES}
   ${LAPACK_LIBRARIES} ${FFTW_LIBRARIES} ${ZLIB_LIBRARIES}
   ${ZIPARCHIVE_LIBRARY} ${CHOLMOD_LIBRARIES} ${LTDL_LIBRARIES} )
 

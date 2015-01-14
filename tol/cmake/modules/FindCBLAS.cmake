@@ -32,7 +32,7 @@ find_path( CBLAS_INCLUDE_DIR
 
 
 include( FindPackageHandleStandardArgs )
-# handle the QUIETLY and REQUIRED arguments and set FFTW3_FOUND to TRUE
+# handle the QUIETLY and REQUIRED arguments and set CLAPACK_FOUND to TRUE
 # if all listed variables are TRUE
 
 find_package_handle_standard_args(CBLAS DEFAULT_MSG CBLAS_LIBRARY CBLAS_INCLUDE_DIR )
@@ -41,7 +41,7 @@ if ( CBLAS_FOUND )
   include( CheckLibraryExists )
   check_library_exists( "${CBLAS_LIBRARY}" cblas_dtrsm "" FOUND_CBLAS_DTRSM )
   if( NOT FOUND_CBLAS_DTRSM )
-    message( FATAL_ERROR "Could not find cblas_dtrsm in ${CBLAS_LIBRARY}, take a look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you don't have pkg-config installed you will most likely have to set CBLAS_LIBRARY by hand (i.e. -DCBLAS_LIBRARY='/path/to/libcblas.so') !" )
+    message( FATAL_ERROR "Could not find cblas_dtrsm in ${CBLAS_LIBRARY}, take a look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. You will most likely have to set CBLAS_LIBRARY by hand (i.e. -DCBLAS_LIBRARY='/path/to/libcblas.so') !" )
   endif( NOT FOUND_CBLAS_DTRSM )
 endif (CBLAS_FOUND)
 
