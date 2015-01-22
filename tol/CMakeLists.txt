@@ -1,11 +1,55 @@
 cmake_minimum_required( VERSION 2.8 )
 project( TOL )
 
+if( TOL_EXTERNAL_DEVEL_DIR )
+  if( CMAKE_BUILD_TYPE MATCHES Debug )
+    set( TOL_EXTERNAL_PREFIX "${TOL_EXTERNAL_DEVEL_DIR}/debug" )
+    set( CMAKE_CXX_FLAGS_DEBUG "-O0 -g2" )
+    set( CMAKE_C_FLAGS_DEBUG "-O0 -g2" )
+  else( CMAKE_BUILD_TYPE MATCHES DEBUG )
+    set( TOL_EXTERNAL_PREFIX "${TOL_EXTERNAL_DEVEL_DIR}/release" )
+    set( CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG" )
+    set( CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG" )
+  endif( CMAKE_BUILD_TYPE MATCHES Debug )
+  set( CMAKE_PREFIX_PATH "${TOL_EXTERNAL_PREFIX}" ${CMAKE_PREFIX_PATH} )
+  set( GSL_INCLUDE_SEARCH "${TOL_EXTERNAL_PREFIX}/include" )
+  set( GSL_LIBS_SEARCH "${TOL_EXTERNAL_PREFIX}/lib" )
+  set( CBLAS_DIR "${TOL_EXTERNAL_PREFIX}" )
+  set( CLAPACK_DIR "${TOL_EXTERNAL_PREFIX}" )
+  set( ZIPARCHIVE_AS_STATIC 1 )
+  set( CINT_ROOT_DIR "${TOL_EXTERNAL_PREFIX}/include/cint" )
+  set( PKG_FFTW_LIBRARY_DIRS "${TOL_EXTERNAL_PREFIX}/lib" CACHE INTERNAL "" )
+  set( PKG_FFTW_INCLUDE_DIRS "${TOL_EXTERNAL_PREFIX}/include" CACHE INTERNAL "" )
+  set( CMAKE_LIBRARY_PATH "${TOL_EXTERNAL_PREFIX}/lib" )
+  #find_library( FFTW_LIB
+   # NAMES "fftw3"
+   # PATHS ${PKG_FFTW_LIBRARY_DIRS}
+   # )
+  #message( "aaaaaa FFTW_LIB ${FFTW_LIB}" )
+  #-DFFTW_ROOT:PATH=c:/MinGW/msys/1.0/local -DFFTW_USE_STATIC_LIBS=1 
+endif( )
+
 set( TRACE_COMPONENTS_FOUND 1 )
+
+message( "CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}" )
 
 set( CMAKE_MODULE_PATH
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules"
   ${CMAKE_MODULE_PATH} )
+include( MSysMacros )
+
+if( MSYS )
+  msys_convert_path( msys_usrlocal "/usr/local" )
+  set( CMAKE_PREFIX_PATH "${msys_usrlocal}" ${CMAKE_PREFIX_PATH} )
+  include_directories( "${msys_usrlocal}/include" )
+endif( MSYS )
+
+if ( MINGW )
+  add_definitions( "-Wno-attributes" )
+endif( MINGW )
+if( WIN32 )
+  add_definitions( -DTOLDLL_EXPORTS )
+endif( WIN32 )
 
 find_package(Subversion)
 
@@ -30,20 +74,77 @@ macro( add_tol_sublibrary name )
   endif( )
 endmacro( )
 
-macro( create_header_links )
+set( skip_copy_headers 0 )
+macro( create_header_links__ )
   #message( "create_header_links from ${CMAKE_CURRENT_SOURCE_DIR}" )
+  if( skip_copy_headers )
+    message( STATUS "Skipping create_header_links for ${CMAKE_CURRENT_SOURCE_DIR}" )
+  else( )
+      file( GLOB headers RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" *.h *.hpp )
+      if( WIN32 )
+        set( cmd "copy_if_different" )
+      else( WIN32 )
+        set( cmd "create_symlink" )
+      endif( WIN32 )
+      foreach( h ${headers} )
+        execute_process(
+          COMMAND "${CMAKE_COMMAND}" "-E" ${cmd} 
+          "${CMAKE_CURRENT_SOURCE_DIR}/${h}"
+          "${PROJECT_BINARY_DIR}/tol/${h}"
+          RESULT_VARIABLE rc
+          OUTPUT_VARIABLE output
+          ERROR_VARIABLE error
+          )
+       endforeach( h )
+  endif( )  
+endmacro( create_header_links__ )
+
+macro( create_header_links2 )
+  if( WIN32 )
+    set( cmd "copy" )
+  else( WIN32 )
+    set( cmd "create_symlink" )
+  endif( WIN32 )
   file( GLOB headers RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" *.h *.hpp )
   foreach( h ${headers} )
-    execute_process(
-      COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" 
-      "${CMAKE_CURRENT_SOURCE_DIR}/${h}"
-      "${PROJECT_BINARY_DIR}/tol/${h}"
-      RESULT_VARIABLE rc
-      OUTPUT_VARIABLE output
-      ERROR_VARIABLE error
-      )
-  endforeach( h )
-  
+    set( srcFile "${CMAKE_CURRENT_SOURCE_DIR}/${h}" )
+    set( destFile "${PROJECT_BINARY_DIR}/tol/${h}" )
+    if( NOT EXISTS ${destFile} OR ( ${srcFile} IS_NEWER_THAN ${destFile} ) )
+        message( STATUS "Copying from %{srcFile} to ${newFile}" )
+        execute_process(
+          COMMAND "${CMAKE_COMMAND}" "-E" ${cmd} ${srcFile} ${destFile}
+          RESULT_VARIABLE rc
+          OUTPUT_VARIABLE output
+          ERROR_VARIABLE error )
+    endif()
+  endforeach( )
+endmacro( create_header_links2 )
+
+set( COPY_HEADERS_DEPENDS "" CACHE INTERNAL "" )
+macro( create_header_links )
+  if( WIN32 )
+    set( cmd "copy" )
+  else( WIN32 )
+    set( cmd "create_symlink" )
+  endif( WIN32 )
+  file( GLOB headers RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" *.h *.hpp )
+  set( lst  "" )
+  foreach( h ${headers} )
+    set( srcFile "${CMAKE_CURRENT_SOURCE_DIR}/${h}" )
+    set( destFile "${PROJECT_BINARY_DIR}/tol/${h}" )
+    set( lst ${lst} "${destFile}" )
+    add_custom_command ( 
+      OUTPUT ${destFile}
+      COMMAND "${CMAKE_COMMAND}" "-E" ${cmd} ${srcFile} ${destFile}
+      DEPENDS ${srcFile}
+      COMMENT "Creating header ${destFile}" )
+  endforeach( )
+  string( REPLACE "${PROJECT_SOURCE_DIR}" "" COPY_TARGET_NAME "COPY_HDR${CMAKE_CURRENT_SOURCE_DIR}" )
+  string( REPLACE "/" "_" COPY_TARGET_NAME "${COPY_TARGET_NAME}" )
+  #message( "add_custom_target( ${COPY_TARGET_NAME} ALL DEPENDS ${lst} ) " )
+  add_custom_target( ${COPY_TARGET_NAME} ALL DEPENDS ${lst} )  
+  set( tmp ${COPY_HEADERS_DEPENDS} ${COPY_TARGET_NAME} )
+  set( COPY_HEADERS_DEPENDS ${tmp} CACHE INTERNAL "" )
 endmacro( create_header_links )
 
 # create directory where the headers are goind to be linked.
@@ -77,9 +178,6 @@ check_function_exists( round HAVE_ROUND )
 string( TIMESTAMP build_date "%Y-%m-%d" UTC )
 string( TIMESTAMP build_time "%H:%M:%S" UTC )
 
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in 
-  ${CMAKE_CURRENT_BINARY_DIR}/tol/config.h)
-
 add_definitions( -DHAVE_CONFIG_H -DUSE_DELAY_INIT -D__USE_ZIP_ARCHIVE__
   -D__USE_DYNSCOPE__
   -D__POOL_NONE__=0 -D__POOL_BFSMEM__=1 -D__USE_POOL__=__POOL_BFSMEM__
@@ -89,6 +187,12 @@ add_definitions( -DHAVE_CONFIG_H -DUSE_DELAY_INIT -D__USE_ZIP_ARCHIVE__
 if( CMAKE_SYSTEM_NAME STREQUAL "Linux" )
   add_definitions( -DUNIX )
 endif( )
+
+if ( MINGW )
+  # http://stackoverflow.com/questions/14181351/i-got-duplicate-section-errors-when-compiling-boost-regex-with-size-optimizati
+  # add_definitions( -fno-tree-vectorize )
+  # add_definitions( -fno-implicit-templates )
+endif( MINGW )
 
 # GSL configuration
 find_package( GSL REQUIRED )
@@ -140,11 +244,25 @@ if( Boost_FOUND AND TRACE_COMPONENTS_FOUND )
   message( "Boost_LIBRARIES = ${Boost_LIBRARIES}" )
 endif( )
 
-# BLAS & LAPACK configuration
-find_package( LAPACK REQUIRED )
+include_directories( ${Boost_INCLUDE_DIRS} )
 
-if( LAPACK_FOUND AND TRACE_COMPONENTS_FOUND )
-  message( "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}" )
+find_package( R REQUIRED )
+if( R_COMMAND AND TRACE_COMPONENTS_FOUND )
+  message( STATUS "R FOUND at ${R_COMMAND}" )
+  message( STATUS "R_LIBRARY_BLAS = ${R_LIBRARY_BLAS}" )
+  message( STATUS "R_LIBRARY_LAPACK = ${R_LIBRARY_LAPACK}" )
+endif( )
+
+# BLAS & LAPACK configuration
+find_package( LAPACK QUIET )
+if( NOT LAPACK_FOUND )
+  set( BLAS_LIBRARIES ${R_LIBRARY_BLAS} CACHE PATH "" )
+  set( LAPACK_FOUND 1 CACHE INTERNAL "" )
+  set( LAPACK_LIBRARIES "${R_LIBRARY_BLAS};${R_LIBRARY_LAPACK}" CACHE LIST "" )
+endif( )
+
+  if( LAPACK_FOUND AND TRACE_COMPONENTS_FOUND )
+    message( "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}" )
 endif( )
 
 # ODBC configuration
@@ -184,7 +302,10 @@ endif( )
 
 # CINT configuration
 find_package( CintHeaders )
+if( CINT_HEADERS_FOUND AND TRACE_COMPONENTS_FOUND )
+  message( "CINT_INCLUDE_DIR = ${CINT_INCLUDE_DIR}" )
 
+endif( )
 # ZIPARCHIVE configuration
 find_package( ZipArchive REQUIRED )
 if( ZIPARCHIVE_FOUND AND TRACE_COMPONENTS_FOUND )
@@ -215,8 +336,17 @@ endif( )
 
 create_header_links( )
 
-add_tol_sublibrary( tol_init init.cpp )
+set( write_config_h 0 )
+if( write_config_h )
+  message( STATUS "Invoking CONFIGURE_FILE" )
+  CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in 
+    ${CMAKE_CURRENT_BINARY_DIR}/tol/config.h )
+endif( )
 
+add_tol_sublibrary( tol_init init.cpp )
+target_include_directories( tol_init PRIVATE
+    ${CHOLMOD_INCLUDE_DIR} )
+    
 foreach( d 
     bbasic bmath bparser btol dbdrivers contrib lang LoadDynLib OIS 
     PackArchive )
@@ -230,11 +360,17 @@ foreach( d
 #  endif( )
 endforeach( )
 add_library( tol SHARED ${TOL_SUBLIBRARIES} )
+if( WIN32 )
+  set( PLATFORM_LIBRARIES ws2_32 )
+endif( WIN32 )
 target_link_libraries( tol 
   ${GSL_LIBRARY} ${CBLAS_LIBRARIES} ${CLAPACK_LIBRARIES}
   ${BZIP2_LIBRARIES} ${Boost_LIBRARIES}
   ${LAPACK_LIBRARIES} ${FFTW_LIBRARIES} ${ZLIB_LIBRARIES}
-  ${ZIPARCHIVE_LIBRARY} ${CHOLMOD_LIBRARIES} ${LTDL_LIBRARIES} )
+  ${ZIPARCHIVE_LIBRARY} ${CHOLMOD_LIBRARIES} ${LTDL_LIBRARIES} ${PLATFORM_LIBRARIES} )
 
 add_executable( tolcon tol.cpp )
 target_link_libraries( tolcon tol )
+
+#message( STATUS "ALL_HEADERS_LIST ${ALL_HEADERS_LIST}" )
+add_custom_target( COPY_HEADERS ALL DEPENDS ${COPY_HEADERS_DEPENDS} )

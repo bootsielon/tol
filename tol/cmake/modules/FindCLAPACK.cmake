@@ -23,7 +23,7 @@
 #
 
 find_library( CLAPACK_LIBRARY NAMES clapack 
-  HINTS $ENV{CLAPACK_DIR}/lib $ENV{CLAPACK_DIR}/lib64 
+  HINTS ${CLAPACK_DIR}/lib ${CLAPACK_DIR}/lib64 
   PATH_SUFFIXES "atlas" "atlas-sse2" )
 
 set(CLAPACK_LIBRARIES ${CLAPACK_LIBRARY} )

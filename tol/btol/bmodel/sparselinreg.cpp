@@ -1146,8 +1146,14 @@ BSyntaxObject *ReturnSample::Create(const char **next)
                                ReturnArg::cm);
 }
 
+#if defined( CHOLMOD_MAIN_VERSION ) && ( CHOLMOD_MAIN_VERSION >= 3 )
+//#if defined( __MINGW32__ )
+static
+void my_cholmod_error(int status, const char *file, int line, const char *message);
+#else
 static
 void my_cholmod_error(int status, char *file, int line, char *message);
+#endif
 
 //--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetTemporary, BSetSparseLinReg);
@@ -1415,8 +1421,14 @@ void BSetSparseLinReg::CalcContens()
   cholmod_finish (&cm) ;
 }
 
+#if defined( CHOLMOD_MAIN_VERSION ) && ( CHOLMOD_MAIN_VERSION >= 3 )
+//#if defined( __MINGW32__ )
+static
+void my_cholmod_error(int status, const char *file, int line, const char *message)
+#else
 static
 void my_cholmod_error(int status, char *file, int line, char *message)
+#endif
 {
   char buffer[1024];
 

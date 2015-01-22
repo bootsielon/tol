@@ -50,7 +50,7 @@
 //Minimum size of strings to be compressed
 #define OIS_MinStreamSizeToCompress 32
 
-#if defined(_MSC_VER) && (_MSC_VER<1400)
+#if defined( __MINGW32__ ) || ( defined(_MSC_VER) && (_MSC_VER<1400) )
 #  define _LLD64_ "I64d"
 #else
 #  define _LLD64_ "lld"

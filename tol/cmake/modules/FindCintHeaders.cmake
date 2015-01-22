@@ -1,3 +1,5 @@
+include( LibFindMacros )
+
 set( CINT_INCLUDE_DIR_MESSAGE
   "Set the variable CINT_ROOT_DIR to the root dir where cint is installed" )
  
@@ -13,3 +15,6 @@ if( CINT_INCLUDE_DIR )
 else( )
   set( CINT_HEADERS_FOUND 0 )
 endif( )
+
+set( CINT_HEADERS_PROCESS_INCLUDES  CINT_INCLUDE_DIR )
+libfind_process( CINT_HEADERS )

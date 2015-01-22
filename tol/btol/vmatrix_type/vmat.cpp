@@ -559,10 +559,13 @@ void BVMat::restore_cholmod_common()
     {
       Warning("BVMat::common_->print has been modified");
     }
+#if defined( CHOLMOD_MAIN_VERSION ) && ( CHOLMOD_MAIN_VERSION >= 3 )
+#else
     if(common_->print_function!=cholmod_print_function)
     {
       Warning("BVMat::common_->print_function has been modified");
     }
+#endif
     if(common_->error_handler!=cholmod_error_handler)
     {
       Warning("BVMat::common_->error_handler has been modified");
@@ -586,7 +589,11 @@ void BVMat::restore_cholmod_common()
   }
 #endif
   common_->print          = 5;
+  
+#if defined( CHOLMOD_MAIN_VERSION ) && ( CHOLMOD_MAIN_VERSION >= 3 )
+#else
   common_->print_function = cholmod_print_function;
+#endif
   common_->error_handler  = cholmod_error_handler;
   common_->try_catch      = 0;
 

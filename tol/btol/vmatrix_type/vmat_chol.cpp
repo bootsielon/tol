@@ -121,7 +121,10 @@
   if(!X_.CheckDefined(fName)) { return(-1); }
   if(!showError)
   {
+#if defined( CHOLMOD_MAIN_VERSION ) && ( CHOLMOD_MAIN_VERSION >= 3 )
+#else
     common_->print_function = NULL;
+#endif
     common_->error_handler  = NULL;
   }
   bool old_force = force_natural_order(forceNaturalOrder);
@@ -198,7 +201,10 @@
   force_natural_order(old_force);
   if(!showError)
   {
+#if defined( CHOLMOD_MAIN_VERSION ) && ( CHOLMOD_MAIN_VERSION >= 3 )
+#else
     common_->print_function = cholmod_print_function;
+#endif
     common_->error_handler  = cholmod_error_handler;
   }
   if(X__!=&X_) { delete X__; }

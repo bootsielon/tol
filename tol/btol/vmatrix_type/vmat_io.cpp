@@ -39,7 +39,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
-void BVMat::cholmod_error_handler(int status,char *file,int line,char *message)
+//#if defined( CHOLMOD_MAIN_VERSION ) && ( CHOLMOD_MAIN_VERSION >= 3 )
+#if defined( __MINGW32__ )
+void BVMat::cholmod_error_handler(int status, const char *file, int line, const char *message)
+#else
+void BVMat::cholmod_error_handler(int status, char *file, int line, char *message)
+#endif
 ////////////////////////////////////////////////////////////////////////////////
 {
   int len = strlen(message)+strlen(file)+100;

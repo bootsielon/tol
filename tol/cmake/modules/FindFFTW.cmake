@@ -75,30 +75,39 @@ if( FFTW_ROOT )
     )
 
 else( )
-
+  message( "VOYYYYYYYYYYYYYYYYYYYYYYYYYYYYY" )
+  message( "PKG_FFTW_LIBRARY_DIRS = ${PKG_FFTW_LIBRARY_DIRS}" )
+  
+  find_library( FFTW_LIB_
+    NAMES "fftw3"
+    PATHS ${PKG_FFTW_LIBRARY_DIRS}
+    )
+  message( "aaaaaa FFTW_LIB_ ${FFTW_LIB_}" )
+  
   find_library(
     FFTW_LIB
     NAMES "fftw3"
-    PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
+    PATHS ${PKG_FFTW_LIBRARY_DIRS}
     )
+   message( "FFTW_LIB = ${FFTW_LIB}" )
 
   find_library(
     FFTWF_LIB
     NAMES "fftw3f"
-    PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
+    PATHS ${PKG_FFTW_LIBRARY_DIRS}
     )
 
 
   find_library(
     FFTWL_LIB
     NAMES "fftw3l"
-    PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
+    PATHS ${PKG_FFTW_LIBRARY_DIRS}
     )
 
   find_path(
     FFTW_INCLUDES
     NAMES "fftw3.h"
-    PATHS ${PKG_FFTW_INCLUDE_DIRS} ${INCLUDE_INSTALL_DIR}
+    PATHS ${PKG_FFTW_INCLUDE_DIRS}
     )
 
 endif( FFTW_ROOT )

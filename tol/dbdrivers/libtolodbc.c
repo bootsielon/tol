@@ -50,7 +50,11 @@
 
 #if !defined(TOLSQL_BIGINT)
 #  if defined(WIN32)
-#    define TOLSQL_BIGINT _int64
+#    if defined(__MINGW32__)
+#      define TOLSQL_BIGINT __int64
+#    else
+#      define TOLSQL_BIGINT _int64
+#    endif
 #  else
 #    define TOLSQL_BIGINT long long int
 #  endif

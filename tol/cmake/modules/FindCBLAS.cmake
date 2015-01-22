@@ -19,8 +19,8 @@
 # limitations under the License.
 #
 
-find_library( CBLAS_LIBRARY NAMES cblas 
-  HINTS $ENV{CBLAS_DIR}/lib $ENV{CBLAS_DIR}/lib64 
+find_library( CBLAS_LIBRARY NAMES cblas
+  HINTS ${CBLAS_DIR}/lib ${CBLAS_DIR}/lib64 
   PATH_SUFFIXES "atlas" "atlas-sse2" )
 
 set(CBLAS_LIBRARIES ${CBLAS_LIBRARY} )

@@ -40,16 +40,17 @@
 #  define EXTENSION ".so"
    typedef void* hdl_type;
 #else // Windows
-char *checkF(void *f) 
+const char *checkF(void *f) 
 {
-  if (f==NULL) 
-    return "Could not find call.";
+  static const char *msg = "Could not find call.";
+  if (f==NULL)
+    return msg;
   else return NULL;
 }
 #  include <windows.h>
 #  define GET_FUNC GetProcAddress
 #  define UNLOAD_MODULE FreeLibrary
-#  define CHECK_ERROR(f) checkF(f)
+#  define CHECK_ERROR(f) checkF((void*)(f))
 #  define LOAD_MODULE(f) LoadLibrary(f)
 #  define EXTENSION ".dll"
    typedef HINSTANCE hdl_type;
@@ -172,7 +173,8 @@ BDat& DBRTrim() { return(DBRTrim_); }
 //-------------------------------------------------------------------
 void loadFunctionsError(int index, const char* fname, const char* error)
 {
-  char file[24], *module_error = NULL;
+  char file[24];
+  char *module_error = NULL;
 
   memset(file, '\0', 24); // clean buffer
   module_error = strdup(error);
@@ -186,7 +188,8 @@ void loadFunctionsError(int index, const char* fname, const char* error)
 //-------------------------------------------------------------------
 int loadFunctions(int index)
 {
-  char function[30], *module_error = NULL;
+  char function[30];
+  const char *module_error = NULL;
   DBM_hdl *dbm_hdl = dbm_handlers_[index];
 
   memset(function, '\0', 30); // clean buffer
@@ -222,7 +225,8 @@ int loadFunctions(int index)
 int loadModule(int index)
 {
   int rc=0;
-  char file[24], *module_error;
+  char file[24];
+  const char* module_error;
   hdl_type handler = NULL;
 
   memset(file, '\0', 24); // clean buffer
@@ -233,11 +237,11 @@ int loadModule(int index)
 
   // check for errors
   if(module_error) {
-    module_error = strdup(module_error);
+    //module_error = strdup(module_error);
     Error(I2("Module "+file+" for " + dbm_names_[index] + " DB access is not available.\n",
 	   "El módulo "+file+" de acceso a " + dbm_names_[index] + " no está disponible.\n"));
     Dump(module_error);
-    free(module_error);
+    //free(module_error);
     return 0;
   } 
 

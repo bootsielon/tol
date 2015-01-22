@@ -244,6 +244,11 @@ BTraceInit("oisxml.cpp");
   {
     if(allFiles_[n])
     {
+	  std::cout << "sizeof(stat_.fileStat_[n].bytes_)" << sizeof(stat_.fileStat_[n].bytes_) << std::endl;
+      std::cout << "<" << allFiles_[n]->Title().String() << "><size>" 
+				<< stat_.fileStat_[n].bytes_ << "</size><entries>" << stat_.fileStat_[n].entries_
+				<< "</entries></" << allFiles_[n]->Title().String() << ">\n";
+				
       header_->Print("<%s><size>%"_LLD64_"</size><entries>%ld</entries></%s>\n",
                     allFiles_[n]->Title().String(), 
                     stat_.fileStat_[n].bytes_, 
@@ -358,10 +363,10 @@ BTraceInit("oisxml.cpp");
   if(tag__!="xmlParam") 
   {
     return(Error(I2("Sorry! Cannot read a OIS image with too old format",
-                    "¡Lo siento! No se puede leer una imagen OIS con formato demasiado viejo")+
+                    "Â¡Lo siento! No se puede leer una imagen OIS con formato demasiado viejo")+
                  " (01.0?<=01.07<02.01) "+
                  I2("because it's incompatible with current version (",
-                    "porque es incompatible con la versión actual (")+ 
+                    "porque es incompatible con la versiÃ³n actual (")+ 
                  OIS_VERSION+")"));
   }
   //Reading section <xmlParam>
@@ -462,10 +467,10 @@ BTraceInit("oisxml.cpp");
   if(control_.oisEngine_.oisVersion_<"02.01")
   {
     return(Error(I2("Sorry! Cannot read a OIS image with too old format",
-                    "¡Lo siento! No se puede leer una imagen OIS con formato demasiado viejo")+
+                    "Â¡Lo siento! No se puede leer una imagen OIS con formato demasiado viejo")+
                  " ("+control_.oisEngine_.oisVersion_+"<02.01) "+
                  I2("because it's incompatible with current version (",
-                    "porque es incompatible con la versión actual (")+ 
+                    "porque es incompatible con la versiÃ³n actual (")+ 
                  OIS_VERSION+")"));
   }
   //Reading section <address>

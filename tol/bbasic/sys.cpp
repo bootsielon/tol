@@ -98,12 +98,9 @@ static BText Buil_TolAppData_()
 
 
 //--------------------------------------------------------------------
-// Implements on windows gcc standard function gettimeofday 
+// Implements on MSVC standard function gettimeofday 
 //--------------------------------------------------------------------
-#ifndef __GETTIMEOFDAY_C
-#define __GETTIMEOFDAY_C
-
-#if defined(_MSC_VER) || defined(_WINDOWS_)
+#if defined(_MSC_VER)
    #include <time.h>
    #if !defined(_WINSOCK2API_) && !defined(_WINSOCKAPI_)
          struct timeval 
@@ -130,9 +127,6 @@ static BText Buil_TolAppData_()
       tv->tv_sec  = (long) ((now.ns100 - 116444736000000000LL) / 10000000LL);
      return (0);
    }
-#else
-   #include <sys/time.h>
-#endif 
 #endif /* __GETTIMEOFDAY_C */
 
 
@@ -211,12 +205,19 @@ BBool BSys::MkDir(const BText& dir_, bool force)
     dir.PutLength(dir.Length()-1);
   }
   if(BDir::CheckIsDir(dir)) { return(true); }
-#ifdef UNIX
+#if defined(UNIX)
   if(force) { return(BSys::System(BText("mkdir -p \"")+dir+"\"")); }
   else      { return(!mkdir(dir.String(),8*8*8-1)); }
 #else
   if(force) { BSys::WinSystem(BText("cmd.exe /D /E:ON /C ")+"mkdir \""+dir+"\"",0,1); }
-  else      { return(!_mkdir(dir.String())); }
+  else
+    {
+#ifdef __MINGW32__
+    return(!mkdir(dir.String()));
+#else    
+    return(!_mkdir(dir.String()));
+#endif
+    }
 #endif
 }
 

@@ -48,7 +48,11 @@
 #  endif
 #endif
 
-#ifdef UNIX
+#ifdef __MINGW32__
+#  define SLASH	 '/'
+#  define TSLASH "/"
+#  define DIRMAXNAMLEN MAX_PATH
+#elif UNIX
 #  define SLASH	 '/'
 #  define TSLASH "/"
 #  define DIRMAXNAMLEN MAXNAMLEN

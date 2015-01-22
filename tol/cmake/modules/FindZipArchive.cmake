@@ -1,3 +1,5 @@
+include( LibFindMacros )
+
 set( ZIPARCHIVE_DIR_MESSAGE
   "Set the variable ZIPARCHIVE_ROOT_DIR to the root dir where ZipArchive is installed" )
 
@@ -20,13 +22,16 @@ set( CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES_SAV} )
 find_path( ZIPARCHIVE_INCLUDE_DIR
   NAMES "ZipArchive.h" 
   PATHS ${ZIPARCHIVE_ROOT_DIR}
-  PATH_SUFFIXES "include"
+  PATH_SUFFIXES "include" "include/ziparchive"
   # Help the user find it if we cannot.
   DOC ${ZIPARCHIVE_DIR_MESSAGE} )
 
-include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(ZIPARCHIVE DEFAULT_MSG
-                                  ZIPARCHIVE_INCLUDE_DIR ZIPARCHIVE_LIBRARY )
+#include(FindPackageHandleStandardArgs)
+#find_package_handle_standard_args(ZIPARCHIVE DEFAULT_MSG
+#                                  ZIPARCHIVE_INCLUDE_DIR ZIPARCHIVE_LIBRARY )
 				
-mark_as_advanced( ZIPARCHIVE DEFAULT_MSG 
-  ZIPARCHIVE_INCLUDE_DIR ZIPARCHIVE_LIBRARY )
+#mark_as_advanced( ZIPARCHIVE DEFAULT_MSG 
+#  ZIPARCHIVE_INCLUDE_DIR ZIPARCHIVE_LIBRARY )
+set( ZIPARCHIVE_PROCESS_INCLUDES  ZIPARCHIVE_INCLUDE_DIR )
+set( ZIPARCHIVE_PROCESS_LIBS ZIPARCHIVE_LIBRARY )
+libfind_process( ZIPARCHIVE )

@@ -120,7 +120,7 @@ BText  BText::unknown_(StaticInit());
     BText::unknown_      = "UNKNOWN TEXT";
     BText::formatBInt_   = "%ld";
     BText::formatBReal_  = "%lg";
-    #if defined(_MSC_VER) && (_MSC_VER<1400)
+    #if defined(__MINGW32__) || defined(_MSC_VER) && (_MSC_VER<1400)
     BText::formatBInt64_ = "%I64d";
     #else
     BText::formatBInt64_ = "%lld";
@@ -538,7 +538,7 @@ void BText::AllocateBuffer(BInt size, BChar fill)
   if(buffer_ || size_ || length_)
   {
     Error(I2(" FATAL : Bad memory allocation in text creation.",
-             " FATAL : Fallo en asignación de memoria para textos."));
+             " FATAL : Fallo en asignaciÃ³n de memoria para textos."));
     assert(!buffer_);
     assert(!size_);
     assert(!length_);
@@ -570,7 +570,7 @@ void BText::ReallocateBuffer(BInt newSize)
     if(!(buffer_ && (length_>=0) && (size_>=0) && (length_<size_)))
     {
       Error(I2(" FATAL : Text memory reallocation fail.",
-               " FATAL : Fallo en reasignación de memoria de textos."));
+               " FATAL : Fallo en reasignaciÃ³n de memoria de textos."));
     }
     BInt nextSize = BInt(double(newSize)*(100.0+margin_)*0.01);
     if(nextSize < newSize) { nextSize = newSize; }
@@ -640,7 +640,7 @@ BInt BText::BinRead(FILE* fil)
   { 
     TRACE_SHOW_MEDIUM(fun,"2");
     Error(I2("Negative text length. Cannot execute function",
-             "Longitud de texto negativa. No se puede ejecutar la función")+
+             "Longitud de texto negativa. No se puede ejecutar la funciÃ³n")+
           " BText::BinRead");
     TRACE_SHOW_LOW(fun,"End error");
     return(-1); 

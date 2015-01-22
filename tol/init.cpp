@@ -114,6 +114,9 @@ static int dcdflib_inited = dcdflib_init();
 #  include <gbla/blapi.h>
 #endif
 
+#if defined( __MINGW32__ )
+#include "SuiteSparse_config.h"
+#endif
 //------------------------------
 static bool           TOLHasBeenInitialized_      = false;
 static bool           TOLHasBeenEnded_            = false;
@@ -478,6 +481,9 @@ BBool InitGrammars(char* calledProgram)
 //InitCint();
   if(initGrammars_)  { return(false); }
 
+#if defined(__MINGW32__ )
+  SuiteSparse_start( );
+#endif
   signal_assign();
 
   initGrammars_=BTRUE;

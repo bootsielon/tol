@@ -255,7 +255,7 @@ void  BOut::FlushAll()
  */
 //--------------------------------------------------------------------
 {
-  #ifdef UNIX 
+  #if defined( UNIX ) || defined( __MINGW32__ ) 
   fflush(NULL);
   #else 
   flushall();

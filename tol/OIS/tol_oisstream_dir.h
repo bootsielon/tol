@@ -25,7 +25,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdarg.h>
-#if !defined(UNIX) || HAVE_VARARGS_H
+#if defined( HAVE_VARARGS_H )
 #  include <varargs.h>
 #endif
 #if HAVE_STRINGS_H

@@ -20,7 +20,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#  if (defined(_MSC_VER) || defined(WIN32))
+#  if defined(_MSC_VER)
 #    include <win_tolinc.h>
 #  else
 #    include <tol/config.h>

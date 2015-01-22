@@ -54,10 +54,9 @@
 
 #include "llkarma.h"
 
-#if defined(_MSC_VER)
+#if defined( WIN32 )
 #  include <windows.h>
 #  include <winbase.h>
-#  include <windows.h>
 #endif
 
 
