@@ -32,6 +32,12 @@
 #include <tol/tol_bout.h>
 #include <tol/tol_bunitroot.h>
 
+#if defined( __MINGW32__ )
+template class TOL_API BArray          < BMonome < BDat > >;
+template class TOL_API BPolyn          < BDat >;
+template class TOL_API BGraContensBase < BPol >;
+template class TOL_API BGraContens     < BPol >;
+#endif
 
 //--------------------------------------------------------------------
 // Static variables.
@@ -327,8 +333,8 @@ DefIntOpr(1, BPolInverseRoots, "InverseRoots", 1, 1,
   "(Polyn p)",
   I2("Returns a polynomial q which have inverse roots of given one by "
      "mean of this formulae:",
-     "Devuelve un polinomio q cuyas raíces son las inversas de las del "
-     "polinomio dado por medio de esta fórmula:")+"\n"+
+     "Devuelve un polinomio q cuyas raÃ­ces son las inversas de las del "
+     "polinomio dado por medio de esta fÃ³rmula:")+"\n"+
      " p(x) = Sum(a[k]*x^k,     k=0...n) "
      " q(x) = Sum(a[k]*x^(n-k), k=0...n) ",
 	  BOperClassify::RetardPolynomial_);
@@ -345,7 +351,7 @@ DeclareContensClass(BPol, BPolTemporary, BPolQuotient);
 DefExtOpr(1, BPolQuotient, "/", 2, 2, "Polyn Real",
   "p / x {Polyn p, Real x}",
   I2("Returns the quotient of a polynomial and a number.",
-     "Devuelve el cociente entre un polinomio y un número."),
+     "Devuelve el cociente entre un polinomio y un nÃºmero."),
 	  BOperClassify::RetardPolynomial_);
 //--------------------------------------------------------------------
 void BPolQuotient::CalcContens()
@@ -372,16 +378,16 @@ DefExtOpr(1, BPolExpansion, "Expand", 2, 2, "Ratio Real",
      "p2 = q2 + q1*c1 + c2;\n"
      "...\n"
      "pn = qn + q(n-1)*c1 + ... + q1*c(n-1) + cn;\n",
-     "Devuelve la expansión finita de grado n de una razón de polinomios. "
+     "Devuelve la expansiÃ³n finita de grado n de una razÃ³n de polinomios. "
      "Dados \n\n"
      "P(B) = 1+p1*B+p2*B^2+...+pr*B^r;\n"
      "Q(B) = 1+q1*B+q2*B^2+...+qs*B^s;\n\n"
-     "Se define la expansión finita de grado n de P(B)/Q(B) como el "
+     "Se define la expansiÃ³n finita de grado n de P(B)/Q(B) como el "
      "polinomio\n\n"
      "C(B) = 1+c1*B+c2*B^2+...+cn*B^n;\n\n"
-     "tal que, P(B)-Q(B)*C(B) es cero o múltiplo de B^(n+1), o sea, "
-     "que los términos de Q(B)*C(B) coinciden con los de P(B) hasta "
-     "el grado n por lo menos. El método de cálculo es resolver el "
+     "tal que, P(B)-Q(B)*C(B) es cero o mÃºltiplo de B^(n+1), o sea, "
+     "que los tÃ©rminos de Q(B)*C(B) coinciden con los de P(B) hasta "
+     "el grado n por lo menos. El mÃ©todo de cÃ¡lculo es resolver el "
      "sistema\n\n"
      "p1 = q1 + c1;\n"
      "p2 = q2 + q1*c1 + c2;\n"
@@ -408,12 +414,12 @@ DefExtOpr(1, BPolRationalQuotient, "Quotient", 1, 1, "Ratio",
      "the numerator and the numerator. Making use of this is obtained a "
      "very rapid method for the synthetic polynomials division when this is "
      "exact.",
-     "Devuelve el cociente de una razón de polinomios si es exacto. "
-     "Si el cociente de una razón de polinomios es exacto, coincide "
-     "con la expansión finita de grado igual a la diferencia entre los "
+     "Devuelve el cociente de una razÃ³n de polinomios si es exacto. "
+     "Si el cociente de una razÃ³n de polinomios es exacto, coincide "
+     "con la expansiÃ³n finita de grado igual a la diferencia entre los "
      "grados del numerador y el numerador. Haciendo uso de esto se obtiene "
-     "un método muy rápido para la división sintética de polinomios cuando "
-     "ésta es exacta."),
+     "un mÃ©todo muy rÃ¡pido para la divisiÃ³n sintÃ©tica de polinomios cuando "
+     "Ã©sta es exacta."),
 	  BOperClassify::RetardPolynomial_);
 //--------------------------------------------------------------------
 void BPolRationalQuotient::CalcContens()
@@ -429,9 +435,9 @@ DeclareContensClass(BPol, BPolTemporary, BPolPow);
 DefExtOpr(1, BPolPow, "^", 2, 2, "Polyn Real",
   "p^n {Polyn p, Real n}",
   I2("Returns the power of a polynomial increased to an entire number.",
-     "Devuelve la potencia de un polinomio elevado a un número entero.")+
+     "Devuelve la potencia de un polinomio elevado a un nÃºmero entero.")+
   I2("Also it can be used the operator ** or the function Pow.",
-     "También se puede utilizar el operador ** o la función Pow."),
+     "TambiÃ©n se puede utilizar el operador ** o la funciÃ³n Pow."),
 	  BOperClassify::RetardPolynomial_);
 //--------------------------------------------------------------------
 void BPolPow::CalcContens()
@@ -444,7 +450,7 @@ DeclareContensClass(BPol, BPolTemporary, BPolNumerator);
 DefExtOpr(1, BPolNumerator, "Numerator", 1, 1, "Ratio",
   "(Ratio r)",
   I2("Returns the numerator of a polynomial reason.",
-     "Devuelve el numerador de una razón de polinomios."),
+     "Devuelve el numerador de una razÃ³n de polinomios."),
 	  BOperClassify::RetardPolynomial_);
 //--------------------------------------------------------------------
 void BPolNumerator::CalcContens()
@@ -456,7 +462,7 @@ DeclareContensClass(BPol, BPolTemporary, BPolDenominator);
 DefExtOpr(1, BPolDenominator, "Denominator", 1, 1, "Ratio",
   "(Ratio r)",
   I2("Returns the denominator of a polynomial reason.",
-     "Devuelve el denominador de una razón de polinomios."),
+     "Devuelve el denominador de una razÃ³n de polinomios."),
 	  BOperClassify::RetardPolynomial_);
 //--------------------------------------------------------------------
 void BPolDenominator::CalcContens()
@@ -468,9 +474,9 @@ DeclareContensClass(BPol, BPolTemporary, BPolMatPol);
 DefExtOpr(1, BPolMatPol, "MatPol", 1, 1, "Matrix",
   "(Matrix m)",
   I2(".",
-     "Devuelve el polinomio cuyos coeficientes son los términos de una "
-     "matriz fila. El primer término de la matriz es el coeficiente de "
-     "grado 0 del polinomio, el segundo el de grado 1 y así sucesivamente."),
+     "Devuelve el polinomio cuyos coeficientes son los tÃ©rminos de una "
+     "matriz fila. El primer tÃ©rmino de la matriz es el coeficiente de "
+     "grado 0 del polinomio, el segundo el de grado 1 y asÃ­ sucesivamente."),
 	  BOperClassify::Conversion_);
 //--------------------------------------------------------------------
 void BPolMatPol::CalcContens()
@@ -603,7 +609,7 @@ DefExtOpr(1, BPolExtractPeriod, "ExtractPeriod", 2, 2, "Polyn Real",
      "(Polyn pol, Real periodo)"),
   I2("",
      "Devuelve el polinomio formado por los monomios de pol de grado "
-     "múltiplo de un periodo dado."),
+     "mÃºltiplo de un periodo dado."),
 	  BOperClassify::RetardPolynomial_);
 //--------------------------------------------------------------------
 void BPolExtractPeriod::CalcContens()
@@ -637,7 +643,7 @@ DefExtOpr(1, BPolSub, "Sub", 3, 3, "Polyn Real Real",
      "(Polyn pol, Real minGrado, Real maxGrado)"),
   I2("",
      "Devuelve el polinomio formado por los monomios de pol de grados "
-     "comprendidos entre los límites dados."),
+     "comprendidos entre los lÃ­mites dados."),
 	  BOperClassify::RetardPolynomial_);
 //--------------------------------------------------------------------
 void BPolSub::CalcContens()
@@ -677,7 +683,7 @@ DeclareContensClass(BPol, BPolTemporary, BPolDer);
 DefExtOpr(1, BPolDer, "Der", 1, 2, "Polyn Real",
   "(Polyn p [, Real n=1])",
   I2("Returns the n-th derivative of a polynomial.",
-     "Devuelve la derivada n-ésima de un polinomio."),
+     "Devuelve la derivada n-Ã©sima de un polinomio."),
 	  BOperClassify::RetardPolynomial_);
 //--------------------------------------------------------------------
 void BPolDer::CalcContens()
@@ -784,7 +790,7 @@ DeclareContensClass(BPol, BPolTemporary, BPolInverseNonStationaryRoots);
 DefExtOpr(1, BPolInverseNonStationaryRoots, "InverseNonStationaryRoots", 1, 1, "Polyn",
   "(Polyn p)",
   I2("Replaces each nonstationary root of a polynomial by its inverse.",
-     "Reemplaza cada raíz no estacionaria de un polinomio por su inversa."),
+     "Reemplaza cada raÃ­z no estacionaria de un polinomio por su inversa."),
 	  BOperClassify::RetardPolynomial_);
 //--------------------------------------------------------------------
 void BPolInverseNonStationaryRoots::CalcContens()

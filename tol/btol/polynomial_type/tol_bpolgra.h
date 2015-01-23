@@ -34,10 +34,17 @@
 #define BPolTemporary BTmpContens      < BPol >
 
 
+#if defined( __MINGW32__ )
+extern template class TOL_API BArray          < BMonome < BDat > >;
+extern template class TOL_API BPolyn          < BDat >;
+extern template class TOL_API BGraContensBase < BPol >;
+extern template class TOL_API BGraContens     < BPol >;
+#else
 template class TOL_API BArray          < BMonome < BDat > >;
 template class TOL_API BPolyn          < BDat >;
 template class TOL_API BGraContensBase < BPol >;
 template class TOL_API BGraContens     < BPol >;
+#endif
 
 TOL_API BPol EvalPolyn(const BText& expr, const BPol&  defVal); 
 TOL_API BPol RandStationary(
