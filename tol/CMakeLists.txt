@@ -21,10 +21,10 @@ if( TOL_EXTERNAL_DEVEL_DIR )
   set( PKG_FFTW_LIBRARY_DIRS "${TOL_EXTERNAL_PREFIX}/lib" CACHE INTERNAL "" )
   set( PKG_FFTW_INCLUDE_DIRS "${TOL_EXTERNAL_PREFIX}/include" CACHE INTERNAL "" )
   set( CMAKE_LIBRARY_PATH "${TOL_EXTERNAL_PREFIX}/lib" )
-  #find_library( FFTW_LIB
-   # NAMES "fftw3"
-   # PATHS ${PKG_FFTW_LIBRARY_DIRS}
-   # )
+  find_library( FFTW_LIB
+    NAMES "fftw3"
+    PATHS ${PKG_FFTW_LIBRARY_DIRS}
+    )
   #message( "aaaaaa FFTW_LIB ${FFTW_LIB}" )
   #-DFFTW_ROOT:PATH=c:/MinGW/msys/1.0/local -DFFTW_USE_STATIC_LIBS=1 
 endif( )
@@ -336,7 +336,7 @@ endif( )
 
 create_header_links( )
 
-set( write_config_h 0 )
+set( write_config_h 1 )
 if( write_config_h )
   message( STATUS "Invoking CONFIGURE_FILE" )
   CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in 
