@@ -491,15 +491,15 @@ BInt TOL_API DatCmp(const void* v1, const void* v2);
 // inline functions
 //--------------------------------------------------------------------
 
-inline BDat TOL_API And (const BDat& dat1, const BDat& dat2) { BDat x=dat1; return(x.And(dat2)); }
-inline BDat TOL_API Or  (const BDat& dat1, const BDat& dat2) { BDat x=dat1; return(x.Or(dat2)); }
-inline BDat TOL_API Not (const BDat& dat)                    { BDat x=dat;  return(x.Not()); }
-inline BDat TOL_API Eq (const BDat& dat1, const BDat& dat2) { BDat x=dat1; return(x.Eq(dat2)); }
-inline BDat TOL_API Ne (const BDat& dat1, const BDat& dat2) { BDat x=dat1; return(x.Ne(dat2)); }
-inline BDat TOL_API Lt (const BDat& dat1, const BDat& dat2) { BDat x=dat1; return(x.Lt(dat2)); }
-inline BDat TOL_API Gt (const BDat& dat1, const BDat& dat2) { BDat x=dat1; return(x.Gt(dat2)); }
-inline BDat TOL_API Le (const BDat& dat1, const BDat& dat2) { BDat x=dat1; return(x.Le(dat2)); }
-inline BDat TOL_API Ge (const BDat& dat1, const BDat& dat2) { BDat x=dat1; return(x.Ge(dat2)); }
+inline BDat And (const BDat& dat1, const BDat& dat2) { BDat x=dat1; return(x.And(dat2)); }
+inline BDat Or  (const BDat& dat1, const BDat& dat2) { BDat x=dat1; return(x.Or(dat2)); }
+inline BDat Not (const BDat& dat)                    { BDat x=dat;  return(x.Not()); }
+inline BDat Eq (const BDat& dat1, const BDat& dat2) { BDat x=dat1; return(x.Eq(dat2)); }
+inline BDat Ne (const BDat& dat1, const BDat& dat2) { BDat x=dat1; return(x.Ne(dat2)); }
+inline BDat Lt (const BDat& dat1, const BDat& dat2) { BDat x=dat1; return(x.Lt(dat2)); }
+inline BDat Gt (const BDat& dat1, const BDat& dat2) { BDat x=dat1; return(x.Gt(dat2)); }
+inline BDat Le (const BDat& dat1, const BDat& dat2) { BDat x=dat1; return(x.Le(dat2)); }
+inline BDat Ge (const BDat& dat1, const BDat& dat2) { BDat x=dat1; return(x.Ge(dat2)); }
 
 //! Sends the \a value to BText
 inline BText& operator<< (BText& txt, const BDat& dat)
