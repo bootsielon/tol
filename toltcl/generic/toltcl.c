@@ -182,7 +182,7 @@ static void TT_gsl_error_handler(const char * reason, const char * file, int lin
     if (status != TCL_OK) {
       printf("%s in file %s at line %d\n. str_ernno : %s",
 	     reason, file, line, Tol_gsl_strerror(gsl_errno));
-      printf("interp : %s\n", TT_interp->result);
+      printf("interp : %s\n", Tcl_GetStringResult(TT_interp));
     }
   }  
 }

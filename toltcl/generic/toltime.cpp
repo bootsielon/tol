@@ -86,11 +86,7 @@ struct TMS_ClientData {
   int    Hour()       const { return current.Hour(); }
   int    Minute()     const { return current.Minute(); }
   double         Second()     const { return current.Second(); }
-#if defined(_TOL_FROZEN_)
   int Contain( BDate & d ) { return uts->Contain( d ); }
-#else
-  int Contain( BDate & d ) { return uts->Contain( d, BTRUE ); }
-#endif
 };
 
 static

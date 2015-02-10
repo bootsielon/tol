@@ -120,7 +120,7 @@ protected:
   int AppendInfinity();
   int AppendUnknown();
   int AppendEmptyReal();
-  int AppendText( char * txt );
+  int AppendText( const char * txt );
   /* prepend functions */
   int PrependReal( Tcl_Interp * interp, double v );
   int PrependInfinity();
@@ -558,7 +558,7 @@ int Tol_ColumnData::PrependEmptyReal()
  *
  */
 
-int Tol_ColumnData::AppendText( char * txt )
+int Tol_ColumnData::AppendText( const char * txt )
 {
 #ifdef _DEBUG_TABLE_
   if ( type == Real )

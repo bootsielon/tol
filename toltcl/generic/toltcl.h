@@ -26,18 +26,32 @@
 #include <tt_common.h>
 #include <tcl.h>
 
+#if defined(__TOLTCL_MAJOR_VERSION__)
+#define TOLTCL_MAJOR_VERSION 	__TOLTCL_MAJOR_VERSION__
+#else
+#define TOLTCL_MAJOR_VERSION 	3
+#endif
+
+#if defined(__TOLTCL_MINOR_VERSION__)
+#define TOLTCL_MINOR_VERSION 	__TOLTCL_MINOR_VERSION__
+#else
+#define TOLTCL_MINOR_VERSION 	2
+#endif
+
+#define TOLTCL_TO_STRING0( x ) #x
+#define TOLTCL_TO_STRING(  x )  TOLTCL_TO_STRING0( x )
+
+#ifdef PACKAGE_VERSION
+ #define TOLTCL_VERSION PACKAGE_VERSION
+#else
+
+#define TOLTCL_VERSION TOLTCL_TO_STRING( TOLTCL_MAJOR_VERSION ) "." TOLTCL_TO_STRING( TOLTCL_MINOR_VERSION )
+#endif
+
 /*
  * Windows needs to know which symbols to export. Unix does not.
  * BUILD_TOLTCL should be undefined for Unix.
  */
-
-#define TOLTCL_MAJOR_VERSION 	3
-#define TOLTCL_MINOR_VERSION 	2
-#ifdef PACKAGE_VERSION
- #define TOLTCL_VERSION PACKAGE_VERSION
-#else
- #define TOLTCL_VERSION          "3.2"
-#endif
 
 #ifdef BUILD_TOLTCL
 #undef TCL_STORAGE_CLASS

@@ -744,6 +744,7 @@ int Tol_GetReference(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       return TCL_ERROR;
     }
     objname = Tcl_GetString(items[1]);
+
     Tcl_UtfToExternalDString(NULL,objname,-1,&dstr);
     syn = gra->FINDVARIABLE(Tcl_DStringValue(&dstr));
     Tcl_DStringFree(&dstr);
@@ -1311,7 +1312,7 @@ int Tol_IterChildren(Tcl_Interp * interp,
   }
   
   int datac;
-  Tcl_Obj ** datav = new ( Tcl_Obj* [ NUM_ARGS ] );
+  Tcl_Obj ** datav = new Tcl_Obj*[ NUM_ARGS ];
 
   // is ok to ask for a list
   Tcl_ListObjGetElements( interp, objv[ 0 ], &n, &items );
@@ -1655,11 +1656,7 @@ int Tol_GetSerieContent(Tcl_Interp * interp,
   for ( int i = 1; i < length; i++ ) {
     tmp = I0.GetText();
     subitems[0] = Tcl_NewStringObj(tmp,-1);
-#if defined(_TOL_FROZEN_)
     value = (*serie)[I0];
-#else
-    value = (*serie)(I0);
-#endif
     if ( value.IsKnown() )
       subitems[1] = Tcl_NewDoubleObj(value.Value());
     else
@@ -2546,7 +2543,7 @@ void Tol_HciWriter( const BText & str )
     if (status != TCL_OK) {
       printf("message: %s\n", ((BText&)str).Buffer());
       printf("objv[1] : %s\n", Tcl_GetString(objv[1]));
-      printf("%s\n", TT_interp->result);
+      printf("%s\n", Tcl_GetStringResult(TT_interp));
     }
     /* release the objects */
     Tcl_DecrRefCount(objv[0]);
@@ -2601,7 +2598,7 @@ void Tol_SerieChart(BList * series, const BText& FileName )
     int status = Tcl_EvalObjv(TT_interp, 3, objv, TCL_EVAL_GLOBAL);
     if (status != TCL_OK) {
       printf("%s -- error in Tcl_EvalObjv:\n", CMD_SERIECHART);
-      printf("%s\n", TT_interp->result);
+      printf("%s\n", Tcl_GetStringResult(TT_interp));
       printf("objv[1] : %s\n", Tcl_GetString(objv[1]));
       printf("objv[2] : %s\n", Tcl_GetString(objv[2]));
     }

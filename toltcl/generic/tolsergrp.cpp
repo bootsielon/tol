@@ -1898,11 +1898,7 @@ int Tol_CreateSerieGrpData (Tcl_Interp * interp,
     /* update every serie data having this date in its dating */
     do {
       iter_cursor = cursors.data[iter];
-#if defined(_TOL_FROZEN_)
       dat = (*(iter_cursor->serie))[cur_date];
-#else
-      dat = (*(iter_cursor->serie))(cur_date);
-#endif
       if (dat.IsKnown())
         iter_cursor->append(idx_dating,dat.Value());
       else
@@ -2136,11 +2132,7 @@ int Tol_CreateSerieGrpData (Tcl_Interp * interp,
     /* update every serie data having this date in its dating */
     do {
       iter_cursor = cursors.data[iter];
-#if defined(_TOL_FROZEN_)
       dat = (*(iter_cursor->serie))[cur_date];
-#else
-      dat = (*(iter_cursor->serie))(cur_date);
-#endif
       if (dat.IsKnown())
         iter_cursor->append(idx_dating,dat.Value());
       else
@@ -2265,11 +2257,7 @@ int Tol_GetAutoCorr( Tcl_Interp * interp,
 
   uts->ReadData();
   for ( i = 0; i < size_t(length); i++ ) {
-#if defined(_TOL_FROZEN_)
     serdata(i) = (*uts)[I0];
-#else
-    serdata(i) = (*uts)(I0); 
-#endif
     I0 += tms;
   }
   sigma = 1 / sqrt( (long double) length );
