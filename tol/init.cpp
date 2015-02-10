@@ -473,7 +473,7 @@ BBool BLAPI_Init()
 
 
 //--------------------------------------------------------------------
-BBool InitGrammars(char* calledProgram)
+BBool InitGrammars(const char* calledProgram)
 //--------------------------------------------------------------------
 {
   static BBool initGrammars_ = BFALSE;
@@ -1497,7 +1497,7 @@ static void ChangeVerboseMode(const char* vmode)
 }
 
 //--------------------------------------------------------------------
-void InitTolKernel(char* calledProgram, int lang, const char* vmode ) 
+void InitTolKernel(const char* calledProgram, int lang, const char* vmode ) 
 //--------------------------------------------------------------------
 {
 //InitCint();

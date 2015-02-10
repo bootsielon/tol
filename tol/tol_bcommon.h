@@ -111,12 +111,12 @@ typedef long off_t;
 #endif /* __cplusplus */
 
 #ifdef STATIC_BUILD
-#   define DLLIMPORT
-#   define DLLEXPORT
+#   define TOL_DLLIMPORT
+#   define TOL_DLLEXPORT
 #else
 #   if (defined(WIN32) && (defined(_MSC_VER) || (__BORLANDC__ >= 0x0550) || (defined(__GNUC__) && defined(__declspec)))) || (defined(MAC_TCL) && FUNCTION_DECLSPEC)
-#	define DLLIMPORT __declspec(dllimport)
-#	define DLLEXPORT __declspec(dllexport)
+#	define TOL_DLLIMPORT __declspec(dllimport)
+#	define TOL_DLLEXPORT __declspec(dllexport)
 
 #if (defined(_MSC_VER) && (_MSC_VER<1400))
 # error "TOL cannot be built with versions of MSVC prior to .NET 2005" 
@@ -134,8 +134,8 @@ typedef long off_t;
 // identifier was truncated to '255' characters in the browser information
 #pragma warning(disable : 4786)
 #   else
-#	define DLLIMPORT
-#	define DLLEXPORT
+#	define TOL_DLLIMPORT
+#	define TOL_DLLEXPORT
 #   endif
 #endif
 
@@ -144,9 +144,9 @@ typedef long off_t;
 #endif /* TOL_API */
 
 #ifdef TOLDLL_EXPORTS
-#    define TOL_API DLLEXPORT
+#    define TOL_API TOL_DLLEXPORT
 #else
-#    define TOL_API DLLIMPORT
+#    define TOL_API TOL_DLLIMPORT
 #endif
 
 /* Basic Types, constants, and Macros */

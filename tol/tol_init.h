@@ -35,7 +35,7 @@ BEGIN_DECLS
 TOL_API void  InitCint              ();
 TOL_API void  InitializeFromMainArgs(int argc, char *argv[], char *env[]);
 TOL_API void  LoadInitLibrary       (int loadInitProject, int loadDefaultPackages);
-TOL_API void  InitTolKernel         (char* calledProgram, int lang, const char* vmode);
+TOL_API void  InitTolKernel         (const char* calledProgram, int lang, const char* vmode);
 
 typedef void tgsl_error_handler 
   (const char * reason, const char * file, int line, int gsl_errno);
