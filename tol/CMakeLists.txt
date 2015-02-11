@@ -374,3 +374,13 @@ target_link_libraries( tolcon tol )
 
 #message( STATUS "ALL_HEADERS_LIST ${ALL_HEADERS_LIST}" )
 add_custom_target( COPY_HEADERS ALL DEPENDS ${COPY_HEADERS_DEPENDS} )
+
+install( TARGETS tolcon DESTINATION bin )
+install( TARGETS tol DESTINATION lib )
+install( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tol" 
+  DESTINATION "include/tol"
+  FILES_MATCHING PATTERN "*.h" )
+install( DIRECTORY stdlib DESTINATION "bin" 
+  PATTERN "*.tol" 
+  PATTERN "*.bst"
+  PATTERN "*.oza" )
