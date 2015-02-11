@@ -243,12 +243,7 @@ BTraceInit("oisxml.cpp");
   for(n=1; n<allFiles_.Size(); n++)
   {
     if(allFiles_[n])
-    {
-	  std::cout << "sizeof(stat_.fileStat_[n].bytes_)" << sizeof(stat_.fileStat_[n].bytes_) << std::endl;
-      std::cout << "<" << allFiles_[n]->Title().String() << "><size>" 
-				<< stat_.fileStat_[n].bytes_ << "</size><entries>" << stat_.fileStat_[n].entries_
-				<< "</entries></" << allFiles_[n]->Title().String() << ">\n";
-				
+    {				
       header_->Print("<%s><size>%"_LLD64_"</size><entries>%ld</entries></%s>\n",
                     allFiles_[n]->Title().String(), 
                     stat_.fileStat_[n].bytes_, 
