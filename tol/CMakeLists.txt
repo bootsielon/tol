@@ -27,16 +27,18 @@ if( TOL_EXTERNAL_DEVEL_DIR )
     )
   #message( "aaaaaa FFTW_LIB ${FFTW_LIB}" )
   #-DFFTW_ROOT:PATH=c:/MinGW/msys/1.0/local -DFFTW_USE_STATIC_LIBS=1 
+  set( CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/Runtime_Base" )
 endif( )
 
 set( TRACE_COMPONENTS_FOUND 1 )
 
-message( "CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}" )
+message( "CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}" )
 
 set( CMAKE_MODULE_PATH
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules"
   ${CMAKE_MODULE_PATH} )
 include( MSysMacros )
+include( GetPrerequisites )
 
 if( MSYS )
   msys_convert_path( msys_usrlocal "/usr/local" )
@@ -336,7 +338,7 @@ endif( )
 
 create_header_links( )
 
-set( write_config_h 1 )
+set( write_config_h 0 )
 if( write_config_h )
   message( STATUS "Invoking CONFIGURE_FILE" )
   CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in 
@@ -375,12 +377,27 @@ target_link_libraries( tolcon tol )
 #message( STATUS "ALL_HEADERS_LIST ${ALL_HEADERS_LIST}" )
 add_custom_target( COPY_HEADERS ALL DEPENDS ${COPY_HEADERS_DEPENDS} )
 
-install( TARGETS tolcon DESTINATION bin )
-install( TARGETS tol DESTINATION lib )
-install( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tol" 
-  DESTINATION "include/tol"
+if( WIN32 AND TOL_EXTERNAL_DEVEL_DIR )
+  file( TO_CMAKE_PATH "${TOL_EXTERNAL_DEVEL_DIR}/Runtime_Base" rt_base_dir )
+  install( DIRECTORY "${rt_base_dir}/bin" "${rt_base_dir}/lib" "${rt_base_dir}/include"
+    COMPONENT RUNTIME DESTINATION "." ) 
+  #message( STATUS "Looking dll's at ${TOL_EXTERNAL_PREFIX}/bin" )
+  file( TO_CMAKE_PATH "${TOL_EXTERNAL_PREFIX}/bin/*.dll" dll_pattern )
+  file( GLOB RT_DLL  ${dll_pattern} )
+  #message( STATUS "Result: ${RT_DLL}" )
+  list( APPEND RT_DLL ${LAPACK_LIBRARIES} )
+  #message( STATUS ${RT_DLL} )
+  install( FILES ${RT_DLL} COMPONENT RUNTIME DESTINATION bin )
+endif( )
+
+install( TARGETS tolcon RUNTIME DESTINATION bin )
+install( TARGETS tol
+  RUNTIME DESTINATION bin ARCHIVE DESTINATION lib )
+install( DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tol" 
+  DESTINATION "include"
   FILES_MATCHING PATTERN "*.h" )
-install( DIRECTORY stdlib DESTINATION "bin" 
+install( DIRECTORY stdlib COMPONENT RUNTIME DESTINATION "bin" 
   PATTERN "*.tol" 
   PATTERN "*.bst"
   PATTERN "*.oza" )
+  
