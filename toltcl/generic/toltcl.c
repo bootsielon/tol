@@ -24,7 +24,9 @@
 #endif
 
 #include <string.h>
+#if defined( __HANDLE_GSL_ERRORS__ )
 #include <gsl/gsl_errno.h>
+#endif
 
 #include <toltclInt.h>
 #include <toltcl.h>
@@ -146,6 +148,7 @@ static int Tol_LCFormatCmd  _ANSI_ARGS_((ClientData clientData,
                                          Tcl_Interp *interp,
                                          int objc, Tcl_Obj *CONST objv[]));
 
+#if defined( __HANDLE_GSL_ERRORS__ )
 DLLIMPORT gsl_error_handler_t * Tol_gsl_set_error_handler (gsl_error_handler_t * new_handler);
 DLLIMPORT const char * Tol_gsl_strerror (const int gsl_errno);
 
@@ -186,7 +189,7 @@ static void TT_gsl_error_handler(const char * reason, const char * file, int lin
     }
   }  
 }
-
+#endif
 
 /*
  *----------------------------------------------------------------------
@@ -244,11 +247,14 @@ Tol_InitKernelCmd(clientData, interp, objc, objv)
     
     InitTolKernel(Tcl_GetNameOfExecutable(), lang, vmode&&vmode[0]?vmode:NULL);
     
+#if defined( __HANDLE_GSL_ERRORS__ )
     /*
      * this should only be called to find out where the GSL errors are generated
      */
     
     Tol_gsl_set_error_handler(&TT_gsl_error_handler);
+#endif
+
   } else {
     /* printf( "****TOL esta inicializado****\n" ); */
   }
