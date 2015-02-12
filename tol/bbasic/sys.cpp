@@ -1060,12 +1060,14 @@ BInt LongRandom(BInt max)
     return(BInt(r*BReal(max)));
 }
 
+//#include <boost/thread/thread.hpp>
 
 //--------------------------------------------------------------------
 //Make inactive waiting until they have passed a given number of milliseconds
 void BSys::SleepMilliSeconds(unsigned int milliseconds)
 //--------------------------------------------------------------------
 {
+//boost::this_thread::sleep( boost::posix_time::milliseconds(milliseconds) );
 #ifdef _MSC_VER
   Sleep(milliseconds);
 #else
