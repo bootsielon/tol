@@ -1,4 +1,4 @@
-add_definitions( -DBUILD_TOLTCL -DUSE_TCL_STUBS -DTCL_THREADS )
+add_definitions( -DTCL_THREADS )
 include_directories( ${TCL_INCLUDE_PATH} ${TOL_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR} )
  
 message( STATUS "Using TCL_INCLUDE_PATH = ${TCL_INCLUDE_PATH}" )
@@ -29,6 +29,7 @@ add_library( toltcl SHARED
   crash.c toltcl.c pool.cpp tclutils.cpp tolaccess.cpp tolsergrp.cpp 
   toltableset.cpp toltime.cpp
 )
+set_target_properties( toltcl PROPERTIES COMPILE_FLAGS "-DBUILD_TOLTCL -DUSE_TCL_STUBS")
 
 target_link_libraries( toltcl
   ${TCL_STUB_LIBRARY} ${TOL_LIBRARY} )

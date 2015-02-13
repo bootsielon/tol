@@ -27,6 +27,12 @@ if ( WIN32 AND TOL_PREFIX_PATH )
       PATHS ${TCL_LIBRARY_PATH}
       NO_DEFAULT_PATH
     )
+  message( STATUS "buscando dll en = ${TOL_PREFIX_PATH}/bin" )
+  find_library( TCL_LIBRARY
+      NAMES "tcl84" "tcl85" "tcl86"
+      PATHS "${TCL_LIBRARY_PATH}"
+      NO_DEFAULT_PATH
+    )
   find_path(
     TCL_INCLUDE_PATH
     NAMES "tcl.h"

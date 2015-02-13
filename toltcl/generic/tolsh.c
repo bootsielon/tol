@@ -7,10 +7,7 @@ int AppInit(Tcl_Interp *interp)
     {
     return TCL_ERROR;
     }
-
-  /*Tcl_SetVar( interp, "tclsh_StartApp", "1", TCL_GLOBAL_ONLY );*/
   Tcl_PkgRequire( interp, "TolshApp", TOLTCL_VERSION, 1);
-
   return TCL_OK;
 }
 
