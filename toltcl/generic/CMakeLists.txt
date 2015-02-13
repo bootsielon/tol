@@ -13,4 +13,8 @@ message( STATUS "Using TCL_STUB_LIBRARY = ${TCL_STUB_LIBRARY}" )
 target_link_libraries( toltcl
   ${TCL_STUB_LIBRARY} ${TOL_LIBRARY} )
 
-install( TARGETS toltcl RUNTIME LIBRARY DESTINATION "${TOLTCL_DEST_DIR}" )
+if( WIN32 )
+  install( TARGETS toltcl RUNTIME DESTINATION "${TOLTCL_DEST_DIR}" )
+else( WIN32 )
+  install( TARGETS toltcl RUNTIME LIBRARY DESTINATION "${TOLTCL_DEST_DIR}" )
+endif( WIN32 )
