@@ -21,9 +21,10 @@ endif( TOL_FOUND )
 
 # look for tcl
 if ( WIN32 AND TOL_PREFIX_PATH )
+  set( TCL_LIBRARY_PATH "${TOL_PREFIX_PATH}/lib" )
   find_library( TCL_STUB_LIBRARY
       NAMES "libtclstub84" "libtclstub85" "libtclstub86"
-      PATHS "${TOL_PREFIX_PATH}/lib"
+      PATHS ${TCL_LIBRARY_PATH}
       NO_DEFAULT_PATH
     )
   find_path(
@@ -42,7 +43,8 @@ endif( WIN32 AND TOL_PREFIX_PATH )
 if( TCL_FOUND )
   message( STATUS ${TCL_STUB_LIBRARY} )
   message( STATUS ${TCL_INCLUDE_PATH} )
-  get_filename_component( CMAKE_INSTALL_PREFIX ${TCL_INCLUDE_PATH} PATH )
+  message( STATUS ${TCL_LIBRARY_PATH} )
+  get_filename_component( CMAKE_INSTALL_PREFIX ${TCL_LIBRARY_PATH} PATH )
   message( STATUS "Using CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}" )
 else( TCL_FOUND )
   message( SEND_ERROR "TCL extensions need Tcl Stubs library" )

@@ -11,6 +11,6 @@ configure_file (
   "${CMAKE_CURRENT_BINARY_DIR}/pkgIndex.tcl"
   )
 
-install( FILES "${CMAKE_CURRENT_BINARY_DIR}/pkgIndex.tcl" toltcl.tcl
+install( FILES "${CMAKE_CURRENT_BINARY_DIR}/pkgIndex.tcl" toltcl.tcl tolsh.tcl
   COMPONENT RUNTIME DESTINATION "${TOLTCL_DEST_DIR}" )
 
