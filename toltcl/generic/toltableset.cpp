@@ -126,7 +126,7 @@ protected:
   int PrependInfinity();
   int PrependUnknown();
   int PrependEmptyReal();
-  int PrependText( char * txt );
+  int PrependText( const char * txt );
 private:
   Tcl_DString dsName;
   enumColType type;
@@ -575,7 +575,7 @@ int Tol_ColumnData::AppendText( const char * txt )
  *
  */
 
-int Tol_ColumnData::PrependText( char * txt )
+int Tol_ColumnData::PrependText( const char * txt )
 {
 #ifdef _DEBUG_TABLE_
   if ( type == Real )

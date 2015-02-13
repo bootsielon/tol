@@ -1,26 +1,15 @@
 cmake_minimum_required( VERSION 2.8 )
+project( TOLTCL )
 
 set( CMAKE_MODULE_PATH
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules"
   ${CMAKE_MODULE_PATH} )
 
+include( LibFindMacros )
+
 # The version number.
 set (TOLTCL_VERSION_MAJOR 3)
 set (TOLTCL_VERSION_MINOR 2)
-
-# look for tcl
-find_package( TclStub REQUIRED )
-if( TCL_FOUND )
-  add_definitions( -DUSE_TCL_STUBS )
-  add_definitions( -DTCL_THREADS )
-  include_directories( ${TCL_INCLUDE_PATH} )
-  message( STATUS ${TCL_LIBRARY_PATH} )
-  message( STATUS ${TCL_LIBRARY_PATH_PARENT} )
-
-  set( CMAKE_INSTALL_PREFIX ${TCL_LIBRARY_PATH_PARENT} )
-else( TCL_FOUND )
-  message( SEND_ERROR "TCL extensions need Tcl Stubs library" )
-endif( TCL_FOUND )
 
 # look fot tol
 find_package( TOL REQUIRED )
@@ -29,7 +18,36 @@ if( TOL_FOUND )
   message( STATUS "TOL_LIBRARIES = ${TOL_LIBRARIES}" )
 else( TOL_FOUND )
 endif( TOL_FOUND )
- 
+
+# look for tcl
+if ( WIN32 AND TOL_PREFIX_PATH )
+  find_library( TCL_STUB_LIBRARY
+      NAMES "libtclstub84" "libtclstub85" "libtclstub86"
+      PATHS "${TOL_PREFIX_PATH}/lib"
+      NO_DEFAULT_PATH
+    )
+  find_path(
+    TCL_INCLUDE_PATH
+    NAMES "tcl.h"
+    PATHS "${TOL_PREFIX_PATH}/include"
+    NO_DEFAULT_PATH
+    )
+  set( TCL_PROCESS_INCLUDES TCL_INCLUDE_PATH )
+  set( TCL_PROCESS_LIBS TCL_STUB_LIBRARY )
+  libfind_process( TCL )
+else( WIN32 AND TOL_PREFIX_PATH )
+  find_package( TclStub REQUIRED )
+endif( WIN32 AND TOL_PREFIX_PATH )
+
+if( TCL_FOUND )
+  message( STATUS ${TCL_STUB_LIBRARY} )
+  message( STATUS ${TCL_INCLUDE_PATH} )
+  get_filename_component( CMAKE_INSTALL_PREFIX ${TCL_INCLUDE_PATH} PATH )
+  message( STATUS "Using CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}" )
+else( TCL_FOUND )
+  message( SEND_ERROR "TCL extensions need Tcl Stubs library" )
+endif( TCL_FOUND )
+  
 set( TOLTCL_DEST_DIR "lib/toltcl${TOLTCL_VERSION_MAJOR}.${TOLTCL_VERSION_MINOR}"
   CACHE INTERNAL "" )
 
