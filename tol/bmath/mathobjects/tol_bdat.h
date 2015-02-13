@@ -35,22 +35,7 @@
 #define BUNKNOWN '\0'
 #define BKNOWN	 '\1'
 
-#if defined(_MSC_VER) /* Microsoft Visual C++ */
-# define IS_NAN(x)     _isnan(x)
-# define IS_FINITE(x)  _finite(x)
-#else
-// gsl/gsl_sys.h
-extern "C" {
-  int gsl_isnan (const double x);
-  int gsl_isinf (const double x);
-  int gsl_finite (const double x);
-}
-
-# define IS_NAN(x)     gsl_isnan(x)
-# define IS_FINITE(x)  gsl_finite(x)
-#endif
-
-class BDat;
+class TOL_API BDat;
 
 BBool TOL_API AreKnown(const BDat& dat1, const BDat& dat2);
 BBool TOL_API operator == (const BDat& dat1, const BDat& dat2);
@@ -178,17 +163,17 @@ public:
   //! Return \a value_ attribute
   const BReal&  Value() const { return(value_); }
   //! Return \a true if is a valid number
-  BBool  Known()     const { return(!IS_NAN(value_)); }
+  BBool  Known() const;
   //! Return \a true if is a valid number
-  BBool  IsKnown()   const { return(!IS_NAN(value_)); }
+  BBool  IsKnown() const;
   //! Return \a true if is not a valid number (NaN)
-  BBool  IsUnknown() const { return(IS_NAN(value_)); }
+  BBool  IsUnknown() const;
+  //! Return \a true if is a finite valid number
+  BBool  IsFinite() const;
   //! Return \a true if is +PosInf
   BBool  IsPosInf()  const { return(value_==posInf_); }
   //! Return \a true if is -PosInf
   BBool  IsNegInf()  const { return(value_==negInf_); }
-  //! Return \a true if is a finite valid number
-  BBool  IsFinite()  const { return(IS_FINITE(value_)); }
 
   //! Indicates if \a x is multiple of this
   BBool  IsMultipleOf (BDat x) const;
@@ -206,11 +191,7 @@ public:
   //! Updates \a value_ attribute with \a x
   void   PutValue (BReal x) { value_ = x; }
   //! If !t sets value to NaN, else if value_ is NaN sets value to 0
-  void   PutKnown (BBool t = BKNOWN)
-  {
-    if(!t) { value_ = nan_; }
-    else if(IS_NAN(value_)) { value_=0; }
-  }
+  void   PutKnown (BBool t = BKNOWN);
 
   //Implementation
 

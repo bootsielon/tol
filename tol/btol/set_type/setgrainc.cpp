@@ -45,6 +45,8 @@
 #  include <tol/tol_bctmsgra.h>
 #endif
 
+#include <gsl/gsl_sys.h>
+
 #define BST  BText("(BST) ") + TolPath()
 #define BDC  BText("(BDC) ") + TolPath()
 
@@ -513,7 +515,7 @@ void BSetFromFile::TableInfo(const BText& tolPath, const BText& fileName)
 	WriteFileOrStd(fileName, out,
 	    (
 	I2("Type~ Name~	Description~ Contents~	References~ TOLPath~\n",
-	   "Tipo~ Nombre~ DescripciÛn~ Contenido~ Referencecias~ TOLPath~\n")
+	   "Tipo~ Nombre~ Descripci√≥n~ Contenido~ Referencecias~ TOLPath~\n")
 		));
 	BSet set = Set(result);
 	for(BInt n=1; n<=set.Card(); n++)
@@ -624,10 +626,10 @@ BInt BSetFromFile::BinRead()
 	    I2("Cannot find ", "No se encuentra " ) + serieName + " Serie " +
 	    I2(" in file ", " en el fichero " ) + TolPath() + ", " +
 	    I2(" or it not has dating  ", " o no tiene fechado " ) + ", " +
-	    I2(" but it's already exists in  ", " pero a˙n existe en " ) +
+	    I2(" but it's already exists in  ", " pero a√∫n existe en " ) +
 	    objtolPath_+
 	    I2(" and this OBJ-file should be deleted",
-	       " y este fichero-OBJ deberÌa ser borrado"));
+	       " y este fichero-OBJ deber√≠a ser borrado"));
       return(0);
     }
     Std(BText("\nOld serie of : ")+serieName);
@@ -662,12 +664,12 @@ DefExtOpr(1, BSetIncludeBMT, "IncludeBMT", 1, 4, "Text Text Text Text",
 	     "1127.942;	   8747.234;\n"
 	     "1003.134;	   8748.734;"
 	     ,
-	     "Devuelve un conjunto cuyo ˙nico elemento es la matriz de "
+	     "Devuelve un conjunto cuyo √∫nico elemento es la matriz de "
 	     "numeros guardada en un fichero con formato Bayes Matrix "
 	     "Table (BMT).\n"
-	     "Incluye una matriz con una fila en cada lÌnea y los datos "
+	     "Incluye una matriz con una fila en cada l√≠nea y los datos "
 	     "separados por punto y coma. Obviamente, todas las filas "
-	     "han de tener el mismo n˙mero de elementos.\n\n"
+	     "han de tener el mismo n√∫mero de elementos.\n\n"
 
 	     "Ejemplo:\n\n"
 	     "1023.234;	   8745.874;\n"
@@ -714,7 +716,7 @@ void BSetIncludeBMT::CalcContens()
       k++;
       if(pos==MaxLineLength-1)
       {
-        Error(I2("Cell maximum length ","TamaÒo m·ximo de celda ")+MaxLineLength+
+        Error(I2("Cell maximum length ","Tama√±o m√°ximo de celda ")+MaxLineLength+
               I2(" exceeded  at column "," excedido en la columna ")+j+
               I2(" iof row "," de la fila ")+i+
               I2(" of file "," del fichero ")+fileName.String());
@@ -745,7 +747,7 @@ void BSetIncludeBMT::CalcContens()
         if(i==0) { cols = j; }
         else if(j&&(cols!=j))
         {
-          Error(I2("The row number", "La fila n˙mero")+" "+(i+1)+" "+
+          Error(I2("The row number", "La fila n√∫mero")+" "+(i+1)+" "+
                 I2("has","tiene")+" "+j+" columns "+
                 I2("but it was expected","pero se esperaban")+" "+cols+" "+
                 I2(" on file "," en el fichero ")+fileName.String());
@@ -780,7 +782,7 @@ void BSetIncludeBMT::CalcContens()
       if(i==0) { cols = j; }
       else if(j&&(cols!=j))
       {
-        Error(I2("The row number", "La fila n˙mero")+" "+(i+1)+" "+
+        Error(I2("The row number", "La fila n√∫mero")+" "+(i+1)+" "+
               I2("has","tiene")+" "+j+" columns "+
               I2("but it was expected","pero se esperaban")+" "+cols+" "+
               I2(" on file "," en el fichero ")+fileName.String());
@@ -849,7 +851,7 @@ void BSetIncludeBMT::CalcContens()
         }
         if(k==MaxLineLength-1)
         {
-          Error(I2("Line maximum length ","TamaÒo m·ximo de lÌnea ")+MaxLineLength+
+          Error(I2("Line maximum length ","Tama√±o m√°ximo de l√≠nea ")+MaxLineLength+
                 I2(" exceeded  at column "," excedido en la columna ")+j+
                 I2(" iof row "," de la fila ")+i+ 
                 I2(" of file "," del fichero ")+fileName.String());
@@ -943,10 +945,10 @@ DefExtOpr(1, BSetIncludeTOL, "IncludeTOL", 1, 2, "Text Real",
 	     "	Real t = y/x;\n\n"
 	     ,
 	     "Devuelve el conjunto de todos los objetos de un fichero TOL."
-	     "Incluye expresiones v·lidas en TOL separadas por punto y "
+	     "Incluye expresiones v√°lidas en TOL separadas por punto y "
 	     "coma y con formato libre, es decir, los tabuladores, saltos "
-	     "de lÌnea y car·cteres de espacio consecutivos son "
-	     "equivalentes a un ˙nico car·cter de "
+	     "de l√≠nea y car√°cteres de espacio consecutivos son "
+	     "equivalentes a un √∫nico car√°cter de "
 	     "espacio.\n\n"
 	     
 	     "Ejemplo :\n\n"
@@ -1098,13 +1100,13 @@ DefExtOpr(1, BSetIncludeBDT, "IncludeBDT", 1, 5, "Text Text Date Date Text",
 	     "de los nombres de las series separadas por "
 	     "punto y coma.\n"
 	     
-	     "En las lÌneas posteriores, aparece una fecha en la primera "
+	     "En las l√≠neas posteriores, aparece una fecha en la primera "
 	     "columna, y, en  las siguientes, los valores de las series "
 	     "correspondientes para dicha fecha.  Las fechas deben "
-	     "aparecer en orden. Si una fecha no est· en orden, no "
-	     "existe, o est· mal escrita, todas las series del fichero "
-	     "contendr·n para esa fecha, el  valor de relleno del sistema "
-	     "(BDTFillValue), que est· inicializado a cero, y el usuario "
+	     "aparecer en orden. Si una fecha no est√° en orden, no "
+	     "existe, o est√° mal escrita, todas las series del fichero "
+	     "contendr√°n para esa fecha, el  valor de relleno del sistema "
+	     "(BDTFillValue), que est√° inicializado a cero, y el usuario "
 	     "puede cambiar cuando desee escribiendo, por ejemplo, "
 	     "BDTFillValue:=3.\n\n"
 	     
@@ -1160,7 +1162,7 @@ void BSetIncludeBDT::CalcContens()
 	do {
   //Std("\nTRACE BSetIncludeBDT::CalcContens() 07");
 	    GetLine(File(), 
-		    header_, MaxLineLength, '\n'); // ASC 1024 limitacion (CÈsar)
+		    header_, MaxLineLength, '\n'); // ASC 1024 limitacion (C√©sar)
 	    header_.Replace(',',' ');
 	    header_.Replace('\t',' ');
 	    header_.Replace(';',' ');
@@ -1192,7 +1194,7 @@ void BSetIncludeBDT::CalcContens()
     {
   //Std("\nTRACE BSetIncludeBDT::CalcContens() 13");
 	Error(BDT+TolPath()+" "+datingTxt+ I2(" is not a valid dating.",
-					      " no es un fechado v·lido."));
+					      " no es un fechado v√°lido."));
 	return;
     }
 
@@ -1413,11 +1415,11 @@ DefExtOpr(1, BSetIncludeBDC, "IncludeBDC", 1, 1, "Text",
 	     "formato Bayes Data Column (BDC).\n"
 	     "Incluye series temporales con cualquier fechado y entre fechas "
 	     "cualesquiera. Para cada serie se escribe primero una "
-	     "cabecera con el nombre, la descripciÛn, el fechado y la "
+	     "cabecera con el nombre, la descripci√≥n, el fechado y la "
 	     "fecha inicial. Seguidamente se escribe un dato en cada "
-	     "lÌnea entendiendo que pertenecen a fechas consecutivas, "
+	     "l√≠nea entendiendo que pertenecen a fechas consecutivas, "
 	     "a partir de la inicial, a lo largo del fechado de las "
-	     "series en cuestiÛn.\n\n"
+	     "series en cuesti√≥n.\n\n"
 	     
 	     "Ejemplo:\n\n"
 	     
@@ -1581,9 +1583,9 @@ DefExtOpr(1, BSetIncludeBST, "IncludeBST", 1, 1, "Text",
 	     ,
 	     "Devuelve el conjunto de todas los conjuntos estruturados de "
 	     "un fichero con formato Bayes Structured Table (BST)."
-	     "Incluye una matriz con una fila en cada lÌnea y los datos "
+	     "Incluye una matriz con una fila en cada l√≠nea y los datos "
 	     "separados por punto y coma. Obviamente, todas las filas han "
-	     "de tener el mismo n˙mero de elementos.\n\n"
+	     "de tener el mismo n√∫mero de elementos.\n\n"
 	     "Si tenemos definida anteriormente la estructura\n\n"
 	     "Struct PerData\n"
 	     "(\n"
@@ -1591,7 +1593,7 @@ DefExtOpr(1, BSetIncludeBST, "IncludeBST", 1, 1, "Text",
 	     "	Date Birth,\n"
 	     "	Real Weight\n"
 	     ");\n\n"
-	     "Podemos incluir un fichero BST como Èste\n\n"
+	     "Podemos incluir un fichero BST como √©ste\n\n"
 	     "PerData; Name;    Birth;      Weight;\n"
 	     "	     ; \"John\"  ;a1963m11d01;67;\n"
 	     "       ; \"Joseph\";a1965m02d03;72;\n"
@@ -1675,7 +1677,7 @@ void BSetIncludeBST::CalcContens()
       if(name.HasName() && !isalpha(name.Get(0)))
       {
         Error(errMsg+", "+name+I2(" isn't a valid name.",
-                                  " no es un nombre v·lido."));
+                                  " no es un nombre v√°lido."));
         error = BTRUE;
         DESTROY(result);
       }
@@ -1693,8 +1695,8 @@ void BSetIncludeBST::CalcContens()
           if(!ftxt.HasName())
           {
             BField&   field = (*str)[n];
-            Error(errMsg+I2(", line ", ", lÌnea ")+ numLine+" "+
-                         I2(" empty field ", " campo vacÌo ")+field.Name());
+            Error(errMsg+I2(", line ", ", l√≠nea ")+ numLine+" "+
+                         I2(" empty field ", " campo vac√≠o ")+field.Name());
             error = BTRUE;
           }
           else
@@ -1740,7 +1742,7 @@ void BSetIncludeBST::CalcContens()
               { 
                 x = strtod(expr.String(),&pEnd);
                 if(!pEnd || pEnd[0]) { x = BDat::Nan(); }
-                ok = !IS_NAN(x);
+                ok = !gsl_isnan(x);
               }
               fieldValue = new BContensDat("",x,"");
             }
@@ -1764,10 +1766,10 @@ void BSetIncludeBST::CalcContens()
               BText msg = errMsg+I2(", line ", ", linea ")+numLine+
                     " '"+ftxt+"' "+
                     I2("is not a valid value for field ",
-                       "no es un valor v·lido para el campo ")+
+                       "no es un valor v√°lido para el campo ")+
                     field.Grammar()->Name()+ " " +field.Name(); 
               if(error) { Error(msg); }
-              else      { Warning(msg+"\nSe asumir· el valor desconocido"); }
+              else      { Warning(msg+"\nSe asumir√° el valor desconocido"); }
             }
             if(!error)
             {

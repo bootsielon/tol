@@ -121,7 +121,7 @@ double BVMat::Sum() const
   double result=0;
   for(k=0; k<nzmax; k++)
   {
-    if(!IS_NAN(x[k]))
+    if(!gsl_isnan(x[k]))
     {
       result += x[k];
     }
@@ -142,7 +142,7 @@ double BVMat::Avr() const
   double result=0;
   for(k=0; k<nzmax; k++)
   {
-    if(!IS_NAN(x[k]))
+    if(!gsl_isnan(x[k]))
     {
       result += x[k];
     }
@@ -170,7 +170,7 @@ double BVMat::Moment(int order) const
   double result = 0;
   for(k=0; k<nzmax; k++)
   {
-    if(!IS_NAN(x[k]))
+    if(!gsl_isnan(x[k]))
     {
       result += pow(x[k],order);
     }
@@ -199,7 +199,7 @@ double BVMat::CenterMoment(int order) const
   double result = 0;
   for(k=0; k<nzmax; k++)
   {
-    if(!IS_NAN(x[k]))
+    if(!gsl_isnan(x[k]))
     {
       result += pow(x[k]-avr,order);
     }
@@ -251,7 +251,7 @@ double BVMat::SquaredSum() const
   double result = 0;
   for(k=0; k<nzmax; k++)
   {
-    if(!IS_NAN(x[k]))
+    if(!gsl_isnan(x[k]))
     {
       result += x[k]*x[k];
     }
@@ -300,7 +300,7 @@ double BVMat::Max() const
   bool allUnknown = true;
   for(k=0; k<nzmax; k++)
   {
-    if(!IS_NAN(x[k]))
+    if(!gsl_isnan(x[k]))
     {
       if(result<x[k]) { result=x[k]; }
       if(allUnknown) { allUnknown=false; }
@@ -324,7 +324,7 @@ double BVMat::Min() const
   bool allUnknown = true;
   for(k=0; k<nzmax; k++)
   {
-    if(!IS_NAN(x[k]))
+    if(!gsl_isnan(x[k]))
     {
       if(result>x[k]) { result=x[k]; }
       if(allUnknown) { allUnknown=false; }
@@ -662,8 +662,8 @@ double BVMat::Quantile() const
     double length = upper-lower;
     if(fabs(length)<=1.E-8)
     {
-      //Si el intervalo es cuasi-vacío estamos rondando la frontera pero
-      //el punto es prácticamente factible.  
+      //Si el intervalo es cuasi-vacÃ­o estamos rondando la frontera pero
+      //el punto es prÃ¡cticamente factible.  
       Std(BText("(I) TruncStdGaussian [Case A] ")<<
         I2("(cuasi-empty interval",
         "(intervalo cuasi-vacio")+" ["+BDat(lower).Format("%.16lg")+","+
@@ -672,7 +672,7 @@ double BVMat::Quantile() const
     }
     else if(length<0)
     {
-      //Si el intervalo es vacío estamos fuera de la región factible 
+      //Si el intervalo es vacÃ­o estamos fuera de la regiÃ³n factible 
       warn_cannot_apply("(I) TruncStdGaussian [Case B] ",
         I2("(empty interval",
         "(intervalo vacio")+" ["+BDat(lower).Format("%.16lg")+","+

@@ -25,7 +25,6 @@
 #include <tol/tol_bset.h>
 #include <tol/tol_bgrammar.h>
 
-
 //--------------------------------------------------------------------
 /*! Base class to generate user's renamed objects of class Any.
  */

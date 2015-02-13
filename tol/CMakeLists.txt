@@ -381,6 +381,14 @@ if( WIN32 AND TOL_EXTERNAL_DEVEL_DIR )
   file( TO_CMAKE_PATH "${TOL_EXTERNAL_DEVEL_DIR}/Runtime_Base" rt_base_dir )
   install( DIRECTORY "${rt_base_dir}/bin" "${rt_base_dir}/lib" "${rt_base_dir}/include"
     COMPONENT RUNTIME DESTINATION "." ) 
+  install( DIRECTORY "${rt_base_dir}/include"
+    COMPONENT DEVEL DESTINATION "." )
+  file( TO_CMAKE_PATH "${TOL_EXTERNAL_PREFIX}/include" devel_include_dir )
+  install( DIRECTORY "${devel_include_dir}/google"
+    COMPONENT DEVEL DESTINATION "include" )
+  install( DIRECTORY "${devel_include_dir}/sparsehash"
+    COMPONENT DEVEL DESTINATION "include" )
+    
   #message( STATUS "Looking dll's at ${TOL_EXTERNAL_PREFIX}/bin" )
   file( TO_CMAKE_PATH "${TOL_EXTERNAL_PREFIX}/bin/*.dll" dll_pattern )
   file( GLOB RT_DLL  ${dll_pattern} )

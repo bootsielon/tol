@@ -39,12 +39,13 @@
 BTraceInit("prd.cpp");
 
 
-/* DQCComments: La siguiente lÌnea da problemas si la versiÛn instalada
- * de gsl es anterior a 1.4.  Si es asÌ, comentarla. Ello supone hacer
- * un pequeÒo cambio m·s adelante, est· documentado y marcado tbÈn con
+/* DQCComments: La siguiente l√≠nea da problemas si la versi√≥n instalada
+ * de gsl es anterior a 1.4.  Si es as√≠, comentarla. Ello supone hacer
+ * un peque√±o cambio m√°s adelante, est√° documentado y marcado tb√©n con
  * DQCComments
  */
-#include <gsl/gsl_cdf.h> 
+#include <gsl/gsl_cdf.h>
+#include <gsl/gsl_sys.h>
 
 
 //--------------------------------------------------------------------
@@ -339,8 +340,8 @@ BInt BProbDist::InverseFrom(BDat& x, BDat prob, BDat tolerance)
   if(!ok)
   {
   Warning(I2("\nInverse distribution metod failed for ",
-  "\nEl mÈtodo de inversiÛn de la distribuciÛn fallo para ")+prob+
-  I2( " at iteration "," en la iteraciÛn ") + n  );
+  "\nEl m√©todo de inversi√≥n de la distribuci√≥n fallo para ")+prob+
+  I2( " at iteration "," en la iteraci√≥n ") + n  );
   return(-1);
   }
   else
@@ -426,7 +427,7 @@ BDat BProbDist::InverseFib(BDat& x, BDat prob, BDat tol)
   if(!has_lower_bound || !has_upper_bound)
   {
     double avr = round(Average().Value());
-    if(!IS_FINITE(avr))
+    if(!gsl_finite(avr))
     {
       Error(_MID+"Cannot handle with distribution which average is not finite."); 
       return(BDat::Unknown());
@@ -454,8 +455,8 @@ BDat BProbDist::InverseFib(BDat& x, BDat prob, BDat tol)
       }
     }   
   };
-  has_lower_bound = IS_FINITE(a)!=0;
-  has_upper_bound = IS_FINITE(b)!=0;
+  has_lower_bound = gsl_finite(a)!=0;
+  has_upper_bound = gsl_finite(b)!=0;
   if(!has_lower_bound || !has_upper_bound)
   {
     Error(_MID+"Sorry, cannot find a finite searching interval for p="+prob); 
@@ -910,24 +911,24 @@ BDat BTruncatedNormalDist::Random01(
     //lower = 66.8902; upper = posInf;
     //upper = -66.8902; lower = negInf;
 
-    //A continuaciÛn se generar· una N(0,1) truncada estrictamente en el
+    //A continuaci√≥n se generar√° una N(0,1) truncada estrictamente en el
     //interior del intevalo de dominio abierto (lower, upper) para evitar
-    //problemas numÈricos de frontera.
+    //problemas num√©ricos de frontera.
 
-    //M·ximo valor absoluto para el que se usar· la distribuciÛn N(0,1)
+    //M√°ximo valor absoluto para el que se usar√° la distribuci√≥n N(0,1)
     double K = 6;
     //La probabilidad de estar una N(0,1) fuera del intervalo [-K,K] es 
     //con K=6 es p=1.973175400848959e-009 ~ 1 entre 500 mil millones, por lo que 
     //es despreciable cualquier valor fuera del mismo y nos evitamos problemas 
-    //numÈricos, pues tanto la cumulativa como su inversa funcionan bien 
+    //num√©ricos, pues tanto la cumulativa como su inversa funcionan bien 
     //en este intervalo pero empiezan a fallar a partir de K=8. 
-    //Quiz·s podrÌa ponerse K=7 pero se toma K=6 por dar un margen y porque
-    //la pÈrdida de precisiÛn es irrelevante tan lejos de la moda.
-    //Fuera de ahÌ la distribuciÛn se aproximar· por la raÌz cuadrada de una 
+    //Quiz√°s podr√≠a ponerse K=7 pero se toma K=6 por dar un margen y porque
+    //la p√©rdida de precisi√≥n es irrelevante tan lejos de la moda.
+    //Fuera de ah√≠ la distribuci√≥n se aproximar√° por la ra√≠z cuadrada de una 
     //uniforme en el dominio reducido interior al original de tal forma que 
     //el que el cociente de verosimilitudes entre los extremos sea menor o 
-    //igual a 100, pues en ese rango resulta una buena aproximaciÛn de la 
-    //normal truncada y es al mismo tiempo tratable numÈricamente.
+    //igual a 100, pues en ese rango resulta una buena aproximaci√≥n de la 
+    //normal truncada y es al mismo tiempo tratable num√©ricamente.
     // 
     //El cociente de densidades entre dos puntos x,y ~ N(0,1) es 
     // 
@@ -938,20 +939,20 @@ BDat BTruncatedNormalDist::Random01(
     //  Log(h) = -0.5*(x^2-y^2)
     //  y^2 = x^2 + 2*Log(h)
     //
-    //Estas operaciones no comportan riesgos numÈricos incluso para valores
+    //Estas operaciones no comportan riesgos num√©ricos incluso para valores
     //muy grandes.
     double lowMrg = lower;
     double uppMrg = upper;
     if(lowMrg>K)
     { 
       if(uppMrg>=2*lowMrg) { uppMrg=2*lowMrg; }
-      //Si todo el dominio est· por encima de K tomamos como nuevos lÌmites
-      //tentativos los puntos con densidad 1.1 y 110 veces las del lÌmite inferior.
-      //De esta forma el nuevo lÌmite inferior es por construcciÛn 100 veces m·s 
+      //Si todo el dominio est√° por encima de K tomamos como nuevos l√≠mites
+      //tentativos los puntos con densidad 1.1 y 110 veces las del l√≠mite inferior.
+      //De esta forma el nuevo l√≠mite inferior es por construcci√≥n 100 veces m√°s 
       //probable que el superior 
       double lowMrg_ = sqrt(pow(lowMrg,2) + 2.0 * log(  1.1) );
       double uppMrg_ = sqrt(pow(lowMrg,2) + 2.0 * log(110.0) );
-      //Si los lÌmites tentativos se salen del dominio hay que meterlos dentro 
+      //Si los l√≠mites tentativos se salen del dominio hay que meterlos dentro 
       if(lowMrg_>=upper)
       {
         lowMrg = 0.99*lowMrg+0.01*uppMrg;
@@ -971,8 +972,8 @@ BDat BTruncatedNormalDist::Random01(
       }
       //Tomamos un r uniforme
       double r = BUniformDist::Random01().Value();
-      //y calculamos su raÌz cuadrada como valor de ponderaciÛn de los lÌmites
-      //para forzar puntos m·s cercanos al nuevo lÌmite inferior.
+      //y calculamos su ra√≠z cuadrada como valor de ponderaci√≥n de los l√≠mites
+      //para forzar puntos m√°s cercanos al nuevo l√≠mite inferior.
       double u = sqrt(r);
       tn = u*lowMrg + (1.0-u)*uppMrg;
       if((tn<=lower) ||(tn>=upper))
@@ -986,13 +987,13 @@ BDat BTruncatedNormalDist::Random01(
     else if(upper<-K)
     {
       if(lowMrg<=2*uppMrg) { lowMrg=2*uppMrg; }
-      //Si todo el dominio est· por debajo de -K tomamos como nuevos lÌmites
-      //tentativos los puntos con densidad 1.1 y 110 veces las del lÌmite superior.
-      //De esta forma el nuevo lÌmite superior es por construcciÛn 100 veces m·s 
+      //Si todo el dominio est√° por debajo de -K tomamos como nuevos l√≠mites
+      //tentativos los puntos con densidad 1.1 y 110 veces las del l√≠mite superior.
+      //De esta forma el nuevo l√≠mite superior es por construcci√≥n 100 veces m√°s 
       //probable que el inferior 
       double uppMrg_ = -sqrt(pow(uppMrg,2) + 2.0 * log(  1.1) );
       double lowMrg_ = -sqrt(pow(uppMrg,2) + 2.0 * log(110.0) );
-      //Si los lÌmites tentativos se salen del dominio hay que meterlos dentro 
+      //Si los l√≠mites tentativos se salen del dominio hay que meterlos dentro 
       if(uppMrg_<=lower)
       {
         lowMrg = 0.99*lowMrg+0.01*uppMrg;
@@ -1012,8 +1013,8 @@ BDat BTruncatedNormalDist::Random01(
       }
       //Tomamos un r uniforme
       double r = BUniformDist::Random01().Value();
-      //y calculamos su raÌz cuadrada como valor de ponderaciÛn de los lÌmites
-      //para forzar puntos m·s cercanos al nuevo lÌmite inferior.
+      //y calculamos su ra√≠z cuadrada como valor de ponderaci√≥n de los l√≠mites
+      //para forzar puntos m√°s cercanos al nuevo l√≠mite inferior.
       double u = sqrt(r);
       tn = u*uppMrg + (1.0-u)*lowMrg;
       if((tn<=lower) ||(tn>=upper))
@@ -1026,23 +1027,23 @@ BDat BTruncatedNormalDist::Random01(
     }
     else
     {
-      //Si alguno de los lÌmites cae fuera de [-K,K] hacemos la intersecciÛn
+      //Si alguno de los l√≠mites cae fuera de [-K,K] hacemos la intersecci√≥n
       if(lower<-K) { lowMrg=-K; }
       if(upper>+K) { uppMrg=+K; }
       BNormalDist u01(0,1);
       //Calculamos los cuantiles de la N(0,1) en los extremos
       double lowF01 = u01.Dist(lowMrg).Value();
       double uppF01 = u01.Dist(uppMrg).Value();
-      //Calculamos el desplazamiento en la mÈtrica probabilÌstica
+      //Calculamos el desplazamiento en la m√©trica probabil√≠stica
       double difF01 = borderDistance*(uppF01-lowF01);
-      //Desplazamos los lÌmites hacia el interior
+      //Desplazamos los l√≠mites hacia el interior
       double lowF01_ = lowF01+difF01;
       double uppF01_ = uppF01-difF01;
       //Tomamos un r uniforme
       double r = BUniformDist::Random01().Value();
       //Tomamos un u normal truncado en el dominio interior
       double u = r*uppF01_ + (1.0-r)*lowF01_;
-      //Volvemos a la mÈtrica normalizada   
+      //Volvemos a la m√©trica normalizada   
       tn = u01.Inverse(u).Value(); 
       if((tn<=lower) ||(tn>=upper))
       { 
@@ -2329,8 +2330,8 @@ BDat BParetoDist::Inverse (BDat prob)
   if(prob<=0) return k_; 
   if(prob>=1) return BDat::PosInf();
 
-//DQCComments: Como no se incluye gsl_cdf.h (para ello es necesaria la versiÛn 1.4.de gsl)
-//debe comentarse la siguiente lÌnea
+//DQCComments: Como no se incluye gsl_cdf.h (para ello es necesaria la versi√≥n 1.4.de gsl)
+//debe comentarse la siguiente l√≠nea
   return(gsl_cdf_pareto_Pinv(prob.Value(), a_.Value(), k_.Value())); 
 // Y descomentar la siguiente
   //  return(BDat::Unknown());

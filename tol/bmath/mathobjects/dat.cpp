@@ -844,6 +844,36 @@ BDat& BDat::ATanH()
   return(*this);
 }
 
+//! Return \a true if is a valid number
+BBool BDat::Known() const
+{
+	return(!gsl_isnan(value_));
+}
+
+//! Return \a true if is a valid number
+BBool BDat::IsKnown() const
+{
+	return(!gsl_isnan(value_));
+}
+
+//! Return \a true if is not a valid number (NaN)
+BBool BDat::IsUnknown() const
+{
+	return(gsl_isnan(value_));
+}
+
+//! Return \a true if is a finite valid number
+BBool BDat::IsFinite() const
+{
+	return(gsl_finite(value_));
+}
+
+void BDat::PutKnown (BBool t)
+{
+    if( !t ) { value_ = nan_; }
+    else if( gsl_isnan( value_ ) ) { value_=0; }
+}
+  
 BDat operator +(const BDat& dat1, const BDat& dat2)
 { return(BDat(dat1)+=dat2); }
 
