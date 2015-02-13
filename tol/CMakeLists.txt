@@ -257,10 +257,20 @@ endif( )
 
 # BLAS & LAPACK configuration
 find_package( LAPACK QUIET )
+if( LAPACK_FOUND )
+message( "LAPACK FOUND ")
+else()
+message( "LAPACK NOT FOUND ")
+endif()
+
 if( NOT LAPACK_FOUND )
-  set( BLAS_LIBRARIES ${R_LIBRARY_BLAS} CACHE PATH "" )
-  set( LAPACK_FOUND 1 CACHE INTERNAL "" )
-  set( LAPACK_LIBRARIES "${R_LIBRARY_BLAS};${R_LIBRARY_LAPACK}" CACHE LIST "" )
+  if( R_LIBRARY_LAPACK AND R_LIBRARY_BLAS )
+    set( BLAS_LIBRARIES ${R_LIBRARY_BLAS} CACHE PATH "" )
+    set( LAPACK_LIBRARIES "${R_LIBRARY_BLAS};${R_LIBRARY_LAPACK}" CACHE LIST "")
+	set( LAPACK_FOUND 1 CACHE INTERNAL "" )
+  else()
+    messsage( FATAL_ERROR "Could not find LAPACK library on your system or from R" )
+  endif( )
 endif( )
 
   if( LAPACK_FOUND AND TRACE_COMPONENTS_FOUND )
@@ -338,7 +348,7 @@ endif( )
 
 create_header_links( )
 
-set( write_config_h 0 )
+set( write_config_h 1 )
 if( write_config_h )
   message( STATUS "Invoking CONFIGURE_FILE" )
   CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in 
