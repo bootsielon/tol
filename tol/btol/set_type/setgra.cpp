@@ -3047,3 +3047,59 @@ void BSetAnsSystemQuiet::CalcContens()
   so->PutName("status");
   contens_.RobElement(result);  
 }
+
+#if !defined(TOLPLAT_SYSTEM_NAME)
+#if defined(UNIX)
+#define TOLPLAT_SYSTEM_NAME "Linux"
+#else
+#define TOLPLAT_SYSTEM_NAME "Windows"
+#endif
+#endif
+
+#if !defined(TOLPLAT_SYSTEM_VERSION)
+#define TOLPLAT_SYSTEM_VERSION ""
+#endif
+
+#if !defined(TOLPLAT_SYSTEM_PROCESSOR)
+#define TOLPLAT_SYSTEM_PROCESSOR "x86_64"
+#endif
+
+#if !defined(TOLPLAT_POINTER_SIZE)
+#define TOLPLAT_POINTER_SIZE sizeof(void*)
+#endif
+
+#if !defined(TOLPLAT_COMPILER_ID)
+#if defined(UNIX)
+#define TOLPLAT_COMPILER_ID "GNU"
+#else
+#define TOLPLAT_COMPILER_ID "MSVC"
+#endif
+#endif
+
+
+
+//--------------------------------------------------------------------
+DeclareContensClass(BSet, BSetTemporary, BSetPlatformInfo);
+DefExtOpr(1, BSetPlatformInfo, "PlatformInfo", 1, 1, "Real", 
+          "(Real void)",
+          I2("Returns the platform information for which this TOL was compiled",
+             "Retorna la información de la plataforma para la cual fue compilado este TOL"),
+	  BOperClassify::System_);
+//--------------------------------------------------------------------
+void BSetPlatformInfo::CalcContens()
+//--------------------------------------------------------------------
+{
+  BList * result = NIL;
+  BSyntaxObject * so;
+  result = Cons(so = new BContensText( "", TOLPLAT_SYSTEM_NAME), result );
+  so->PutName("SystemName");
+  result = Cons(so = new BContensText("", TOLPLAT_SYSTEM_VERSION), result );
+  so->PutName("SystemVersion");
+  result = Cons(so = new BContensText("", TOLPLAT_COMPILER_ID ), result);
+  so->PutName("CompilerID");
+  result = Cons(so = new BContensText("", TOLPLAT_SYSTEM_PROCESSOR ), result);
+  so->PutName("Processor");
+  result = Cons(so = new BContensDat("", TOLPLAT_POINTER_SIZE), result);
+  so->PutName("PointerSize");
+  contens_.RobElement(result);  
+}
