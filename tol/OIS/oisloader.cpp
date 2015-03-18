@@ -408,14 +408,18 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
       x[i].PutCoef  (buf[i].coefficient_.value_);
     }
   }
-  else if(control_.typeSizes_.sizeof_BCoefDeg_==sizeof(BCoefDeg))
+  else if(control_.typeSizes_.sizeof_BCoefDeg_==SIZEOF_BCoefDeg)
   {
-    BCoefDeg* buf = (BCoefDeg*)AllocAuxilarBuffer(1,sizeof(BCoefDeg)*s);
-    Ensure(Read(buf,sizeof(BCoefDeg),s,stream));
+    char* buf = (char*)AllocAuxilarBuffer(1,SIZEOF_BCoefDeg*s);
+    Ensure(Read(buf,SIZEOF_BCoefDeg,s,stream));
     for(i=0; i<x.Size(); i++)
     {
-      x[i].PutDegree(buf[i].degree_);
-      x[i].PutCoef  (buf[i].coefficient_);
+      int *degree;
+      BDat *coefficient;
+      degree = (int*)&buf[i*SIZEOF_BCoefDeg];
+      coefficient = (BDat*)&buf[i*SIZEOF_BCoefDeg+sizeof(int)];
+      x[i].PutDegree(*degree);
+      x[i].PutCoef(*coefficient);
     }
   }
   else

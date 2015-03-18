@@ -66,6 +66,8 @@
 //--------------------------------------------------------------------
 #define Ensure(doit) if(!(doit)) { return(0); }
 
+// SIZEOF_BCoefDeg was sizeof(BCoefDeg) 
+#define SIZEOF_BCoefDeg (sizeof(int)+sizeof(BDat))
 
 //--------------------------------------------------------------------
   class BOis
@@ -194,7 +196,7 @@ public:
         sizeof_size_t_     (sizeof(size_t)),
         sizeof_double_     (sizeof(double)),
         sizeof_BDat_       (sizeof(BDat)),
-        sizeof_BCoefDeg_   (sizeof(BCoefDeg)),
+        sizeof_BCoefDeg_   (SIZEOF_BCoefDeg),
         sizeof_BGrammarId_ (sizeof(BGrammarId))
       {}
      ~TypeSizes() {}

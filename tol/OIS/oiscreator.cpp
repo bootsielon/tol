@@ -412,13 +412,17 @@ if(!BDir::CheckIsDir(dir))                                \
   TRACE_OIS_STREAM("WRITE",stream,"BPol", x.Name());
   int s = x.Size();
   EWrite(s, stream);
-  BCoefDeg* buf = (BCoefDeg*)AllocAuxilarBuffer(3,sizeof(BCoefDeg)*x.Size());
+  char* buf = (char*)AllocAuxilarBuffer(3,SIZEOF_BCoefDeg*x.Size());
   for(int i=0; i<x.Size(); i++)
   {
-    buf[i].degree_      = x(i).Degree();
-    buf[i].coefficient_ = x(i).Coef  ();
+    int *degree;
+    BDat *coefficient;
+    degree = (int*)&buf[i*SIZEOF_BCoefDeg];
+    coefficient = (BDat*)&buf[i*SIZEOF_BCoefDeg+sizeof(int)];
+    *degree = x(i).Degree();
+    *coefficient = x(i).Coef();
   }
-  Ensure(Write(buf,sizeof(BCoefDeg),x.Size(),stream));
+  Ensure(Write(buf,SIZEOF_BCoefDeg,x.Size(),stream));
   return(true);
 };
 
