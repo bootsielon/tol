@@ -11,7 +11,7 @@ include( LibFindMacros )
 set (TOLTCL_VERSION_MAJOR 3)
 set (TOLTCL_VERSION_MINOR 2)
 
-# look fot tol
+# look for tol
 find_package( TOL REQUIRED )
 if( TOL_FOUND )
   message( STATUS "TOL_INCLUDE_DIR = ${TOL_INCLUDE_DIR}" )
