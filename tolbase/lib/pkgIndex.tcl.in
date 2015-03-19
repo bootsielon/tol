@@ -1,0 +1,7 @@
+# Tcl package index file, version 1.1
+
+package ifneeded TolbaseApp @TOLBASE_VERSION_MAJOR@.@TOLBASE_VERSION_MINOR@ \
+    [ string map [list %d $dir] {
+      lappend auto_path {%d}
+      source [ file join {%d} toltk init_toltk.tcl ]
+    } ]
