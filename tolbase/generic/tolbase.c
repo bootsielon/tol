@@ -13,6 +13,8 @@
 
 #include "tk.h"
 #include "locale.h"
+#include <windows.h>
+
 
 #ifdef TK_TEST
 extern int		Tktest_Init _ANSI_ARGS_((Tcl_Interp *interp));
@@ -35,6 +37,8 @@ extern int		Tktest_Init _ANSI_ARGS_((Tcl_Interp *interp));
  *----------------------------------------------------------------------
  */
 
+#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
+
 int
 main(argc, argv)
     int argc;			/* Number of command-line arguments. */
@@ -51,6 +55,9 @@ main(argc, argv)
 #define TK_LOCAL_APPINIT Tcl_AppInit    
 #endif
     extern int TK_LOCAL_APPINIT _ANSI_ARGS_((Tcl_Interp *interp));
+
+    //HWND hwnd = GetConsoleWindow();
+    //ShowWindow(hwnd, 0);
     
     /*
      * The following #if block allows you to change how Tcl finds the startup
