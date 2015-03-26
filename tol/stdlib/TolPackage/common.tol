@@ -2,10 +2,12 @@
   // [API útil]
   //  * Text _.autodoc.get.identifier(NameBlock package)
   //  * NameBlock Require(Text identifier)
-  //  * Real AddRepository(Text url)
+  //  * Text Platform(Real void)
+  //  * Real AddRepository(Text url) 
   // [API Client+Server]
   //  * Real InstallPackage(Text identifier)
-  //  * Real InstallCompatible(Text pattern, Text tolVersion, Date date)
+  //  * Real InstallCompatible(Text pattern, Text tolPlatform, 
+  //      Text tolVersion, Date date)
   //  * Real InstallLastCompatible(Text pattern)
   //  * Real UpdateAll(Real void)
   //  * Real UpgradeAll(Real void)
@@ -21,7 +23,8 @@
   Text _.autodoc.get.identifier(NameBlock package)
   ////////////////////////////////////////////////////////////////////////////
   {
-    package::_.autodoc.name<<"."
+    Text variant = getOptArg(package, "_.autodoc.variant", "");
+    package::_.autodoc.name<<If(TextLength(variant), "#"<<variant, "")<<"."
       <<package::_.autodoc.version.high<<"."<<package::_.autodoc.version.low
   };
 
@@ -33,6 +36,27 @@
       #Require "<<identifier<<";
     1}");
     Eval(Tokenizer(identifier, ".")[1])
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _Platform = "";
+  ////////////////////////////////////////////////////////////////////////////
+  Text Platform(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Text If(_Platform=="", {
+      _Platform := Case(ObjectExist("Code", "PlatformInfo"), {
+        Set platInfo = PlatformInfo(?);
+        Text ToUpper(platInfo[5])
+          <<"__"<<FormatReal(platInfo[1]*8, "%.0lf")
+          <<"__"<<ToUpper(platInfo[3])
+      }, OSName=="WINDOWS", {
+        "WINDOWS__32__MSVC"
+      }, True, {
+        ToUpper(OSName)<<"__32__GNU"
+      })
+    });
+    _Platform
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -71,11 +95,13 @@
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Real InstallCompatible(Text pattern, Text tolVersion, Date date)
+  Real InstallCompatible(Text pattern, Text tolPlatform, 
+    Text tolVersion, Date date)
   ////////////////////////////////////////////////////////////////////////////
   {
     Real Server::Initialize(?);
-    Text file = Server::DownloadCompatible(pattern, tolVersion, date);
+    Text file = Server::DownloadCompatible(pattern, tolPlatform, 
+      tolVersion, date);
     Real If(TextLength(file), {
       Real Client::InstallZip(file);
       Real Client::UpdateCatalog(?);
@@ -104,7 +130,7 @@
     @Catalog client = Client::GetCatalog(?);
     @Catalog server = Server::GetCatalog(?);
     Code obtainList = Eval("server::Obtain"<<mode<<"List");
-    Set improveList = obtainList(client, Version, UnknownDate);
+    Set improveList = obtainList(client, Platform(?), Version, UnknownDate);
     Set selImproveList = Select(improveList, Real (Set record) {
       TextMatch(Name(record), txtPattern)
     });
@@ -146,7 +172,7 @@
     @Catalog client = Client::GetCatalog(?);
     @Catalog server = Server::GetCatalog(?);
     Code obtainList = Eval("server::Obtain"<<mode<<"List");
-    Set improveList = obtainList(client, Version, UnknownDate);
+    Set improveList = obtainList(client, Platform(?), Version, UnknownDate);
     If(Card(improveList), SetSum(EvalSet(improveList, Real (Set record) {
       Real If(mode=="Update", {
         WriteLn("[UpdateAll] Se actualiza "<<record::identifier);
@@ -235,7 +261,9 @@
   {
     @Catalog client = Client::GetCatalog(?);
     @Catalog server = Server::GetCatalog(?);
-    SetConcat(EvalSet(server::_.records, Set (Set list) {
+    Set compRecords = server::GetCompatibleRecords(Platform(?), Version, 
+      UnknownDate);
+    SetConcat(EvalSet(compRecords, Set (Set list) {
       EvalSet(list, Set (Set record) {
         Text dependencies = If(Card(record::freeDependencies), {
           SetSum([[ record::freeDependencies[1] ]]
@@ -244,7 +272,7 @@
           }))
         }, "");
         Text localIdentifier = client::ObtainIdentifier_Show(record::name, 
-          Version, UnknownDate, 0);
+          Platform(?), Version, UnknownDate, 0);
         Date localRelease = If(TextLength(localIdentifier), {
           Set localRecord = client::GetRecord(localIdentifier);
           localRecord::release
@@ -262,10 +290,11 @@
   {
     @Catalog client = Client::GetCatalog(?);
     @Catalog server = Server::GetCatalog(?);
-    EvalSet(server::GetCompatibleList(tolVersion, UnknownDate), 
-      Set (Set record) {
+    Set compList = server::GetCompatibleList(Platform(?), tolVersion, 
+      UnknownDate);
+    EvalSet(compList, Set (Set record) {
       Text localIdentifier = client::ObtainIdentifier_Show(record::name, 
-        Version, UnknownDate, 0);
+        Platform(?), tolVersion, UnknownDate, 0);
       Date localRelease = If(TextLength(localIdentifier), {
         Set localRecord = client::GetRecord(localIdentifier);
         localRecord::release
@@ -282,9 +311,10 @@
   {
     TolPackage::@Catalog catalog = TolPackage::Server::GetCatalog(?);
     Set deepDs = Unique(SetConcat(EvalSet(patterns, Set (Text pattern) {
-      [[pattern]]<<catalog::GetDeepDependencies(pattern, Version, UnknownDate)
+      [[pattern]]<<catalog::GetDeepDependencies(pattern, 
+        Platform(?), Version, UnknownDate)
     })));
-    Set catalog::IdentifyPackages(deepDs, Version, UnknownDate)
+    catalog::IdentifyPackages(deepDs, Platform(?), Version, UnknownDate)
   };
 
   ////////////////////////////////////////////////////////////////////////////

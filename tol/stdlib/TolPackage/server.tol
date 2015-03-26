@@ -14,7 +14,7 @@ Text _.autodoc.member.Server =
   //  * @Catalog GetCatalog(Real void)
   //  * Real UpdateCatalog(Real void)
   //  * Text DownloadPackage(Text identifier)
-  //  * Text DownloadCompatible(Text pattern, Text tolVersion, Date date)
+  //  * Text DownloadCompatible(Text pattern, Text tolPlatform, Text tolVersion, Date date)
   //  * Text DownloadLastCompatible(Text pattern)
   //  * Text DownloadPackageAt(Text identifier, Text path)
   //  * Real Initialize(Real void)
@@ -76,12 +76,13 @@ Text _.autodoc.member.Server =
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Text DownloadCompatible(Text pattern, Text tolVersion, Date date)
+  Text DownloadCompatible(Text pattern, Text tolPlatform, 
+    Text tolVersion, Date date)
   ////////////////////////////////////////////////////////////////////////////
   {
     @Catalog catalog = GetCatalog(?);
-    Text compatibleId = catalog::ObtainIdentifier(pattern, tolVersion, 
-      date);
+    Text compatibleId = catalog::ObtainIdentifier(pattern, tolPlatform, 
+      tolVersion, date);
     If(TextLength(compatibleId), DownloadPackage(compatibleId), "")
   };
 
@@ -89,7 +90,7 @@ Text _.autodoc.member.Server =
   Text DownloadLastCompatible(Text pattern)
   ////////////////////////////////////////////////////////////////////////////
   {
-    DownloadCompatible(pattern, Version, UnknownDate)
+    DownloadCompatible(pattern, Platform(?), Version, UnknownDate)
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -100,9 +101,9 @@ Text _.autodoc.member.Server =
     Set record = catalog::GetRecord(identifier);
     If(Card(record), {
       Text encoded = GetUrlContents(record::repository
-        <<"?tol_package_version=1.1"
+        <<"?tol_package_version="<<_.autodoc.version.high
         <<"&action=download&format=base64"
-        <<"&package="<<identifier);
+        <<"&package="<<Replace(identifier,"#","%23"));
       Real OSDirMake(_AsOSDir(path));
       Text zipFile = path<<identifier<<".zip";
       Real DecodeBase64ToFile(zipFile, encoded);
@@ -169,12 +170,13 @@ Text _.autodoc.member.Server =
     Text pkg.name.zip = GetFileName(pkg.path.zip);
     Text pkg.name = Replace(pkg.name.zip,".zip","");
     Set name.tok = Tokenizer(pkg.name,".");
+    Text te_identifier = name.tok[1];
+    Real isVariant = TextMatch(te_identifier, "*#*");
     Real nu_version_high = Eval(name.tok[2]);
     Real nu_version_low = Eval(name.tok[3]);
     Real PackArchive::UnpackFull("ZipArchive",root+pkg.name,False);
-    Text oza = root+pkg.name+"/info.oza";
+    Text oza = root+pkg.name+If(isVariant, "/infov.oza", "/info.oza");
     Set pkg = Include(oza);
-    Text name = pkg::_.autodoc.name;
     Real If(pkg::_.autodoc.version.high!=nu_version_high,
     {
       WriteLn("Wrong version high number "<<
@@ -196,7 +198,10 @@ Text _.autodoc.member.Server =
       Real nu_bytes = FileBytes(pkg.path.zip);
       Real id_format = 1;
       Text te_max_tol_version = pkg::_.autodoc.maxTolVersion;
-      Text te_extra_info = "";
+      Text te_extra_info = If(isVariant, {
+        "variant="+pkg::_.autodoc.variant+"\n"+
+        "platform="+pkg::_.autodoc.platform
+      }, "");
       Text insert.query = "
         INSERT INTO package_f_contents (
           id_repository, co_name, nu_version_high, nu_version_low, 
@@ -206,7 +211,7 @@ Text _.autodoc.member.Server =
           bl_contents, nu_bytes, id_format, te_max_tol_version, te_extra_info)
         VALUES (
           "<<repId<<",
-          '"<<pkg::_.autodoc.name<<"',
+          '"<<te_identifier<<"',
           "<<pkg::_.autodoc.version.high<<",
           "<<pkg::_.autodoc.version.low<<",
           '"<<pkg::_.autodoc.brief<<"',

@@ -1,0 +1,39 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : TolPlatform.tol
+// PURPOSE: TOL platform related functions
+//////////////////////////////////////////////////////////////////////////////
+
+Text _.autodoc.member.TolPlatform = 
+  "Módulo de funciones para la gestión de las plataformas de TOL.";
+//////////////////////////////////////////////////////////////////////////////
+@LocalBlock TolPlatform = 
+//////////////////////////////////////////////////////////////////////////////
+[[
+  ////////////////////////////////////////////////////////////////////////////
+  Set ObtainInfo(Text platform) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    // platform: "<OperativeSystem>__<WordSize(bits)>__<Compiler>"
+    // Extrae la información de la variable 'plataform'
+    Set info = Tokenizer(Replace(platform, "__", "~"), "~");
+    Case(Card(info)>=3, info,
+      Card(info)==2, info<<[["ANY"]], 
+      Card(info)==1, info<<[["NN", "ANY"]], 
+      Card(info)==0, [["ANY", "NN", "ANY"]]
+    )
+  };
+ 
+  ////////////////////////////////////////////////////////////////////////////
+  Real IsCompatibleWith(Text platformA, Text platformB) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    // Comprueba si 'platformA' es compatible con 'platformB'
+    Set infoA = ObtainInfo(platformA);
+    Set infoB = ObtainInfo(platformB);
+    Real ok = If(infoB[1]=="ANY", True, infoB[1]==infoA[1]);
+    Real If(ok, ok := If(infoB[2]=="NN", True, infoB[2]==infoA[2]));
+    Real If(ok, ok := If(infoB[3]=="ANY", True, infoB[3]==infoA[3]));
+    ok
+  }
+]];
+////////////////////////////////////////////////////////////////////////////

@@ -14,10 +14,10 @@ NameBlock TolPackage =
   Set _.autodoc.keys = [["TOL", "Package", "Repository", "Modularity"]];
   Set _.autodoc.authors = [["vdebuen@tol-project.org", 
     "pgea@bayesforecast.com"]];
-  // Versión mínima de TOL (a nivel informativo)
-  Text _.autodoc.minTolVersion = "v3.2";
-  Real _.autodoc.version.high = 3;
-  Real _.autodoc.version.low = 2;
+  // La versión 4 aúna las vesiones 2 y 3 y es válida desde tol.3.1
+  Text _.autodoc.minTolVersion = "v3.1";
+  Real _.autodoc.version.high = 4;
+  Real _.autodoc.version.low = 1;
 
   Text _.version = ""<<_.autodoc.version.high<<"."<<_.autodoc.version.low;
   // Se usa la version alta para todas las rutas locales
@@ -31,6 +31,7 @@ NameBlock TolPackage =
   #Embed "def_localblock.tol";
   #Embed "def_catalog.tol";
   #Embed "TolVersion.tol";
+  #Embed "TolPlatform.tol";
   #Embed "client.tol";
   #Embed "server.tol";
   #Embed "packager.tol";

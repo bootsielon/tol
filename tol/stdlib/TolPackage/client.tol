@@ -57,12 +57,21 @@ Text _.autodoc.member.Client =
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Set GetPackageInfo(Text name.version) // GUI
+  Set GetPackageInfo(Text name.version) // GUI (antes)
   ////////////////////////////////////////////////////////////////////////////
   {
     @Catalog catalog = GetCatalog(?);
     Set record = catalog::GetRecord(name.version);
-    @Catalog::FormatRecord_Autodoc(record)
+    If(Card(record), @Catalog::FormatRecord_Autodoc(record), Copy(Empty))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Set GetPackageInfo_Compatible(Text name.version) // GUI
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @Catalog catalog = GetCatalog(?);
+    Set record = catalog::GetRecord_Compatible(name.version);
+    If(Card(record), @Catalog::FormatRecord_Autodoc(record), Copy(Empty))
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -82,18 +91,24 @@ Text _.autodoc.member.Client =
   Real LocalClean(Text package)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Real UninstallPackage( package )
+    Real UninstallPackage(package)
   };
   
   //||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||//
   Text LocalLastCompatible(Text package)
   //||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||//
   {
-    Real length = TextLength(package);
-    Text packageWP = If(Text Sub(package, length, length)==".", 
-      Text Sub(package, 1, length-1), package); // Se elimina el punto final
-    @Catalog catalog = GetCatalog(?);
-    AvoidErr.NonDecAct(catalog::ObtainLastCompatible(packageWP))
+    If(TextMatch(package, "*#*"), {
+      WriteLn("Package pattern '"<<package<<"' not valid.\n"
+        <<"Please, do require the package without variant.", "E");
+      ""
+    }, {
+      Real length = TextLength(package);
+      Text packageWP = If(Text Sub(package, length, length)==".", 
+        Text Sub(package, 1, length-1), package); // Se elimina el punto final
+      @Catalog catalog = GetCatalog(?);
+      AvoidErr.NonDecAct(catalog::ObtainLastCompatible(packageWP))
+    })
   };
 
   //||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||//
@@ -233,42 +248,39 @@ Text _.autodoc.member.Client =
     "DefaultPackage directory. This function is only called during tol "
     "packaging.";
   ////////////////////////////////////////////////////////////////////////////
-  Real _.DefaultFetch( Real void )
+  Real _.DefaultFetch(Real void)
   ////////////////////////////////////////////////////////////////////////////
   {
     Text destDir = TolPackage::Client::_.defaultPackageDir;
     WriteLn( "[TolPackage::Client] _.DefaultFetch: " << destDir );
-    If( !OSDirExist( destDir ), { 
-        Real OSDirMake( destDir )
-      } );
+    Real If(!OSDirExist(destDir), OSDirMake(destDir));
     NameBlock catalog = TolPackage::Server::GetCatalog(?);
-    Set result = EvalSet( _.defaultPackages, Real( Set pkgInfo ) {
-        Text pkg = pkgInfo[1];
-        WriteLn( "Downloading last " << pkg <<
-                 " compatible with " << Version );
-        Text pkg.id = catalog::ObtainIdentifier( pkg, Version, UnknownDate );
-        Text zipFile = TolPackage::Server::DownloadPackageAt( pkg.id, destDir );
-        Real ok = FileExist( zipFile );
-        Text msgStatus = "   ==> " << pkg << ": " << If( ok, "SUCCESS", "FAIL" );
-        WriteLn( msgStatus );
-        ok
-      } );
-    Real SetSum( result )
+    Set result = EvalSet(_.defaultPackages, Real (Set pkgInfo) {
+      Text pkg = pkgInfo[1];
+      WriteLn("Downloading last "<<pkg<<" compatible with "<<Version);
+      Text pkg.id = catalog::ObtainIdentifier(pkg, Platform(?), 
+        Version, UnknownDate);
+      Text zipFile = TolPackage::Server::DownloadPackageAt(pkg.id, destDir);
+      Real ok = FileExist(zipFile);
+      WriteLn("   ==> "<<pkg<<": "<<If(ok, "SUCCESS", "FAIL"));
+      ok
+    });
+    SetSum(result)
   };
 
   ////////////////////////////////////////////////////////////////////////////
   Real _.DefaultRequire( Real void )
   ////////////////////////////////////////////////////////////////////////////
   {
-    Real tryDefaults = If( ObjectExist("Real", "__NODEFAULTPACKAGES"),
-                           Not(__NODEFAULTPACKAGES), 1 );
-    Set toRequire = Select(_.defaultPackages, Real(Set elem) 
-                           { And(tryDefaults, elem[2]) });
-    Set done = EvalSet( toRequire, Real ( Set elem ) {
-        NameBlock Require( elem[1] );
-        Real 1
-      } );
-    Real Card( done )
+    Real tryDefaults = If(ObjectExist("Real", "__NODEFAULTPACKAGES"),
+      Not(__NODEFAULTPACKAGES), 1);
+    Set toRequire = Select(_.defaultPackages, Real (Set elem) { 
+      And(tryDefaults, elem[2]) 
+    });
+    Set done = EvalSet(toRequire, Real (Set elem) {
+      NameBlock Require(elem[1]);
+    1});
+    Card(done)
   };
 
   //||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||//
@@ -291,14 +303,15 @@ Text _.autodoc.member.Client =
       Set install = EvalSet(localZips, Real (Text filename) {
         Text packageName = Replace(GetFileName(filename), ".zip", "");
         If(catalog::FindRecord(packageName), 0, {
-          WriteLn( "[TolPackage::Client] Installing default package " << packageName );
+          WriteLn("[TolPackage::Client] Installing default package " 
+           <<packageName);
           InstallZip(_.defaultPackageDir<<filename)
         })
       });
       Real If(Card(install), If(SetSum(install), catalog::Update(?))); 
       // [C] Se cargan los paquetes por defecto
       _.DefaultRequire(?)
-     })
+    })
   }
 ]];
 //////////////////////////////////////////////////////////////////////////////

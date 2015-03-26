@@ -3,10 +3,12 @@
 // Record: [[
 //   Text identifier
 //   Text name
+//   Text variant (new)
 //   Real high
 //   Real low
 //   Text repository
 //   Date release
+//   Text platform (new)
 //   Text minTolVersion
 //   Text maxTolVersion
 //   Set freeDependencies
@@ -27,7 +29,8 @@ Class @Catalog
   ////////////////////////////////////////////////////////////////////////////
   {
     Set parts = Tokenizer(identifier, ".");
-    Real index = FindIndexByName(_.records, parts[1]);
+    Text name = Tokenizer(parts[1], "#")[1];
+    Real index = FindIndexByName(_.records, name);
     If(index, FindIndexByName(_.records[index], identifier), 0)
   };
 
@@ -36,7 +39,8 @@ Class @Catalog
   ////////////////////////////////////////////////////////////////////////////
   {
     Set parts = Tokenizer(identifier, ".");
-    Real index = FindIndexByName(_.records, parts[1]);
+    Text name = Tokenizer(parts[1], "#")[1];
+    Real index = FindIndexByName(_.records, name);
     If(index, {
       Real index2 = FindIndexByName(_.records[index], identifier);
       If(index2, _.records[index][index2], Copy(Empty))
@@ -44,33 +48,73 @@ Class @Catalog
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Text ObtainIdentifier(Text pattern, Text tolVersion, Date date)
+  Set GetRecord_Compatible(Text identifier)
   ////////////////////////////////////////////////////////////////////////////
-  { 
-    ObtainIdentifier_Show(pattern, tolVersion, date, 1)
+  {
+    Set record = GetRecord(identifier);
+    If(Card(record), 
+      If(_Record.IsCompatible(record, Platform(?), Version, UnknownDate), 
+        record, Copy(Empty)), 
+      Copy(Empty))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real _Record.IsCompatible(Set record, Text tolPlatform, 
+    Text tolVersion, Date date)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    // Se comprueba la plataforma de TOL
+    Real ok = Case(tolPlatform=="", True, 
+      record::platform=="", True, 
+      // no hay limitaciones, fallarían los paquetes que se crearon válidos 
+      // sólo para win32_msvc y unix32_gnu
+      True, TolPlatform::IsCompatibleWith(tolPlatform, record::platform));
+    Real If(ok, {
+      // Se comprueba la versión de TOL
+      Real ok := If(tolVersion=="any", True, {
+        TolVersion::CompareVersions(record::minTolVersion, tolVersion)<=0
+        & TolVersion::CompareVersions(tolVersion, record::maxTolVersion)<=0
+      })
+    });
+    If(ok, {
+      // Se comprueba que la fecha no es posterior a la indicada
+      If(""<<date=="Unknown", True, Not(record::release>date))
+    }, False)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text ObtainIdentifier(Text pattern, Text tolPlatform, 
+    Text tolVersion, Date date)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    ObtainIdentifier_Show(pattern, tolPlatform, tolVersion, date, 1)
   };
 
   ////////////////////////////////////////////////////////////////////////////
   Text ObtainLastCompatible(Text pattern)
   ////////////////////////////////////////////////////////////////////////////
   { 
-    ObtainIdentifier(pattern, Version, UnknownDate)
+    ObtainIdentifier(pattern, Platform(?), Version, UnknownDate)
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Text ObtainIdentifier_Show(Text pattern, Text tolVersion, Date date, 
-    Real show)
+  Text ObtainIdentifier_Show(Text pattern, Text tolPlatform, Text tolVersion, 
+    Date date, Real show)
   ////////////////////////////////////////////////////////////////////////////
   {
     // show: 0 none, 1 info, 2 warning, 3 error
-    Text identifier = _ObtainIdentifier(pattern, tolVersion, date);
+    Text identifier = _ObtainIdentifier(pattern, tolPlatform, 
+      tolVersion, date);
     If(Text Sub(identifier, 1, 1)=="#", {
       Text wm = Case(show==0, "", show==1, "U", show==2, "W", show==3, "E");
       Case(show==0, {
         ""
       }, identifier=="#NotCompatible", {
-        Text msg = If(tolVersion=="any", "", " para la versión de TOL '"
-          <<tolVersion<<"'");
+        Text msg = Case(tolPlatform=="" & tolVersion=="any", "", 
+          tolPlatform=="", " para la versión de TOL '"<<tolVersion<<"'",
+          tolVersion=="any", " para TOL con '"<<tolPlatform<<"'",
+          True, " para la versión de TOL '"<<tolVersion<<"' con '"
+            <<tolPlatform<<"'");
         Text msg2 = If(""<<date=="Unknown", If(TextLength(msg), msg, ""), {
           If(TextLength(msg), msg<<" y", " para")<<" la fecha "<<date
         });
@@ -87,33 +131,35 @@ Class @Catalog
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Text _ObtainIdentifier(Text pattern, Text tolVersion, Date date)
+  Text _ObtainIdentifier(Text pattern, Text tolPlatform, 
+    Text tolVersion, Date date)
   ////////////////////////////////////////////////////////////////////////////
   {
     Set parts = Tokenizer(pattern, ".");
-    Real index = FindIndexByName(_.records, parts[1]);
+    Text name = Tokenizer(parts[1], "#")[1];
+    Real index = FindIndexByName(_.records, name);
     If(index, {
       Set records = _.records[index];
       Set parts := parts << For(1, 3-Card(parts), Text (Real i) { "*" });
-      Text txtPattern = parts[1]<<"."<<parts[2]<<"."<<parts[3];
+      Text txtPattern1 = parts[1]<<"."<<parts[2]<<"."<<parts[3];
+      Text txtPattern2 = parts[1]<<"#*."<<parts[2]<<"."<<parts[3];
       Set options = Select(records, Real (Set record) {
-        Real ok = TextMatch(record::identifier, txtPattern);
+        // Se comprueba si encaja con el patrón indicado
+        Real ok = TextMatch(record::identifier, txtPattern1) 
+          | TextMatch(record::identifier, txtPattern2);
+        // Se comprueba la plataforma de TOL
+        Real If(ok, ok := _Record.IsCompatible(record, tolPlatform, 
+          tolVersion, date));
         // Se comprueba la versión de TOL
-        Real If(ok, {
-          Real ok := Case(
-            tolVersion=="any", 
-              True,
-            TolVersion::CompareVersions(record::minTolVersion, tolVersion)>0,
-              False,
-            TolVersion::CompareVersions(tolVersion, record::maxTolVersion)>0, 
-              False
-          )
-        });
+        Real If(ok, ok := Case(tolVersion=="any", True,
+          TolVersion::CompareVersions(record::minTolVersion, tolVersion)>0,
+            False,
+          TolVersion::CompareVersions(tolVersion, record::maxTolVersion)>0, 
+            False,
+          True, True));
         // Se comprueba que la fecha no es posterior a la indicada
-        Real If(ok, {
-          Real ok := Case(""<<date=="Unknown", True,
-            record::release>date, False)
-        });
+        Real If(ok, ok := If(""<<date=="Unknown", True,
+          record::release<=date));
         ok
       });
       If(Card(options), options[1]["identifier"], "#NotCompatible")
@@ -121,10 +167,11 @@ Class @Catalog
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Set GetFreeDependencies(Text pattern, Text tolVersion, Date date)
+  Set GetFreeDependencies(Text pattern, Text tolPlatform, Text tolVersion, 
+    Date date)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Text identifier = ObtainIdentifier(pattern, tolVersion, date);
+    Text identifier = ObtainIdentifier(pattern, tolPlatform, tolVersion, date);
     If(TextLength(identifier), {
       GetRecord(identifier)["freeDependencies"]
     }, {
@@ -134,38 +181,41 @@ Class @Catalog
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Set GetMainDependencies(Text pattern, Text tolVersion, Date date)
+  Set GetMainDependencies(Text pattern, Text tolPlatform, Text tolVersion, 
+    Date date)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Set freeD = GetFreeDependencies(pattern, tolVersion, date);
+    Set freeD = GetFreeDependencies(pattern, tolPlatform, tolVersion, date);
     Set extraD = Unique(SetConcat(EvalSet(freeD, Set (Text p) {
-      GetFreeDependencies(p, tolVersion, date)
+      GetFreeDependencies(p, tolPlatform, tolVersion, date)
     })));
     freeD-extraD
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Anything IdentifyPackages(Anything patterns, Text tolVersion, Date date)
+  Anything IdentifyPackages(Anything patterns, Text tolPlatform, 
+    Text tolVersion, Date date)
   ////////////////////////////////////////////////////////////////////////////
   {
     Case(Grammar(patterns)=="Set", {
       EvalSet(patterns, Anything (Anything a) { 
-        IdentifyPackages(a, tolVersion, date) 
+        IdentifyPackages(a, tolPlatform, tolVersion, date) 
       })
     }, Grammar(patterns)=="Text", {
       If(TextLength(patterns), 
-        ObtainIdentifier(patterns, tolVersion, date), "")
+        ObtainIdentifier(patterns, tolPlatform, tolVersion, date), "")
     })
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Set GetDeepDependencies(Text pattern, Text tolVersion, Date date)
+  Set GetDeepDependencies(Text pattern, Text tolPlatform, 
+    Text tolVersion, Date date)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Set mainDs = GetMainDependencies(pattern, tolVersion, date);
+    Set mainDs = GetMainDependencies(pattern, tolPlatform, tolVersion, date);
     If(Card(mainDs), {
       Unique(SetConcat(EvalSet(mainDs, Set (Text mainD) {
-        Set deepDs = GetDeepDependencies(mainD, tolVersion, date);
+        Set deepDs = GetDeepDependencies(mainD, tolPlatform, tolVersion, date);
         If(Card(deepDs), {
           Set [[ mainD ]] << deepDs
         }, [[ mainD ]])
@@ -194,19 +244,14 @@ Class @Catalog
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Set GetCompatibleRecords(Text tolVersion, Date date)
+  Set GetCompatibleRecords(Text tolPlatform, Text tolVersion, Date date)
   ////////////////////////////////////////////////////////////////////////////
   {
-    If(tolVersion=="any" & ""<<date=="Unknown", Copy(_.records), {
+    If(tolPlatform=="" & tolVersion=="any" & ""<<date=="Unknown", 
+      Copy(_.records), {
       Set records = Select(EvalSet(_.records, Set (Set subrecords) {
         Set selection = Select(subrecords, Real (Set record) {
-          Real okTolVersion = If(tolVersion=="any", True, {
-            TolVersion::CompareVersions(record::minTolVersion, tolVersion)<=0
-            & TolVersion::CompareVersions(tolVersion, record::maxTolVersion)<=0
-          });
-          If(okTolVersion, {
-            If(""<<date=="Unknown", True, Not(record::release>date))
-          }, False)
+          _Record.IsCompatible(record, tolPlatform, tolVersion, date)
         });
         Real If(Card(selection), SetIndexByName(selection));
         PutName(Name(subrecords), selection)
@@ -217,19 +262,21 @@ Class @Catalog
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Set GetCompatibleList(Text tolVersion, Date date)
+  Set GetCompatibleList(Text tolPlatform, Text tolVersion, Date date)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Set compRecords = GetCompatibleRecords(tolVersion, date);
+    Set compRecords = GetCompatibleRecords(tolPlatform, tolVersion, date);
     EvalSet(compRecords, Set (Set subrecords) { subrecords[1] })
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Set ObtainUpdateList(@Catalog reference, Text tolVersion, Date date)
+  Set ObtainUpdateList(@Catalog reference, Text tolPlatform, 
+    Text tolVersion, Date date)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Set records = GetCompatibleRecords(tolVersion, date);
-    Set refRecords = reference::GetCompatibleRecords(tolVersion, date);
+    Set records = GetCompatibleRecords(tolPlatform, tolVersion, date);
+    Set refRecords = reference::GetCompatibleRecords(tolPlatform, 
+      tolVersion, date);
     SetConcat(EvalSet(refRecords, Set (Set refSubrecords) {
       Real index = FindIndexByName(records, Name(refSubrecords));
       If(index, {
@@ -250,11 +297,13 @@ Class @Catalog
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Set ObtainUpgradeList(@Catalog reference, Text tolVersion, Date date)
+  Set ObtainUpgradeList(@Catalog reference, Text tolPlatform, 
+    Text tolVersion, Date date)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Set records = GetCompatibleRecords(tolVersion, date);
-    Set refRecords = reference::GetCompatibleRecords(tolVersion, date);
+    Set records = GetCompatibleRecords(tolPlatform, tolVersion, date);
+    Set refRecords = reference::GetCompatibleRecords(tolPlatform, 
+      tolVersion, date);
     SetConcat(EvalSet(refRecords, Set (Set refSubrecords) {
       Real index = FindIndexByName(records, Name(refSubrecords));
       If(index, {
@@ -275,12 +324,14 @@ Class @Catalog
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Set ObtainLowUpgradeList(@Catalog reference, Text tolVersion, Date date)
+  Set ObtainLowUpgradeList(@Catalog reference, Text tolPlatform, 
+    Text tolVersion, Date date)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Set records = RegroupRecords(GetCompatibleRecords(tolVersion, date));
-    Set refRecords = 
-      RegroupRecords(reference::GetCompatibleRecords(tolVersion, date));
+    Set records = RegroupRecords(GetCompatibleRecords(tolPlatform, 
+      tolVersion, date));
+    Set refRecords = RegroupRecords(reference::GetCompatibleRecords(
+      tolPlatform, tolVersion, date));
     SetConcat(EvalSet(refRecords, Set (Set refSubrecords) {
       Real index = FindIndexByName(records, Name(refSubrecords));
       If(index, {
@@ -301,11 +352,12 @@ Class @Catalog
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Set ObtainFullUpgradeList(@Catalog reference, Text tolVersion, Date date)
+  Set ObtainFullUpgradeList(@Catalog reference, Text tolPlatform, 
+    Text tolVersion, Date date)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Set fullList = ObtainUpgradeList(reference, tolVersion, date)
-      << ObtainLowUpgradeList(reference, tolVersion, date);
+    Set fullList = ObtainUpgradeList(reference, tolPlatform, tolVersion, date)
+      << ObtainLowUpgradeList(reference, tolPlatform, tolVersion, date);
     EvalSet(Classify(fullList, Real (Set r1, Set r2) { 
       Compare(Name(r1), Name(r2))
     }), Set (Set group) { group[1] })
@@ -350,7 +402,10 @@ Class @Catalog
   {
     Set autodocs = Select(EvalSet(GetDir(path)[2], Set (Text package) {
       Text autodocFile = path<<package<<"/info.oza";
-      If(FileExist(autodocFile), Ois.Load(autodocFile)[1], {
+      Text autodocFileV = path<<package<<"/infov.oza";
+      Case(FileExist(autodocFileV), Ois.Load(autodocFileV)[1], 
+        FileExist(autodocFile), Ois.Load(autodocFile)[1], 
+        True, {
         // Si no tiene info se obtiene de la lista A
         Text ozaFile = path<<package<<"/"<<package<<".oza";
         If(FileExist(ozaFile), {
@@ -383,7 +438,8 @@ Class @Catalog
         TolConfigManager::Config::Upgrading::TolPackage::Repositories);
       Set rows = SetConcat(EvalSet(repositories_, Set (Text repository) {
         Text urlAnswer = GetUrlContents(repository
-          <<"?tol_package_version=1.1&action=versions");
+          <<"?tol_package_version="<<_.autodoc.version.high
+          <<"&action=versions");
         If(Text Sub(urlAnswer, 1, 3)=="Set", IncludeText(urlAnswer), {
           Error("El repositorio '"<<repository
             <<"' no está respondiendo adecuadamente.");
@@ -394,13 +450,26 @@ Class @Catalog
         Set pkgInfo = Tokenizer(row[3], ".");
         Set freeDeps = Unique(Select(EvalSet(Tokenizer(row[7], ","),
           Text (Text t) { Tokenizer(t, ".")[1] }), TextLength));
+        Set name_variant = Tokenizer(pkgInfo[1], "#");
+        Set extra_info = If(TextLength(row[4]), {
+          SetConcat(EvalSet(Tokenizer(row[4], "\n"), Set (Text line) {
+            Real pos = TextFind(line, "=");
+            If(pos, {
+              Text name = TextSub(line, 1, pos-1);
+              Text value = TextSub(line, pos+1, -1);
+              [[PutName(name, value)]]
+            }, Copy(Empty))
+          }))
+        }, Copy(Empty));
         Set pkgRecord =  [[ 
           Text identifier = row[3];
-          Text name = pkgInfo[1];
+          Text name = name_variant[1];
+          Text variant = If(Card(name_variant)>1, name_variant[1], "");
           Real high = Eval(pkgInfo[2]);
           Real low = Eval(pkgInfo[3]);
           Text repository = row[1];
           Date release = row[8];
+          Text platform = getOptArg(extra_info, "platform", "");
           Text minTolVersion = row[5]; 
           Text maxTolVersion = row[6];
           Set freeDependencies = freeDeps
@@ -415,15 +484,19 @@ Class @Catalog
   Static Set ObtainRecord_Autodoc(Set autodoc)
   ////////////////////////////////////////////////////////////////////////////
   {
+    Text variant = getOptArg(autodoc, "_.autodoc.variant", "");
     Set pkgRecord = [[ 
-      Text identifier = autodoc::_.autodoc.name
+      Text identifier = autodoc::_.autodoc.name 
+        <<If(TextLength(variant), "#"<<variant, "")
         <<"."<<autodoc::_.autodoc.version.high
         <<"."<<autodoc::_.autodoc.version.low;
       Text name = autodoc::_.autodoc.name;
+      Text variant;
       Real high = autodoc::_.autodoc.version.high;
       Real low = autodoc::_.autodoc.version.low;
       Text repository = autodoc::_.autodoc.url;
       Date release = autodoc::_.autodoc.releaseDate;
+      Text platform = getOptArg(autodoc, "_.autodoc.platform", "");
       Text minTolVersion = autodoc::_.autodoc.minTolVersion;
       Text maxTolVersion = If(
         ObjectExist("Text", "autodoc::_.autodoc.maxTolVersion"), 
@@ -440,9 +513,11 @@ Class @Catalog
   {
     Set autodoc = [[
       Text _.autodoc.name = record::name;
+      Text _.autodoc.variant = record::variant;
       Real _.autodoc.version.high = record::high;
       Real _.autodoc.version.low = record::low;
       Text _.autodoc.url = record::repository;
+      Text _.autodoc.platform = record::platform;
       Date _.autodoc.releaseDate = record::release;
       Text _.autodoc.minTolVersion = record::minTolVersion;
       Text _.autodoc.maxTolVersion = record::maxTolVersion;
