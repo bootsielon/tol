@@ -777,7 +777,8 @@ proc ::TolPkgGUI::FillTreeInfo { T } {
   foreach pv $localVersionNames {
     array unset pkg
     array set pkg $localVersionInfo($pv)
-    set pkgRoot [ lindex [ split $pv . ] 0 ]
+    set pkgRoot0 [ lindex [ split $pv . ] 0 ]
+    set pkgRoot [ lindex [ split $pkgRoot0 # ] 0 ]
     set url $pkg(_.autodoc.url)
     set pkgRepo [ expr { [ string range $url end-13 end ] eq "repository.php" ?
                          $url : "${url}repository.php" } ]

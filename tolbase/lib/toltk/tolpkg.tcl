@@ -148,14 +148,17 @@ proc ::TolPkg::GetLocalPackages { } {
   set dirs [ glob -nocomplain -tail -dir $clientRoot -types {d r} * ]
   set pkgsInfo {}
   foreach d $dirs {
-    lappend pkgsInfo [ list $d [ GetLocalPackageInfo $d ] ]
+    set pkgInfo [ GetLocalPackageInfo $d ]
+    if { [llength $pkgInfo] > 0 } {
+      lappend pkgsInfo [ list $d $pkgInfo ]
+    }
   }
   return $pkgsInfo
 }
 
 proc ::TolPkg::GetLocalPackageInfo { p } {
   set tolScript [ string map [ list %p $p ] {
-    Set TolPackage::Client::GetPackageInfo( "%p" );
+    Set TolPackage::Client::GetPackageInfo_Compatible( "%p" );
   } ]
   return [ lindex [ toltcl::eval $tolScript -named 1 ] 1 ]
 }
