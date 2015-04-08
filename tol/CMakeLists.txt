@@ -398,7 +398,13 @@ if( WIN32 AND TOL_EXTERNAL_DEVEL_DIR )
     COMPONENT DEVEL DESTINATION "include" )
   install( DIRECTORY "${devel_include_dir}/sparsehash"
     COMPONENT DEVEL DESTINATION "include" )
-    
+  install( DIRECTORY "${devel_include_dir}/libltdl"
+    COMPONENT DEVEL DESTINATION "include" )
+  install( FILES "${devel_include_dir}/ltdl.h" COMPONENT DEVEL DESTINATION include )
+
+  file( TO_CMAKE_PATH "${TOL_EXTERNAL_PREFIX}/lib" devel_lib_dir )
+  install( FILES "${devel_lib_dir}/libltdl.dll.a" COMPONENT DEVEL DESTINATION lib )
+  
   #message( STATUS "Looking dll's at ${TOL_EXTERNAL_PREFIX}/bin" )
   file( TO_CMAKE_PATH "${TOL_EXTERNAL_PREFIX}/bin/*.dll" dll_pattern )
   file( GLOB RT_DLL  ${dll_pattern} )
