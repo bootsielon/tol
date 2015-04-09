@@ -32,23 +32,6 @@ Text _.autodoc.member.Packager =
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Set CompilePackage_Variant(Text name, Text variant, Text sourceRoot)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Date releaseGMT = Copy(NowGmt);
-    Set package. = IncludeTOL(sourceRoot<<name<<"/"<<name<<"#"<<variant<<".tol", True);
-    Case(TestAutodoc(package.[1], releaseGMT), {
-      WriteLn("No pudo generarse el paquete.", "E");
-      If(False, ?)
-    }, TestTolVersion(package.[1]), {
-      WriteLn("No pudo generarse el paquete.", "E");
-      If(False, ?)
-    }, True, {
-      package.
-    })
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
   Real TestAutodoc(NameBlock package, Date release)
   ////////////////////////////////////////////////////////////////////////////
   {
@@ -171,28 +154,15 @@ Text _.autodoc.member.Packager =
     Real Ois.Store(Set { [[
       PutName(name, package)
     ]] }, packagePath<<identifier+".oza");
-    Real Ois.Store(ObtainAutodoc(package), packagePath<<"info.oza");
-    Set EvalSet(package::_.autodoc.nonTolResources, Real (Anything resource) {
-      ProcessResource(resource, source, packagePath)
-    });
-    Real PackArchive::PackFull("ZipArchive", ReplaceSlash(packagePath), True);
-    _AsOSDir(packagePath)<<".zip"
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Text BuildZip_Variant(NameBlock package, Text sourceRoot, Text destination)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Text name = package::_.autodoc.name;
-    Text identifier = _.autodoc.get.identifier(package);
-    Text source = sourceRoot<<name<<"/";
-    Text packagePath = destination<<identifier<<"/";
-    Real OSDirMake(_AsOSDir(packagePath));
-    Real Ois.Store(Set { [[
-      PutName(name, package)
-    ]] }, packagePath<<identifier+".oza");
-    Real Ois.Store(Copy(Empty), packagePath<<"info.oza");
-    Real Ois.Store(ObtainAutodoc(package), packagePath<<"infov.oza");
+    Text variant = getOptArg(package, "_.autodoc.variant", "");
+    Real If(TextLength(variant), {
+      // Paquete con variante
+      Real Ois.Store(Copy(Empty), packagePath<<"info.oza");
+      Real Ois.Store(ObtainAutodoc(package), packagePath<<"infov.oza");
+    1}, {
+      // Paquete sin variante
+      Real Ois.Store(ObtainAutodoc(package), packagePath<<"info.oza");
+    1});
     Set EvalSet(package::_.autodoc.nonTolResources, Real (Anything resource) {
       ProcessResource(resource, source, packagePath)
     });
