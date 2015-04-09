@@ -34,6 +34,69 @@ Text _.autodoc.member.TolPlatform =
     Real If(ok, ok := If(infoB[2]=="NN", True, infoB[2]==infoA[2]));
     Real If(ok, ok := If(infoB[3]=="ANY", True, infoB[3]==infoA[3]));
     ok
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text ObtainPlatform(Text os, Text wordsize, Text compiler)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set info = ObtainInfo(Platform(?));
+    Set requiredInfo = SetOfText(
+      Case(os=="OWN", info[1], os=="ANY", "ANY", os==info[1], os, True, {
+        WriteLn("La versión y plataforma de TOL utilizada no es compatible "
+          <<"con el sistema operativo '"<<os<<"'.", "E");
+        Text ""
+      });
+      Case(wordsize=="OWN", info[2], wordsize=="NN", "NN", 
+        wordsize==info[2], wordsize, True, {
+        WriteLn("La versión y plataforma de TOL utilizada no es compatible "
+          <<"con los sistemas de '"<<wordsize<<"' bits.", "E");
+        Text ""
+      });
+      Case(compiler=="OWN", info[3], compiler=="ANY", "ANY", 
+        compiler==info[3], compiler, True, {
+        WriteLn("La versión y plataforma de TOL utilizada no es compatible "
+          <<"con la versión compilada con '"<<compiler<<"'.", "E"); 
+        Text ""
+      })
+    );
+    If(Real SetMin(EvalSet(requiredInfo,TextLength))==0, {
+      Real Stop;
+      Text ""
+    }, TextJoinWith(requiredInfo, "__"))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text ObtainVariant(Text requiredPlatform)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(requiredPlatform=="ANY__NN__ANY", {
+      WriteLn("No es necesaria una variante.", "E");
+      Real Stop;
+      Text ""
+    }, {
+      Set info = ObtainInfo(requiredPlatform);
+      Set words = SetOfText(
+        Case(info[1]=="ANY", If(info[2]=="NN", "", "OS"),
+          info[1]=="WINDOWS", "Win", True, FirstToUpper(ToLower(info[1]))),
+        If(info[2]=="NN", "", info[2]),
+        If(info[3]=="ANY", "", info[3])
+      );
+      TextJoinWith(words, "")
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text ObtainDllFolder(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Text platform = Platform(?);
+    Real debugVersion = TextEndAt(Version,"{DEBUG}");
+    If(TextMatch(platform, "WINDOWS__32__GNU") , {
+      "lib"
+    }, {
+      "CppTools/"+GetHardSoftPlattform(0)+If(debugVersion, "_dbg", "")
+    })
   }
 ]];
 ////////////////////////////////////////////////////////////////////////////
