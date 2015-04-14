@@ -91,7 +91,7 @@ Text _.autodoc.member.TolPlatform =
   ////////////////////////////////////////////////////////////////////////////
   {
     Text platform = Platform(?);
-    If(TextMatch(platform, "WINDOWS__32__GNU"), "CppTools/MINGW32", {
+    If(TextMatch(platform, "WINDOWS__32__GNU"), "CppTools/MinGW_32", {
       "CppTools/"+GetHardSoftPlattform(0)
     }) + If(TextEndAt(Version,"{DEBUG}"), "_dbg", "")
   }
