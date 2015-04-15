@@ -78,7 +78,7 @@ static BText Buil_TolAppData_()
     tolAppData_ = BSys::GetEnv("TOLHOME");
     if(!tolAppData_.HasName())
     {
-# if _WINDOWS
+#if defined(WIN32)
       tolAppData_ = BSys::GetEnv("APPDATA")+"/tol/";
 # else
       tolAppData_ = BSys::GetEnv("HOME")+"/.tol/";
