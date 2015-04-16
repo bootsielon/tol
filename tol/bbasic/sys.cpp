@@ -302,15 +302,15 @@ BText BSys::TempNam(const BText& outputDir,
  */
 //--------------------------------------------------------------------
 {
-//InitTotalTime("BSys::TempNam");
+  //InitTotalTime("BSys::TempNam");
   static BInt fileNumber_ = -1;
   BText fileName;
   BText dir = outputDir;
-//Std(BText("\nBSys::TempNam 1 dir = ")+dir);
+  //Std(BText("\nBSys::TempNam 1 dir = ")+dir);
   if(!dir.HasName()) { dir= TolAppData()+"tmp/"; }
-//Std(BText("\nBSys::TempNam 2 dir = ")+dir);
+  //Std(BText("\nBSys::TempNam 2 dir = ")+dir);
 
-//Std("\nBSys::TempNam("); Std(outputDir+", "+prefix+", "+ext+", "+len+")");
+  //Std("\nBSys::TempNam("); Std(outputDir+", "+prefix+", "+ext+", "+len+")");
   if(!BDir::CheckIsDir(dir))
   {
   //Std(BText("\nBSys::TempNam 4 dir = ")+dir);
@@ -320,7 +320,7 @@ BText BSys::TempNam(const BText& outputDir,
     mkdir(dir);
 #endif
   }
-//Std(BText("\nBSys::TempNam 5 dir = ")+dir);
+  //Std(BText("\nBSys::TempNam 5 dir = ")+dir);
   BInt attempts = 0;
   BText pathFile;
   do
@@ -336,8 +336,9 @@ BText BSys::TempNam(const BText& outputDir,
 //  Std(pathFile + " is File " + CheckIsFile(pathFile));
   }
   while(CheckIsFile(pathFile));
-//Std(BText("\nTempNam = ") + fileName + " after " + attempts+ " attempts.");
-//SumPartialTime;
+  //Std( BText( "fileName = " ) + fileName );
+  //Std(BText("\nTempNam = ") + pathFile + " after " + attempts+ " attempts.");
+  //SumPartialTime;
   return(pathFile);
 }
 
@@ -444,7 +445,11 @@ BBool BSys::WinSystem  (const BText& command, BInt showMode, bool wait)
   PROCESS_INFORMATION piProcInfo;
   BText errNam = BSys::TempNam();
   BText cmdRedirected = command;
-  if(command.BeginWith("cmd ")) { cmdRedirected += BText(" 2> ")+errNam; }
+  if(command.BeginWith("cmd ")) 
+    { 
+    cmdRedirected += BText(" 2> \"")+errNam+"\"";
+    //Std( BText("cmdRedirected = ") + cmdRedirected ) ;
+    }
   char* cmd = (char*)cmdRedirected.String();
   GetStartupInfo(&startupInfo);
   startupInfo.dwFlags &= STARTF_USESHOWWINDOW;
