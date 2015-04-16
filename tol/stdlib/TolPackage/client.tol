@@ -107,14 +107,30 @@ Text _.autodoc.member.Client =
       Text packageWP = If(Text Sub(package, length, length)==".", 
         Text Sub(package, 1, length-1), package); // Se elimina el punto final
       @Catalog catalog = GetCatalog(?);
-      AvoidErr.NonDecAct(catalog::ObtainLastCompatible(packageWP))
+      Text ans = AvoidErr.NonDecAct(catalog::ObtainLastCompatible(packageWP));
+      // Es necesario devolver el identificador del paquete sin variante
+      // cuando se llama justo después de instalar un paquete.
+      If(_RemoteInstall.JustCalled, {
+        Real _RemoteInstall.JustCalled := False;
+        Real posN = TextFind(ans, "#");
+        If(posN>0, {
+          Real posP = TextFind(ans, ".", posN);
+          TextSub(ans, 1, posN-1) + If(posP==0, "", TextSub(ans, posP, -1))
+        }, ans)
+      }, ans)
     })
   };
 
   //||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||//
+  Real _RemoteInstall.JustCalled = False;
+  //||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||//
   Real RemoteInstall(Text repository, Text package, Real showError)
   //||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||//
   {
+    // Es necesario que el método LocalLastCompatible devuelva 
+    // el identificador del paquete sin mostrar la variante
+    // cuando se llama justo después de instalar un paquete.
+    Real _RemoteInstall.JustCalled := True;
     Real length = TextLength(package);
     Text packageWP = If(Text Sub(package, length, length)==".", 
       Text Sub(package, 1, length-1), package); // Se elimina el punto final
