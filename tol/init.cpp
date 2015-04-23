@@ -333,32 +333,48 @@ static void signal_assign()
   return(_tolSessionPath_.String());
 }
 
+#if defined(WIN32)
+const char *GetPathTolDll( );
+#endif
+
 //--------------------------------------------------------------------
 BText InitTolPath()
 //--------------------------------------------------------------------
 {
   BText initpath = GetFilePath(_tolSessionPath_)+  "stdlib";
   BDir initTolPath = initpath + "/_init_stdlib.tol";
-  if(!initTolPath.Exist()) 
-  {
-    initpath = "./stdlib";
-    initTolPath = initpath + "/_init_stdlib.tol";
-    if(!initTolPath.Exist()) 
+  if(initTolPath.Exist()) 
     {
-      initpath = BSys::GetEnv( "TOL_LIBRARY" );
-      if(initpath != "") 
-      {
-        initTolPath = initpath + "/_init_stdlib.tol";
-      }
-#ifdef TOLINIT_LIB_DIR
-      if (!initTolPath.Exist()) 
-      {
-        initpath = TOLINIT_LIB_DIR;
-        initTolPath =  initpath + "/_init_stdlib.tol";
-      }
-#endif
+    return(initTolPath.Name());
     }
-  }
+  initpath = "./stdlib";
+  initTolPath = initpath + "/_init_stdlib.tol";
+  if(initTolPath.Exist()) 
+    {
+    return(initTolPath.Name());
+    }
+  initpath = BSys::GetEnv( "TOL_LIBRARY" );
+  if(initpath != "") 
+    {
+    initTolPath = initpath + "/_init_stdlib.tol";
+    if(initTolPath.Exist()) 
+      {
+      return(initTolPath.Name());
+      }
+    }
+#if defined(WIN32)
+  const char *pathDll = GetPathTolDll( );
+  initpath = GetFilePath( pathDll ) + "stdlib";
+  initTolPath = initpath + "/_init_stdlib.tol";
+  if(initTolPath.Exist()) 
+    {
+    return(initTolPath.Name());
+    }
+#endif
+#ifdef TOLINIT_LIB_DIR
+  initpath = TOLINIT_LIB_DIR;
+  initTolPath =  initpath + "/_init_stdlib.tol";
+#endif
   return(initTolPath.Name());
 }
 

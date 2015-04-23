@@ -1,18 +1,19 @@
 // toldll.cpp : Defines the entry point for the DLL application.
 //
 
-#include "stdafx.h"
+#include <windows.h>
+#include <stdio.h>
 
 // http://stackoverflow.com/questions/6924195/get-dll-path-at-runtime
 
-static char pathTolDll[MAX_PARAM];
+static char pathTolDll[MAX_PATH];
 
 const char *GetPathTolDll( )
 {
   return pathTolDll;
 }
 
-BOOL WINAPI DllMain(
+extern "C" BOOL APIENTRY DllMain(
     HINSTANCE hinstDLL,  // handle to DLL module
     DWORD fdwReason,     // reason for calling function
     LPVOID lpReserved )  // reserved

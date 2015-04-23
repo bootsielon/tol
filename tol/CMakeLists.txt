@@ -129,24 +129,28 @@ macro( create_header_links )
   else( WIN32 )
     set( cmd "create_symlink" )
   endif( WIN32 )
-  file( GLOB headers RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" *.h *.hpp )
-  set( lst  "" )
-  foreach( h ${headers} )
-    set( srcFile "${CMAKE_CURRENT_SOURCE_DIR}/${h}" )
-    set( destFile "${PROJECT_BINARY_DIR}/tol/${h}" )
-    set( lst ${lst} "${destFile}" )
-    add_custom_command ( 
-      OUTPUT ${destFile}
-      COMMAND "${CMAKE_COMMAND}" "-E" ${cmd} ${srcFile} ${destFile}
-      DEPENDS ${srcFile}
-      COMMENT "Creating header ${destFile}" )
-  endforeach( )
-  string( REPLACE "${PROJECT_SOURCE_DIR}" "" COPY_TARGET_NAME "COPY_HDR${CMAKE_CURRENT_SOURCE_DIR}" )
-  string( REPLACE "/" "_" COPY_TARGET_NAME "${COPY_TARGET_NAME}" )
-  #message( "add_custom_target( ${COPY_TARGET_NAME} ALL DEPENDS ${lst} ) " )
-  add_custom_target( ${COPY_TARGET_NAME} ALL DEPENDS ${lst} )  
-  set( tmp ${COPY_HEADERS_DEPENDS} ${COPY_TARGET_NAME} )
-  set( COPY_HEADERS_DEPENDS ${tmp} CACHE INTERNAL "" )
+  if( skip_copy_headers )
+    message( STATUS "Skipping create_header_links for ${CMAKE_CURRENT_SOURCE_DIR}" )
+  else( skip_copy_headers )
+    file( GLOB headers RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" *.h *.hpp )
+    set( lst  "" )
+    foreach( h ${headers} )
+      set( srcFile "${CMAKE_CURRENT_SOURCE_DIR}/${h}" )
+      set( destFile "${PROJECT_BINARY_DIR}/tol/${h}" )
+      set( lst ${lst} "${destFile}" )
+      add_custom_command ( 
+        OUTPUT ${destFile}
+        COMMAND "${CMAKE_COMMAND}" "-E" ${cmd} ${srcFile} ${destFile}
+        DEPENDS ${srcFile}
+        COMMENT "Creating header ${destFile}" )
+    endforeach( )
+    string( REPLACE "${PROJECT_SOURCE_DIR}" "" COPY_TARGET_NAME "COPY_HDR${CMAKE_CURRENT_SOURCE_DIR}" )
+    string( REPLACE "/" "_" COPY_TARGET_NAME "${COPY_TARGET_NAME}" )
+    #message( "add_custom_target( ${COPY_TARGET_NAME} ALL DEPENDS ${lst} ) " )
+    add_custom_target( ${COPY_TARGET_NAME} ALL DEPENDS ${lst} )  
+    set( tmp ${COPY_HEADERS_DEPENDS} ${COPY_TARGET_NAME} )
+    set( COPY_HEADERS_DEPENDS ${tmp} CACHE INTERNAL "" )
+  endif( skip_copy_headers )
 endmacro( create_header_links )
 
 # create directory where the headers are goind to be linked.
@@ -348,14 +352,18 @@ endif( )
 
 create_header_links( )
 
-set( write_config_h 1 )
+set( write_config_h 0 )
 if( write_config_h )
   message( STATUS "Invoking CONFIGURE_FILE" )
   CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in 
     ${CMAKE_CURRENT_BINARY_DIR}/tol/config.h )
 endif( )
 
-add_tol_sublibrary( tol_init init.cpp )
+if( WIN32 )
+  add_tol_sublibrary( tol_init toldll.cpp init.cpp )
+else( WIN32 )
+  add_tol_sublibrary( tol_init init.cpp )
+endif( WIN32 )
 target_include_directories( tol_init PRIVATE
     ${CHOLMOD_INCLUDE_DIR} )
     
@@ -401,9 +409,12 @@ if( WIN32 AND TOL_EXTERNAL_DEVEL_DIR )
   install( DIRECTORY "${devel_include_dir}/libltdl"
     COMPONENT DEVEL DESTINATION "include" )
   install( FILES "${devel_include_dir}/ltdl.h" COMPONENT DEVEL DESTINATION include )
-
+  install( DIRECTORY "${devel_include_dir}/gsl"
+    COMPONENT DEVEL DESTINATION "include" )
   file( TO_CMAKE_PATH "${TOL_EXTERNAL_PREFIX}/lib" devel_lib_dir )
   install( FILES "${devel_lib_dir}/libltdl.dll.a" COMPONENT DEVEL DESTINATION lib )
+  install( FILES "${devel_lib_dir}/libgsl.dll.a" COMPONENT DEVEL DESTINATION lib )
+  install( FILES "${devel_lib_dir}/libgslcblas.dll.a" COMPONENT DEVEL DESTINATION lib )
   
   #message( STATUS "Looking dll's at ${TOL_EXTERNAL_PREFIX}/bin" )
   file( TO_CMAKE_PATH "${TOL_EXTERNAL_PREFIX}/bin/*.dll" dll_pattern )
@@ -424,4 +435,14 @@ install( DIRECTORY stdlib COMPONENT RUNTIME DESTINATION "bin"
   PATTERN "*.tol" 
   PATTERN "*.bst"
   PATTERN "*.oza" )
+
+set(CPACK_PACKAGE_NAME "TOL")
+set(CPACK_PACKAGE_VENDOR "www.tol-project.org")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Time Oriented Language")
+set(CPACK_PACKAGE_VERSION "3.2.0")
+set(CPACK_PACKAGE_VERSION_MAJOR "3")
+set(CPACK_PACKAGE_VERSION_MINOR "2")
+set(CPACK_PACKAGE_VERSION_PATCH "0")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "tolbase")
   
+include(CPack)
