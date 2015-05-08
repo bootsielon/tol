@@ -64,6 +64,8 @@
 #  include <sys/utime.h>
 #endif
 
+#include "boost/filesystem.hpp"
+
 BTraceInit("dir.cpp");
 
 //--------------------------------------------------------------------
@@ -271,13 +273,22 @@ BInt GetFileSize(const BText& fileName)
  */
 //--------------------------------------------------------------------
 {
+#if defined( WIN32 ) && defined( __GNUC__ )
+  const char *name = fileName.String();
+  if ( boost::filesystem::exists( name ) && boost::filesystem::is_regular_file( name ) )
+    {
+    return boost::filesystem::file_size( name );
+    }
+  return 0;
+#else
   struct stat fileStat;
   BInt	 nBytes=0; // fileStat type is off_t that is long and BInt is long
 
   stat(fileName.String(), &fileStat);
   nBytes=(BInt)fileStat.st_size;
-
+  
   return(nBytes);
+#endif
 }
 
 

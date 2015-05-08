@@ -3,7 +3,7 @@ include_directories( ${TCL_INCLUDE_PATH} )
  
 message( STATUS "Using TCL_INCLUDE_PATH = ${TCL_INCLUDE_PATH}" )
 message( STATUS "Using TCL_LIBRARY = ${TCL_LIBRARY}" )
-message( STATUS "Using TK_LIBRARY = ${TCL_LIBRARY}" )
+message( STATUS "Using TK_LIBRARY = ${TK_LIBRARY}" )
 
 if ( WIN32 )
   set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -mwindows" )

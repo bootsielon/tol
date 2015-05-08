@@ -4,19 +4,15 @@ project( TOL )
 if( TOL_EXTERNAL_DEVEL_DIR )
   if( CMAKE_BUILD_TYPE MATCHES Debug )
     set( TOL_EXTERNAL_PREFIX "${TOL_EXTERNAL_DEVEL_DIR}/debug" )
-    set( CMAKE_CXX_FLAGS_DEBUG "-O0 -ggdb -mno-align-double" )
-    set( CMAKE_C_FLAGS_DEBUG "-O0 -ggdb -mno-align-double" )
   else( CMAKE_BUILD_TYPE MATCHES DEBUG )
     set( TOL_EXTERNAL_PREFIX "${TOL_EXTERNAL_DEVEL_DIR}/release" )
-    set( CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -mno-align-double" )
-    set( CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG -mno-align-double" )
   endif( CMAKE_BUILD_TYPE MATCHES Debug )
   set( CMAKE_PREFIX_PATH "${TOL_EXTERNAL_PREFIX}" ${CMAKE_PREFIX_PATH} )
   set( GSL_INCLUDE_SEARCH "${TOL_EXTERNAL_PREFIX}/include" )
   set( GSL_LIBS_SEARCH "${TOL_EXTERNAL_PREFIX}/lib" )
   set( CBLAS_DIR "${TOL_EXTERNAL_PREFIX}" )
   set( CLAPACK_DIR "${TOL_EXTERNAL_PREFIX}" )
-  set( ZIPARCHIVE_AS_STATIC 1 )
+  set( ZIPARCHIVE_AS_STATIC 0 )
   set( CINT_ROOT_DIR "${TOL_EXTERNAL_PREFIX}/include/cint" )
   set( PKG_FFTW_LIBRARY_DIRS "${TOL_EXTERNAL_PREFIX}/lib" CACHE INTERNAL "" )
   set( PKG_FFTW_INCLUDE_DIRS "${TOL_EXTERNAL_PREFIX}/include" CACHE INTERNAL "" )
@@ -47,7 +43,8 @@ if( MSYS )
 endif( MSYS )
 
 if ( MINGW )
-  add_definitions( "-Wno-attributes" )
+  #add_definitions( "-Wno-attributes" )
+  add_definitions( "-Wall" )
 endif( MINGW )
 if( WIN32 )
   add_definitions( -DTOLDLL_EXPORTS )
@@ -243,7 +240,7 @@ if( BZip2_FOUND AND TRACE_COMPONENTS_FOUND )
 endif( )
 
 # BOOST configuration
-find_package( Boost REQUIRED COMPONENTS thread system )
+find_package( Boost REQUIRED COMPONENTS thread system filesystem )
 
 if( Boost_FOUND AND TRACE_COMPONENTS_FOUND )
   message( "Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}" )
@@ -395,46 +392,87 @@ target_link_libraries( tolcon tol )
 #message( STATUS "ALL_HEADERS_LIST ${ALL_HEADERS_LIST}" )
 add_custom_target( COPY_HEADERS ALL DEPENDS ${COPY_HEADERS_DEPENDS} )
 
-if( WIN32 AND TOL_EXTERNAL_DEVEL_DIR )
-  file( TO_CMAKE_PATH "${TOL_EXTERNAL_DEVEL_DIR}/Runtime_Base" rt_base_dir )
-  install( DIRECTORY "${rt_base_dir}/bin" "${rt_base_dir}/lib" "${rt_base_dir}/include"
-    COMPONENT RUNTIME DESTINATION "." ) 
-  install( DIRECTORY "${rt_base_dir}/include"
-    COMPONENT DEVEL DESTINATION "." )
-  file( TO_CMAKE_PATH "${TOL_EXTERNAL_PREFIX}/include" devel_include_dir )
-  install( DIRECTORY "${devel_include_dir}/google"
-    COMPONENT DEVEL DESTINATION "include" )
-  install( DIRECTORY "${devel_include_dir}/sparsehash"
-    COMPONENT DEVEL DESTINATION "include" )
-  install( DIRECTORY "${devel_include_dir}/libltdl"
-    COMPONENT DEVEL DESTINATION "include" )
-  install( FILES "${devel_include_dir}/ltdl.h" COMPONENT DEVEL DESTINATION include )
-  install( DIRECTORY "${devel_include_dir}/gsl"
-    COMPONENT DEVEL DESTINATION "include" )
-  file( TO_CMAKE_PATH "${TOL_EXTERNAL_PREFIX}/lib" devel_lib_dir )
-  install( FILES "${devel_lib_dir}/libltdl.dll.a" COMPONENT DEVEL DESTINATION lib )
-  install( FILES "${devel_lib_dir}/libgsl.dll.a" COMPONENT DEVEL DESTINATION lib )
-  install( FILES "${devel_lib_dir}/libgslcblas.dll.a" COMPONENT DEVEL DESTINATION lib )
-  
-  #message( STATUS "Looking dll's at ${TOL_EXTERNAL_PREFIX}/bin" )
-  file( TO_CMAKE_PATH "${TOL_EXTERNAL_PREFIX}/bin/*.dll" dll_pattern )
-  file( GLOB RT_DLL  ${dll_pattern} )
-  #message( STATUS "Result: ${RT_DLL}" )
-  list( APPEND RT_DLL ${LAPACK_LIBRARIES} )
-  #message( STATUS ${RT_DLL} )
-  install( FILES ${RT_DLL} COMPONENT RUNTIME DESTINATION bin )
-endif( )
-
 install( TARGETS tolcon RUNTIME DESTINATION bin )
 install( TARGETS tol
   RUNTIME DESTINATION bin ARCHIVE DESTINATION lib LIBRARY DESTINATION bin )
 install( DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tol" 
   DESTINATION "include"
+  COMPONENT DEVELOPMENT
   FILES_MATCHING PATTERN "*.h" )
 install( DIRECTORY stdlib COMPONENT RUNTIME DESTINATION "bin" 
   PATTERN "*.tol" 
   PATTERN "*.bst"
   PATTERN "*.oza" )
+
+if( WIN32 AND TOL_EXTERNAL_DEVEL_DIR )
+  if( NOT EXISTS ${CMAKE_INSTALL_PREFIX}/bin )
+    file( MAKE_DIRECTORY ${CMAKE_INSTALL_PREFIX}/bin )
+  endif( )
+  if( NOT EXISTS ${CMAKE_INSTALL_PREFIX}/lib )
+    file( MAKE_DIRECTORY ${CMAKE_INSTALL_PREFIX}/lib )
+  endif( )
+  if( NOT EXISTS ${CMAKE_INSTALL_PREFIX}/include )
+    file( MAKE_DIRECTORY ${CMAKE_INSTALL_PREFIX}/include )
+  endif( )  
+  file( TO_CMAKE_PATH "${TOL_EXTERNAL_PREFIX}/bin/*.dll" dll_pattern )
+  file( GLOB RT_DLL  ${dll_pattern} )
+  list( APPEND RT_DLL ${LAPACK_LIBRARIES} )
+  foreach( dll libclapack.dll libcblas.dll libboost_filesystem.dll libboost_system.dll)
+    list( APPEND RT_DLL "${TOL_EXTERNAL_PREFIX}/lib/${dll}" )
+  endforeach( )
+  list( GET RT_DLL 0 rt_dll0)
+  get_filename_component( name_rt_dll0 ${rt_dll0} NAME )
+  if( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/bin/${name_rt_dll0}" )
+    file( INSTALL ${RT_DLL} DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" )
+  endif( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/bin/${name_rt_dll0}" )
+  if( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/lib/tkdnd" )
+    file( GLOB tcl-libs "${TOL_EXTERNAL_DEVEL_DIR}/tcl-libs/*" )
+    file( INSTALL ${tcl-libs} DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" )
+  endif( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/lib/tkdnd" )
+  if( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/lib/tcl8.4" )
+    file( INSTALL
+          "${TOL_EXTERNAL_PREFIX}/lib/dde1.3"
+          "${TOL_EXTERNAL_PREFIX}/lib/reg1.2"
+          "${TOL_EXTERNAL_PREFIX}/lib/tcl8.4"
+          "${TOL_EXTERNAL_PREFIX}/lib/TclCurl7.22.0"
+          "${TOL_EXTERNAL_PREFIX}/lib/tk8.4"
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" )
+  endif( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/lib/tcl8.4" )
+  if( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/include/tcl.h" )
+    file( GLOB tcl_h "${TOL_EXTERNAL_PREFIX}/include/tcl*.h" )
+    file( GLOB tk_h "${TOL_EXTERNAL_PREFIX}/include/tk*.h" )
+    file( INSTALL ${tcl_h} DESTINATION "${CMAKE_INSTALL_PREFIX}/include" )
+    file( INSTALL ${tk_h} DESTINATION "${CMAKE_INSTALL_PREFIX}/include" )
+    file( INSTALL "${TOL_EXTERNAL_PREFIX}/include/X11" DESTINATION "${CMAKE_INSTALL_PREFIX}/include" )
+  endif( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/include/tcl.h" )
+  if( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/include/google" )
+    file( INSTALL
+          "${TOL_EXTERNAL_PREFIX}/include/google" 
+          "${TOL_EXTERNAL_PREFIX}/include/sparsehash"
+          "${TOL_EXTERNAL_PREFIX}/include/libltdl"
+          "${TOL_EXTERNAL_PREFIX}/include/ltdl.h"
+          "${TOL_EXTERNAL_PREFIX}/include/gsl"
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/include" )
+  endif( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/include/google" )
+  message( STATUS "queee ${CMAKE_INSTALL_PREFIX}/lib/libltdl.dll.a")
+  if( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/lib/libltdl.dll.a" )
+    file( INSTALL 
+          "${TOL_EXTERNAL_PREFIX}/lib/libltdl.dll.a" 
+          "${TOL_EXTERNAL_PREFIX}/lib/libgsl.dll.a"
+          "${TOL_EXTERNAL_PREFIX}/lib/libgslcblas.dll.a"
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" )
+  endif( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/lib/libltdl.dll.a" )
+  file( GLOB tcl_a "${TOL_EXTERNAL_PREFIX}/lib/libtcl*.a" )
+  message( "tcl_a = ${tcl_a}")
+  list( GET tcl_a 0 tcl_a0 )
+  get_filename_component( name_tcl_a0 ${tcl_a0} NAME )
+  if( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/lib/${name_tcl_a0}" )
+    file( GLOB tk_a "${TOL_EXTERNAL_PREFIX}/lib/libtk*.a" )
+    file( INSTALL ${tcl_a} ${tk_a}
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" )
+  endif( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/lib/${name_tcl_a0}" )  
+
+endif( WIN32 AND TOL_EXTERNAL_DEVEL_DIR )
 
 set(CPACK_PACKAGE_NAME "TOL")
 set(CPACK_PACKAGE_VENDOR "www.tol-project.org")

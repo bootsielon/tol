@@ -21,8 +21,12 @@ endif( TOL_FOUND )
 
 # look for tcl
 if ( WIN32 AND TOL_PREFIX_PATH )
-  set( TCL_LIBRARY_PATH "${TOL_PREFIX_PATH}/lib" )
-  message( STATUS "buscando dll en = ${TOL_PREFIX_PATH}/bin" )
+  if( CMAKE_BUILD_TYPE STREQUAL "Debug" )
+    set( g "g" )
+  endif( CMAKE_BUILD_TYPE STREQUAL "Debug" )
+  file( TO_CMAKE_PATH "${TOL_PREFIX_PATH}" TCL_LIBRARY_PATH )
+  set( TCL_LIBRARY_PATH "${TCL_LIBRARY_PATH}/lib" )
+  message( STATUS "buscando tcl libs en ${TCL_LIBRARY_PATH} libtcl84" )
   find_library( TCL_LIBRARY
       NAMES "tcl84" "tcl85" "tcl86"
       PATHS "${TCL_LIBRARY_PATH}"
@@ -48,7 +52,6 @@ endif( WIN32 AND TOL_PREFIX_PATH )
 
 if( TCL_FOUND )
   message( STATUS ${TCL_INCLUDE_PATH} )
-  message( STATUS ${TCL_LIBRARY_PATH} )
   get_filename_component( CMAKE_INSTALL_PREFIX ${TCL_LIBRARY_PATH} PATH )
   message( STATUS "Using CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}" )
 else( TCL_FOUND )
