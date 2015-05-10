@@ -408,6 +408,15 @@ void BSetMemoryStatus::CalcContens()
   contens_.AddElement(NewFND(BDat,AvailPageFile,       BDat((double)statex.dwAvailPageFile)));
   contens_.AddElement(NewFND(BDat,TotalVirtual,        BDat((double)statex.dwTotalVirtual)));
   contens_.AddElement(NewFND(BDat,AvailVirtual,        BDat((double)statex.dwAvailVirtual)));
+#else
+  contens_.PrepareStore(7);
+  contens_.AddElement(NewFND(BDat,MemoryLoad,          BDat::Unknown()));
+  contens_.AddElement(NewFND(BDat,TotalPhys,           BDat::Unknown()));
+  contens_.AddElement(NewFND(BDat,AvailPhys,           BDat::Unknown()));
+  contens_.AddElement(NewFND(BDat,TotalPageFile,       BDat::Unknown()));
+  contens_.AddElement(NewFND(BDat,AvailPageFile,       BDat::Unknown()));
+  contens_.AddElement(NewFND(BDat,TotalVirtual,        BDat::Unknown()));
+  contens_.AddElement(NewFND(BDat,AvailVirtual,        BDat::Unknown()));
 #endif
 }
 #endif
