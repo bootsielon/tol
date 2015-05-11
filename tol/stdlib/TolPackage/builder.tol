@@ -131,7 +131,7 @@ Text _.autodoc.member.Builder=
     // Se descarga el código
     Text revisionId = If(IsUnknown(revision), "HEAD", ""<<revision);
     Real OSCmdWait("svn --force co -r "<<revisionId<<" "<<svnPath
-      <<package<<"/ "<<_.localRoot<<package<<"/");
+      <<package<<"/ \""<<_.localRoot<<package<<"/\"");
     Real nErr1 = Copy(NError);
     If(nErr1>nErr0, {
       WriteLn("El paquete '"<<package<<"' no ha podido descargarse.", "E");
