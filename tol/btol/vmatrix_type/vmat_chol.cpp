@@ -75,7 +75,9 @@
   L.s_.chlmRfactor_ = cholmod_analyze(X.s_.chlmRsparse_,common_);
   res = cholmod_factorize(X.s_.chlmRsparse_,L.s_.chlmRfactor_,common_);
   TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Factor",X.s_.chlmRsparse_)
-  isNotPosDef = (L.s_.chlmRfactor_->minor<L.s_.chlmRfactor_->n);
+  
+  isNotPosDef = (common_->status == CHOLMOD_NOT_POSDEF)||
+                (L.s_.chlmRfactor_->minor<L.s_.chlmRfactor_->n);
   cholmod_change_factor
   (
     CHOLMOD_REAL,
@@ -738,7 +740,6 @@
 }
   
 
-
 ////////////////////////////////////////////////////////////////////////////////
   BVMat BVMat::CholeskiSolve(const BVMat& B, ECholSolSys sys) const
 //Matrix algebra operator
@@ -809,3 +810,122 @@
   if(CholeskiSolve(L,Xtb,a, BVMat::ECSS_PtLLtP)) { return(-2); }
   return(0);
 };
+
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::CholeskiUpdate (const BVMat& L, const BVMat& C_, bool upDown)
+////////////////////////////////////////////////////////////////////////////////
+{
+  if(!L .CheckDefined("CholeskiUpdate")) { return(-1); }
+  if(!C_.CheckDefined("CholeskiUpdate")) { return(-1); }
+  int result = 0;
+  BVMat *C__=NULL;
+  if(L.code_==ESC_chlmRfactor)
+  {
+    convertIfNeeded_all2cRs(C_,C__,"CholeskiUpdate");
+  }
+  else
+  {
+    err_invalid_subtype("CholeskiUpdate",L);
+    result = -2;
+    return(result);
+  }
+  BVMat &C = *C__;
+  cholmod_factor* l = L.s_.chlmRfactor_;
+  cholmod_sparse* c = cholmod_submatrix(
+    C.s_.chlmRsparse_, (int*)l->Perm, l->n, NULL, -1, 1, 1, common_);
+  result = cholmod_updown(upDown, c, l, common_);
+  bool isNotPosDef = (common_->status == CHOLMOD_NOT_POSDEF)||
+                (L.s_.chlmRfactor_->minor<L.s_.chlmRfactor_->n);
+  if(isNotPosDef)
+  {
+    result == -1;
+    err_cannot_apply("CholeskiUpdate","",L); 
+  }
+  else
+  {
+    CholmodFree_sparse(&c,common_);
+    
+  }
+  if(C__!=&C_) { delete C__; }
+  return(result);
+}
+   
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::CholeskiUpdate (const BVMat& C_, bool upDown)
+//Matrix algebra operator
+////////////////////////////////////////////////////////////////////////////////
+{
+  return(CholeskiUpdate(*this,C_,upDown));
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::CholeskiAddRow (const BVMat& L, const BVMat& R_, int rowPos)
+////////////////////////////////////////////////////////////////////////////////
+{
+  if(!L .CheckDefined("CholeskiAddRow")) { return(-1); }
+  if(!R_.CheckDefined("CholeskiAddRow")) { return(-1); }
+  int result = 0;
+  BVMat *R__=NULL;
+  if(L.code_==ESC_chlmRfactor)
+  {
+    convertIfNeeded_all2cRs(R_,R__,"CholeskiAddRow");
+  }
+  else
+  {
+    err_invalid_subtype("CholeskiAddRow",L);
+    result = -2;
+    return(result);
+  }
+  BVMat &R = *R__;
+  result = cholmod_rowadd(rowPos, R.s_.chlmRsparse_, L.s_.chlmRfactor_, common_);
+  if(R__!=&R_) { delete R__; }
+  return(result);
+}
+   
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::CholeskiAddRow (const BVMat& R_, int rowPos)
+//Matrix algebra operator
+////////////////////////////////////////////////////////////////////////////////
+{
+  return(CholeskiAddRow(*this,R_,rowPos));
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::CholeskiDelRow (const BVMat& L, const BVMat& R_, int rowPos)
+////////////////////////////////////////////////////////////////////////////////
+{
+  if(!L .CheckDefined("CholeskiDelRow")) { return(-1); }
+  if(!R_.CheckDefined("CholeskiDelRow")) { return(-1); }
+  int result = 0;
+  BVMat *R__=NULL;
+  if(L.code_==ESC_chlmRfactor)
+  {
+    convertIfNeeded_all2cRs(R_,R__,"CholeskiDelRow");
+  }
+  else
+  {
+    err_invalid_subtype("CholeskiDelRow",L);
+    result = -2;
+    return(result);
+  }
+  BVMat &R = *R__;
+  result = cholmod_rowdel(rowPos, R.s_.chlmRsparse_, L.s_.chlmRfactor_, common_);
+  if(R__!=&R_) { delete R__; }
+  return(result);
+}
+   
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::CholeskiDelRow (const BVMat& R_, int rowPos)
+//Matrix algebra operator
+////////////////////////////////////////////////////////////////////////////////
+{
+  return(CholeskiDelRow(*this,R_,rowPos));
+};
+
+
+

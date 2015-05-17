@@ -808,8 +808,9 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
   BSyntaxObject* gra = NULL;
   if(g->Grammar()==GraText())
   {
+    const BText& gt = Text(g);
     graOpt.AllocBuffer(1);
-    graOpt[0] = FindGrammar(Text(g));
+    graOpt[0] = FindGrammar(gt);
   }
   else if(g->Grammar()==GraSet())
   {
@@ -888,6 +889,30 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
   contens_ = result!=NULL;
 }
 
+
+//--------------------------------------------------------------------
+  bool DestroyIdNeeded(BSyntaxObject*& result, int nObj0)
+//--------------------------------------------------------------------
+{
+  if(result)
+  {
+    return(false);
+  }
+  {
+    int nObj1 = AliveObjects();
+    if(nObj1>nObj0) 
+    { 
+      DESTROY(result);
+      result = NULL;
+      return(true);
+    }
+    else
+    {
+      return(false);
+    }
+  }
+};
+
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatObjectExist);
   DefExtOpr(1, BDatObjectExist, "ObjectExist", 2, 2, "Text Text",
@@ -900,7 +925,7 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
 //--------------------------------------------------------------------
 {
   BSyntaxObject* g = Arg(1);
-  const BText&  name = Text(Arg(2));
+  const BText& name = Text(Arg(2));
   BArray<BSyntaxObject*> graOpt;
   int i;
   BSyntaxObject* result = NULL;
@@ -908,6 +933,7 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
   BSyntaxObject* found = NULL;
   contens_ = false;
   if(!GetGrammarOptions(g, graOpt)) { return; }
+  int nObj0 = AliveObjects();
   for(i=0; !result && (i<graOpt.Size()); i++)
   {
     found = graOpt[i];
@@ -929,7 +955,7 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
       result = FindObject(GraSet(), name);
       if(result && Set(result).Struct()!=found)
       {
-        result = NULL;
+        DestroyIdNeeded(result, nObj0);
       }
     }
     else if(found->Mode()==BCLASSMODE)
@@ -941,12 +967,13 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
         BNameBlock& nb = unb->Contens();  
         if(!nb.IsInstanceOf((BClass*)found))
         {  
-          result = NULL;
+          DestroyIdNeeded(result, nObj0);
         }  
       }
     }
   }
   contens_ = result!=NULL;  
+  DestroyIdNeeded(result, nObj0);
 }
 
 //--------------------------------------------------------------------
@@ -2154,7 +2181,7 @@ static BUserFunction *tclTextMatch = NULL;
 //--------------------------------------------------------------------
 {
   contens_ = Dat(Arg(1));
-  BSys::SleepMilliSeconds((BInt)contens_.Value()*1000);
+  BSys::SleepMilliSeconds((int)(contens_.Value()*1000.0));
 }
 
 

@@ -2332,6 +2332,50 @@ void BVMatMinimumResidualsSolve::CalcContens()
 }
 
 
+//--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatCholeskiUpdate);
+DefExtOpr(1, BDatCholeskiUpdate, "CholeskiUpdate", 3, 3, 
+  "VMatrix VMatrix Real",
+  "(VMatrix L, VMatrix C, Real upDown)",
+  "Updates a LL' Cholesky factorization computing LL'+CC' if upDown "
+  "is true or LL'-CC' in other case.",
+  BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BDatCholeskiUpdate::CalcContens()
+//--------------------------------------------------------------------
+{
+  contens_ = BVMat::CholeskiUpdate(VMat(Arg(1)), VMat(Arg(2)), (bool)Real(Arg(3)));
+}
+
+
+//--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatCholeskiAddRow);
+DefExtOpr(1, BDatCholeskiAddRow, "CholeskiAddRow", 3, 3, 
+  "VMatrix VMatrix Real",
+  "(VMatrix factor, VMatrix rowData, Real rowPos)",
+  "Adds a new row to a Cholesky factorization.",
+  BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BDatCholeskiAddRow::CalcContens()
+//--------------------------------------------------------------------
+{
+  contens_ = BVMat::CholeskiAddRow(VMat(Arg(1)), VMat(Arg(2)), (int)Real(Arg(3)));
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatCholeskiDelRow);
+DefExtOpr(1, BDatCholeskiDelRow, "CholeskiDelRow", 3, 3, 
+  "VMatrix VMatrix Real",
+  "(VMatrix factor, VMatrix rowData, Real rowPos)",
+  "Deletes a row to a Cholesky factorization.",
+  BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BDatCholeskiDelRow::CalcContens()
+//--------------------------------------------------------------------
+{
+  contens_ = BVMat::CholeskiDelRow(VMat(Arg(1)), VMat(Arg(2)), (int)Real(Arg(3)));
+}
+
 /*------------------------------------------------------------------------------
   vmat_stats.cpp: Statistics methods
 ------------------------------------------------------------------------------*/

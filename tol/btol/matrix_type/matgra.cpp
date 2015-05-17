@@ -4661,7 +4661,7 @@ void BMatMatPartAutoCor::CalcContens()
   for(BInt i=0; i<order; i++)
   {
     contens_(i,0)=i+1;
-    contens_(i,1)=acf(i);
+    contens_(i,1)=pacf(i);
     contens_(i,2)=sigma;
   }
 }
