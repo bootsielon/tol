@@ -115,6 +115,9 @@
 /* Define to 1 if you have the <sys/time.h> header file. */
 #define HAVE_SYS_TIME_H 0
 
+/* Define to 1 if you have the <time.h> header file. */
+#define HAVE_TIME_H 1
+
 /* Define to 1 if you have the <sys/utime.h> header file. */
 #define HAVE_SYS_UTIME_H 1
 
