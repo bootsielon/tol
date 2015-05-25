@@ -199,6 +199,7 @@ Real LoadConfig(Real void)
   //WriteLn("TRACE [LoadConfig] 4.1");
     Real SaveConfig(Default);
     NameBlock Config := Include(_.path)[1];
+    Text Config::Various::Language := Language;
     True
   },
   1==1,
@@ -207,7 +208,9 @@ Real LoadConfig(Real void)
     NameBlock Config := 
       MergeOptions(TolConfigManager::Default, { Include(lastPath)[1] },
      "TolConfigManager::Config::");
-    Real SaveConfig(Config)
+    Real SaveConfig(Config);
+    Text Config::Various::Language := Language;
+    True
   });
   Real Apply(?);
   True
