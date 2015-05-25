@@ -127,7 +127,16 @@ namespace eval ::project {
   ::TolConsole::ReadIni
   
   # Gives a name for the application
-  set prjtitle "TOLBase"
+  # tol platform selection
+  array set tol_platform [lindex [toltcl::eval {PlatformInfo(?)} -named 1] 1]
+  if {$tol_platform(CompilerID) eq "GNU"} {
+    set prjtitle "TOLBase (GNU)"
+  } elseif {$tol_platform(CompilerID) eq "MSVC"} {
+    set prjtitle "TOLBase (MSVC)"
+  } else {
+    set prjtitle "TOLBase"
+  }
+  
   if { [info exists projects(Project,title)] && $projects(Project,title) ne "" } {
     set prjtitle $projects(Project,title)
   }
@@ -143,6 +152,21 @@ namespace eval ::project {
 	pack $widgets(mainframe) -fill both -expand yes -side bottom
     pack $widgets(mainmdi) -fill both -expand yes -side bottom
 	bind . <Control-Tab> "[list $widgets(mainmdi) cicle]; break"
+
+    #(pgea) se adelanta para no ver el icono de TK intermedio
+    if { [string equal $tcl_platform(platform) "unix"] } {
+      wm iconbitmap . "@[file join $toltk_images_path tolbase-gnu-64.xbm]"
+    } else {
+      # tol platform selection
+      if {$tol_platform(CompilerID) eq "GNU"} {
+        wm iconbitmap . -default [file join $toltk_images_path tolbase-gnu.ico]
+      } elseif {$tol_platform(CompilerID) eq "MSVC"} {
+        wm iconbitmap . -default [file join $toltk_images_path tolbase-msvc.ico]
+      } else {
+        wm iconbitmap . -default [file join $toltk_images_path tolbase.ico]
+      }
+    }
+
 	::TolConsole::MainFrame $widgets(mainmdi) [TolConReq]
   #
   
@@ -155,11 +179,6 @@ namespace eval ::project {
   }
   $widgets(mainmenu) draw
 
-  if { [string equal $tcl_platform(platform) "unix"] } {
-    wm iconbitmap . "@[file join $toltk_images_path bayes.xbm]"
-  } else {
-    wm iconbitmap . -default [file join $toltk_images_path bayes.ico]
-  }
   if { [TolConReq] } {
     ::TolInspector::Busy
   }

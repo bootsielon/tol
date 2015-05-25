@@ -1318,7 +1318,15 @@ proc ::TolConsole::ApplyViewMode {{change 1}} {
   global toltk_library
   global GuiVersionInfo
 
-  set imgfile [file join $toltk_library toltk images splash.gif]
+  # tol platform selection
+  array set tol_platform [lindex [toltcl::eval {PlatformInfo(?)} -named 1] 1]
+  if {$tol_platform(CompilerID) eq "GNU"} {
+    set imgfile [file join $toltk_library toltk images splash-gnu.gif]
+  } elseif {$tol_platform(CompilerID) eq "MSVC"} {
+    set imgfile [file join $toltk_library toltk images splash-msvc.gif]
+  } else {
+    set imgfile [file join $toltk_library toltk images splash.gif]
+  }
   set img [image create photo -file $imgfile]
   toplevel $w
   wm title $w "[mc About] TOLBase"
