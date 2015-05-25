@@ -28,7 +28,17 @@ else ( WIN32 )
   ENDIF("${isSystemDir}" STREQUAL "-1")
 endif( WIN32 )
 
-add_executable( tolbase tolbase.c )
+set(RES_FILES "")
+if(MINGW)
+ set(RES_FILES "tolbase-gnu.rc")
+ set(CMAKE_RC_COMPILER_INIT windres)
+ ENABLE_LANGUAGE(RC)
+ SET(CMAKE_RC_COMPILE_OBJECT
+ "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>")
+endif(MINGW)
+
+add_executable( tolbase tolbase.c ${RES_FILES})
+
 target_link_libraries( tolbase ${TCL_LIBRARY} ${TK_LIBRARY} )
 
 message( STATUS "TOLBASE_DEST_DIR = ${TOLBASE_DEST_DIR}" )
