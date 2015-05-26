@@ -1,0 +1,5 @@
+# This file is configured at cmake time, and loaded at cpack time.
+# To pass variables to cpack from cmake, they must be configured
+# in this file.
+
+set( CMAKE_SOURCE_DIR "@CMAKE_SOURCE_DIR@" )
