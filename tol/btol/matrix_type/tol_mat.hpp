@@ -19,7 +19,7 @@
    USA.
  */
 
-#include "tol/config.h"
+#include <tol/config.h>
 
 #if HAVE_VALUES_H
 # include <values.h>
