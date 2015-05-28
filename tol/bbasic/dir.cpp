@@ -64,7 +64,9 @@
 #  include <sys/utime.h>
 #endif
 
+#if defined( WIN32 ) && defined( __GNUC__ )
 #include "boost/filesystem.hpp"
+#endif
 
 BTraceInit("dir.cpp");
 

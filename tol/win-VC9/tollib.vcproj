@@ -404,7 +404,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="toldll.cpp"
+				RelativePath="..\toldll.cpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
