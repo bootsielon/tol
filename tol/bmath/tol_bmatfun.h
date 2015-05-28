@@ -68,5 +68,8 @@ BDat Hh	   (BInt n, BDat z, BDat tol = TOL);
 BDat LogStirling (const BDat& x);
 BDat InvFactorial(const BDat& x);
 
+BInt GCD(const BInt& m, const BInt& n);
+BInt LCM(const BInt& m, const BInt& n);
+
 #endif	// TOL_BMATFUN_H
 

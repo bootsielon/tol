@@ -23,7 +23,7 @@
 #define TOL_BPOLYN_H 1
 
 #include <tol/tol_bmonome.h>
-#include <boost/math/common_factor_rt.hpp>
+#include <tol/tol_bmatfun.h>
 #include <limits>
 
 //--------------------------------------------------------------------
@@ -369,7 +369,7 @@ BInt BPolyn<Any>::Period() const
   for(i=1; i<s; i++)
   {
     deg = (*this)(i).Degree();
-    if(deg) { gcd = boost::math::gcd(gcd,deg); }
+    if(deg) { gcd = GCD(gcd,deg); }
   }
   return(gcd);
 }

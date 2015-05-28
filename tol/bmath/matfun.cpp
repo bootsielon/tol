@@ -30,6 +30,8 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sf_hyperg.h>
 
+#include <boost/math/common_factor_rt.hpp>
+
 #define LIMITFactorial	100
 
 //--------------------------------------------------------------------
@@ -995,4 +997,23 @@ BDat InvFactorial(const BDat& x)
     return((BInt)logStirling.NewtonSolve(Log(x),Log(x)).Value());
 };
 
+//--------------------------------------------------------------------
+BInt GCD(const BInt& a, const BInt& b)
+      
+/*! Returns the Greatest Common Divisor of two integers
+ */
+//--------------------------------------------------------------------
+{
+    return(boost::math::gcd(a, b));
+};
+
+//--------------------------------------------------------------------
+BInt LCM(const BInt& a, const BInt& b)
+      
+/*! Returns the Least Common Multiple of two integers
+ */
+//--------------------------------------------------------------------
+{
+    return(boost::math::lcm(a, b));
+};
 
