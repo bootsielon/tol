@@ -227,7 +227,7 @@ void TolTk_SetEnvironment( Tcl_Interp * interp, int * argc, char *** argv )
 
     Tcl_DStringInit(&ds1);
     pathv1[0] = ds.string;
-    pathv1[1] = "tcl";
+    pathv1[1] = "tcl8.4";
     Tcl_JoinPath(2, pathv1, &ds1);
     sys_res = setenv("TCL_LIBRARY", ds1.string, 1);
     Tcl_SetVar(interp, "tcl_library", ds1.string, TCL_GLOBAL_ONLY);
@@ -236,7 +236,7 @@ void TolTk_SetEnvironment( Tcl_Interp * interp, int * argc, char *** argv )
     /* set TK_LIBRARY */
     
     Tcl_DStringFree(&ds1);
-    pathv1[1] = "tk";
+    pathv1[1] = "tk8.4";
     Tcl_JoinPath(2, pathv1, &ds1);
     sys_res = setenv("TK_LIBRARY", ds1.string, 1);
     Tcl_SetVar(interp, "tk_library", ds1.string, TCL_GLOBAL_ONLY);
