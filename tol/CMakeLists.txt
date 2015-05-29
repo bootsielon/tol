@@ -249,34 +249,16 @@ endif( )
 
 include_directories( ${Boost_INCLUDE_DIRS} )
 
-find_package( R REQUIRED )
-if( R_COMMAND AND TRACE_COMPONENTS_FOUND )
-  message( STATUS "R FOUND at ${R_COMMAND}" )
-  message( STATUS "R_LIBRARY_BLAS = ${R_LIBRARY_BLAS}" )
-  message( STATUS "R_LIBRARY_LAPACK = ${R_LIBRARY_LAPACK}" )
-endif( )
-
-# BLAS & LAPACK configuration
-find_package( LAPACK QUIET )
-if( LAPACK_FOUND )
-message( "LAPACK FOUND ")
-else()
-message( "LAPACK NOT FOUND ")
+find_package( BLAS REQUIRED )
+if ( BLAS_FOUND AND TRACE_COMPONENTS_FOUND )
+  message( STATUS "BLAS_LIBRARIES = ${BLAS_LIBRARIES}")
 endif()
 
-if( NOT LAPACK_FOUND )
-  if( R_LIBRARY_LAPACK AND R_LIBRARY_BLAS )
-    set( BLAS_LIBRARIES ${R_LIBRARY_BLAS} CACHE PATH "" )
-    set( LAPACK_LIBRARIES "${R_LIBRARY_BLAS};${R_LIBRARY_LAPACK}" CACHE LIST "")
-	set( LAPACK_FOUND 1 CACHE INTERNAL "" )
-  else()
-    messsage( FATAL_ERROR "Could not find LAPACK library on your system or from R" )
-  endif( )
-endif( )
-
-  if( LAPACK_FOUND AND TRACE_COMPONENTS_FOUND )
-    message( "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}" )
-endif( )
+# BLAS & LAPACK configuration
+find_package( LAPACK REQUIRED )
+if( LAPACK_FOUND AND TRACE_COMPONENTS_FOUND )
+  message( STATUS "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}")
+endif()
 
 # ODBC configuration
 find_package( ODBC )
@@ -383,8 +365,9 @@ endif( WIN32 )
 target_link_libraries( tol 
   ${GSL_LIBRARY} ${CBLAS_LIBRARIES} ${CLAPACK_LIBRARIES}
   ${BZIP2_LIBRARIES} ${Boost_LIBRARIES}
-  ${LAPACK_LIBRARIES} ${FFTW_LIBRARIES} ${ZLIB_LIBRARIES}
-  ${ZIPARCHIVE_LIBRARY} ${CHOLMOD_LIBRARIES} ${LTDL_LIBRARIES} ${PLATFORM_LIBRARIES} )
+  ${FFTW_LIBRARIES} ${ZLIB_LIBRARIES}
+  ${ZIPARCHIVE_LIBRARY} ${CHOLMOD_LIBRARIES} ${LTDL_LIBRARIES}
+  ${PLATFORM_LIBRARIES} ${LAPACK_LIBRARIES} )
 
 add_executable( tolcon tol.cpp )
 target_link_libraries( tolcon tol )
