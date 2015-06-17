@@ -18,7 +18,7 @@ if( WIN32 )
   install( DIRECTORY ${lib_dir} DESTINATION "." PATTERN "*.a" EXCLUDE )
   file( TO_CMAKE_PATH "${TOL_RUNTIME_DIR}/bin/stdlib" stdlib_dir )
   install( DIRECTORY ${stdlib_dir} DESTINATION "bin" )
-  file( TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/tolbase-gnu.ico" ico_tolbase )
+  file( TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/tolbase/lib/toltk/images/tolbase-gnu.ico" ico_tolbase )
   install( FILES ${ico_tolbase} DESTINATION "bin" )
 endif( WIN32 )
 
@@ -38,26 +38,26 @@ set(CPACK_PACKAGE_INSTALL_DIRECTORY "tolbase")
 set(CPACK_PROPERTIES_FILE "${PROJECT_BINARY_DIR}/CPackOptions.cmake")
 set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/tolbase/lib/toltk/images/splash-gnu.gif")
 string(REPLACE "/" "\\\\" CPACK_PACKAGE_ICON ${CPACK_PACKAGE_ICON})
-set( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/tol/COPYING" )
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/tol/COPYING" )
 string(REPLACE "/" "\\\\" CPACK_RESOURCE_FILE_LICENSE ${CPACK_RESOURCE_FILE_LICENSE})
-set(CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/tolbase/lib/toltk/images/tolbase-gnu.ico" )
+set(CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/NSIS/tolbase-install.ico" )
 string(REPLACE "/" "\\\\" CPACK_NSIS_MUI_ICON ${CPACK_NSIS_MUI_ICON})
-set(CPACK_NSIS_MUI_UNIICON "${CMAKE_SOURCE_DIR}/tolbase/lib/toltk/images/tolbase-gnu.ico" )
+set(CPACK_NSIS_MUI_UNIICON "${CMAKE_SOURCE_DIR}/NSIS/tolbase-uninstall.ico" )
 string(REPLACE "/" "\\\\" CPACK_NSIS_MUI_UNIICON ${CPACK_NSIS_MUI_UNIICON})
 
 # http://www.mantidproject.org/NSIS_CPACK_Customisations
 # http://nsis.sourceforge.net/Environmental_Variables:_append,_prepend,_and_remove_entries
 
 if( WIN32 )
-  set (CPACK_NSIS_EXTRA_INSTALL_COMMANDS 
-    "
+  set (CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
     Push \\\"TOLGNU_ROOT\\\"
     Push \\\"A\\\"
     Push \\\"HKCU\\\"
     Push \\\"$INSTDIR\\\"
     Call EnvVarUpdate
     Pop  \\\$0" )  
-  set (CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Push \\\"TOLGNU_ROOT\\\"
+  set (CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
+    Push \\\"TOLGNU_ROOT\\\"
     Push \\\"R\\\"
     Push \\\"HKCU\\\"
     Push \\\"$INSTDIR\\\"
