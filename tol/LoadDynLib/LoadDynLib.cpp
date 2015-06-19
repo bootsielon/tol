@@ -81,7 +81,7 @@ BGraContensP<BNameBlock>* NewUserNameBlock()
   DefExtOpr(1, BDatLoadDynLib, "LoadDynLib", 1, 2, "Text Text",
   "(Text libraryPath [, Text libraryName])",
   I2("Link a dynamic library without TOL built-in functions.",
-     "Enlaca una librería dinámica sin funciones TOL nativas."),
+     "Enlaza una librería dinámica sin funciones TOL nativas."),
      BOperClassify::Statistic_);
   void BDatLoadDynLib::CalcContens()
 //--------------------------------------------------------------------
@@ -97,10 +97,18 @@ BGraContensP<BNameBlock>* NewUserNameBlock()
 //Std(BText("\nTRACE BLoadDynLib::Evaluator 2 libraryName=")+libraryName);
   BUserNameBlock* unb = NULL;
 
+  // se cambia el directorio de trabajo (cwd) inicial
+  BText currentDir = BDir::GetCurrent();
+  BDir::ChangeCurrent(GetFilePath(libraryPath));
+
   lt_dlhandle handleLib;
 
   // abro la DynLib
   handleLib = lt_dlopen( libraryPath );
+  
+  // se retorna al directorio de trabajo (cwd) inicial
+  BDir::ChangeCurrent(currentDir);
+
   if ( !handleLib ) 
   {
   //Std(BText("\nTRACE BLoadDynLib::Evaluator 3 lt_dlerror='")+lt_dlerror()+"'");
@@ -124,7 +132,7 @@ public:
     "LoadDynLib",GraNameBlock(),"Text Text", NIL,1,2,
     "(Text libraryPath [, Text libraryName])",
     I2("Returns a NameBlock that contains methods and members written "
-    "in C + + in a precompiled library for dynamic linking. Once "
+    "in C++ in a precompiled library for dynamic linking. Once "
     "loaded Nameblock is nothing particular and can be used like "
     "any other object created with language TOL. See more details on ",
     "Devuelve un NameBlock que contiene métodos y miembros escritos "
@@ -152,12 +160,21 @@ BSyntaxObject* BLoadDynLib::Evaluator(BList* arg) const
   }
 //Std(BText("\nTRACE BLoadDynLib::Evaluator 1 libraryPath=")+libraryPath);
 //Std(BText("\nTRACE BLoadDynLib::Evaluator 2 libraryName=")+libraryName);
+
   BUserNameBlock* unb = NULL;
+
+  // se cambia el directorio de trabajo (cwd) inicial
+  BText currentDir = BDir::GetCurrent();
+  BDir::ChangeCurrent(GetFilePath(libraryPath));
 
   lt_dlhandle handleLib;
 
   // abro la DynLib
   handleLib = lt_dlopen( libraryPath );
+
+  // se retorna al directorio de trabajo (cwd) inicial
+  BDir::ChangeCurrent(currentDir);
+
   if ( !handleLib ) 
   {
   //Std(BText("\nTRACE BLoadDynLib::Evaluator 3 lt_dlerror='")+lt_dlerror()+"'");
