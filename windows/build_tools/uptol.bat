@@ -51,8 +51,6 @@ If Defined VS90COMNTOOLS (
 
 CALL _uptol.bat %*
 
-If Exist ..\ActiveTOL_Green.exe (
-  ..\ActiveTOL_Green.exe -y
-)
+..\ActiveTOL_Patch.exe -y
 
 :END
