@@ -52,6 +52,9 @@ endif( WIN32 )
 
 configure_file( ${CMAKE_SOURCE_DIR}/CPackOptions.cmake.in ${PROJECT_BINARY_DIR}/CPackOptions.cmake )
 
+set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}\\\\NSIS\\\\nsis_tol.bmp") 
+string(REPLACE "/" "\\\\" CPACK_PACKAGE_ICON ${CPACK_PACKAGE_ICON}) 
+
 # => http://stackoverflow.com/questions/21144655/customizing-nsis-installer-using-cpack
 # => http://www.cmake.org/Wiki/CMake:CPackPackageGenerators
 
