@@ -1,5 +1,6 @@
 /* */
 // Name, Require 
-[[ "StdLib", 1 ]]
+[[ "StdLib", 1 ]],
+[[ "TclCore", 0 ]]
 
 
