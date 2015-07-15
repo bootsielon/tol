@@ -1,5 +1,5 @@
 Text tolSourcePath = "../../../tol";
-Text googleSourcePath = "../../tol-contrib/google/sparsehash-0.6/src/google";
+Text googleSourcePath = "../../tol-contrib/google/sparsehash-1.8.1/src/google";
 Text cintSourcePath = "../../tol-contrib/cint/inc";
 
 Text libPath = "../../../tol/win-VC9/release";

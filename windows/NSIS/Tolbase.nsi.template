@@ -3,8 +3,9 @@
 ; HM NIS Edit Wizard helper defines
 !define APP_VERSION "##APP_VERSION##"
 !define APP_RELEASE "##APP_RELEASE##"
-!define APP_NAME "tolbase"
-!define APP_NAMEV "tolbase-${APP_VERSION}"
+!define APP_NAME "TOL (MSVC)"
+!define APP_NAMEV "tol-msvc-v${APP_VERSION}"
+!define APP_DISPLAY_NAME "${APP_NAME} ${APP_VERSION}"
 !define APP_PUBLISHER "Tol-Project"
 !define APP_WEB_SITE "http://www.tol-project.org"
 !define APP_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\${APP_NAMEV}"
@@ -18,8 +19,8 @@
 
 ; MUI Settings
 !define MUI_ABORTWARNING
-!define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
-!define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
+!define MUI_ICON "..\..\NSIS\tolbase-install.ico"
+!define MUI_UNICON "..\..\NSIS\tolbase-uninstall.ico"
 
 ; Language Selection Dialog Settings
 !define MUI_LANGDLL_REGISTRY_ROOT "${APP_UNINST_ROOT_KEY}"
@@ -29,7 +30,7 @@
 ; Welcome page
 !insertmacro MUI_PAGE_WELCOME
 ; License page
-;!insertmacro MUI_PAGE_LICENSE "..\..\..\..\ruta\ala\licencia\TuLicenciaDeSoftware.txt"
+!insertmacro MUI_PAGE_LICENSE "..\..\tol\COPYING"
 ; Directory page
 !insertmacro MUI_PAGE_DIRECTORY
 ; Instfiles page
@@ -53,14 +54,14 @@
 
 ; MUI end ------
 
-Name "${APP_NAME} ${APP_VERSION}"
-OutFile "${APP_NAMEV}-setup.exe"
+Name "${APP_DISPLAY_NAME}"
+OutFile "${APP_NAMEV}-win32.exe"
 InstallDir "$PROGRAMFILES\${APP_PUBLISHER}\${APP_NAMEV}"
 InstallDirRegKey HKLM "${APP_DIR_REGKEY}" ""
 ShowInstDetails show
 ShowUnInstDetails show
 
-Function .onIniti
+Function .onInit
   !insertmacro MUI_LANGDLL_DISPLAY
 FunctionEnd
 
@@ -69,26 +70,21 @@ Section "Principal" SEC01
   
   ##CreateDirAndFiles##
 
-  CreateDirectory "$SMPROGRAMS\${APP_NAMEV}"
-  CreateShortCut "$INSTDIR\bin\tolbase.lnk" "$INSTDIR\bin\tolbase.exe"
-  CreateShortCut "$SMPROGRAMS\${APP_NAMEV}\Tolbase.lnk" "$INSTDIR\bin\tolbase.exe"
-  CreateShortCut "$DESKTOP\${APP_NAMEV}.lnk" "$INSTDIR\bin\tolbase.exe"
-  
-SectionEnd
+  SetShellVarContext all
 
-Section -AdditionalIcons
-  SetOutPath $INSTDIR
-  WriteIniStr "$INSTDIR\${APP_NAME}.url" "InternetShortcut" "URL" "${APP_WEB_SITE}"
-  CreateShortCut "$SMPROGRAMS\${APP_NAMEV}\Website.lnk" "$INSTDIR\${APP_NAME}.url"
-  CreateShortCut "$SMPROGRAMS\${APP_NAMEV}\Uninstall.lnk" "$INSTDIR\uninst.exe"
+  CreateDirectory "$SMPROGRAMS\${APP_DISPLAY_NAME}"
+  CreateShortCut "$SMPROGRAMS\${APP_DISPLAY_NAME}\tolbase-msvc-v3.2.lnk" "$INSTDIR\bin\tolbase.exe"
+  WriteINIStr "$SMPROGRAMS\${APP_DISPLAY_NAME}\Tol-Project Site.url" "InternetShortcut" "URL" "${APP_WEB_SITE}"
+  CreateShortCut "$SMPROGRAMS\${APP_DISPLAY_NAME}\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
+
 SectionEnd
 
 Section -Post
-  WriteUninstaller "$INSTDIR\uninst.exe"
+  WriteUninstaller "$INSTDIR\Uninstall.exe"
   WriteRegStr HKLM "${APP_DIR_REGKEY}" "" "$INSTDIR"
   WriteRegStr ${APP_UNINST_ROOT_KEY} "${APP_UNINST_KEY}" "DisplayName" "$(^Name)"
-  WriteRegStr ${APP_UNINST_ROOT_KEY} "${APP_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
-  WriteRegStr ${APP_UNINST_ROOT_KEY} "${APP_UNINST_KEY}" "DisplayIcon" "$INSTDIR\bin\tol.exe"
+  WriteRegStr ${APP_UNINST_ROOT_KEY} "${APP_UNINST_KEY}" "UninstallString" "$INSTDIR\Uninstall.exe"
+  WriteRegStr ${APP_UNINST_ROOT_KEY} "${APP_UNINST_KEY}" "DisplayIcon" "$INSTDIR\lib\toltk\images\tolbase-msvc.ico"
   WriteRegStr ${APP_UNINST_ROOT_KEY} "${APP_UNINST_KEY}" "DisplayVersion" "${APP_RELEASE}"
   WriteRegStr ${APP_UNINST_ROOT_KEY} "${APP_UNINST_KEY}" "URLInfoAbout" "${APP_WEB_SITE}"
   WriteRegStr ${APP_UNINST_ROOT_KEY} "${APP_UNINST_KEY}" "Publisher" "${APP_PUBLISHER}"
@@ -107,14 +103,22 @@ Function un.onInit
 FunctionEnd
 
 Section Uninstall
-  Delete "$INSTDIR\${APP_NAME}.url"
-  Delete "$INSTDIR\uninst.exe"
+  Delete "$INSTDIR\Uninstall.exe"
+  Delete "$INSTDIR\bin\stdlib\tol_release_check.tol"
 
   ##DeleteDirAndFiles##
   
   RMDir "$INSTDir"
 
+  SetShellVarContext all
+
+  Delete "$SMPROGRAMS\${APP_DISPLAY_NAME}\Uninstall.lnk"
+  Delete "$SMPROGRAMS\${APP_DISPLAY_NAME}\tolbase-msvc-v3.2.lnk"
+  Delete "$SMPROGRAMS\${APP_DISPLAY_NAME}\Tol-Project Site.url"
+  RMDir "$SMPROGRAMS\${APP_DISPLAY_NAME}"
+
   DeleteRegKey ${APP_UNINST_ROOT_KEY} "${APP_UNINST_KEY}"
   DeleteRegKey HKLM "${APP_DIR_REGKEY}"
+
   SetAutoClose true
 SectionEnd
