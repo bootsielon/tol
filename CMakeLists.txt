@@ -1,11 +1,11 @@
-cmake_minimum_required( VERSION 2.8 )
-project( TOL-Installer )
+cmake_minimum_required(VERSION 2.8)
+project(TOL-Installer)
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/NSIS" ${CMAKE_MODULE_PATH})
 
-if( NOT TOL_RUNTIME_DIR )
-  message( FATAL_ERROR "You must specify the variable TOL_RUNTIME_DIR with the path to binary instalation of TOL. TOLTCL and TOLBASE should also be installed on that location." )
-endif( NOT TOL_RUNTIME_DIR )
+if(NOT TOL_RUNTIME_DIR)
+  message(FATAL_ERROR "You must specify the variable TOL_RUNTIME_DIR with the path to binary instalation of TOL. TOLTCL and TOLBASE should also be installed on that location.")
+endif(NOT TOL_RUNTIME_DIR)
 
 # => http://www.cmake.org/Wiki/CMake:Component_Install_With_CPack
 
@@ -41,32 +41,33 @@ if( WIN32 )
   set(CPACK_COMPONENT_APPLICATION_REQUIRED 1)
   set(CPACK_COMPONENT_DEVELOPMENT_DISABLED 1)
 
-  set(CPACK_COMPONENT_APPLICATION_DISPLAY_NAME "TOL-GNU Application")
+  set(CPACK_COMPONENT_APPLICATION_DISPLAY_NAME "TOL Application")
   set(CPACK_COMPONENT_DEVELOPMENT_DISPLAY_NAME "C++ Headers & Libraries")
 
   set(CPACK_COMPONENT_APPLICATION_DESCRIPTION 
-    "Main components of TOL-GNU Application")
+    "Main components of TOL Application")
   set(CPACK_COMPONENT_DEVELOPMENT_DESCRIPTION
     "C/C++ header files and libraries for development purposes")
 endif( WIN32 )
 
 configure_file( ${CMAKE_SOURCE_DIR}/CPackOptions.cmake.in ${PROJECT_BINARY_DIR}/CPackOptions.cmake )
 
-set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}\\\\NSIS\\\\nsis_tol.bmp") 
+set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/NSIS/nsis_tol.bmp") 
 string(REPLACE "/" "\\\\" CPACK_PACKAGE_ICON ${CPACK_PACKAGE_ICON}) 
 
 # => http://stackoverflow.com/questions/21144655/customizing-nsis-installer-using-cpack
 # => http://www.cmake.org/Wiki/CMake:CPackPackageGenerators
 
-set(CPACK_PACKAGE_NAME "TOL-GNU")
+set(CPACK_PACKAGE_NAME "TOL (GNU)")
 set(CPACK_PACKAGE_VENDOR "Tol-Project")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Time Oriented Language")
 set(CPACK_PACKAGE_VERSION_MAJOR "3")
 set(CPACK_PACKAGE_VERSION_MINOR "2")
 set(CPACK_PACKAGE_VERSION_PATCH "0")
 set(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}")
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "${CPACK_PACKAGE_VENDOR}\\\\${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}")
-set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "${CPACK_PACKAGE_VENDOR}\\\\${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}")
+set(CPACK_PACKAGE_NAMEV "tol-gnu-v${CPACK_PACKAGE_VERSION}")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "${CPACK_PACKAGE_VENDOR}\\\\${CPACK_PACKAGE_NAMEV}")
+set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "${CPACK_PACKAGE_NAMEV}")
 
 set(CPACK_PROPERTIES_FILE "${PROJECT_BINARY_DIR}/CPackOptions.cmake")
 
@@ -84,11 +85,11 @@ set(CPACK_NSIS_HELP_LINK "www.tol-project.org")
 
 # => http://www.cmake.org/Wiki/CMake:CPackNSISAdvancedTips
 
-if( WIN32 )
+if(WIN32)
   # nombre del paquete en el instalador
   set(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_NAME} ${CPACK_PACKAGE_VERSION}")
   # nombre del instalador:
-  set(CPACK_PACKAGE_FILE_NAME "tol-gnu-${CPACK_PACKAGE_VERSION}-win32")
+  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAMEV}-win32")
 
   set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
     DeleteRegValue HKCU \\\"Environment\\\" TOLGNU_ROOT
@@ -101,16 +102,16 @@ if( WIN32 )
   ") 
 
   # añade el icono en el panel para desinstalar programas
-  set(CPACK_NSIS_INSTALLED_ICON_NAME "${INSTDIR}/lib/TolbaseApp3.2/toltk/images/tolbase-gnu.ico")
+  set(CPACK_NSIS_INSTALLED_ICON_NAME "${INSTDIR}/lib/TolbaseApp${CPACK_PACKAGE_VERSION}/toltk/images/tolbase-gnu.ico")
     string(REPLACE "/" "\\\\" CPACK_NSIS_INSTALLED_ICON_NAME ${CPACK_NSIS_INSTALLED_ICON_NAME})
 
   # pregunta tras instalar si abrir tolbase
   set(CPACK_NSIS_MUI_FINISHPAGE_RUN "tolbase.exe")
 
   # crea acceso directos a estos ejecutables (pares nombre_archivo nombre_acceso)
-  set(CPACK_PACKAGE_EXECUTABLES tolbase "tolbase-gnu-v3.2")
+  set(CPACK_PACKAGE_EXECUTABLES tolbase "tolbase-gnu-v${CPACK_PACKAGE_VERSION}")
   # crea otros accesos directos
   set(CPACK_NSIS_MENU_LINKS "http://www.tol-project.org" "Tol-Project Site")
-endif( WIN32 )
+endif(WIN32)
 
 include(CPack)
