@@ -33,12 +33,6 @@
 #pragma pack(4)
 typedef hash_map_by_BIntPair<double>::sparse_ BHashDoubleByIntPair;
 typedef hash_map_by_BIntPair<bool>::sparse_ BHashBoolByIntPair;
-
-BEGIN_DECLS
-#include <cblas.h>
-#include <clapack.h>
-END_DECLS
-
         
 #define DefineMonary(FUN,fun,f00,NAME)                                         \
 int BVMat::FUN(const BVMat& A, BVMat& B)                                       \

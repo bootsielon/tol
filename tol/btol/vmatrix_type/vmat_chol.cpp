@@ -25,6 +25,10 @@
 
 #include <tol/tol_bvmat_impl.h>
 
+BEGIN_DECLS
+#include <cblas.h>
+#include <clapack.h>
+END_DECLS
 
 ////////////////////////////////////////////////////////////////////////////////
   void BVMat::bRd_choFac_X(const BVMat& X, BVMat& L,

@@ -26,6 +26,9 @@
 #include <tol/tol_bpolyn.h>
 #include <tol/tol_bratio.h>
 
+BEGIN_DECLS
+#include <cblas.h>
+END_DECLS
 
 ////////////////////////////////////////////////////////////////////////////////
 //Matrix algebra operators
