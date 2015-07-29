@@ -67,7 +67,7 @@ int dpotrf(const enum CBLAS_UPLO Uplo,
   if(!X.GetData().Size()) { return(0); } 
   int n = S.Columns();
   double* X_ = X.GetData().GetBuffer();
-  int res = clapack_dpotrf(int(CblasRowMajor), LAPACK_UPLO(Uplo), n, X_, n);
+  int res = clapack_dpotrf( CblasRowMajor, LAPACK_UPLO(Uplo), n, X_, n );
   replicateTriang(X,Uplo,false);
   return(res);
 };
@@ -102,7 +102,7 @@ int dpotri(const enum CBLAS_UPLO Uplo,
   if(!X.GetData().Size()) { return(0); } 
   int n = A.Columns();
   double* X_ = X.GetData().GetBuffer();
-  int res = clapack_dpotri( int(CblasRowMajor), LAPACK_UPLO(Uplo), n, X_, n);
+  int res = clapack_dpotri( CblasRowMajor, LAPACK_UPLO(Uplo), n, X_, n );
   replicateTriang(X,Uplo,true);
   return(res);
 };

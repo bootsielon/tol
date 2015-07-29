@@ -38,7 +38,7 @@
   L.BlasRDense(n,n);
   double* x = (double*)L.s_.blasRdense_->x;
   memcpy(x, y, n*n*sizeof(double));
-  res = clapack_dpotrf(CblasColMajor, LAPACK_UPLO(CblasLower), n, x, n);
+  res = clapack_dpotrf( CblasColMajor, LAPACK_UPLO(CblasLower), n, x, n );
   for(i=0; i<n; i++) for(j=i+1; j<n; j++) x[j*n+i] = 0;
   isOk = (res==0);
   isNotPosDef = (res>0);

@@ -31,12 +31,14 @@
 #include <lapacke.h>
 #undef I
 #define LAPACK_UPLO(UpLo) (UpLo==CblasLower?'L':'U')
+#define LAPACK_ORDER(Order) (int)(order)
 #define clapack_dpotrf LAPACKE_dpotrf
 #define clapack_dpotri LAPACKE_dpotri
 #else
 BEGIN_DECLS
 #include <clapack.h>
 #define LAPACK_UPLO(UpLo) UpLo
+#define LAPACK_ORDER(Order) Order
 END_DECLS
 #endif
 
