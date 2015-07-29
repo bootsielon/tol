@@ -24,6 +24,21 @@
 
 #include <tol/tol_blas.h>
 
+#ifdef HAVE_LAPACKE_H
+//#include <complex>
+//#define lapack_complex_float std::complex<float>
+//#define lapack_complex_double std::complex<double>
+#include <lapacke.h>
+#undef I
+#define LAPACK_UPLO(UpLo) (UpLo==CblasLower?'L':'U')
+#define clapack_dpotrf LAPACKE_dpotrf
+#define clapack_dpotri LAPACKE_dpotri
+#else
+BEGIN_DECLS
+#include <clapack.h>
+#define LAPACK_UPLO(UpLo) UpLo
+END_DECLS
+#endif
 
 /////////////////////////////////////////////////////////////////////////////
 namespace TolLapack {

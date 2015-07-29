@@ -410,8 +410,8 @@ int ComplexRootCmp(const void* v1, const void* v2)
  */
 //--------------------------------------------------------------------
 {
-  complex& z1 = *((complex*)v1);
-  complex& z2 = *((complex*)v2);
+  tcomplex& z1 = *((tcomplex*)v1);
+  tcomplex& z2 = *((tcomplex*)v2);
   double z1m = z1.x*z1.x+z1.y*z1.y;
   double z2m = z2.x*z2.x+z2.y*z2.y;
   if(z1m < z2m) { return(-1); }
@@ -426,7 +426,7 @@ int ComplexRootCmp(const void* v1, const void* v2)
 //--------------------------------------------------------------------
   void tol_gsl_poly_complex_solve(
     const BPolyn<BDat>& pol, 
-    BArray<complex>& row)
+    BArray<tcomplex>& row)
 //--------------------------------------------------------------------
 {
   int gcd = pol.Period();
@@ -458,7 +458,7 @@ int ComplexRootCmp(const void* v1, const void* v2)
     BArray<BComplex>& row)
 //--------------------------------------------------------------------
 {
-  BArray<complex> row_;
+  BArray<tcomplex> row_;
   tol_gsl_poly_complex_solve(pol, row_);
   int n = row_.Size();
   row.AllocBuffer(n);

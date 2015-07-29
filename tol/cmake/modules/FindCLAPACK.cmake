@@ -22,16 +22,20 @@
 # USA.
 #
 
-find_library( CLAPACK_LIBRARY NAMES clapack 
+if( NOT CLAPACK_NAME )
+  set( CLAPACK_NAME clapack )
+endif( NOT CLAPACK_NAME )
+
+find_library( CLAPACK_LIBRARY NAMES ${CLAPACK_NAME}
   HINTS ${CLAPACK_DIR}/lib ${CLAPACK_DIR}/lib64 
   PATH_SUFFIXES "atlas" "atlas-sse2" )
 
 set(CLAPACK_LIBRARIES ${CLAPACK_LIBRARY} )
 
 find_path( CLAPACK_INCLUDE_DIR
-  NAMES "clapack.h" 
+  NAMES "${CLAPACK_NAME}.h" 
   PATHS ${CLAPACK_DIR}
-  PATH_SUFFIXES "include" )
+  PATH_SUFFIXES "include" "include/${CLAPACK_NAME}")
 
 
 include( FindPackageHandleStandardArgs )
@@ -42,7 +46,7 @@ find_package_handle_standard_args(CLAPACK DEFAULT_MSG CLAPACK_LIBRARY CLAPACK_IN
 
 if ( CLAPACK_FOUND )
   include( CheckLibraryExists )
-  check_library_exists( "${CLAPACK_LIBRARY}" clapack_dpotrf "" FOUND_CLAPACK_DPOTRF )
+  check_library_exists( "${CLAPACK_LIBRARY}" ${CLAPACK_NAME}_dpotrf "" FOUND_CLAPACK_DPOTRF )
   if( NOT FOUND_CLAPACK_DPOTRF )
     message( FATAL_ERROR "Could not find cblas_dtrsm in ${CLAPACK_LIBRARY}, take a look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. You most likely have to set CLAPACK_LIBRARY by hand (i.e. -DLAPACK_LIBRARY='/path/to/libclapack.so') !" )
   endif( NOT FOUND_CLAPACK_DPOTRF )

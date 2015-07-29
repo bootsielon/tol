@@ -7592,7 +7592,7 @@ void BMat_gsl_poly_complex_solve::CalcContens()
   int n = pol.Degree();
   contens_.Alloc(n,2);
   double* z = (double*)contens_.GetData().GetBuffer();
-  BArray<complex> row;
+  BArray<tcomplex> row;
   tol_gsl_poly_complex_solve(pol,row);
   memcpy(z,row.Buffer(),sizeof(double)*n*2);
 }

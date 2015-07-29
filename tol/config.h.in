@@ -15,6 +15,7 @@
 #cmakedefine HAVE_VALUES_H 1
 #cmakedefine HAVE_VARARGS_H 1
 #cmakedefine HAVE_CBLAS_H 1
+#cmakedefine HAVE_LAPACKE_H 1
 
 #cmakedefine HAVE_ROUND
 

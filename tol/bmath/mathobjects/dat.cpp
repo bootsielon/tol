@@ -1288,4 +1288,3 @@ BText Name (const BArray<BDat>& arr)
   for(BInt i=0; i<arr.Size(); i++) { txt += arr[i]; txt += "\n"; }
   return(txt);
 }
-

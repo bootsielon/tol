@@ -30,7 +30,7 @@
 //--------------------------------------------------------------------
 #define Ci BComplex::I()
 
-struct complex
+struct tcomplex
 {
   double x;
   double y;
@@ -71,7 +71,7 @@ public:
   {
   //ToRA();
   }
-  BComplex(complex z) : x_(z.x), y_(z.y), xr_(2)
+  BComplex(tcomplex z) : x_(z.x), y_(z.y), xr_(2)
   {
   //ToRA();
   }
@@ -207,7 +207,7 @@ int ComplexRootCmp(const void* v1, const void* v2);
 
 void tol_gsl_poly_complex_solve(
   const BPolyn<BDat>& pol, 
-  BArray<complex>& row);
+  BArray<tcomplex>& row);
 
 void tol_gsl_poly_complex_solve(
   const BPolyn<BDat>& pol, 
