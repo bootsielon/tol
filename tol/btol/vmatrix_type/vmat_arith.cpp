@@ -26,9 +26,13 @@
 #include <tol/tol_bpolyn.h>
 #include <tol/tol_bratio.h>
 
+#if defined( HAVE_CBLAS_H )
 BEGIN_DECLS
 #include <cblas.h>
 END_DECLS
+#else
+#include <gsl/gsl_cblas.h>
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 //Matrix algebra operators
