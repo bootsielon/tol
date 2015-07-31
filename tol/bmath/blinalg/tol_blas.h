@@ -28,7 +28,7 @@ BEGIN_DECLS
 #if defined( HAVE_CBLAS_H )
 #include "cblas.h"
 #else
-#include "gsl_cblas.h"
+#include "gsl/gsl_cblas.h"
 #endif
 END_DECLS
 
