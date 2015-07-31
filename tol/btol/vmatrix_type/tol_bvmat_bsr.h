@@ -165,7 +165,7 @@ struct missing_info
       "\n  index="+index+", "+
       "\n  row="+row+", "+
       "\n  col="+col+", "+
-      "\n  prior="+(int)prior.c_str()+", "+
+      "\n  prior="+prior.c_str()+", "+
       "\n  nu="+nu+", "+
       "\n  sigma2="+sigma2+", "+
       "\n  minBound="+minBound+", "+
