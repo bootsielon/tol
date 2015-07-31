@@ -23,6 +23,8 @@
 #include <win_tolinc.h>
 #endif
 
+#include <stdint.h>
+
 #include <tol/tol_bdatgra.h>
 #include <tol/tol_init.h>
 #include <tol/tol_bout.h>
@@ -702,7 +704,8 @@ void BDatPutCSerDat::CalcContens()
 //--------------------------------------------------------------------
 {
   if(CheckNonDeclarativeAction("ShellExecute")) { return; }
-  contens_ = (BInt)ShellExecute
+  
+  HINSTANCE hi = ShellExecute
   (
     0,			   // handle to parent window
     Text(Arg(2)).String(), // string that specifies operation to perform
@@ -711,6 +714,8 @@ void BDatPutCSerDat::CalcContens()
     NIL,		   // string that specifies default directory
     SW_SHOWNORMAL	       // whether file is shown when opened
   );
+  uintptr_t i  = reinterpret_cast<uintptr_t>(hi);
+  contens_ = i;
 }
 
 #define ShwMd(a,b) BText("\n\n	  ")+BInt(a)+"\t: "+b
