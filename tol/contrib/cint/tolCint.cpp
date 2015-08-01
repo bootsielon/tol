@@ -405,6 +405,7 @@ int Cint_initialize_tol_variables()
   return(linked);
 }
 
+#ifdef COMPILE_CINT_FUNCTIONS
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatCint_SetCINTSYSDIR);
   DefExtOpr(1, BDatCint_SetCINTSYSDIR, "Cint.SetCINTSYSDIR", 1, 1, "Text",
@@ -762,3 +763,4 @@ int Cint_initialize_tol_variables()
   }
 }
 
+#endif

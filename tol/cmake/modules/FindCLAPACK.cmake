@@ -48,7 +48,7 @@ if ( CLAPACK_FOUND )
   include( CheckLibraryExists )
   check_library_exists( "${CLAPACK_LIBRARY}" ${CLAPACK_NAME}_dpotrf "" FOUND_CLAPACK_DPOTRF )
   if( NOT FOUND_CLAPACK_DPOTRF )
-    message( FATAL_ERROR "Could not find cblas_dtrsm in ${CLAPACK_LIBRARY}, take a look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. You most likely have to set CLAPACK_LIBRARY by hand (i.e. -DLAPACK_LIBRARY='/path/to/libclapack.so') !" )
+    message( WARNING "Could not find cblas_dtrsm in ${CLAPACK_LIBRARY}, take a look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. You most likely have to set CLAPACK_LIBRARY by hand (i.e. -DLAPACK_LIBRARY='/path/to/libclapack.so') !" )
   endif( NOT FOUND_CLAPACK_DPOTRF )
 endif( CLAPACK_FOUND )
 
