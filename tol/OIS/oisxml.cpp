@@ -44,7 +44,7 @@ BTraceInit("oisxml.cpp");
   header_->Print("<header>\n");
 
   header_->Print("<xmlParam>\n");
-  header_->Print("<maxXmlStrLen>%ld</maxXmlStrLen>\n",            xmlParam_.maxXmlStrLen_);
+  header_->Print("<maxXmlStrLen>%d</maxXmlStrLen>\n",            xmlParam_.maxXmlStrLen_);
   header_->Print("</xmlParam>\n");
 
   header_->Print("<control>\n");
@@ -114,11 +114,11 @@ BTraceInit("oisxml.cpp");
   header_->Print("</compression>\n");
 
   header_->Print("<tolSourceSearchPaths>\n");
-  header_->Print("<entries>%ld</entries>\n", options_.tolSourceSearchPaths_.Size());
+  header_->Print("<entries>%d</entries>\n", options_.tolSourceSearchPaths_.Size());
   for(n=0; n<options_.tolSourceSearchPaths_.Size(); n++)
   {
     options_.tolSourceSearchPaths_[n].value_ = GetStandardAbsolutePath(options_.tolSourceSearchPaths_[n].value_);
-    header_->Print("<root_%ld><alias>%s</alias><path>%s</path></root_%ld>\n", 
+    header_->Print("<root_%d><alias>%s</alias><path>%s</path></root_%d>\n", 
             n+1,
             options_.tolSourceSearchPaths_[n].alias_.String(),
             options_.tolSourceSearchPaths_[n].value_.String(),
@@ -168,7 +168,7 @@ BTraceInit("oisxml.cpp");
       {
         value += Text(tolEnvironment_[n]);
       }
-      header_->Print("<var_%ld><type>%s</type><name>%s</name><value>%s</value></var_%ld>\n", 
+      header_->Print("<var_%d><type>%s</type><name>%s</name><value>%s</value></var_%d>\n", 
               n+1,
               tolEnvironment_[n]->Grammar()->Name().String(), 
               tolEnvironment_[n]->Name().String(),
@@ -213,7 +213,7 @@ BTraceInit("oisxml.cpp");
           break;
         }
       }
-      header_->Print("<file_%ld><path>%s</path><release>%s</release><size>%"_LLD64_"</size></file_%ld>\n", 
+      header_->Print("<file_%d><path>%s</path><release>%s</release><size>%"_LLD64_"</size></file_%d>\n", 
                      n+1,
                      path.String(), 
                      dateFmt_.DateToText(fileTime).String(),
@@ -228,7 +228,7 @@ BTraceInit("oisxml.cpp");
   for(n=0; n<packages_.Size(); n++)
   {
     BText name = packages_[n];
-    header_->Print("<package_%ld>%s</package_%ld>\n", 
+    header_->Print("<package_%d>%s</package_%d>\n", 
                    n+1,
                    name.String(), 
                    n+1);

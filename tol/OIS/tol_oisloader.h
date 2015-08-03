@@ -101,6 +101,17 @@ public:
   bool Read(unsigned int&     x, BStream* stream);
   bool Read(         BINT64&  x, BStream* stream);
   bool Read(unsigned BINT64&  x, BStream* stream);
+  // REVIEW: for compatibility size_t will be written/read as 4 bytes
+  bool Read(size_t &     x, BStream* stream)
+  {
+    unsigned int _x;
+    bool ok = this->Read( _x, stream );
+    if( ok )
+      {
+      x = _x;
+      }
+    return ok;
+  }
   bool Read(         float&   x, BStream* stream);
   bool Read(         double&  x, BStream* stream);
   bool Read(BText& v, BStream* stream);
