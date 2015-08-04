@@ -50,7 +50,7 @@ typedef unsigned char  BYTE;
 typedef unsigned short BYTE2;
 
 static BYTE  pow2_[8] = { 128, 64, 32, 16, 8, 4, 2, 1};
-static BYTE _pow2_[8] = {~128,~64,~32,~16,~8,~4,~2,~1};
+static BYTE _pow2_[8] = {(BYTE)(~128),(BYTE)(~64),(BYTE)(~32),(BYTE)(~16),(BYTE)(~8),(BYTE)(~4),(BYTE)(~2),(BYTE)(~1)};
 static unsigned short byte_pos_;
 static BYTE           bit_pos_;
 
@@ -418,13 +418,13 @@ BFixedSizeMemoryHandler::BFixedSizeMemoryHandler
 )
 //--------------------------------------------------------------------
 : baseSize_           (baseSize),
-  percentThreshold_   (percentThreshold),
   page__              (NULL),
-  lastPage_           (0), 
   lastAllocPg_        (0), 
+  lastPage_           (0), 
   pgNm_               (0),
   lastDelPgNm_        (0),
-  assigned_           (0)
+  assigned_           (0),
+  percentThreshold_   (percentThreshold)
 {
   assert(baseSize<=BFSMEM_MAX_BASE_SIZE);
   _growingFactor_   = BFSMEM_def_grow_;
@@ -647,20 +647,21 @@ void BFixedSizeMemoryHandler::ShowStats()
 {
   if(lastPage_)
   {
+  long int x = maxAllowed_*baseSize_;
     printf("\n"
-           "% 10.4f |"
-           "% 10d |"
-           "% 10d |"
-           "% 10u |"
-           "% 10d |"
-           "% 10ld |"
-           "% 10.2lf%% |",
+           "%10.4f |"
+           "%10d |"
+           "%10d |"
+           "%10u |"
+           "%10d |"
+           "%10ld |"
+           "%10.2lf%% |",
              _growingFactor_,
              _initPageSize_,
              _initPageNum_,
              baseSize_, 
              maxAllowed_,
-             maxAllowed_*baseSize_,
+             x,
              double(assigned_*100.0)/double(maxAllowed_));
 /*
     for(i=0; i<lastPage_; i++)
