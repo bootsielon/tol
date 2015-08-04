@@ -451,7 +451,7 @@ BList* LstStack(BList* lst, ...)
   va_start(ap, lst);
   do
   {
-    if(arg = va_arg(ap,BCore*))
+    if((arg = va_arg(ap,BCore*)))
     {
       if(!newList)
       {

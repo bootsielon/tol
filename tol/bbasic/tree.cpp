@@ -114,7 +114,8 @@ BBool Tree::putMostRight (Tree* aTree)
  */
 //--------------------------------------------------------------------
 {
-  List* right = NIL;
+  // unused
+  //List* right = NIL;
   if(isEmpty()) 
   {
 	  tree_ = aTree->getTree();

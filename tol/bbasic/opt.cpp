@@ -274,7 +274,7 @@ BBool BOpt::AssingDefaultsAndCheck()
 				 "Opcion obligatoria no encontrada"));
       }
     }
-    if(Numeric(i)) { BReal r=RealValue(i); }
+    if(Numeric(i)) { this->RealValue(i); }
   }
   return(! ErrorArg());
 }

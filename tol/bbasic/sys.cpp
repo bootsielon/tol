@@ -173,9 +173,10 @@ static BText Buil_TolAppData_()
 #else
   int who = RUSAGE_SELF; 
   struct rusage usage; 
-  int ret; 
+  // usused
+  //int ret; 
 
-  ret=getrusage(who,&usage);
+  getrusage(who,&usage);
 
   return usage.ru_maxrss;
 #endif
@@ -303,7 +304,8 @@ BText BSys::TempNam(const BText& outputDir,
 //--------------------------------------------------------------------
 {
   //InitTotalTime("BSys::TempNam");
-  static BInt fileNumber_ = -1;
+  // unused
+  //static BInt fileNumber_ = -1;
   BText fileName;
   BText dir = outputDir;
   //Std(BText("\nBSys::TempNam 1 dir = ")+dir);
@@ -1080,6 +1082,8 @@ void BSys::SleepMilliSeconds(unsigned int milliseconds)
 #endif
 }
 
+// unused
+#if 0
 //--------------------------------------------------------------------
 //Opens a file and locks it
 static FILE* fOpenAndLock(
@@ -1095,6 +1099,7 @@ static FILE* fOpenAndLock(
   #endif
   return(fil);
 }
+#endif
 
 //--------------------------------------------------------------------
 //Opens a file and locks it

@@ -85,9 +85,10 @@ BClassifier::BClassifier(int n)
 //--------------------------------------------------------------------
 : n_       (n), 
   numEval_ (0),
+  error_   (false),
   classes_ (0),
-  iterator_(0),
-  error_   (false) 
+  iterator_(0)
+   
 {}
 
 //--------------------------------------------------------------------
@@ -162,7 +163,8 @@ void BClassifier::TransitiveClossure()
 {
   if(error_) { return; }
   TRACE_SHOW_LOW("BClassifier::TransitiveClossure", "begin");
-  int i, j, i_, j_, cnu, iter=0;
+  //                    unused
+  int i, j, i_, j_, cnu /*, iter=0*/;
   int m = classes_.size();
   int changes;
   std::vector< std::set<int> > classes;

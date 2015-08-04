@@ -57,8 +57,8 @@ BQFile::BQFile(const BText& path)
 /*! Constructor
  */
 //--------------------------------------------------------------------
-    : path_(""), size_(0), isOpen_(BFALSE), regNumber_(0), separator_('\0'),
-      regWidth_(0)
+  : path_(""), input_(NULL), regNumber_(0), size_(0), isOpen_(BFALSE),
+    regWidth_(0), separator_('\0')
 {
     Open(path);
     ResetFields();
@@ -159,7 +159,8 @@ BText BQFile::GetText(BInt from, BInt len) const
     BText txt(len+1);
     inp->seekg(from-inp->tellg(),ios::cur);
 //input_.get(txt.Buffer(), len+1);
-    BBool endField = BFALSE;
+    // unused
+    //BBool endField = BFALSE;
     for(BInt n=0; n<len; n++)
     {
 	txt.Buffer()[n] = (BChar)inp->get();
@@ -268,7 +269,8 @@ void BQFile::AddFields(BChar sep, const BText& def)
   BInt	width = 0;
 //  BChar ch = ' ';
   BChar ch = '\0';
-  BInt n=0;
+  // unused
+  //BInt n=0;
   input_->seekg(0,ios::beg);
   do
   {

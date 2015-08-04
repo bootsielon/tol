@@ -901,7 +901,8 @@ BInt BText::Replace(const BText& oldText, const BText& newText)
     BInt   advance;
     do
     {
-      BInt scanned = pos-Buffer();
+    //unsused
+    //BInt scanned = pos-Buffer();
       if(txt.Length()*2>txt.Size())
       { 
         txt.ReallocateBuffer(2*txt.Size()); 
