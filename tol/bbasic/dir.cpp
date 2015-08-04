@@ -610,14 +610,14 @@ BDir::BDir(const BText& name)
 //--------------------------------------------------------------------
 : BObject(name),
   exist_(BTRUE), 
-  empty_(BTRUE), 
   isFile_(BFALSE), 
+  nBytes_(0),
+  mTime_(0),
+  empty_(BTRUE), 
   dirName_(), 
   fileName_(), 
   numFiles_(0), 
-  numDirs_(0),
-  nBytes_(0),
-  mTime_(0)
+  numDirs_(0)
 {
 
   BArray<BObject> entryName;	  // All entries excluding . and ..
