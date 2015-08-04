@@ -74,7 +74,8 @@ BText BDir::Text(BBool sizes, BInt columns, BBool recursive)
  */
 //--------------------------------------------------------------------
 {
-  BBool	   first=BTRUE;
+  // unused
+  //BBool	   first=BTRUE;
   BText	   txt(Name()+": ");
   BInt	   dirCol=1, filCol=1;
 

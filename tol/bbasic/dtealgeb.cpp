@@ -544,7 +544,8 @@ void BDate::PutDayIndex(BInt index)
  */
 //--------------------------------------------------------------------
 {
-	double idx = index;
+  // unused
+  //double idx = index;
   if(index == -300000) { *this = unknown_; return; }
   if(index <= -115782) { *this = begin_; return; }
   if(index >=  219147) { *this = end_; return; }
