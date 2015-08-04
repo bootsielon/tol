@@ -183,6 +183,29 @@ TOL_API void  InitCint ()
 }
 
 //--------------------------------------------------------------------
+static void signal_error_SIGINT(int sig) 
+//--------------------------------------------------------------------
+{
+  static time_t *tm0 = NULL;
+  time_t tm1 = time( NULL );
+  
+  if ( tm0 && (tm1 - *tm0) < 1 ) {
+    Std("(Exit application)\n");
+    exit(sig);
+  } else {
+    Std("(Stop evaluation)\n");
+    //Error_UnexpectedTolEnd();
+    StopFlagOn();
+    if ( !tm0 ) {
+      tm0 = new time_t;
+    }
+    time( tm0 );
+  }
+}
+
+#if !defined(UNIX)
+
+//--------------------------------------------------------------------
   static void Error_UnexpectedTolEnd(void)
 //--------------------------------------------------------------------
 {
@@ -226,27 +249,6 @@ static void signal_error_SIGILL(int sig)
 };
 
 //--------------------------------------------------------------------
-static void signal_error_SIGINT(int sig) 
-//--------------------------------------------------------------------
-{
-  static time_t *tm0 = NULL;
-  time_t tm1 = time( NULL );
-  
-  if ( tm0 && (tm1 - *tm0) < 1 ) {
-    Std("(Exit application)\n");
-    exit(sig);
-  } else {
-    Std("(Stop evaluation)\n");
-    //Error_UnexpectedTolEnd();
-    StopFlagOn();
-    if ( !tm0 ) {
-      tm0 = new time_t;
-    }
-    time( tm0 );
-  }
-};
-
-//--------------------------------------------------------------------
 static void signal_error_SIGSEGV(int sig) 
 //--------------------------------------------------------------------
 {
@@ -280,6 +282,8 @@ static void signal_error_SIGUNK(int sig)
   Error_UnexpectedTolEnd();
   exit(sig);
 };
+
+#endif
 
 //--------------------------------------------------------------------
 static void signal_assign()
@@ -322,7 +326,7 @@ static void signal_assign()
 //signal(      18, signal_error_SIGUNK);
 //signal(      19, signal_error_SIGUNK);
 //signal(      20, signal_error_SIGUNK);
-/* */
+ */
 #endif
 }
 
@@ -933,7 +937,7 @@ BBool InitGrammars(const char* calledProgram)
 #define __TOL_BUILD_SVN_INFO__ "svn info is undefined"
 #endif
     BText svnInfo = __TOL_BUILD_SVN_INFO__;
-    BSystemText* SvnInfo_ = new BSystemText
+    new BSystemText
 	  ("SvnInfo", svnInfo,
 	   I2("Contains the information on the SVN URL and revision number from which TOL was compiled",
 	      "Contiene la información sobre la URL y el número de revisión del "
@@ -958,31 +962,31 @@ BBool InitGrammars(const char* calledProgram)
   int blnk_pos_1 = _tolVersion_.Find(' ');
   int blnk_pos_2 = _tolVersion_.Find(' ', blnk_pos_1+1);
 
-  BSystemText* TolReleaseId_ = new BSystemText("TolReleaseId", 
-  BText(_tolVersion_,0,blnk_pos_2-1),
-  I2("Time Oriented Language release identifier.",
-     "Identificador de la publicación de la versión Time Oriented Language."));
+  new BSystemText("TolReleaseId", 
+                  BText(_tolVersion_,0,blnk_pos_2-1),
+                  I2("Time Oriented Language release identifier.",
+                     "Identificador de la publicación de la versión Time Oriented Language."));
 
-  BSystemText* TolVersionId_ = new BSystemText("TolVersionId", 
-  BText(_tolVersion_,0,blnk_pos_1-1),
-  I2("Time Oriented Language version identifier.",
-     "Identificador de la versión Time Oriented Language."));
+  new BSystemText("TolVersionId", 
+                  BText(_tolVersion_,0,blnk_pos_1-1),
+                  I2("Time Oriented Language version identifier.",
+                     "Identificador de la versión Time Oriented Language."));
 
   BText TOLAppName = ToLower(GetFilePrefix(_tolSessionPath_));
-  BSystemText* TOLAppName_ = new BSystemText("TOLAppName", 
-  TOLAppName,
-  I2("The name of the TOL executable",
-     "Nombre del ejecutable TOL."));
+  new BSystemText("TOLAppName", 
+                  TOLAppName,
+                  I2("The name of the TOL executable",
+                     "Nombre del ejecutable TOL."));
 
   BText TOLSH_PATH = BSys::GetEnv("TOLSH_PATH");
   if(!TOLSH_PATH.HasName())
   {
     TOLSH_PATH = GetFilePath(_tolSessionPath_);
   }
-  BSystemText* TOLSH_PATH_  = new BSystemText("TOLSH_PATH", 
-  TOLSH_PATH,
-  I2("The path of the TOL executable",
-     "Ubicación del ejecutable TOL."));
+  new BSystemText("TOLSH_PATH", 
+                  TOLSH_PATH,
+                  I2("The path of the TOL executable",
+                     "Ubicación del ejecutable TOL."));
 
   #ifdef UNIX
   // OJO: si tol se ejecuta desde el raiz del fuente entonces el
@@ -1000,10 +1004,10 @@ BBool InitGrammars(const char* calledProgram)
 
   InitRefStructs();
 
-  BStruct* strStructFieldInfo_  = NewStruct("@StructFieldInfo", 
-    "Text:Type,"
-    "Text:Name,"
-    "Text:Description");
+  NewStruct("@StructFieldInfo", 
+            "Text:Type,"
+            "Text:Name,"
+            "Text:Description");
 
   TOLHasBeenInitialized_ = true;
   return(initGrammars_);
@@ -1558,8 +1562,10 @@ void Dialog()
 void InitializeFromMainArgs(int argc, char *argv[], char *env[])
 //--------------------------------------------------------------------
 {
-  int aliveObjects_1  = 0, aliveObjects_2  = 0;
-  int aliveObjects_1_ = 0, aliveObjects_2_ = 0;  
+  //  unused
+  int /*aliveObjects_1  = 0,*/ aliveObjects_2  = 0;
+  //  unused
+  int /*aliveObjects_1_ = 0,*/ aliveObjects_2_ = 0;  
   InitVerboseMode();
   BText::PutFormatBReal("%lf");
   BText::PutFormatBInt ("%ld");
@@ -1726,7 +1732,8 @@ void InitializeFromMainArgs(int argc, char *argv[], char *env[])
   if(dialogMode)
   {
     InitGrammars(argv[0]);
-    aliveObjects_1 = AliveObjects();
+    // unused
+    /*aliveObjects_1 =*/ AliveObjects();
     if(initTOL) { LoadInitLibrary(loadInitProject,loadDefaultPackages); }
     aliveObjects_2 = AliveObjects();
     BOut::PutAllTerm(BTRUE);
