@@ -18,6 +18,8 @@ Set Include("a.tol");
 Real numErr1 = Copy(NError);
 Real numWarn1 = Copy(NWarning);
 
+Set View([[n]], "");
+
 Real exists_c = ObjectExist("Real", "n::c");
 Set partialResults_ = [[exists_c, numErr0, numErr1, numWarn0, numWarn1]];
 
