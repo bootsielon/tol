@@ -11,7 +11,6 @@
   Real GlobalizeSeries := False;
 //Write here the initial test TOL code if needed
   Real numErr0 = Copy(NError);
-
 //Checking that special functions return description as expected
   Text desc = Description(FindCode("Anything","WriteLn"));
 
@@ -21,11 +20,11 @@
     Real ok_E = TextFind(desc,I2("Error","Error"))>0,
     Real ok_W = TextFind(desc,I2("Warning","Avisos (Warning)"))>0,
     Real ok_S = TextFind(desc,I2("System Information",
-      "Informaci"+Char(243)+"n de Sistema"))>0,
+                                 "de Sistema"))>0,
     Real ok_U = TextFind(desc,I2("User Information",
-      "Informaci"+Char(243)+"n del Usuario"))>0,
+                                 "del Usuario"))>0,
     Real ok_T = TextFind(desc,I2("Tracing information for debuging",
-      "Informaci"+Char(243)+"n de trazado para depuraci"+Char(243)+"n"))>0,
+                                 "trazado para depuraci"))>0,
     Real ok = And(ok_E,ok_W,ok_S,ok_U,ok_T)
   ]];
 
