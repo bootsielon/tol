@@ -20,9 +20,12 @@
   [[
     Real ok_E = TextFind(desc,I2("Error","Error"))>0,
     Real ok_W = TextFind(desc,I2("Warning","Avisos (Warning)"))>0,
-    Real ok_S = TextFind(desc,I2("System Information","Información de Sistema"))>0,
-    Real ok_U = TextFind(desc,I2("User Information","Información del Usuario"))>0,
-    Real ok_T = TextFind(desc,I2("Tracing information for debuging","Información de trazado para depuración"))>0,
+    Real ok_S = TextFind(desc,I2("System Information",
+      "Informaci"+Char(243)+"n de Sistema"))>0,
+    Real ok_U = TextFind(desc,I2("User Information",
+      "Informaci"+Char(243)+"n del Usuario"))>0,
+    Real ok_T = TextFind(desc,I2("Tracing information for debuging",
+      "Informaci"+Char(243)+"n de trazado para depuraci"+Char(243)+"n"))>0,
     Real ok = And(ok_E,ok_W,ok_S,ok_U,ok_T)
   ]];
 
