@@ -4,6 +4,12 @@
 // PURPOSE: test for a resolved bug
 //////////////////////////////////////////////////////////////////////////////
 
+Real InstanceExist(Text class, Text name) {
+  If(ObjectExist("NameBlock", name), IsInstanceOf(Eval(name), class), False)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+
 //Sets the bugzilla identifier number, your e-mail and the bug´s summary
   Real bugNum_ =  730;
   Text email_ = "vdebuen@tol-project.org"; 
@@ -27,13 +33,13 @@
   
   @CPrincipal ej1 = [[Real _.a = 1]];
 
-  Real ok.1.1 =  ObjectExist("@CPrincipal","ej1");
-  Real ok.1.2 = !ObjectExist("@CDerivada", "ej1");
+  Real ok.1.1 =  InstanceExist("@CPrincipal","ej1");
+  Real ok.1.2 = !InstanceExist("@CDerivada", "ej1");
   
   @CDerivada ej2 = [[Real _.a = 1; Real _.b = 2]];
 
-  Real ok.2.1 = ObjectExist("@CPrincipal","ej2");
-  Real ok.2.2 = ObjectExist("@CDerivada", "ej2");
+  Real ok.2.1 = InstanceExist("@CPrincipal","ej2");
+  Real ok.2.2 = InstanceExist("@CDerivada", "ej2");
    
   @CDerivada CDerivada.New(Real a, Real b) {
     @CDerivada new = 
@@ -45,8 +51,8 @@
   
   @CDerivada ej3 = { CDerivada.New(Real a = 1; Real b = 2) };
   
-  Real ok.3.1 = ObjectExist("@CPrincipal","ej3");
-  Real ok.3.2 = ObjectExist("@CDerivada", "ej3");
+  Real ok.3.1 = InstanceExist("@CPrincipal","ej3");
+  Real ok.3.2 = InstanceExist("@CDerivada", "ej3");
   
   // Si asignamos una referencia a un objeto de @CPrincipal con una
   // instancia de una clase derivada (@CDerivada) perdemos
@@ -55,8 +61,8 @@
   @CPrincipal ej4 = { CDerivada.New(Real a = 1; Real b = 2) };
   // ej4 no posee los métodos propios de @CDerivada
   
-  Real ok.4.1 = ObjectExist("@CPrincipal","ej4");
-  Real ok.4.2 = ObjectExist("@CDerivada","ej4");
+  Real ok.4.1 = InstanceExist("@CPrincipal","ej4");
+  Real ok.4.2 = InstanceExist("@CDerivada","ej4");
   
   
   Real numErr1 = Copy(NError);
