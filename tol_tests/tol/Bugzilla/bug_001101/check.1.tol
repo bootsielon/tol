@@ -3,7 +3,7 @@ Set matrices = For(1, 500, Matrix (Real i) {
   Rand(50000, 1, 0, 1)
 });
 Real no2 = Copy(NObject);
-Real ok.1 = (no2 - no1) == 507;
+Real ok.1 = (no2 - no1) <= 507; // ==507 (tol.3.1) ==503 (tol.3.2)
 
 Matrix Use1(Matrix object) {
   Matrix nombre = Copy(object)
@@ -20,4 +20,4 @@ Set matrices2 = EvalSet(matrices, Anything (Matrix m) {
 });
 
 Real no4 = Copy(NObject);
-Real ok.2 = (no4 - no3) == 505;
+Real ok.2 = (no4 - no3) <= 505; // ==505 (tol.3.1) ==503 (tol.3.2)
