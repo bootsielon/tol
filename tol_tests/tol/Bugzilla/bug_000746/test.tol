@@ -42,7 +42,7 @@
   Real numErr1 = Copy(NError);
   Real numWar1 = Copy(NWarning);
 
-  Set partialResults_ = [[numErr0, numErr1, numWar0, numWar1, exp, bc[1], bc[2], xNorm, xNorm_, xDiff ]];
+Set partialResults_ = [[numErr0, numErr1, numWar0, numWar1, exp, bc[1], bc[2], xNorm, xNorm_, xDiff, q ]];
 
 //This is a messure of the success of the test 
   Real quality_ = And(numErr1 == numErr0, 

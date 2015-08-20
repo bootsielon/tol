@@ -63,7 +63,7 @@ Real ok = LE(-10,cs::q.001,cs::q.999,0);
   Real numErr1 = Copy(NError);
   Real numWar1 = Copy(NWarning);
 
-  Set partialResults_ = [[ numErr0, numErr1]];
+Set partialResults_ = [[ numErr0, numErr1, ok]];
 
 //This is a messure of the success of the test 
   Real quality_ = And(numErr1 == numErr0, ok);
