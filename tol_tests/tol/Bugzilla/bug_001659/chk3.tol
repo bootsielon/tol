@@ -15,7 +15,9 @@ Text PutName("BB",AA);
 
 Set ok.3.global = 
 [[
-  Real AA.notExist = !ObjectExist("Text","AA");
+  /* Real AA.notExist = !ObjectExist("Text","AA"); */
+  // Este chequeo no funciona cuando es comprobado en un ámbito local
+  // y AA no es global sino local en un ámbito superior.
   Real BB.Exist    =  ObjectExist("Text","BB")
 ]];
 
