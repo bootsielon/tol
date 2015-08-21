@@ -93,13 +93,15 @@ List* Tree::getMostRightBranch ()
  */	    
 //--------------------------------------------------------------------
 {
-    List* rightBranch;
-    if (!isEmpty()) {
-	rightBranch = tree_;
-	while (rightBranch->cdr()) {
-	    rightBranch = rightBranch->cdr();
-	}
-    }
+    List* rightBranch = NULL;
+    if (!isEmpty()) 
+      {
+      rightBranch = tree_;
+      while (rightBranch->cdr()) 
+        {
+        rightBranch = rightBranch->cdr();
+        }
+      }
     return (rightBranch);
 }
 
