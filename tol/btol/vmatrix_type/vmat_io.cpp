@@ -39,11 +39,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
-//#if defined( CHOLMOD_MAIN_VERSION ) && ( CHOLMOD_MAIN_VERSION >= 3 )
-#if defined( __MINGW32__ )
-void BVMat::cholmod_error_handler(int status, const char *file, int line, const char *message)
-#else
+#if defined( USE_CHOLMOD_VER1 )
 void BVMat::cholmod_error_handler(int status, char *file, int line, char *message)
+#else
+void BVMat::cholmod_error_handler(int status, const char *file, int line, const char *message)
 #endif
 ////////////////////////////////////////////////////////////////////////////////
 {

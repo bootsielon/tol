@@ -100,6 +100,7 @@ BInt Str2SymCmp(const BAny vBChar, const BAny vBToken)
 
 //#define _USE_TRACE_CURRENT_NEXTARGUMENT_
 
+#if defined( _USE_TRACE_CURRENT_NEXTARGUMENT_ )
 //--------------------------------------------------------------------
 static void _trace_current_nextArgument_(
   const char* function, 
@@ -112,6 +113,7 @@ static void _trace_current_nextArgument_(
         " -> '"+BScanner::GetCurrent()->NextArgument()+"'\n");
   }
 }
+#endif
 
 #ifdef _USE_TRACE_CURRENT_NEXTARGUMENT_
 #define _TRACE_CURRENT_NEXTARGUMENT_(function,itemNum) \

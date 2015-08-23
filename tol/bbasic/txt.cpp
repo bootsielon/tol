@@ -118,8 +118,8 @@ BText  BText::unknown_(StaticInit());
     BText::defectSize_   = 16;
     BText::none_         = "";
     BText::unknown_      = "UNKNOWN TEXT";
-    BText::formatBInt_   = "%ld";
-    BText::formatBReal_  = "%lg";
+    BText::formatBInt_   = "%d";
+    BText::formatBReal_  = "%g";
     #if defined(__MINGW32__) || defined(_MSC_VER) && (_MSC_VER<1400)
     BText::formatBInt64_ = "%I64d";
     #else
@@ -186,7 +186,7 @@ const BChar* BText::FormatBInt ()
 /*! PURPOSE: Returns BText real format string */
 const BChar* BText::FormatBReal()
 {
-  return(formatBInt_); 
+  return(formatBReal_); 
 }
 
 /*! PURPOSE: Returns BText language */
@@ -732,7 +732,9 @@ BText& BText::operator= (const BChar* str) { return(Copy(str)); }
 BText& BText::operator+= (const BText&      txt) { return (Concat(txt)); }
 BText& BText::operator+= (const BChar*      str) { return (Concat(str)); }
 BText& BText::operator+= (      BInt        val) { return (Concat(val)); }
+BText& BText::operator+= (      unsigned int val) { return (Concat(val)); }
 BText& BText::operator+= (      long int    val) { return (Concat(val)); }
+BText& BText::operator+= (      unsigned long int val) { return (Concat(val)); }
 BText& BText::operator+= (      BINT64      val) { return (Concat(val)); }
 BText& BText::operator+= (      BReal       val) { return (Concat(val)); }
 BText& BText::operator+= (      long double val) { return (Concat(val)); }

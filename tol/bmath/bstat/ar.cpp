@@ -158,7 +158,8 @@ BPolyn<BDat> IdentifyAutoReg(const BArray <BDat>& z,
  */
 //--------------------------------------------------------------------
 {
-  BInt		order=-1,N=z.Size();
+  // unused variable ‘order’ [-Wunused-variable]
+  BInt		/* order=-1,*/ N=z.Size();
   BDat		sw;
   BDat		s;
   BMatrix<BDat> FI;
@@ -327,11 +328,11 @@ BArray<b_real> NextSchur(const BArray<b_real>& pol)
   b_real a = *A; 
   b_real a_ = *A_;
   b_real c = a / a_;
-/* * /
+/*
   Std(BText("\nNextSchur a0=")+a+" an="+a_+" c="+c);
   if(BDat(c).IsUnknown())
    printf("");
-/* */
+*/
   A++;
   A_--;
   for(k=0; k<s-1; k++, A++, A_--, B++)
@@ -350,7 +351,8 @@ b_real SchurValue(
 //--------------------------------------------------------------------
 {
   int s = a.Size();
-  static b_real _0 = 0.0;
+  // unused
+  // static b_real _0 = 0.0;
   static b_real _1 = 1.0;
   static b_real _2 = 2.0;
   b_real _s = s;
@@ -388,7 +390,8 @@ BDat StationaryValue(
   mpreal::set_default_prec(128);  
 //mpreal::set_default_rnd();
   #endif
-  int i,j, deg;
+  // unused
+  int i /*,j */, deg;
   BDat coef;
   int s = pol.Size();
   int n = pol.Degree();
@@ -402,7 +405,8 @@ BDat StationaryValue(
   BArray<b_real> a(b_real(0),m+1);
   for(i=0; i<s; i++)
   {
-    j = s-1-i;
+    // variable ‘j’ set but not used [-Wunused-but-set-variable]
+    // j = s-1-i;
     deg  = pol(i).Degree();
     coef = pol(i).Coef();
     a[m-deg/gcd] = coef.Value();
@@ -431,8 +435,11 @@ bool IsStationary(const BPolyn<BDat>& pol, BDat& tolerance)
 //--------------------------------------------------------------------
 {
   bool isStationary;
+  // unused
   BDat toleranceBase = tolerance;
-  BDat sv = StationaryValue(pol,toleranceBase,tolerance,isStationary); 
+  // variable ‘sv’ set but not used [-Wunused-but-set-variable]
+  // BDat sv = 
+  StationaryValue(pol,toleranceBase,tolerance,isStationary); 
   return(isStationary);
 }
 

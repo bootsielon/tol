@@ -30,7 +30,8 @@
 BTraceInit("mfastpro.cpp");
 
 //VBR: This three lines should be deleted
-static double _log2 = log(2.0);
+// unused
+// static double _log2 = log(2.0);
 static BDat StrassenCutoff_ = 12800;
 BDat& StrassenCutoff() { return(StrassenCutoff_); }
 
@@ -111,7 +112,8 @@ int MtMSqr(const BMatrix<double>& A_, BSymMatrix<double>& S)
   BMatrixStoreType ast = A_.StoreType();
   BMatrix<double> A_dense;
   const BMatrix<double>& A = (ast==BMST_dense_)?A_:(A_dense=A_);
-  bool storeOk = true;
+  // unused
+  // bool storeOk = true;
   BMatrix<double> S_;
   int res = TolBlas::dsyrk(CblasLower,CblasTrans,1.0,A,0.0,S_);
   S = S_;

@@ -592,7 +592,8 @@ void SymTridiagGivensProduct(const BMatrix <double>& V,
 			     BInt i, double c, double s)
 //--------------------------------------------------------------------
 {
-    BInt j, n = V.Rows(), m = V.Columns();
+  //      unused
+  BInt j, /*n = V.Rows(),*/ m = V.Columns();
     double a, b;
     for(j=0; j<m; j++)
     {
@@ -791,7 +792,8 @@ void SymTridiagDeflation(const BArray  <double>& a,
     c(i)/=sc;
     s(i)/=sc;
 */
-    double sc = Sqrt(s(i)*s(i)+c(i)*c(i));
+    // unused
+    // double sc = Sqrt(s(i)*s(i)+c(i)*c(i));
 //  Std(BText("\n\nc(")+i+")="+c(i)+"\ts("+i+")="+s(i)+"\tsc="+sc);
 
     SymTridiagGivensSymProduct(a_,b_,p,i,c(i),s(i));
@@ -896,7 +898,8 @@ BBool IsIsolated(const BArray<double> d, BInt i, double max)
 {
     BInt n = d.Size();
 //if((i==0)||(i==n-1)) { return(BFALSE); }
-    double r = d(0)-d(n-1);
+    // unused
+    // double r = d(0)-d(n-1);
     double p = 100;
     double b = d(i);
     double a = (i==0)?2*b:d(i-1);
@@ -989,18 +992,23 @@ void gsl_SingularValueDecomposition(const BMatrix<BDat>&     A_,
     {
       for (j = 0; j < c; j++)
       { 
-	       gsl_matrix_set (A, i, j, A_(i,j).Value());
+      gsl_matrix_set (A, i, j, A_(i,j).Value());
       }
     }
     
-    if (method=="Golub_Reinsch")	
-      int gsl = gsl_linalg_SV_decomp (A, V, S, work);
-    
-    if (method=="Golub_Reinsch_Mod")	
-      int gsl = gsl_linalg_SV_decomp_mod (A, X, V, S, work);
-    
-    if (method=="Jacobi")	
-      int gsl = gsl_linalg_SV_decomp_jacobi (A, V, S);
+    if (method=="Golub_Reinsch")
+      {	
+      gsl_linalg_SV_decomp (A, V, S, work);
+      }
+    else if (method=="Golub_Reinsch_Mod")	
+      {
+      gsl_linalg_SV_decomp_mod (A, X, V, S, work);
+      }
+    else if (method=="Jacobi")	
+      {
+      gsl_linalg_SV_decomp_jacobi (A, V, S);
+      }
+
     for (i = 0; i < r; i++)
     {
       for (j = 0; j < c; j++)

@@ -436,7 +436,7 @@ int gsl_rcmnorm_init(gsl_vector * mean,
     for (i = 0; i < diff->size; i++) {
       double item = gsl_vector_get(diff, i);
       if ( item > 0) {
-        printf("B*x0 <= b does not hold (%g) at constraint %d\n ", item, i);
+        printf("B*x0 <= b does not hold (%g) at constraint %zd\n ", item, i);
       }
     }
   } else 
@@ -450,7 +450,7 @@ int gsl_rcmnorm_init(gsl_vector * mean,
   for (i = 0; i < diff->size; i++) {
     double item = gsl_vector_get(diff, i);
     if ( item < 0) {
-      printf("D*z0 <= b does not hold (%g) at constraint %d\n", item, i);
+      printf("D*z0 <= b does not hold (%g) at constraint %zd\n", item, i);
     }
   }
 #endif

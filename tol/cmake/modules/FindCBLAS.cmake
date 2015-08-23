@@ -19,17 +19,26 @@
 # limitations under the License.
 #
 
-find_library( CBLAS_LIBRARY NAMES cblas
-  HINTS ${CBLAS_DIR}/lib ${CBLAS_DIR}/lib64 
-  PATH_SUFFIXES "atlas" "atlas-sse2" )
+if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+  set( SEARCH_SUFFIX 64 )
+else( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+  set( SEARCH_SUFFIX "" )
+endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+if( CBLAS_DIR )
+  find_library( CBLAS_LIBRARY NAMES cblas
+    HINTS ${CBLAS_DIR}/lib${SEARCH_SUFFIX} ${CBLAS_DIR}/lib
+    PATH_SUFFIXES "atlas" "atlas-sse2" )
+  find_path( CBLAS_INCLUDE_DIR
+    NAMES "cblas.h" 
+    PATHS ${CBLAS_DIR}
+    PATH_SUFFIXES "include" )
+else( CBLAS_DIR )
+  find_library( CBLAS_LIBRARY NAMES cblas
+    PATH_SUFFIXES "atlas" "atlas-sse2" ) 
+  find_path( CBLAS_INCLUDE_DIR NAMES "cblas.h" )
+endif( CBLAS_DIR )
 
-set(CBLAS_LIBRARIES ${CBLAS_LIBRARY} )
-
-find_path( CBLAS_INCLUDE_DIR
-  NAMES "cblas.h" 
-  PATHS ${CBLAS_DIR}
-  PATH_SUFFIXES "include" )
-
+set( CBLAS_LIBRARIES ${CBLAS_LIBRARY} )
 
 include( FindPackageHandleStandardArgs )
 # handle the QUIETLY and REQUIRED arguments and set CLAPACK_FOUND to TRUE

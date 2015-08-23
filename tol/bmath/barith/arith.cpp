@@ -48,7 +48,8 @@ static ldouble minD_  = 2.2250738585072014E-308;
 static ldouble maxD_  = 1.7976931348623158E+308;
 
 static ldouble rminD_ = Maximum(minD_, 2/maxD_);
-static ldouble log2D_ = log((long double) 2);
+// unused
+//static ldouble log2D_ = log((long double) 2);
 static ldouble infNegD_ = -DInf();
 static ldouble infPosD_ =  DInf();
 

@@ -170,9 +170,9 @@ bool StoreZipArchive::FileExtract(BText originalFilePath, BText destinationDirPa
       if(!ok)
       {
         sprintf(_errMsg, "[ZipArchive] Error while extracting from archive %s file %s to %s",
-          _path.String(),  
-          originalFilePath.String(),
-          destinationDirPath.String());
+          _path.Buffer(),  
+          originalFilePath.Buffer(),
+          destinationDirPath.Buffer());
       }
     }
     else
@@ -248,9 +248,9 @@ bool StoreZipArchive::DirAdd(BText originalDirPath)
     ok = _zip.AddNewFiles(originalDirPath.String(), filter);
     if(!ok)
     {
-      sprintf(_errMsg, "[ZipArchive] Error while adding to archive %s directory %s : %s",
-        _path.String(),  
-        originalDirPath.String());
+      sprintf(_errMsg, "[ZipArchive] Error while adding to archive %s directory %s",
+        _path.Buffer(),  
+        originalDirPath.Buffer());
     }
   }
   catch(CZipException ex)
@@ -288,8 +288,8 @@ bool StoreZipArchive::DirExtract(BText originalDirPath, BText destinationDirPath
     {
       sprintf(_errMsg, "[ZipArchive] Cannot find files to extract from archive "
         "%s matching pattern '%s'",
-        _path.String(),  
-        match.String());
+        _path.Buffer(),  
+        match.Buffer());
     }
     for (ZIP_ARRAY_SIZE_TYPE i = 0; i < indexes.GetCount(); i++)
     {

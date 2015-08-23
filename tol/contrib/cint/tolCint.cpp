@@ -399,7 +399,7 @@ int Cint_initialize_tol_variables()
 //--------------------------------------------------------------------
 {
   int linked = Cint_dynamic_linkage();
-  BSystemDat* linked_ = new BSystemDat("Cint_IsLinked", linked,
+  BSystemDat* linked_ ATTR_UNUSED = new BSystemDat("Cint_IsLinked", linked,
 	  I2("Is true if optional libcint library has been linked succesfully.",
 	     "Es cierto si la librería opcional libcint ha sido enlazada correctamente"));
   return(linked);

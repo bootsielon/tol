@@ -52,7 +52,7 @@ BMultivarDist::BMultivarDist(      BProbDist*	      dist,
 /*! BMultivarDist Constructor
  */
 //--------------------------------------------------------------------
-    : N_(cov.Rows()), cov_(cov), nu_(nu)
+  : N_(cov.Rows()), nu_(nu), cov_(cov)
 {
     component_.ReallocBuffer(N_);
     for(BInt n=0; n<N_; n++) { component_[n]=dist; }
@@ -68,7 +68,7 @@ BMultivarDist::BMultivarDist(const BArray     <BProbDist*> component,
 /*! BMultivarDist Constructor
  */
 //--------------------------------------------------------------------
-    : N_(cov_.Rows()), component_(component), cov_(cov), nu_(nu)
+  : N_(cov_.Rows()), component_(component), nu_(nu), cov_(cov)
 {
     Build();
 }
@@ -182,10 +182,12 @@ public:
 	};
 
     BDat Solve(const BDat& y)
-	{
-	    BDat m  = m_;
-	    BDat n  = n_;
-	    BDat x0 = n/2 + (m - n/2) * Exp(y/n);
+	{ 
+            // unused 
+            // BDat m  = m_;
+	    // BDat n  = n_;
+            // unused
+	    // BDat x0 = n/2 + (m - n/2) * Exp(y/n);
 //  BDat x  = Floor(NewtonSolve(x0,y,0.1));
 //  if(!x.IsKnown() || (x<n_) || (x>m_))
 	    BDat x  = Floor(BFibonacci::Solve(this,y,n_,m_,0.1));
@@ -203,7 +205,8 @@ void RandCombination(BMatrix<BDat>& M, BInt numCom, BInt m, BInt n)
  */
 //--------------------------------------------------------------------
 {
-    BInt i, j, k=0;
+    //        unused
+    BInt i, j /*, k=0 */;
     M.Alloc(numCom,n);
     for(i=0; i<numCom; i++)
     {
@@ -217,12 +220,14 @@ void RandCombination(BMatrix<BDat>& M, BInt numCom, BInt m, BInt n)
 	    }
 	    else
 	    {
-		BDat nj = n-j;
+                // unused
+                // BDat nj = n-j;
 		BMaxProb f(max, n-j);
 		BDat p = BUniformDist::Random01();
 		BDat y = Log(p);
 		BDat x = f.Solve(y);
-		BDat yy = f[x];
+                // unused
+		// BDat yy = f[x];
 		M(i,n-j-1) = x;
 	//Std(BText("\nj=")+(j)+" n-j="+(n-j)+" max="+max+" p="+p+" y="+y+
 	//" x="+x+" yy="+yy);
@@ -410,7 +415,8 @@ bool RandTruncatedMultNormal(      BMatrix<BDat>& tn,
         y(i,0) = tni.Random();
       }
     }
-    for(i; i<n; i++)
+    // statement has no effect [-Wunused-value]
+    for( /*i*/; i<n; i++)
     {
       y(i,0) = 0;
     }

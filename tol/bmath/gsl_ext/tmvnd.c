@@ -56,7 +56,9 @@ void gsl_mvn_done(gsl_mvn_workspace_t * mvn)
 double gsl_log_mvn_density(gsl_vector *x, gsl_vector *mean,
                            gsl_mvn_workspace_t *mvn)
 {
+#ifndef NDEBUG
   int status;
+#endif
   size_t i;  
   gsl_vector *x_m = gsl_vector_alloc(x->size); /* x-m */
   gsl_vector *y = gsl_vector_alloc(x->size);  /* U'*(x-m) */
@@ -70,8 +72,12 @@ double gsl_log_mvn_density(gsl_vector *x, gsl_vector *mean,
   gsl_vector_set_zero(y); /* I think this not needed as beta = 0.0 */
 
   /* compute y = V'*x_m */
+#ifndef NDEBUG
   status = gsl_blas_dgemv(CblasTrans, 1.0, V, x_m, 0.0, y);
   assert(status==GSL_SUCCESS);
+#else
+  gsl_blas_dgemv(CblasTrans, 1.0, V, x_m, 0.0, y);
+#endif
   /* compute y'* S^{-1} * y */
   for (i=0; i < x->size; i++) {
     if (!flag_zero[i])

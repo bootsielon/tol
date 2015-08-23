@@ -268,8 +268,14 @@ class TOL_API BText
   //! Copies a integer number to the actual text
   BText& Copy  (BInt  number, const BChar* format = NIL);
 
+  //! Copies a integer number to the actual text
+  BText& Copy  (unsigned int  number, const BChar* format = NIL);
+
   //! Copies a long integer number to the actual text
   BText& Copy  (long int number, const BChar* format = NIL);
+  
+  //! Copies a long integer number to the actual text
+  BText& Copy  (unsigned long int number, const BChar* format = NIL);
   
   //! Copies a BINT64 number to the actual text
   BText& Copy  (BINT64 number, const BChar* format = NIL);
@@ -292,8 +298,14 @@ class TOL_API BText
   //! Concatenates a integer number to the actual text
   BText& Concat(BInt,  const BChar* format = NIL);
 
+  //! Concatenates a integer number to the actual text
+  BText& Concat(unsigned int,  const BChar* format = NIL);
+
   //! Concatenates a long integer number to the actual text
   BText& Concat(long int,  const BChar* format = NIL);
+
+  //! Concatenates a long integer number to the actual text
+  BText& Concat(unsigned long int,  const BChar* format = NIL);
 
   //! Concatenates a BINT64 to the actual text
   BText& Concat(BINT64, const BChar* format = NIL);
@@ -429,7 +441,9 @@ class TOL_API BText
   BText& operator+= (const BText&      txt);
   BText& operator+= (const BChar*      str);
   BText& operator+= (      BInt        val);
+  BText& operator+= (      unsigned int val);
   BText& operator+= (      long int    val);
+  BText& operator+= (      unsigned long int    val);
   BText& operator+= (      BINT64      val);
   BText& operator+= (      BReal       val);
   BText& operator+= (	     long double val);
@@ -438,7 +452,9 @@ class TOL_API BText
   BText operator+ (const BText&      txt) const;
   BText operator+ (const BChar*      str) const;
   BText operator+ (      BInt        val) const;
+  BText operator+ (      unsigned int val) const;
   BText operator+ (      long int    val) const;
+  BText operator+ (      long unsigned int val) const;
   BText operator+ (      BINT64      val) const;
   BText operator+ (	     BReal       val) const;
   BText operator+ (	     long double val) const;

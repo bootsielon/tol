@@ -37,7 +37,6 @@
 #include <tol/tol_bprdist.h>
 #include <tol/tol_barma.h>
 
-
 BTraceInit("stat.cpp");
 
 //--------------------------------------------------------------------
@@ -732,7 +731,7 @@ static BDat RecursivePartialCorrelation(      BInt x1, BInt x2,
 					const BArray    <BInt>& cond,
 					const BSymMatrix<BDat>& cor)
     
-/*! Returns the partial correlation between rows of data
+/ *! Returns the partial correlation between rows of data
  * /
 //--------------------------------------------------------------------
 {
@@ -1139,7 +1138,7 @@ BDat BoxPierceModACF(const BArray<BDat>& acf, BInt m, BInt s)
   BDat QBP = BoxPierceACF(acf, m, s);
   BDat EQBP  = BoxPierceCenterMoment1(m, s);
   BDat EQBP2 = BoxPierceCenterMoment2(m, s);
-  BDat VQBP  = EQBP2-EQBP^2;
+  BDat VQBP  = EQBP2-(EQBP^2);
   BDat QBPM = m+Sqrt(2*m/VQBP)*(QBP-EQBP);
   return(QBPM);
 }
@@ -1271,7 +1270,8 @@ void BoxCoxTrans(
   addition = fabs(GSL_MIN(0, mi.Value()));
   if (mi.Value() <= 0) 
   {
-    BDat lg  = Log(mi.Zero());
+    // unused
+    // BDat lg  = Log(mi.Zero());
     addition += (mi.Zero() * 1000);  
   }
     
@@ -1283,7 +1283,8 @@ void BoxCoxTrans(
     for(BInt k=0; k<values.Size(); k++)
     {
       BDat bk = BoxCoxTrans(values(k),addition,vec,N,length);
-      if(bk.IsKnown() && (!b.IsKnown()) || (bk<b))
+      // suggest parentheses around ‘&&’ within ‘||’ [-Wparentheses]
+      if(bk.IsKnown() && (!b.IsKnown() || (bk<b)))
       {
         b = bk;
         index = k;
@@ -1437,7 +1438,7 @@ bool Diagnostic_NormalReg_Res_Pearson(
   BInt         i,j;
 //Std(BText("\nTRACE PearsonNormalityTest "));
   BNormalDist U(0,1);
-  //C�lculo de la desviaci�n t�pica en base a cuantiles para filtrar outliers
+  //Cálculo de la desviación típica en base a cuantiles para filtrar outliers
   BDat sQ = 0;
   {
     int nQ = (N_>30)?3:1;

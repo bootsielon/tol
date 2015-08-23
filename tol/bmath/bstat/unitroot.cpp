@@ -44,7 +44,8 @@ static BDat StationarityRegionMeassure(BInt dimension)
 //--------------------------------------------------------------------
 {
     BDat V=1, M = 2;
-    BInt p, n = dimension/2;
+    //      unused
+    BInt p /*, n = dimension/2 */;
     for(p=1; p<dimension; p+=2)
     {
 	V *= M;
@@ -145,7 +146,8 @@ void IdentifyUnitRoot(const BArray <BDat>&	  z,
 //--------------------------------------------------------------------
 {
     BInt i;
-    BDat p=0;
+    // unused
+    // BDat p=0;
     
     UnitRootTable.ReallocBuffer(3);
     UnitRootTable[0].U_ = BPolyn<BDat>::One();

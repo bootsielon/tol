@@ -70,10 +70,12 @@ int dgemm(const enum CBLAS_TRANSPOSE TransA,
   int M,N,K;
   int Ar = A.Rows();
   int Br = B.Rows();
-  int Cr = C.Rows();
+  // unused
+  // int Cr = C.Rows();
   int Ac = A.Columns();
   int Bc = B.Columns();
-  int Cc = C.Columns();
+  // unused
+  // int Cc = C.Columns();
   if (TransA==CblasNoTrans) {
     M = Ar;
     K = Ac;
@@ -153,7 +155,8 @@ int dsyrk(const enum CBLAS_UPLO Uplo,
 {
   int N,K;
   int Ar = A.Rows();
-  int Cr = C.Rows();
+  // unused
+  // int Cr = C.Rows();
   int Ac = A.Columns();
   int Cc = C.Columns();
   if (Trans==CblasNoTrans) {

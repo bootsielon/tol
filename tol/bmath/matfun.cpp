@@ -716,6 +716,8 @@ BDat FHyp(BDat a, BDat b, BDat c, BDat z, BDat tol)
 }
 
 
+// ‘BDat MCHypSmall(BDat, BDat, BDat, BDat)’ defined but not used [-Wunused-function]
+#if 0
 //--------------------------------------------------------------------
 static BDat MCHypSmall(BDat a, BDat b, BDat z, BDat tol)
 
@@ -741,8 +743,11 @@ static BDat MCHypSmall(BDat a, BDat b, BDat z, BDat tol)
     //Std("\n");
     return(sum);
 }
+#endif
 
-
+// ‘BDat MCHypLarge(BDat, BDat, BDat, BDat)’ defined but not used
+// [-Wunused-function]
+#if 0
 //--------------------------------------------------------------------
 static BDat MCHypLarge(BDat a, BDat b, BDat z, BDat tol)
 
@@ -775,6 +780,7 @@ static BDat MCHypLarge(BDat a, BDat b, BDat z, BDat tol)
 //Std("\n");
     return(sum);
 }
+#endif
 
 /*
 //--------------------------------------------------------------------

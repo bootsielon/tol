@@ -137,7 +137,7 @@ void extract_error(
         ret = SQLGetDiagRec(type, handle, ++i, state, &native, text,
                             sizeof(text), &len );
         if (SQL_SUCCEEDED(ret))
-            printf("%s:%ld:%ld:%s\n", state, i, native, text);
+            printf("%s:%d:%ld:%s\n", state, i, native, text);
     }
     while( ret == SQL_SUCCESS );
 }
@@ -174,7 +174,7 @@ void getDiagRec(odbcd *dbd, int diagType)
       if(rc==SQL_SUCCESS) {
 	char outmsg[SQL_MAX_MESSAGE_LENGTH + 50];
 	sprintf(outmsg, 
-		"[SQLState:%s][NativeError:%d]%s\n", 
+		"[SQLState:%s][NativeError:%ld]%s\n", 
 		SqlState, NativeError, Msg);
 	stdOutWriter(outmsg);
 	i++;
@@ -585,7 +585,8 @@ DLLEXPORT(int) odbc_GetAsReal(odbcd *dbd, int nfield, long double *realval)
    */
   SQLCHAR _sqlchar;            // for SQL_BIT, SQL_TINYINT
   SQLSMALLINT _smallint;       // for SQL_SMALLINT
-  TOLSQL_BIGINT _bigint;       // for SQL_BIGINT
+  // unused variable ‘_bigint’ [-Wunused-variable]
+  // TOLSQL_BIGINT _bigint;       // for SQL_BIGINT
   SQLINTEGER _integer;         // for SQL_INTEGER
   //SQLCHAR *_decimal;           // for SQL_DECIMAL SQL_NUMERIC
   SQLCHAR   szNumeric[256];    // for SQL_DECIMAL SQL_NUMERIC SQL_BIGINT
@@ -674,7 +675,7 @@ printf( "case SQL_BIGINT:\n" );
       *realval = (long double)(_integer); break;
     case SQL_DECIMAL: case SQL_NUMERIC: case SQL_BIGINT:
       //sscanf((char *)_decimal, "%Lf", realval); break;
-      sscanf( szNumeric, "%Lf", realval); break;
+      sscanf( (const char *)szNumeric, "%Lf", realval); break;
     case SQL_DOUBLE: case SQL_FLOAT:
       *realval = (long double)(_double); break;
     case SQL_REAL:

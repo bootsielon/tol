@@ -38,6 +38,12 @@
 #define GCC_VERSION 0
 #endif
 
+#ifdef __GNUC__
+  #define ATTR_UNUSED __attribute__((unused))
+#else
+  #define ATTR_UNUSED
+#endif
+
 #define OPENFLAG ios::in
 
 #ifdef __cplusplus
@@ -281,17 +287,17 @@ inline const BStaticInit& StaticInit()
 
 bool InitializeOrderedClasses();
 # if(defined(TRACE_INIT)&&(TRACE_INIT>1))
-#  define BTraceInit(sourceFile) \
-    static bool  TraIniOrdCls__ =InitializeOrderedClasses(); \
-    static BInt	 TraIniInt__    =(BInt)printf("\n%s: <return>",sourceFile); \
-    static BChar TraIniChar__   =(BChar)getchar();
+#  define BTraceInit(sourceFile)					\
+  static bool  TraIniOrdCls__ ATTR_UNUSED =InitializeOrderedClasses();		\
+  static BInt	 TraIniInt__  ATTR_UNUSED =(BInt)printf("\n%s: <return>",sourceFile); \
+  static BChar TraIniChar__   ATTR_UNUSED =(BChar)getchar();
 # elif(defined(TRACE_INIT)&&(TRACE_INIT<=1))
-#  define BTraceInit(sourceFile) \
-    static bool  TraIniOrdCls__ =InitializeOrderedClasses(); \
-    static BInt	 TraIniInt__    =(BInt)printf("\n%s: <return>",sourceFile); 
+#  define BTraceInit(sourceFile)					\
+  static bool  TraIniOrdCls__ ATTR_UNUSED =InitializeOrderedClasses();		\
+  static BInt	 TraIniInt__  ATTR_UNUSED =(BInt)printf("\n%s: <return>",sourceFile);
 # else
-#  define BTraceInit(sourceFile) \
-    static bool  TraIniOrdCls__ =InitializeOrderedClasses(); 
+#  define BTraceInit(sourceFile)				   \
+  static bool  TraIniOrdCls__ ATTR_UNUSED =InitializeOrderedClasses();
 # endif
 #endif
 

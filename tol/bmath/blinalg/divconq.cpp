@@ -274,7 +274,8 @@ static void SolveTridiagSecularEquation(      BArray<double>& a_,
 //BTimer tm(BText("SolveTridiagSecularEquation ")+n);
 
   BArray< BIndexed<double> > index(n);
-  double v = Abs(u_(0));
+  // unused
+  // double v = Abs(u_(0));
   for(i=0; i<n; i++)
   {
     index(i).dat_ = d_(i)*Sign(r_);
@@ -423,7 +424,8 @@ void TridiagSEPDivideAndConquer(const BArray<double>&  a,
     for(j=0; j<n; j++)
     {
       v(j).Alloc(n,1);
-      double s = 0;
+      // unused
+      // double s = 0;
       for(i=0; i<n; i++)
       {
 	double dif = d(i)-x(j);
@@ -574,7 +576,8 @@ void SEPInverseMethod(const BSymMatrix<double>& A,
 //--------------------------------------------------------------------
 {
     BInt k, n = A.Rows();
-    double dd = 0, dif;
+    //     unused
+    double /* dd = 0, */ dif;
     x.Alloc(n,1);
     for(k=0;k<n;k++) { x(k,0) = 1; }
     DMat y = x;
@@ -590,9 +593,11 @@ void SEPInverseMethod(const BSymMatrix<double>& A,
 	x = y/Sqrt(MtMSqr(y)(0,0));
 	xDif = x-xOld;
 	dif = Sqrt(MtMSqr(xDif)(0,0));
-	double old = d;
+        // unused 
+	// double old = d;
 	d = (x.T()*A*x)(0,0);
-	dd = Abs(d-old);
+        // unused
+	// dd = Abs(d-old);
 	Std(BText("\nSEPInverseMethod(")+d0+","+k+") -> "+d);
 	k++;
     }

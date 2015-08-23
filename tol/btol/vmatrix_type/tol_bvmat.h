@@ -387,11 +387,10 @@ private:
                                      const BVMat& a, const BVMat& b);
   static void err_invalid_dimensions(const char* fName, 
                                      const BVMat& a, const BVMat& b, const BVMat& c);
-//#if defined( CHOLMOD_MAIN_VERSION ) && ( CHOLMOD_MAIN_VERSION >= 3 )
-#if defined( __MINGW32__ )
-  static void cholmod_error_handler (int status, const char *file, int line, const char *msg);
-#else
+#if defined( USE_CHOLMOD_VER1 )
   static void cholmod_error_handler (int status, char *file, int line, char *msg);
+#else
+  static void cholmod_error_handler (int status, const char *file, int line, const char *msg);
 #endif
   static int  cholmod_print_function(const char *fmt, ...);
   

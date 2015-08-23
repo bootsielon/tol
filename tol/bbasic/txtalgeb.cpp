@@ -282,6 +282,34 @@ BText& BText::Copy(BInt number, const BChar* format)
 }
 
 //--------------------------------------------------------------------
+BText& BText::Copy(unsigned int number, const BChar* format)
+
+/*! Copies the integer \a number with a given format \a format to
+ *  the actual text.
+ * \param number Integer to be copied
+ * \param format Format of number to be copied
+ */
+//--------------------------------------------------------------------
+{
+  static char txt [BMEDIUM_SIZE_STRING];
+  assert(IsAllOk());
+  if(!buffer_) { AllocateBuffer(0); } 
+  else if(length_) { buffer_[length_=0]='\0'; }
+  char* fmt=(char*)format;
+  if(!format)
+  {
+    fmt = (char*)formatBInt_;
+  }
+  BInt len = sprintf(txt, fmt, number);
+  assert(len>0);
+  ReallocateBuffer(len+1);
+  memcpy(buffer_,txt,len);
+  buffer_[length_=len]='\0';
+  assert(IsAllOk());
+  return(*this);
+}
+
+//--------------------------------------------------------------------
 BText& BText::Copy(long int number, const BChar* format)
 
 /*! Copies the integer \a number with a given format \a format to
@@ -298,7 +326,35 @@ BText& BText::Copy(long int number, const BChar* format)
   char* fmt=(char*)format;
   if(!format)
   {
-    fmt = (char*)formatBInt_;
+    fmt = "%ld";
+  }
+  BInt len = sprintf(txt, fmt, number);
+  assert(len>0);
+  ReallocateBuffer(len+1);
+  memcpy(buffer_,txt,len);
+  buffer_[length_=len]='\0';
+  assert(IsAllOk());
+  return(*this);
+}
+
+//--------------------------------------------------------------------
+BText& BText::Copy(unsigned long int number, const BChar* format)
+
+/*! Copies the integer \a number with a given format \a format to
+ *  the actual text.
+ * \param number long int to be copied
+ * \param format Format of number to be copied
+ */
+//--------------------------------------------------------------------
+{
+  static char txt [BMEDIUM_SIZE_STRING];
+  assert(IsAllOk());
+  if(!buffer_) { AllocateBuffer(0); } 
+  else if(length_) { buffer_[length_=0]='\0'; }
+  char* fmt=(char*)format;
+  if(!format)
+  {
+    fmt = "%ld";
   }
   BInt len = sprintf(txt, fmt, number);
   assert(len>0);
@@ -496,7 +552,39 @@ BText& BText::Concat(BInt number,  const BChar* format)
 }
 
 //--------------------------------------------------------------------
+BText& BText::Concat(unsigned int number,  const BChar* format)
+       
+/*! Concatenates the integer number \a number with a given format \a
+ *  format to the actual text.
+ * \param number Integer to be concatenated
+ * \param format Format of number to be concatenated
+ */
+//--------------------------------------------------------------------
+{
+  BText txt;
+  txt.Copy(number, format);
+  Concat(txt);
+  return(*this);
+}
+
+//--------------------------------------------------------------------
 BText& BText::Concat(long int number,  const BChar* format)
+       
+/*! Concatenates the integer number \a number with a given format \a
+ *  format to the actual text.
+ * \param number Integer to be concatenated
+ * \param format Format of number to be concatenated
+ */
+//--------------------------------------------------------------------
+{
+  BText txt;
+  txt.Copy(number, format);
+  Concat(txt);
+  return(*this);
+}
+
+//--------------------------------------------------------------------
+BText& BText::Concat(unsigned long int number,  const BChar* format)
        
 /*! Concatenates the integer number \a number with a given format \a
  *  format to the actual text.
@@ -615,7 +703,29 @@ BText BText::operator+(BInt val) const
 }
 
 //--------------------------------------------------------------------
+BText BText::operator+(unsigned int val) const
+
+/*! Concatenates \a val to the actual text in a new BText.
+*/
+//--------------------------------------------------------------------
+{
+  BText t = (*this);
+  return(t += val);
+}
+
+//--------------------------------------------------------------------
 BText BText::operator+(long int val) const
+
+/*! Concatenates \a val to the actual text in a new BText.
+*/
+//--------------------------------------------------------------------
+{
+  BText t = (*this);
+  return(t += val);
+}
+
+//--------------------------------------------------------------------
+BText BText::operator+(unsigned long int val) const
 
 /*! Concatenates \a val to the actual text in a new BText.
 */

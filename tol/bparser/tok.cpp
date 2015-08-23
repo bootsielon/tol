@@ -39,8 +39,8 @@ BToken::BToken(const BText& name, BTokenType typ, BInt pre)
 //--------------------------------------------------------------------
 : BObject(name), 
   tokenType_(typ), 
-  close_(NIL), 
   precedence_(pre),
+  close_(NIL), 
   unparsed_(""), 
   object_(NULL), 
   objectClass_('\0'), 
@@ -77,8 +77,8 @@ BToken::BToken(const BToken* tok)
 //--------------------------------------------------------------------
 : BObject(tok->Name()),
   tokenType_(tok->TokenType()),
-  close_(tok->Close()),
   precedence_(tok->Precedence()),
+  close_(tok->Close()),
   unparsed_(tok->Unparsed()), 
   object_(tok->object_),
   objectClass_(tok->objectClass_),

@@ -82,6 +82,7 @@ Set
 Set TolCore.Tree = 
 {
   Do Ois.UseModule("_tolcore.tol")
+  //Do Include("_tolcore.tol")
 };
 
 //////////////////////////////////////////////////////////////////////////////

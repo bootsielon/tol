@@ -222,7 +222,8 @@ BDat BRRFunction::AdaptiveSimpson(BDat a0, BDat b, BDat tolerance)
     BDat v3 = fc [i];
     BDat v4 = fb [i];
     BDat v5 = h	 [i];
-    BDat v6 = tol[i];
+    // unused
+    // BDat v6 = tol[i];
     BDat v7 = s	 [i];
     BInt v8 = l	 [i];
 

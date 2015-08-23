@@ -46,9 +46,15 @@ find_package_handle_standard_args(CLAPACK DEFAULT_MSG CLAPACK_LIBRARY CLAPACK_IN
 
 if ( CLAPACK_FOUND )
   include( CheckLibraryExists )
-  check_library_exists( "${CLAPACK_LIBRARY}" ${CLAPACK_NAME}_dpotrf "" FOUND_CLAPACK_DPOTRF )
+  if( CLAPACK_NAME STREQUAL "lapacke" )
+    set( NameFunction "LAPACKE_dpotrf" )
+  else( CLAPACK_NAME STREQUAL "lapacke" )
+    set( NameFunction "clapack_dpotrf" )
+  endif( CLAPACK_NAME STREQUAL "lapacke" )
+  set(CMAKE_REQUIRED_LIBRARIES lapack)
+  check_library_exists( "${CLAPACK_LIBRARY}" ${NameFunction} "" FOUND_CLAPACK_DPOTRF )
   if( NOT FOUND_CLAPACK_DPOTRF )
-    message( WARNING "Could not find cblas_dtrsm in ${CLAPACK_LIBRARY}, take a look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. You most likely have to set CLAPACK_LIBRARY by hand (i.e. -DLAPACK_LIBRARY='/path/to/libclapack.so') !" )
+    message( WARNING "Could not find LAPACKE_dpotrf in ${CLAPACK_LIBRARY}, take a look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. You most likely have to set CLAPACK_LIBRARY by hand (i.e. -DLAPACK_LIBRARY='/path/to/libclapack.so') !" )
   endif( NOT FOUND_CLAPACK_DPOTRF )
 endif( CLAPACK_FOUND )
 

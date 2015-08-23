@@ -29,7 +29,18 @@
 
 #include "tol_PackArchive.h"
 
+/*
+ZipStorage.h:164:56: warning: suggest parentheses around ‘&&’ within ‘||’ [-Wparentheses]
+    return !m_pFile || m_state.IsSetAny(stateAutoClose) && m_pFile->IsClosed();
+ */
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wparentheses"
+#endif
 #include <ZipArchive.h>
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 #include <ZipMemFile.h>
 
 //------------------------------------------------------------------
@@ -47,13 +58,13 @@
   bool Open(BText path, char openMode);
   //Cierra el archivo
   bool Close();
-  //A�ade un fichero al archivo
+  //Añade un fichero al archivo
   bool FileAdd(BText originalFilePath, BText pathInZip);
   //Extrae un fichero del archivo
   bool FileExtract(BText originalFilePath, BText destinationDirPath);
   //Determina si existe o no un fichero dentro del archivo
   bool FileExist(BText originalFilePath);
-  //A�ade un directorio completo recursivamente
+  //Añade un directorio completo recursivamente
   bool DirAdd(BText originalDirPath);
   //Extrae un directorio completo recursivamente
   bool DirExtract(BText originalDirPath, BText destinationDirPath);

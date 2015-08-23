@@ -114,6 +114,7 @@ project tol
                  <define>__HASH_MAP_GCC__=3
                  <define>__HASH_MAP_ICC__=4
                  <define>_USE_MM_IO_
+		 <define>USE_CHOLMOD_VER1
   ;
 
 rule tag-lib ( name : type ? : property-set )

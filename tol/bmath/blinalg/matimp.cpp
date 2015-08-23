@@ -96,7 +96,8 @@ void InversePivots(const BArray<BInt>& pivot,
 //--------------------------------------------------------------------
 {
     BInt i,  n = pivot.Size();
-    BBool ok = BTRUE;
+    // unused
+    // BBool ok = BTRUE;
     pivotInv.Replicate(-1,max);
     
     for(i=0; i<n; i++)
@@ -152,8 +153,8 @@ void Inverse(const BLowTrMatrix<double>& m, BLowTrMatrix<double>& inv)
   BMatrix<double> L  = m;
   BMatrix<double> Li;
   BMatrix<double> I = BDiagMatrix<double>(L.Rows(),1);
-  int res = TolBlas::dtrsm(CblasLeft, CblasLower, CblasNoTrans, CblasNonUnit, 
-                           1.0, L, I, Li);
+  TolBlas::dtrsm(CblasLeft, CblasLower, CblasNoTrans, CblasNonUnit, 
+                 1.0, L, I, Li);
   inv = Li;
 }
 

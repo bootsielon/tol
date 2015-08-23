@@ -669,7 +669,7 @@ void FastUnivariateDensityDerivative::EvaluateWithOptimalBandwith
     h = h_initial.Value();
   }
   Std(BText("\nFastUnivariateBandwidthEstimate(")+N_+","+numIter+","+epsil_+")="+h+"\n");
-  double f = AMISE_equation(h);
+  double f ATTR_UNUSED = AMISE_equation(h);
 }
 
 //-------------------------------------------------------------------

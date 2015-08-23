@@ -95,7 +95,7 @@ BGraContensP<BNameBlock>* NewUserNameBlock()
   }
 //Std(BText("\nTRACE BLoadDynLib::Evaluator 1 libraryPath=")+libraryPath);
 //Std(BText("\nTRACE BLoadDynLib::Evaluator 2 libraryName=")+libraryName);
-  BUserNameBlock* unb = NULL;
+  BUserNameBlock* unb ATTR_UNUSED = NULL;
 
   // se cambia el directorio de trabajo (cwd) inicial
   BText currentDir = BDir::GetCurrent();

@@ -128,8 +128,8 @@ Tree* BParser::Parsing(const BText& expr)
     {
       messageError_+=
       I2("Unexpected end of expression. Close symbol was expected. ",
-         "Fin de la expresión inesperado. "
-         "Se esperaba símbolo de cierre. ");
+         "Fin de la expresiÃ³n inesperado. "
+         "Se esperaba sÃ­mbolo de cierre. ");
     }
     if(tree->isEmpty() || messageError_.HasName()) 
     {
@@ -143,8 +143,8 @@ Tree* BParser::Parsing(const BText& expr)
       DESTROY(newSymbol_);
       BInt column=0, row=0;
       BText line = ErrorPosition(row, column);
-      messageError_ += I2(" in character ", " en el carácter ") +
-                       column + I2(" of line ",", línea ") + row + ":\n" +
+      messageError_ += I2(" in character ", " en el carÃ¡cter ") +
+                       column + I2(" of line ",", lÃ­nea ") + row + ":\n" +
                        line + "\n";
       Error(messageError_);
       if(NextArgument()) 
@@ -584,8 +584,8 @@ Tree* BParser::ParseNone(Tree* tre, BCloseToken* close)
   {
     messageError_+= I2("Unexpected end of expression. "
       "Close symbol "+ close->Name()+ " was expected",
-      "Fin de la expresión inesperado. "
-      "Se esperaba símbolo de cierre " + close->Name()+". ");
+      "Fin de la expresiÃ³n inesperado. "
+      "Se esperaba sÃ­mbolo de cierre " + close->Name()+". ");
     ok = false;
   }
   if(ok)
@@ -629,7 +629,7 @@ Tree* BParser::ParseNone(Tree* tre, BCloseToken* close)
   if(!ok)
   {
     messageError_+= I2("Unexpected end of expression",
-                       "Fin de la expresión inesperado")+". ";
+                       "Fin de la expresiÃ³n inesperado")+". ";
   }
   return(tre);
 }
@@ -669,7 +669,7 @@ Tree* BParser::ParseOpen (Tree* tre)
     filter_->UnReplace(sym);
     messageError_+=
       I2("Unexpected open symbol " + sym,
-         "Símbolo de apertura "   + sym +
+         "SÃ­mbolo de apertura "   + sym +
          " fuera de lugar")+". ";
   } 
   else 
@@ -733,7 +733,7 @@ Tree* BParser::ParseClose (Tree* tre, BCloseToken* close)
     filter_->UnReplace(closeStr);
     messageError_+=
       I2("Unexpected close symbol "+closeStr,
-         "Símbolo de cierre "+closeStr+" fuera de lugar")+". ";
+         "SÃ­mbolo de cierre "+closeStr+" fuera de lugar")+". ";
   }
   if(!NextArgument() && delayedSymbol_ &&
       (delayedSymbol_->TokenType()==TYPE) &&
@@ -764,7 +764,7 @@ Tree* BParser::ParseClose (Tree* tre, BCloseToken* close)
         BCloseToken* close = (BCloseToken*)NextSymbol();
         BText openSym = close->Open()->Name();
         filter_->UnReplace(openSym);
-        messageError_+= I2("Invalid sequence ","Secuencia inválida ")+ 
+        messageError_+= I2("Invalid sequence ","Secuencia invÃ¡lida ")+ 
           openSym +"{ ... }" + closeSym;
       }
     }    
@@ -788,7 +788,7 @@ Tree* BParser::ParseType (Tree* tre)
   if(NextArgument() || complete_) 
   {
     messageError_+= I2("Unexpected type symbol "+ NextSymbol()->Name(),
-                       "Símbolo de tipo "+NextSymbol()->Name()+
+                       "SÃ­mbolo de tipo "+NextSymbol()->Name()+
                        " fuera de lugar")+". ";
   } 
   else 
@@ -837,7 +837,7 @@ Tree* BParser::ParseMonary (Tree* tre)
     {
       messageError_+=
       I2("Unexpected monary symbol "+ NextSymbol()->Name(),
-       "Símbolo monario "+NextSymbol()->Name()+" fuera de lugar")+". ";
+       "SÃ­mbolo monario "+NextSymbol()->Name()+" fuera de lugar")+". ";
     }
   } 
   else 
@@ -921,7 +921,7 @@ Tree* BParser::ParseBinary (Tree* tre)
   {
     messageError_+=
       I2("Unexpected binary symbol "+ NextSymbol()->Name(),
-         "Símbolo binario "+NextSymbol()->Name()+" fuera de lugar")+". ";
+         "SÃ­mbolo binario "+NextSymbol()->Name()+" fuera de lugar")+". ";
   } 
   else 
   {
@@ -1029,7 +1029,7 @@ Tree* BParser::ParseSeparator (Tree* tre)
   {
     messageError_+=
       I2("Unexpected separator symbol "+ NextSymbol()->Name(),
-         "Símbolo separador "+NextSymbol()->Name()+" fuera de lugar")+". ";
+         "SÃ­mbolo separador "+NextSymbol()->Name()+" fuera de lugar")+". ";
   } 
   else 
   {
@@ -1123,7 +1123,7 @@ Tree* BParser::ParseMacroEmbed (Tree* tre)
   {
     messageError_+=
       I2("Expected valid file path argument for #Embed macro instead of ",
-      "Se esperaba un nombre de fichero válido para la macro #Embed en "
+      "Se esperaba un nombre de fichero vÃ¡lido para la macro #Embed en "
       "lugar de ")+ pathArg+" . ";
   } 
   else if(tre->isEmpty() && (!embedded->isEmpty()))
@@ -1240,16 +1240,17 @@ BSyntaxObject* OisLoad(const BText& root);
 Tree* BParser::ParseSymbol (Tree* tre, BCloseToken* close) 
 {
   bool needsRead = true;
-  BBool ok;
+  // variable â€˜okâ€™ set but not used [-Wunused-but-set-variable]
+  // BBool ok;
   BTokenType symbolType, newSymbolType;
   const BText* name = NULL;
   do 
   {
     if(needsRead)
     {
-      ok = ReadNextSymbol(symbolType); 
+      ReadNextSymbol(symbolType); 
     }
-      else
+    else
     { 
       symbolType = newSymbolType;
     }
@@ -1269,7 +1270,7 @@ Tree* BParser::ParseSymbol (Tree* tre, BCloseToken* close)
       case BINARY    : tre=ParseBinary   (tre);        break;
       case MACRO     : 
       {
-        ok = ReadNextSymbol(newSymbolType);
+        ReadNextSymbol(newSymbolType);
         if(newSymbolType == SEPARATOR) 
         { 
           needsRead = true;
@@ -1289,10 +1290,10 @@ Tree* BParser::ParseSymbol (Tree* tre, BCloseToken* close)
           else if(NextArgument()) { sym=NextArgument()->Name(); }
           messageError_+=
             I2("Unexpected symbol ",
-               "Símbolo fuera de lugar '")+sym+"' \n"+
+               "SÃ­mbolo fuera de lugar '")+sym+"' \n"+
             I2("A separator, close symbol or end of file was expected "
                "after macro ",
-               "Se esperaba un separador, un símbolo de cierre o el final "
+               "Se esperaba un separador, un sÃ­mbolo de cierre o el final "
                "del archivo tras la macro "+(*name));
         } 
         if(*name=="#Embed") 
@@ -1311,7 +1312,7 @@ Tree* BParser::ParseSymbol (Tree* tre, BCloseToken* close)
       default: 
       {
         messageError_+= I2("Unexpected symbol ",
-                           "Símbolo fuera de lugar")+". ";
+                           "SÃ­mbolo fuera de lugar")+". ";
 
       }
     }
@@ -1419,7 +1420,7 @@ BBool BParser::ReadNextSymbol(BTokenType& symbolType)
         {
           messageError_+= 
            I2("Unexpected symbol "+ nxtArg,
-              "Símbolo " + nxtArg + " fuera de lugar")+". "+
+              "SÃ­mbolo " + nxtArg + " fuera de lugar")+". "+
            I2("Class names must begin with special character @",
               "Los nombres de clases deben comenzar por el caracter especial @")+". ";
           ok = BFALSE;
@@ -1438,9 +1439,9 @@ BBool BParser::ReadNextSymbol(BTokenType& symbolType)
         {
           messageError_+= 
            I2("Unexpected symbol "+ nxtArg,
-              "Símbolo " + nxtArg + " fuera de lugar")+". "+
+              "SÃ­mbolo " + nxtArg + " fuera de lugar")+". "+
            I2("Only Struct and Class names can begin with special character @",
-              "Sólo los los nombres de Struct y Class pueden comenzar por el "
+              "SÃ³lo los los nombres de Struct y Class pueden comenzar por el "
               "caracter especial @")+". ";
           ok = BFALSE;
         } 
@@ -1545,7 +1546,7 @@ BText BParser::ErrorPosition (BInt& row, BInt& col)
   BChar numLine[20];
   if(lines.Size()>1) 
   {
-    txt += I2("\nCode line ","\nLínea de código ");
+    txt += I2("\nCode line ","\nLÃ­nea de cÃ³digo ");
   }
   i=0;
   if(lines.Size()>margin2) {

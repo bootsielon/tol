@@ -20,12 +20,20 @@ find_library( ZIPARCHIVE_LIBRARY
 
 set( CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES_SAV} )
 
-find_path( ZIPARCHIVE_INCLUDE_DIR
-  NAMES "ZipArchive.h" 
-  PATHS ${ZIPARCHIVE_ROOT_DIR}
-  PATH_SUFFIXES "include" "include/ziparchive"
-  # Help the user find it if we cannot.
-  DOC ${ZIPARCHIVE_DIR_MESSAGE} )
+if( ZIPARCHIVE_ROOT_DIR )
+  find_path( ZIPARCHIVE_INCLUDE_DIR
+    NAMES "ZipArchive.h" 
+    PATHS ${ZIPARCHIVE_ROOT_DIR}
+    PATH_SUFFIXES "include" "include/ziparchive" 
+    # Help the user find it if we cannot.
+    DOC ${ZIPARCHIVE_DIR_MESSAGE} )
+else( ZIPARCHIVE_ROOT_DIR )
+  find_path( ZIPARCHIVE_INCLUDE_DIR
+    NAMES "ZipArchive.h"
+    PATH_SUFFIXES "ZipArchive" "ziparchive" 
+    # Help the user find it if we cannot.
+    DOC ${ZIPARCHIVE_DIR_MESSAGE} )
+endif( ZIPARCHIVE_ROOT_DIR )
 
 #include(FindPackageHandleStandardArgs)
 #find_package_handle_standard_args(ZIPARCHIVE DEFAULT_MSG

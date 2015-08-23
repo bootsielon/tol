@@ -271,7 +271,7 @@ void ForecastingToNull(const BRational <BDat>& R,
   BRational<BDat> Q  = ma/ar;
   BInt p = ar.Degree();
   BInt q = ma.Degree();
-  BInt i, N = Z.Rows(), m = N-1, k = m, iter = 0;
+  BInt i, N = Z.Rows(), m = N-1, k = m /*, iter = 0*/;
   BMatrix<BDat> ZERON (N,1); for(i=0; i<N; i++) { ZERON(i,0)=0; }
   BMatrix<BDat> ZFN;
     
@@ -599,10 +599,12 @@ BInt ArrayARIMAFactorCmp(const void* v1, const void* v2)
       test = A*gp-m;
       err  = test.FrobeniusNorm();
     }
-    bool closeToNonStationary = false;
+    // unused
+    // bool closeToNonStationary = false;
     if(err.IsUnknown()  || (err>Sqrt((1+p)*DEpsilon()))) 
     {
-      closeToNonStationary = true;
+      // unused
+      //closeToNonStationary = true;
       BText method = BText("Golub_Reinsch_Mod");
       BMat U, V;
       BDiagMatrix<BDat> D, Dp; 
@@ -854,7 +856,8 @@ BSymMatrix<BDat> ARMAAutoCovarianze(const BPolyn<BDat> ar,
     double b = exp(lb);
     logDet += lb;
     double rx = 0;
-    BInt ir_f=0, ir_u=k;
+    // unused
+    // BInt ir_f=0, ir_u=k;
     
     for(i=1; i<=k; i++,rx_nn++) 
     { 
@@ -1041,12 +1044,12 @@ BSymMatrix<BDat> ARMAAutoCovarianze(const BPolyn<BDat> ar,
           x(i) += nu*y(k-i+1); 
         }
       }
-/* * /
+/*
       for(j=0; (j<j_nny) && ((i=yNotNull(j))<=k); j++) 
       { 
         x(k-i+1) += nu*y(i); 
       }
-/* */
+*/
     }
     x(k+1) = nu;
     if(k==n-1) { break; }

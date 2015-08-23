@@ -159,7 +159,8 @@ BBool DAgostinoDTest(BDat D, BInt n, BDat alfa)
     BInt c = DALFACOLS;
     BInt i, j1, j2;
     BDat a1 = alfa/2.0;
-    BDat a2 = 1.0-a1;
+    // unused
+    // BDat a2 = 1.0-a1;
 //TRZ(alfa);TRZ(a1);TRZ(a2);
     for(i=0; (i<r)&&(n>DAgostinoD_[i][0]); i++)
     {

@@ -411,7 +411,7 @@ void InteractiveTOL()
           lst=lst->Cdr();
         }
       }
-      else if(graD=BGrammar::FindByName(txt))
+      else if((graD=BGrammar::FindByName(txt)))
       {
         BList* lst = graD->Variables();
         while(lst)
@@ -1415,7 +1415,8 @@ BText BPackage::localRoot_ = "";
   bool BPackage::Install(const BText& package_version)
 //--------------------------------------------------------------------
 {
-  bool oldRunningUseModule = BOis::SetRunningUseModule(false);
+  //bool oldRunningUseModule = BOis::SetRunningUseModule(false);
+  BOis::SetRunningUseModule(false);
   BDat ri = EvalReal(BText("Real TolPackage::Client::RemoteInstall("
     "\"\",\"")+package_version+"\",True);",0);
   return(ri.Value()!=0.0);

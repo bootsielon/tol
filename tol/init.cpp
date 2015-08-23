@@ -203,8 +203,6 @@ static void signal_error_SIGINT(int sig)
   }
 }
 
-#if !defined(UNIX)
-
 //--------------------------------------------------------------------
   static void Error_UnexpectedTolEnd(void)
 //--------------------------------------------------------------------
@@ -220,6 +218,8 @@ static void signal_error_SIGINT(int sig)
   Error_UnexpectedTolEnd();
   SetTOLEnd();
 }
+
+#if !defined(UNIX)
 
 //--------------------------------------------------------------------
 static void signal_error_SIGABRT(int sig) 

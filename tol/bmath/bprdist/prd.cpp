@@ -252,33 +252,34 @@ BDat BProbDist::Inverse(BDat prob, BDat tolerance)
 //--------------------------------------------------------------------
 {
   if(wrongParameter_ || prob.IsUnknown()) { return(BDat::Unknown()); }
-    BBool ok = BTRUE;
-    if(prob==0) { return(min_); }
-    if(prob==1) { return(max_); }
-    BDat	x  = InverseAprox(prob,tolerance);
-    BInt	n1 = 0, n2 = 0, n3 = 0, n4 = 0, n5 = 0;
-    n1 = InverseFrom(x, prob, tolerance);
-    if(n1==0)
+  // unused
+  // BBool ok = BTRUE;
+  if(prob==0) { return(min_); }
+  if(prob==1) { return(max_); }
+  BDat	x  = InverseAprox(prob,tolerance);
+  BInt	n1 = 0, n2 = 0, n3 = 0, n4 = 0, n5 = 0;
+  n1 = InverseFrom(x, prob, tolerance);
+  if(n1==0)
     {
-	n2 = InverseFrom(x, prob, tolerance);
-	if(n2==0)
-	{
-	    n3 = InverseFrom(x, prob, tolerance);
-	    if(n3==0)
-	    {
-		n4 = InverseFrom(x, prob, tolerance);
-		if(n4==0)
-		{
-		    n5 = InverseFrom(x, prob, tolerance);
-		}
-	    }
-	}
+    n2 = InverseFrom(x, prob, tolerance);
+    if(n2==0)
+      {
+      n3 = InverseFrom(x, prob, tolerance);
+      if(n3==0)
+        {
+        n4 = InverseFrom(x, prob, tolerance);
+        if(n4==0)
+          {
+          n5 = InverseFrom(x, prob, tolerance);
+          }
+        }
+      }
     }
-    if((n1<0)||(n2<0)||(n3<0)||(n4<0)||(n5<0))
+  if((n1<0)||(n2<0)||(n3<0)||(n4<0)||(n5<0))
     {
-	InverseFib(x, prob, tolerance);
+    InverseFib(x, prob, tolerance);
     }
-    return(x);
+  return(x);
 }
 
 
@@ -374,7 +375,8 @@ BDat BProbDist::InverseFib(BDat& x, BDat prob, BDat tol)
 	    fin += Desviation();
 	    q = GetDist(fin);
 	    if(q==prob) { return(fin); }
-	    if((q<prob) && ini.IsUnknown() || (ini>fin))  { ini = fin; }
+            // suggest parentheses around ‘&&’ within ‘||’ [-Wparentheses]
+	    if((q<prob) && (ini.IsUnknown() || (ini>fin)))  { ini = fin; }
 	}
     }
     if(ini.IsUnknown())
@@ -386,7 +388,8 @@ BDat BProbDist::InverseFib(BDat& x, BDat prob, BDat tol)
 	    ini -= Desviation();
 	    p = GetDist(ini);
 	    if(p==prob) { return(ini); }
-	    if((p>prob) && fin.IsUnknown() || (ini>fin))  { fin = ini; }
+            // suggest parentheses around ‘&&’ within ‘||’ [-Wparentheses]
+	    if((p>prob) && (fin.IsUnknown() || ini>fin))  { fin = ini; }
 	}
     }
     if((p<=prob)&&(q>=prob))
@@ -1681,7 +1684,8 @@ BDat BNCTDist::Dist(BDat t)
     return(noru);
   }
 
-  BDat d2   = delta_*delta_;
+  // unused
+  // BDat d2   = delta_*delta_;
   BDat t2   = t*t;
   BDat x    = t/Sqrt(v+t2);
   BDat y    = delta_*Sqrt(v/(v+t2));
@@ -2600,7 +2604,8 @@ BDat BNegBinomialDist::Dist(BDat x)
 //--------------------------------------------------------------------
 {
   if(wrongParameter_ || x.IsUnknown()) { return(BDat::Unknown()); }
-  BInt k = (BInt)Floor(x).Value();
+  // unused
+  // BInt k = (BInt)Floor(x).Value();
 //return(1-gsl_sf_beta_inc (k+1, N_.Value(), 1-P_.Value()));
 //return(gsl_cdf_negative_binomial_P(k,P_.Value(),N_.Value()));
 /* */
@@ -2831,7 +2836,7 @@ BDat BPoissonDist::Inverse(BDat p, BDat tolerance)
     "\n  bound="+bound);
 	  return(BDat::Unknown());
   }
-/*
+/ *
   else if(status<0) 
   {
     Warning(BText("[BPoissonDist::Inverse] cdfpoi bound exceeded at ")+

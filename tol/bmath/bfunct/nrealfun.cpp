@@ -682,7 +682,7 @@ BDat BRnRmFunction::LeastSqrGaussNewton(BArray<BDat>& x,
     if(advance>=BDat::Tolerance())
     {
       Jacobian(x, y, J);
-      if(ok=HouseholderTransformation(T,J))
+      if((ok=HouseholderTransformation(T,J)))
       {
 		  LeastSqrHouseholder(T,J,y,epsilon,R);
 	for(i=0; i<n_; i++) { x[i]+=epsilon[i]; }
@@ -793,7 +793,8 @@ BDat NonSquareLargestEigenValue(const BMatrix<BDat>&	J_,
   BInt i, k;
   BDat u;
   BInt m_ = y.Rows();
-  BInt n_ = x.Rows();
+  // unused
+  //BInt n_ = x.Rows();
 //BTimer tm(BText("One Way Search(")+m_+","+n_+")");
   BMatrix<BDat> dx, x2, y2(m_,1), xu, yu(m_,1);
   BPolyn<BDat> p, sp2=BPolyn<BDat>::Zero(), dsp2;
@@ -810,7 +811,8 @@ BDat NonSquareLargestEigenValue(const BMatrix<BDat>&	J_,
 //       "\n   Búsqueda Unidireccional"));
   BDat h = 1;
   BDat advance = 1;
-  BInt interIter = 0;
+  // unused
+  //BInt interIter = 0;
   BInt hDiv = 2;
   while((norm.IsUnknown() || (norm.Value()==GSL_POSINF) || (norm1>norm))&&
 //while((norm.IsUnknown() || (norm.Value()==GSL_POSINF) )&&
@@ -913,7 +915,8 @@ BBool LinearStep(      BMatrix<BDat>& dX,
                  const BMatrix<BDat>& dY)
 //--------------------------------------------------------------------
 {
-  BInt r = J.Rows(), c = J.Columns();
+  // unused
+  // BInt r = J.Rows(), c = J.Columns();
   dX = gsl_MinimumResidualsSolve(J,-dY);
   BMatrix<BDat> test = J.T()*(J*dX+dY);
   BDat testErr = FrobeniusNormU(test.Data());
@@ -930,7 +933,7 @@ BBool LinearStep(      BMatrix<BDat>& dX,
     testErr = FrobeniusNormU(test.Data());
     ok = testErr < Sqrt(DEpsilon());
   }
-/* */
+*/
   if(!ok)
   {
     Warning(I2("Lost accurate solving linear step of Marquardt.",
@@ -1055,7 +1058,8 @@ BDat LeastSquareLambda(      BRnRmFunction& fun,
 //--------------------------------------------------------------------
 {
   BDat v  = marquardtFactor_;
-  BDat norm1, advance, norm = FrobeniusNormU(y.Data()), oldNorm1;
+  //                                                   unused
+  BDat norm1, advance, norm = FrobeniusNormU(y.Data()) /*, oldNorm1*/;
   BDat lambdaE, normE, norm2;
     
   BMatrix<BDat> x1, y1;
@@ -1065,40 +1069,41 @@ BDat LeastSquareLambda(      BRnRmFunction& fun,
   BBool ok = BFALSE;
     
   tm_0 = BTimer::Clocks();
-  for(interIter; !ok && (interIter<=BDat::MaxIter()); interIter++)
-	 {
-	   BDat oldNorm1 = norm1;
+  // statement has no effect [-Wunused-value]
+  for(/*interIter*/; !ok && (interIter<=BDat::MaxIter()); interIter++)
+    {
+    //BDat oldNorm1 = norm1;
     x1=x;
     y1=y;
-	   norm1 = ComputeLambda(fun, J, x1, y1, dY, lambda);
-	   advance = norm1-norm;
+    norm1 = ComputeLambda(fun, J, x1, y1, dY, lambda);
+    advance = norm1-norm;
     ok = norm1.IsKnown() && (norm1.Value()!=GSL_POSINF) && (advance<0);
-	   BDat relAdv = 100*advance/norm;
-	   tm_1 = BTimer::Clocks();
-	   tm_dif = BTimer::ClockToSecond(tm_1-tm_0);
-	   tm_0 = tm_1;
-	   if (!(interIter%1)) 
-    {
-		    Std(I2("\n    Subiteration(","\n    Subiteración(")<<
-		           TxtFmt(iter,"%2ld")<<", "<< TxtFmt(interIter,"%2ld") << ")"<<
-		           " Lambda : " << lambda <<
-		           I2("  norm : ","  norma : ") << norm1 <<
-		           " - " << norm<<" = "<< advance<<
-		           " ("<<relAdv.Format("%6.3lf")<<"%) : "<<
-		           I2("\tTime : "," Tiempo : ") << 
-		           tm_dif<<I2(" seconds"," segundos"));
-	   }
-	   if(Abs(relAdv )	< BDat::RelTolerance()) { break; }
-	   if(Abs(advance) < BDat::Tolerance   ()) { break; }  
+    BDat relAdv = 100*advance/norm;
+    tm_1 = BTimer::Clocks();
+    tm_dif = BTimer::ClockToSecond(tm_1-tm_0);
+    tm_0 = tm_1;
+    if (!(interIter%1)) 
+      {
+      Std(I2("\n    Subiteration(","\n    Subiteración(")<<
+          TxtFmt(iter,"%2ld")<<", "<< TxtFmt(interIter,"%2ld") << ")"<<
+          " Lambda : " << lambda <<
+          I2("  norm : ","  norma : ") << norm1 <<
+          " - " << norm<<" = "<< advance<<
+          " ("<<relAdv.Format("%6.3lf")<<"%) : "<<
+          I2("\tTime : "," Tiempo : ") << 
+          tm_dif<<I2(" seconds"," segundos"));
+      }
+    if(Abs(relAdv )	< BDat::RelTolerance()) { break; }
+    if(Abs(advance) < BDat::Tolerance   ()) { break; }  
     if(1.0/lambda<Sqrt(DEpsilon()))         { break; }
-	   lambda *= v;
-  }
+    lambda *= v;
+    }
   if(ok)
-  {
+    {
     x = x1;
     y = y1;
     norm = norm1;
-  }
+    }
   return(norm);
 }
 
@@ -1280,8 +1285,8 @@ BDat LeastSquareLambdaWithSVD(      BRnRmFunction&     fun,
 
 //--------------------------------------------------------------------
 BDat BRnRmFunction::LeastSqrMarquardt(BArray<BDat>&	   x0,
-				                                  BArray<BDat>&	   y0,
-				                                  BMatrix<BDat>&	  J)
+                                      BArray<BDat>&	   y0,
+                                      BMatrix<BDat>&	  J)
     
 /*! Minimizes by Marquardt algorithm (Swartz, 7.4.2, 324)
  *
@@ -1400,20 +1405,20 @@ Default GSL error handler invoked.
 
     //TRZ(J); //Jt=J.T(); //BMat JtJ = Jt*J; TRZ(JtJ);
     BMatrix<BDat>dY = y;
-    BInt interIter = 1;                                  
+    // unused
+    // BInt interIter = 1;                                  
 	//BReal tm_ini   = BTimer::Clocks();
     BMatrix<BDat> x1=x, y1=y;
-/* * /
+/*
     norm1 = NewtonStep(*this, J, x1, y1, dY);
     advance = norm1-norm;
   //Std(BText("\nGaussNewton norm=")<<norm1<<" advance="<<advance);
-/* * / 
     {
       norm1 = LeastSquareLambda(*this, J, x1.GetData(), y1.GetData(), dY, lambda, iter, interIter);
       advance = norm1-norm;
     //Std(BText("\nMarquardt norm=")<<norm1<<" advance="<<advance);
     }
-/* */
+*/
     BText method = BText("Golub_Reinsch_Mod");
     BMatrix<BDat> dX, W;
     BInt r = J.Rows(), c = J.Columns();
@@ -1474,7 +1479,8 @@ Default GSL error handler invoked.
       x1 = x;
       y1 = y;
     //Std(BText("\n Conjugate Gradient method"));
-      BDat absDUtYSum = 0, absDUtYPartialSum = 0, norm0 = norm;
+      //                                         unused
+      BDat absDUtYSum = 0, absDUtYPartialSum = 0 /*, norm0 = norm */;
       BMatrix<BDat> Uty = (dY.T()*U_).T();
       BMatrix<BDat> DUty = D*Uty;
       BArray<BDat> absDUtY = DUty.Data(); 
@@ -1752,7 +1758,7 @@ BDat BRnRmFunction::gsl_Marquardt(BArray<BDat>& X, BArray<BDat>& r, BMatrix<BDat
   gsl_multifit_fdfsolver *s;
   
   int status;
-  size_t i, iter = 0;
+  int i, iter = 0;
   
   const size_t n = m_;
   const size_t p = n_;

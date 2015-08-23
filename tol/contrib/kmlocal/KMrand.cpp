@@ -45,33 +45,33 @@ int	kmIdum = 0;			// used for random number generation
 //------------------------------------------------------------------------
 void kmInitialice(int seed)
 {
-      int j;
+  int j;
 
-    static double y, maxran, v[98];	// The exact number 98 is unimportant
-
-  	kmIdum = seed;
-
-		/* compute maximum random number */
+  static double y, maxran, v[98];	// The exact number 98 is unimportant
+  
+  kmIdum = seed;
+  
+  /* compute maximum random number */
 #ifdef WIN32				// Microsoft Visual C++
-	maxran = RAND_MAX;
+  maxran = RAND_MAX;
 #else
-	unsigned i, k;
-	i = 2;
-	do {
-	    k = i;
-	    i <<= 1;
-	} while (i);
-	maxran = (double) k;
+  unsigned i, k;
+  i = 2;
+  do {
+  k = i;
+  i <<= 1;
+  } while (i);
+  maxran = (double) k;
 #endif
 
-	srandom(kmIdum);
-
-	for (j = 1; j <= 97; j++)	// exercise the system routine
-	    random();			// (value intentionally ignored)
-
-	for (j = 1; j <= 97; j++)	// Then save 97 values and a 98th
-	    v[j] = random();
-	y = random();
+  srandom(kmIdum);
+  
+  for (j = 1; j <= 97; j++)	// exercise the system routine
+    random();			// (value intentionally ignored)
+  
+  for (j = 1; j <= 97; j++)	// Then save 97 values and a 98th
+    v[j] = random();
+  y = random();
 }
 
 
