@@ -117,6 +117,7 @@ static bool BNameBlock_IsInitialized()
 : BObject  (),
   public_  (),
 //private_ (), 
+  createdWithNew_(-1),
   evLevel_ (BGrammar::Level()),
   level_   (-999999999),
   set_     (),
@@ -131,12 +132,14 @@ static bool BNameBlock_IsInitialized()
 {
   SetEmptyKey(public_ ,emptyHashKey_);
 //SetEmptyKey(private_,emptyHashKey_);
+#if 0
 #if (__USE_POOL__==__POOL_BFSMEM__)
   short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->GetPageNum());
 #else
   short isAssigned = -1;
 #endif
   createdWithNew_ = isAssigned==1;
+#endif
 }
 
 //--------------------------------------------------------------------
@@ -145,6 +148,7 @@ BNameBlock::BNameBlock(const BText& fullName, const BText& localName)
 : BObject  (fullName), 
   public_  (),
 //private_ (),
+  createdWithNew_(-1),
   evLevel_ (BGrammar::Level()),
   level_   (-999999999),
   set_     (),
@@ -159,12 +163,14 @@ BNameBlock::BNameBlock(const BText& fullName, const BText& localName)
 {
   SetEmptyKey(public_ ,emptyHashKey_);
 //SetEmptyKey(private_,emptyHashKey_);
+#if 0
 #if (__USE_POOL__==__POOL_BFSMEM__)
   short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->GetPageNum());
 #else
   short isAssigned = -1;
 #endif
   createdWithNew_ = isAssigned==1;
+#endif
 }
 
 //--------------------------------------------------------------------
@@ -173,6 +179,7 @@ BNameBlock::BNameBlock(const BNameBlock& ns)
 : BObject  (), 
   public_  (),
 //private_ (),
+  createdWithNew_(-1),
   evLevel_ (BGrammar::Level()),
   level_   (-999999999),
   set_     (),
@@ -187,12 +194,14 @@ BNameBlock::BNameBlock(const BNameBlock& ns)
 {
   SetEmptyKey(public_ ,emptyHashKey_);
 //SetEmptyKey(private_,emptyHashKey_);
+#if 0
 #if (__USE_POOL__==__POOL_BFSMEM__)
   short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->GetPageNum());
 #else
   short isAssigned = -1;
 #endif
   createdWithNew_ = isAssigned!=-1;
+#endif
   *this = ns;
 }  
 
@@ -201,6 +210,20 @@ BNameBlock::~BNameBlock()
 //--------------------------------------------------------------------
 {
   Clean();
+}
+
+int BNameBlock::GetCreatedWithNew()
+{
+  if ( this->createdWithNew_ == -1 )
+    {
+#if (__USE_POOL__==__POOL_BFSMEM__)
+    short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->GetPageNum());
+#else
+    short isAssigned = -1;
+#endif
+    createdWithNew_ = isAssigned==1;
+    }
+  return this->createdWithNew_;
 }
 
 //--------------------------------------------------------------------
@@ -306,7 +329,7 @@ const BText& BNameBlock::LocalName() const
 //--------------------------------------------------------------------
 {
 #if (__USE_POOL__==__POOL_BFSMEM__)
-  if(createdWithNew_) 
+  if(const_cast<BNameBlock*>(this)->GetCreatedWithNew() /*createdWithNew_*/) 
   { 
     short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->GetPageNum());
     return(isAssigned); 
@@ -314,7 +337,7 @@ const BText& BNameBlock::LocalName() const
   else        
 #endif       
   { 
-    return(true); 
+    return( 1 ); 
   }
 }
 
@@ -353,7 +376,7 @@ const BText& BNameBlock::LocalName() const
 { 
 #if (__USE_POOL__==__POOL_BFSMEM__)
   if(current_ && 
-     current_->createdWithNew_ &&
+     const_cast<BNameBlock*>(current_)->GetCreatedWithNew() /*current_->createdWithNew_*/ &&
      !(BFSMEM_Hndlr->IsAssigned(current_,current_->GetPageNum())))
   {
     BFSMEM_Hndlr->IsAssigned(current_,current_->GetPageNum());
@@ -378,7 +401,7 @@ const BText& BNameBlock::LocalName() const
 { 
 #if (__USE_POOL__==__POOL_BFSMEM__)
   if(building_ && 
-     building_->Contens().createdWithNew_ &&
+     building_->Contens().GetCreatedWithNew() /*.createdWithNew_*/ &&
      !(BFSMEM_Hndlr->IsAssigned(&building_->Contens(),
                                 building_->Contens().GetPageNum())))
   {

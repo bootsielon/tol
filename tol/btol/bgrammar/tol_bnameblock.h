@@ -82,11 +82,13 @@ private:
   BGraContensBase<BNameBlock>* owner_;
   BRequiredPackage* requiredPackages_;
   BText localName_;
-  bool createdWithNew_;
+  int createdWithNew_;
   int evLevel_;
   int level_;
   int nonPrivateMembers_;
   bool doingRebuildFullNameDeep;
+
+  int GetCreatedWithNew();
 public:
   bool startedPackage;
   static bool Initialize();
