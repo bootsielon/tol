@@ -72,6 +72,7 @@ macro( add_tol_sublibrary name )
   add_library( ${name} OBJECT ${ARGN} )
   message( STATUS "add_library( ${name} OBJECT ${ARGN} )" )
   if( CMAKE_BUILD_TYPE MATCHES Debug )
+    # -fstack-protector-all -Wstack-protector -fno-omit-frame-pointer
     set_property(TARGET ${name} PROPERTY COMPILE_FLAGS "-fPIC -Wall")
   else( )
     set_property(TARGET ${name} PROPERTY COMPILE_FLAGS "-fPIC")

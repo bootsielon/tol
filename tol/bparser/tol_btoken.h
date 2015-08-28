@@ -242,7 +242,8 @@ public:
   {
     BSYSTEM,
     BSTRUCT,
-    BCLASS
+    BCLASS,
+    BTOIS
   };
   BType type_;
 

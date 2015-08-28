@@ -134,12 +134,13 @@ void BMatrixGen<Any>::Alloc(BInt r, BInt c)
     rows_=columns_=0;
     return;
   }
-  double rc=(double)r*(double)c;
-  if(rc>=max_size) { rc=0; }
-  data_.ReallocBuffer((int)rc);
+  //double rc=(double)r*(double)c;
+  // if(rc>=max_size) { rc=0; }
+  // data_.ReallocBuffer((int)rc);
+  data_.ReallocBuffer( r * c );
   buffer_ = data_.GetBuffer();
   if(r && c && !buffer_) 
-  { 
+  {
     Error(I2("FATAL: Cannot allocate memory for a matrix ",
              "FATAL: No se pudo alojar memoria para una matriz ")+
              "("+r+"x"+c+")");

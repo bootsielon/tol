@@ -143,9 +143,10 @@ void BMatrix<Any>::Alloc(BInt r, BInt c)
     rows_=columns_=0;
     return;
   }
-  double rc=(double)r*(double)c;
-  if(rc>=max_size) { rc=0; }
-  data_.ReallocBuffer((int)rc);
+  //double rc=(double)r*(double)c;
+  //if(rc>=max_size) { rc=0; }
+  //data_.ReallocBuffer((int)rc);
+  data_.ReallocBuffer( r * c );
   buffer_ = data_.GetBuffer();
   if(r && c && !buffer_) 
   { 

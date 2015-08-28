@@ -782,7 +782,7 @@ BGrammar* GetLeft(BGrammar* grammar,
       if(!gra) { str = FindStruct(tokName); }
       if(!str) { cls = FindClass(tokName,-1); }
     }
-         if(str) { gra = GraSet(); }
+    if(str) { gra = GraSet(); }
     else if(cls) { gra = GraNameBlock(); }
     left = Tree::treLeft(left);
   } 

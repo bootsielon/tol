@@ -469,7 +469,8 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
 //--------------------------------------------------------------------
 {
   TRACE_OIS_STREAM("READ",stream,"BClass", BText("")<<cls.FullName());
-//Std(BText(""\nBOisLoader::Read Class ")+cls.Name()+" "+cls.FullName());
+  //Std(BText("BOisLoader::Read Class ")+cls.Name()+" "+cls.FullName() + "\n");
+  
   BMemberOwner::BClassByNameHash& parents = *cls.parentHash_;
   Ensure(Read(cls,parents,stream));
   BMemberOwner::BClassByNameHash::const_iterator iterC;
@@ -567,7 +568,15 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
   ERead(tt, stream);
   ERead(pr, stream);
   ERead(cl, stream);
-  BToken* token = new BToken(name,(BTokenType)tt,pr);
+  BToken* token = NULL;
+  if ( tt == TYPE )
+    {
+    token = new BTypeToken( name, BTypeToken::BTOIS );
+    }
+  else
+    {
+    token = new BToken(name,(BTokenType)tt,pr);
+    }
   token->PutClose(GetTokenCloseFromId(cl));
 #ifdef TRACE_OIS_TOKEN
   BText aux0 = Compact(name);
@@ -646,7 +655,15 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
   cl = streamBuf[pos];
   pos+=sizeof(char);
 
-  BToken* token = new BToken(name,(BTokenType)tt,pr);
+  BToken* token = NULL;
+  if ( tt == TYPE )
+    {
+    token = new BTypeToken( name, BTypeToken::BTOIS );
+    }
+  else
+    {
+     token = new BToken(name,(BTokenType)tt,pr);
+    }
   token->PutClose(GetTokenCloseFromId(cl));
 #ifdef TRACE_OIS_TOKEN
   BText aux0 = Compact(name);
