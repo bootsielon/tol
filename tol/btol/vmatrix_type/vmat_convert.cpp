@@ -719,18 +719,19 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
   if(!nrow | !ncol) { ChlmRSparse(nrow, ncol, 0); }
   Delete();
   code_  = ESC_chlmRsparse;
-  register int n = Minimum(nrow,ncol);
-  register int nnz = 0;
-  register int i, j, k, h, d;
-  register double c;
-  register BPolyn<BDat> pol = pol_;
+  int n = Minimum(nrow,ncol);
+  int nnz = 0;
+  int i, j, k, h, d;
+  double c;
+  BPolyn<BDat> pol = pol_;
   pol.Aggregate();
-  register int s=pol.Size();
-  register const BMonome<BDat>* mon = pol.Buffer();
+  int s=pol.Size();
+  //const BMonome<BDat>* mon = pol.Buffer();
 
   for(k=0; k<s; k++)
   {
-    d = mon->Degree();
+  //d = mon->Degree();
+  d = pol[k].Degree();
     if(d>=0)
     {
       for(i=d; (i<nrow)&&(i-d<ncol); i++)
@@ -745,9 +746,9 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
         nnz++;
       }
     }
-    mon++;
+    //mon++;
   }
-  mon = pol.Buffer();
+  //mon = pol.Buffer();
   cholmod_triplet* triplet = CholmodAllocate_triplet
     (nrow,ncol,nnz,0,CHOLMOD_REAL,common_);
   int*    r_ = (int*)   triplet->i;
@@ -756,8 +757,10 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
   triplet->nnz = nnz;
   for(k=h=0; k<s; k++)
   {
-    d = mon->Degree();
-    c = mon->Coef().Value();
+  //d = mon->Degree();
+  d = pol[k].Degree();
+  //c = mon->Coef().Value();
+  c = pol[k].Coef().Value();
     if(d>=0)
     {
       for(i=d; (i<nrow)&&(i-d<ncol); i++, h++)
@@ -776,7 +779,7 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
         x_[h] = c;
       }
     }
-    mon++;
+    //mon++;
   }
 
   s_.chlmRsparse_ = CholmodTripletToSparse(triplet, nnz, common_);
