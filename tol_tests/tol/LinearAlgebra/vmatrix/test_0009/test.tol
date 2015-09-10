@@ -6,7 +6,7 @@
   Text email_ = "vdebuen@tol-project.org"; 
   Text link_ = "";
   Text summary_ = "GetBoundsInPolytope function" ;
-  Real PutRandomSeed(1323431179);
+  Real PutRandomSeed(0);
   Real rndSeed = GetRandomSeed(0);
   WriteLn("rndSeed="<<rndSeed);
 //Write here the initial test TOL code if needed
@@ -95,9 +95,9 @@ NameBlock Checker(NameBlock data)
   Real ok.2 = cb.2::ok;
   NameBlock cb.3 = checkBounds((lower+upper)/2);
   Real ok.3 = cb.3::ok;
-  NameBlock cb.4 = checkBounds(lower-0.00001);
+  NameBlock cb.4 = checkBounds(lower-100000);
   Real ok.4 = If(bounds::Lower>-1/0, Not(cb.4::ok), cb.4::ok);
-  NameBlock cb.5 = checkBounds(upper+0.00001);
+  NameBlock cb.5 = checkBounds(upper+100000);
   Real ok.5 = If(bounds::Upper<+1/0, Not(cb.5::ok), cb.5::ok);
 
   Real ok = And(ok.0,ok.1,ok.2,ok.3,ok.4,ok.5) ]];
@@ -109,7 +109,7 @@ Set check.all =
   NameBlock check.01 = Checker(check.data.01);
   NameBlock check.02 = Checker(check.data.02)
 ]] <<
-For(1,1000,NameBlock(Real iter) 
+For(1,10000,NameBlock(Real iter) 
 { 
   NameBlock aux = Checker(rand.check.data(0));
   Real If(Not(aux::ok), 
