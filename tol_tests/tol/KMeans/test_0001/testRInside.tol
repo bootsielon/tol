@@ -1,0 +1,10 @@
+#Require TolRInside;
+
+Matrix cases = MatReadFile("cases.bbm");
+
+Set centers = TolRInside::API::REval("
+library(tolLink)
+cases = tolGet('cases') 
+classes = kmeans(cases,5)
+classes$centers
+");
