@@ -70,7 +70,7 @@ message( "LAST_CHANGED_LOG = \n ${LAST_CHANGED_LOG}" )
 set( TOL_SUBLIBRARIES "" CACHE INTERNAL "" )
 macro( add_tol_sublibrary name )
   add_library( ${name} OBJECT ${ARGN} )
-  message( STATUS "add_library( ${name} OBJECT ${ARGN} )" )
+  #message( STATUS "add_library( ${name} OBJECT ${ARGN} )" )
   if( CMAKE_BUILD_TYPE MATCHES Debug )
     # -fstack-protector-all -Wstack-protector -fno-omit-frame-pointer
     set_property(TARGET ${name} PROPERTY COMPILE_FLAGS "-fPIC -Wall")
@@ -396,7 +396,7 @@ add_custom_target( COPY_HEADERS ALL DEPENDS ${COPY_HEADERS_DEPENDS} )
 
 install( TARGETS tolcon RUNTIME DESTINATION bin )
 install( TARGETS tol
-  RUNTIME DESTINATION bin ARCHIVE DESTINATION lib LIBRARY DESTINATION bin )
+  RUNTIME DESTINATION bin ARCHIVE DESTINATION lib LIBRARY DESTINATION lib )
 install( DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tol" 
   DESTINATION "include"
   COMPONENT DEVELOPMENT )
