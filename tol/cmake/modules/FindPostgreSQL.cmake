@@ -77,6 +77,12 @@
 #
 # ----------------------------------------------------------------------------
 
+if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+  set( SEARCH_SUFFIX 64 )
+else( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+  set( SEARCH_SUFFIX "" )
+endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+
 set(PostgreSQL_INCLUDE_PATH_DESCRIPTION "top-level directory containing the PostgreSQL include directories. E.g /usr/local/include/PostgreSQL/8.4 or C:/Program Files/PostgreSQL/8.4/include")
 set(PostgreSQL_INCLUDE_DIR_MESSAGE "Set the PostgreSQL_INCLUDE_DIR cmake cache entry to the ${PostgreSQL_INCLUDE_PATH_DESCRIPTION}")
 set(PostgreSQL_LIBRARY_PATH_DESCRIPTION "top-level directory containing the PostgreSQL libraries.")
@@ -128,13 +134,24 @@ if ( WIN32 )
   set ( PostgreSQL_LIBRARY_TO_FIND ${PostgreSQL_LIB_PREFIX}${PostgreSQL_LIBRARY_TO_FIND})
 endif()
 
-find_library( PostgreSQL_LIBRARY
- NAMES ${PostgreSQL_LIBRARY_TO_FIND}
- PATHS
-   ${PostgreSQL_ROOT_DIRECTORIES}
- PATH_SUFFIXES
-   lib
-)
+if( PostgreSQL_LIBRARY_DIR )
+  message( STATUS "looking at ${PostgreSQL_LIBRARY_DIR}" )
+  find_library( PostgreSQL_LIBRARY
+    NAMES ${PostgreSQL_LIBRARY_TO_FIND}
+    HINTS
+    ${PostgreSQL_LIBRARY_DIR}
+    NO_DEFAULT_PATH
+    )
+else()
+  find_library( PostgreSQL_LIBRARY
+    NAMES ${PostgreSQL_LIBRARY_TO_FIND}
+    PATHS
+    ${PostgreSQL_ROOT_DIRECTORIES}
+    PATH_SUFFIXES
+    lib
+    )
+endif()
+
 get_filename_component(PostgreSQL_LIBRARY_DIR ${PostgreSQL_LIBRARY} PATH)
 
 # Did we find anything?
