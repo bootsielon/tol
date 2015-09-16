@@ -102,7 +102,7 @@ Text _.autodoc.member.TolPlatform =
     Case(platform=="WINDOWS__32__MSVC", "CppTools/Windows_x86_32",
       platform=="LINUX__32__GNU", "CppTools/Linux_x86_32",
       platform=="WINDOWS__32__GNU", "CppTools/MinGW_32",
-      True, Text Replace(_Platform_NaturalCase(?), "__", "_"))
+      True, Text Replace(_Platform_NaturalCase(?), "__", "_")
       // Para WINDOWS__64__MSVC será:  "CppTools/Windows_64_MSVC"
       // Para LINUX__64__GNU será:     "CppTools/Linux_64_GNU"
       // Para WINDOWS__64__GNU será:   "CppTools/Windows_64_GNU"
