@@ -91,9 +91,22 @@ Text _.autodoc.member.TolPlatform =
   ////////////////////////////////////////////////////////////////////////////
   {
     Text platform = Platform(?);
-    If(TextMatch(platform, "WINDOWS__32__GNU"), "CppTools/MinGW_32", {
-      "CppTools/"+GetHardSoftPlattform(0)
-    }) + If(TextEndAt(Version,"{DEBUG}"), "_dbg", "")
+    // La carpeta donde se ubican las dlls sigue determinados convenios
+    // por compatibilidad:
+    //   Para WINDOWS__32__MSVC se llamó:  "CppTools/Windows_x86_32"
+    //   Para LINUX__32__GNU se llamó:     "CppTools/Linux_x86_32"
+    //   (según GetHardSoftPlattform)
+    //   Para WINDOWS__32__GNU se eligió:  "CppTools/MinGW_32"
+    // Ahora para las versiones 64 bits es necesario repasar esto.
+    // Nos apoyaremos en el método Platform (y éste en PlatformInfo)
+    Case(platform=="WINDOWS__32__MSVC", "CppTools/Windows_x86_32",
+      platform=="LINUX__32__GNU", "CppTools/Linux_x86_32",
+      platform=="WINDOWS__32__GNU", "CppTools/MinGW_32",
+      True, Text Replace(_Platform_NaturalCase(?), "__", "_"))
+      // Para WINDOWS__64__MSVC será:  "CppTools/Windows_64_MSVC"
+      // Para LINUX__64__GNU será:     "CppTools/Linux_64_GNU"
+      // Para WINDOWS__64__GNU será:   "CppTools/Windows_64_GNU"
+    ) + If(TextEndAt(Version,"{DEBUG}"), "_dbg", "")
   }
 ]];
 ////////////////////////////////////////////////////////////////////////////

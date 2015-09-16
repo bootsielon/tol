@@ -41,23 +41,27 @@
   ////////////////////////////////////////////////////////////////////////////
   Text _Platform = "";
   ////////////////////////////////////////////////////////////////////////////
-  Text Platform(Real void)
+  Text _Platform_NaturalCase(Real void)
   ////////////////////////////////////////////////////////////////////////////
   {
+    // Si aún no se ha redefinido _Platform se hace ahora
     Text If(_Platform=="", {
-      _Platform := Case(ObjectExist("Code", "PlatformInfo"), {
+      Text _Platform := If(ObjectExist("Code", "PlatformInfo"), {
         Set platInfo = PlatformInfo(?);
-        Text ToUpper(platInfo[5])
-          <<"__"<<FormatReal(platInfo[1]*8, "%.0lf")
-          <<"__"<<ToUpper(platInfo[3])
-      }, OSName=="WINDOWS", {
-        "WINDOWS__32__MSVC"
-      }, True, {
-        ToUpper(OSName)<<"__32__GNU"
+        Text platInfo[5]<<"__"
+          <<FormatReal(platInfo[1]*8, "%.0lf")
+          <<"__"<<platInfo[3]
+      }, {
+        // Si aún no existía PlatformInfo tenemos dos casos:
+        If(OSName=="WINDOWS", "Windows__32__MSVC", "Linux__32__GNU")
       })
     });
     _Platform
   };
+  ////////////////////////////////////////////////////////////////////////////
+  Text Platform(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  { ToUpper(_Platform_NaturalCase(?)) };
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.AddRepository = 
