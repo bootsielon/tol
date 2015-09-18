@@ -31,6 +31,10 @@ add_library( toltcl SHARED
   crash.c toltcl.c pool.cpp tclutils.cpp tolaccess.cpp tolsergrp.cpp 
   toltableset.cpp toltime.cpp
 )
+
+set_target_properties( toltcl PROPERTIES OUTPUT_NAME 
+  toltcl${TOLTCL_VERSION_MAJOR}.${TOLTCL_VERSION_MINOR} )
+
 set_target_properties( toltcl PROPERTIES COMPILE_FLAGS "-DBUILD_TOLTCL -DUSE_TCL_STUBS")
 
 target_link_libraries( toltcl

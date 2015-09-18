@@ -591,5 +591,5 @@ proc logtmp { msg } {
 }
 
 puts "voy ::tolsh::run $argv"
-::tolsh::run $argv
+::tolsh::run $::argv
 exit
