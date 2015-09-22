@@ -51,7 +51,9 @@
 #include <tol/tol_bparser.h>
 #include <tol/tol_bsymboltable.h>
 #include <tol/tol_bnameblock.h>
+#if HAVE_CINT
 #include "contrib/cint/tolCint.h"
+#endif
 
 
 BTraceInit("spfuninst.cpp");
@@ -2290,6 +2292,7 @@ static BSyntaxObject* EvAvoidErrNonDecAct(BGrammar* gra, const List* tre, BBool 
 }
 
 
+#if HAVE_CINT
 //--------------------------------------------------------------------
 static BSyntaxObject* EvCint_export_to_tol(BGrammar* gra, const List* tre, BBool left)
 
@@ -2373,6 +2376,7 @@ static BSyntaxObject* EvCint_export_to_tol(BGrammar* gra, const List* tre, BBool
   }
   return(result);
 }
+#endif
 
 //--------------------------------------------------------------------
 static bool BSpecialFunction_IsInitialized()
@@ -2920,7 +2924,8 @@ bool BSpecialFunction::Initialize()
      "se quiere que durante la carga del OIS no se ejecuten dichas acciones."),
      EvAvoidErrNonDecAct);
 
- BText cint_url_link();
+ #if HAVE_CINT
+  BText cint_url_link();
 
   AddInstance("Cint.export_to_tol",
      "(Text name)",
@@ -2941,7 +2946,7 @@ bool BSpecialFunction::Initialize()
      "stdlib/general/TolCint/tol_cint_casting.cpp"+
      cint_url_link(),
      EvCint_export_to_tol);
-
+#endif
 
   return(true);
 }

@@ -73,9 +73,10 @@ macro( add_tol_sublibrary name )
   #message( STATUS "add_library( ${name} OBJECT ${ARGN} )" )
   if( CMAKE_BUILD_TYPE MATCHES Debug )
     # -fstack-protector-all -Wstack-protector -fno-omit-frame-pointer
-    set_property(TARGET ${name} PROPERTY COMPILE_FLAGS "-fPIC -Wall")
+    # versiones recientes de gcc tienen estas opciones que pueden ser utiles: -fsanitize=address -fsanitize=alignment 
+    set_property(TARGET ${name} PROPERTY COMPILE_FLAGS "-fPIC -mno-align-double -Wall")
   else( )
-    set_property(TARGET ${name} PROPERTY COMPILE_FLAGS "-fPIC")
+    set_property(TARGET ${name} PROPERTY COMPILE_FLAGS "-O2 -fPIC -mno-align-double")
   endif( )
   if( TOL_SUBLIBRARIES STREQUAL "" )
     set( TOL_SUBLIBRARIES $<TARGET_OBJECTS:${name}> CACHE INTERNAL "" )
@@ -316,10 +317,15 @@ endif( )
 
 # CINT configuration
 find_package( CintHeaders )
-if( CINT_HEADERS_FOUND AND TRACE_COMPONENTS_FOUND )
-  message( "CINT_INCLUDE_DIR = ${CINT_INCLUDE_DIR}" )
-
+if( CINT_HEADERS_FOUND )
+  if( TRACE_COMPONENTS_FOUND )
+    message( "CINT_INCLUDE_DIR = ${CINT_INCLUDE_DIR}" )
+  endif( )
+  set( HAVE_CINT 1 CACHE INTERNAL "" )
+else( )
+  unset( HAVE_CINT CACHE )
 endif( )
+
 # ZIPARCHIVE configuration
 find_package( ZipArchive REQUIRED )
 if( ZIPARCHIVE_FOUND AND TRACE_COMPONENTS_FOUND )
@@ -390,6 +396,8 @@ target_link_libraries( tol
 
 add_executable( tolcon tol.cpp )
 target_link_libraries( tolcon tol )
+
+#add_subdirectory( zippie_src )
 
 #message( STATUS "ALL_HEADERS_LIST ${ALL_HEADERS_LIST}" )
 add_custom_target( COPY_HEADERS ALL DEPENDS ${COPY_HEADERS_DEPENDS} )
