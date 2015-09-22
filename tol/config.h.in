@@ -19,6 +19,8 @@
 
 #cmakedefine HAVE_ROUND
 
+#cmakedefine HAVE_CINT 1
+
 #define __TOL_BUILD_DATE__ "@build_date@"
 #define __TOL_BUILD_TIME__ "@build_time@"
 #define __TOL_BUILD_SVN_INFO__ \
