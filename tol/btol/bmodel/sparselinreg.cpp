@@ -1146,7 +1146,7 @@ BSyntaxObject *ReturnSample::Create(const char **next)
                                ReturnArg::cm);
 }
 
-#if defined( CHOLMOD_MAIN_VERSION ) && ( CHOLMOD_MAIN_VERSION >= 3 )
+#if ( defined( CHOLMOD_MAIN_VERSION ) && ( CHOLMOD_MAIN_VERSION >= 3 ) ) || (defined( SUITESPARSE_MAIN_VERSION ) && ( SUITESPARSE_MAIN_VERSION >= 3 ) )
 //#if defined( __MINGW32__ )
 static
 void my_cholmod_error(int status, const char *file, int line, const char *message);
@@ -1421,7 +1421,7 @@ void BSetSparseLinReg::CalcContens()
   cholmod_finish (&cm) ;
 }
 
-#if defined( CHOLMOD_MAIN_VERSION ) && ( CHOLMOD_MAIN_VERSION >= 3 )
+#if ( defined( CHOLMOD_MAIN_VERSION ) && ( CHOLMOD_MAIN_VERSION >= 3 ) ) || (defined( SUITESPARSE_MAIN_VERSION ) && ( SUITESPARSE_MAIN_VERSION >= 3 ) )
 //#if defined( __MINGW32__ )
 static
 void my_cholmod_error(int status, const char *file, int line, const char *message)
