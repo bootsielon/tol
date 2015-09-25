@@ -49,7 +49,7 @@ public:
   const Any&  Coef	() const       { return(coef_); }
   void	      PutDegree (BInt g)       { degree_=g; }
   void	      PutCoef	(const Any& c) { coef_ = c; }
-  BText	      ToBText	(const BText& var="B");
+  BText	      ToBText	(const BText& var="B") const ;
 
   // Miscelaneus internal operations:
   BMonome<Any>& operator =  (const BMonome<Any>&  mon);
@@ -314,7 +314,7 @@ const BMonome<Any>& BMonome<Any>::Zero ()
 
 //--------------------------------------------------------------------
 template <class Any>
-BText BMonome<Any>::ToBText(const BText& var)
+BText BMonome<Any>::ToBText(const BText& var) const
 
 /*! Creates a BText containing a monomial expression in var
  *  of *this.

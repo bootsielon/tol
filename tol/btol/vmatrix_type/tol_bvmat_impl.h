@@ -28,9 +28,15 @@
 #include <tol/tol_bmatrix.h>
 #include <tol/tol_bprdist.h>
 #include <tol/tol_bset.h>
-#pragma pack(8)
+
+#if defined(_MSC_VER)
+#pragma pack(push, 8)
+#endif
 #include "cholmod.h"
-#pragma pack(4)
+#if defined(_MSC_VER)
+#pragma pack(pop)
+#endif
+
 typedef hash_map_by_BIntPair<double>::sparse_ BHashDoubleByIntPair;
 typedef hash_map_by_BIntPair<bool>::sparse_ BHashBoolByIntPair;
         
