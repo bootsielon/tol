@@ -337,10 +337,6 @@ static void signal_assign()
   return(_tolSessionPath_.String());
 }
 
-#if defined(WIN32)
-const char *GetPathTolDll( );
-#endif
-
 //--------------------------------------------------------------------
 BText InitTolPath()
 //--------------------------------------------------------------------
@@ -1090,23 +1086,28 @@ const char * TOLVersionBuild()
             month,
             day);
    #endif
-   #ifdef __TOL_BUILD_TIME__
+#ifdef __TOL_BUILD_TIME__
     const char* tolBuildTime = __TOL_BUILD_TIME__;
-   #else
+#else
     const char* tolBuildTime = __TIME__;
-   #endif
-   #ifdef __TOL_BUILD_PLATFORM__
+#endif
+/*
+CMAKE_SYSTEM_NAME == "Linux"
+CMAKE_SYSTEM == "Linux-3.19.3-100.fc20.x86_64"
+*/
+
+#ifdef __TOL_BUILD_PLATFORM__
     const char* tolBuildPlatform = __TOL_BUILD_PLATFORM__;
-   #elif defined WIN32
+#elif defined WIN32
     const char* tolBuildPlatform = "i686-win";
-   #elif defined UNIX
+#elif defined UNIX
     const char* tolBuildPlatform = "i686-linux-gnu";
-   #endif
-    snprintf(aux_, sizeof(aux_), "%s %s %s %s",
-            VERSION_BUILD,
-            tolBuildDate,
-            tolBuildTime,
-            tolBuildPlatform);
+#endif
+    snprintf( aux_, sizeof(aux_), "%s %s %s %s %s %d-bits",
+              VERSION_BUILD,
+              tolBuildDate,
+              tolBuildTime,
+              TOL_COMPILER_ID, TOL_BUILD_SYSTEM, sizeof(void*)*8 );
     init_ = true;
   }
   return aux_;

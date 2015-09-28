@@ -44,6 +44,103 @@
   #define ATTR_UNUSED
 #endif
 
+#if !defined( TOL_COMPILER_ID )
+
+#if defined(_MSC_VER)
+#define TOL_COMPILER_ID "MSVC"
+
+#elif defined( __GNUC__ )
+#define TOL_COMPILER_ID "GNU/GCC"
+
+#else
+#define TOL_COMPILER_ID "CXX(Unknown)"
+
+#endif
+#endif
+
+#if !defined(TOL_BUILD_SYSTEM)
+
+#if defined(__linux) || defined(__linux__) || defined(linux)
+# define TOL_BUILD_SYSTEM "Linux"
+
+#elif defined(__CYGWIN__)
+# define TOL_BUILD_SYSTEM "Cygwin"
+
+#elif defined(__MINGW32__)
+# define TOL_BUILD_SYSTEM "MinGW"
+
+#elif defined(__APPLE__)
+# define TOL_BUILD_SYSTEM "Darwin"
+
+#elif defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
+# define TOL_BUILD_SYSTEM "Windows"
+
+#elif defined(__FreeBSD__) || defined(__FreeBSD)
+# define TOL_BUILD_SYSTEM "FreeBSD"
+
+#elif defined(__NetBSD__) || defined(__NetBSD)
+# define TOL_BUILD_SYSTEM "NetBSD"
+
+#elif defined(__OpenBSD__) || defined(__OPENBSD)
+# define TOL_BUILD_SYSTEM "OpenBSD"
+
+#elif defined(__sun) || defined(sun)
+# define TOL_BUILD_SYSTEM "SunOS"
+
+#elif defined(_AIX) || defined(__AIX) || defined(__AIX__) || defined(__aix) || defined(__aix__)
+# define TOL_BUILD_SYSTEM "AIX"
+
+#elif defined(__sgi) || defined(__sgi__) || defined(_SGI)
+# define TOL_BUILD_SYSTEM "IRIX"
+
+#elif defined(__hpux) || defined(__hpux__)
+# define TOL_BUILD_SYSTEM "HP-UX"
+
+#elif defined(__HAIKU__)
+# define TOL_BUILD_SYSTEM "Haiku"
+
+#elif defined(__BeOS) || defined(__BEOS__) || defined(_BEOS)
+# define TOL_BUILD_SYSTEM "BeOS"
+
+#elif defined(__QNX__) || defined(__QNXNTO__)
+# define TOL_BUILD_SYSTEM "QNX"
+
+#elif defined(__tru64) || defined(_tru64) || defined(__TRU64__)
+# define TOL_BUILD_SYSTEM "Tru64"
+
+#elif defined(__riscos) || defined(__riscos__)
+# define TOL_BUILD_SYSTEM "RISCos"
+
+#elif defined(__sinix) || defined(__sinix__) || defined(__SINIX__)
+# define TOL_BUILD_SYSTEM "SINIX"
+
+#elif defined(__UNIX_SV__)
+# define TOL_BUILD_SYSTEM "UNIX_SV"
+
+#elif defined(__bsdos__)
+# define TOL_BUILD_SYSTEM "BSDOS"
+
+#elif defined(_MPRAS) || defined(MPRAS)
+# define TOL_BUILD_SYSTEM "MP-RAS"
+
+#elif defined(__osf) || defined(__osf__)
+# define TOL_BUILD_SYSTEM "OSF1"
+
+#elif defined(_SCO_SV) || defined(SCO_SV) || defined(sco_sv)
+# define TOL_BUILD_SYSTEM "SCO_SV"
+
+#elif defined(__ultrix) || defined(__ultrix__) || defined(_ULTRIX)
+# define TOL_BUILD_SYSTEM "ULTRIX"
+
+#elif defined(__XENIX__) || defined(_XENIX) || defined(XENIX)
+# define TOL_BUILD_SYSTEM "Xenix"
+
+#else /* unknown platform */
+# define TOL_BUILD_SYSTEM ""
+
+#endif
+#endif
+
 #define OPENFLAG ios::in
 
 #ifdef __cplusplus

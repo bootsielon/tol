@@ -59,6 +59,11 @@ TOL_API void SetTOLEnd();
 TOL_API void UnexpectedTolEnd(void);
 TOL_API int TolTclIsEnabled();
 
+#if defined(WIN32)
+TOL_API const char *GetPathTolDll( );
+#endif
+
+
 END_DECLS
 
 #endif // TOL_INIT_H
