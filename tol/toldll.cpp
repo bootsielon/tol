@@ -8,7 +8,7 @@
 
 static char pathTolDll[MAX_PATH];
 
-const char *GetPathTolDll( )
+extern "C" const char *GetPathTolDll( )
 {
   return pathTolDll;
 }
