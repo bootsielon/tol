@@ -1,5 +1,5 @@
 foreach( dir
-    kmlocal clusterlib alglib optimal_bw )
+    kmlocal clusterlib alglib optimal_bw ANN tpp )
   add_subdirectory( ${dir} )
 endforeach( )
 
