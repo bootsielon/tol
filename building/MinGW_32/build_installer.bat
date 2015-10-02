@@ -21,11 +21,11 @@ set init_dir=%CD%
 set tolp_trunk=%tolp_root%\trunk
 echo.  tolp_trunk=%tolp_trunk%
 
-set installer_dir=%tolp_trunk%\building\installer%1
+set installer_dir=%tolp_trunk%\building\MinGW_32\installer%
 echo.  installer_dir=%installer_dir%
 
 if exist "%installer_dir%" (
-  echo./!\ There is already a built folder of %project%
+  echo./!\ There is already a built folder of the installer
   set is_built=y
 ) else (
   set is_built=n
