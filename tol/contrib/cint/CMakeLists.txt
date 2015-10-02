@@ -1,3 +1,5 @@
+create_header_links( )
+
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 
 add_tol_sublibrary( cint tolCint.cpp  )
