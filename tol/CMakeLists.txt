@@ -1,6 +1,18 @@
 cmake_minimum_required( VERSION 2.8 )
 project( TOL )
 
+#-----------------------------------------------------------------------------
+#
+# To fix compilation problem: relocation R_X86_64_32 against `a local symbol' can not be
+# used when making a shared object; recompile with -fPIC
+# See http://www.cmake.org/pipermail/cmake/2007-May/014350.html
+#
+if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND NOT WIN32 )
+  set( NEED_FPIC "-fPIC" )
+else( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND NOT WIN32 )
+  unset( NEED_FPIC )
+endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND NOT WIN32 )
+
 if( TOL_EXTERNAL_DEVEL_DIR )
   if( CMAKE_BUILD_TYPE MATCHES Debug )
     set( TOL_EXTERNAL_PREFIX "${TOL_EXTERNAL_DEVEL_DIR}/debug" )
@@ -72,12 +84,12 @@ macro( add_tol_sublibrary name )
   add_library( ${name} OBJECT ${ARGN} )
   #message( STATUS "add_library( ${name} OBJECT ${ARGN} )" )
   if( CMAKE_BUILD_TYPE MATCHES Debug )
-    # -fstack-protector-all -Wstack-protector -fno-omit-frame-pointer
-    # versiones recientes de gcc tienen estas opciones que pueden ser utiles: -fsanitize=address -fsanitize=alignment 
-    set_property(TARGET ${name} PROPERTY COMPILE_FLAGS "-fPIC -mno-align-double -Wall")
-  else( )
-    set_property(TARGET ${name} PROPERTY COMPILE_FLAGS "-O2 -fPIC -mno-align-double")
-  endif( )
+    #set_property(TARGET ${name} PROPERTY COMPILE_FLAGS "-fPIC -Wall")
+    target_compile_options( ${name} PRIVATE "-Wall" )
+  endif( CMAKE_BUILD_TYPE MATCHES Debug )
+  if( NEED_FPIC )
+    target_compile_options( ${name} PRIVATE "-fPIC" )
+  endif( NEED_FPIC )
   if( TOL_SUBLIBRARIES STREQUAL "" )
     set( TOL_SUBLIBRARIES $<TARGET_OBJECTS:${name}> CACHE INTERNAL "" )
   else( )
