@@ -66,7 +66,6 @@ public:
   bool Write(const unsigned int&     x, BStream* stream);
   bool Write(const          BINT64&  x, BStream* stream);
   bool Write(const unsigned BINT64&  x, BStream* stream);
-  /*
   // REVIEW: for compatibility size_t will be written/read as 4 bytes
 #if defined(_LP64) || defined(_WIN64)
    bool Write(const          size_t&  x, BStream* stream)
@@ -75,7 +74,6 @@ public:
     return this->Write( _x, stream );
   }
 #endif
-  */
   bool Write(const          float&   x, BStream* stream);
   bool Write(const          double&  x, BStream* stream);
   bool Write(const BText& v, BStream* stream);
