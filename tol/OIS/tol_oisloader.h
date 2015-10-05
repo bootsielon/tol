@@ -102,8 +102,8 @@ public:
   bool Read(         BINT64&  x, BStream* stream);
   bool Read(unsigned BINT64&  x, BStream* stream);
   // REVIEW: for compatibility size_t will be written/read as 4 bytes
-#if defined(_LP64) || defined(_WIN64)
-  bool Read(size_t &     x, BStream* stream)
+  // Read is not overloaded because size_t has different sizes in 32 & 64 bits
+  bool Read_size_t(size_t &     x, BStream* stream)
   {
     unsigned int _x;
     bool ok = this->Read( _x, stream );
@@ -113,7 +113,6 @@ public:
       }
     return ok;
   }
-#endif
   bool Read(         float&   x, BStream* stream);
   bool Read(         double&  x, BStream* stream);
   bool Read(BText& v, BStream* stream);

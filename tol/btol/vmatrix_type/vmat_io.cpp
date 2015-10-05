@@ -514,11 +514,11 @@ void BVMat::WriteMatrixMarket(FILE* file)
     Error("Cannot save image OIS of a non valid VMatrix(Blas.R.Dense)");
     return(false);
   }
-  Ensure(ois.Write(a.nrow,  stream));
-  Ensure(ois.Write(a.ncol,  stream));
-  Ensure(ois.Write(a.d,     stream));
+  Ensure(ois.Write_size_t(a.nrow,  stream));
+  Ensure(ois.Write_size_t(a.ncol,  stream));
+  Ensure(ois.Write_size_t(a.d,     stream));
   Ensure(ois.Write(a.xtype, stream));
-  Ensure(ois.Write(a.nzmax, stream));
+  Ensure(ois.Write_size_t(a.nzmax, stream));
   Ensure(ois.Write(a.dtype, stream));
   Ensure(ois.Write(a.x,     a.nzmax, sizeof(double), stream));
   return(true);
@@ -533,11 +533,11 @@ void BVMat::WriteMatrixMarket(FILE* file)
   s_.blasRdense_ = (cholmod_dense*)cholmod_malloc(1,
     sizeof(cholmod_dense),common_);
   cholmod_dense& a = *s_.blasRdense_;
-  Ensure(ois.Read(a.nrow,  stream));
-  Ensure(ois.Read(a.ncol,  stream));
-  Ensure(ois.Read(a.d,     stream));
+  Ensure(ois.Read_size_t(a.nrow,  stream));
+  Ensure(ois.Read_size_t(a.ncol,  stream));
+  Ensure(ois.Read_size_t(a.d,     stream));
   Ensure(ois.Read(a.xtype, stream));
-  Ensure(ois.Read(a.nzmax, stream));
+  Ensure(ois.Read_size_t(a.nzmax, stream));
   Ensure(ois.Read(a.dtype, stream));
   a.x = cholmod_malloc(a.nzmax, sizeof(double), common_);
   TRACE_CHOLMOD_ALLOCATE("Blas.R.Dense",&a);
@@ -564,9 +564,9 @@ void BVMat::WriteMatrixMarket(FILE* file)
     Error("Cannot save image OIS of a non valid VMatrix(Cholmod.R.Sparse)");
     return(false);
   }
-  Ensure(ois.Write(a.nrow,   stream));
-  Ensure(ois.Write(a.ncol,   stream));
-  Ensure(ois.Write(a.nzmax,  stream));
+  Ensure(ois.Write_size_t(a.nrow,   stream));
+  Ensure(ois.Write_size_t(a.ncol,   stream));
+  Ensure(ois.Write_size_t(a.nzmax,  stream));
   Ensure(ois.Write(a.stype,  stream));
   Ensure(ois.Write(a.itype,  stream));
   Ensure(ois.Write(a.xtype,  stream));
@@ -592,9 +592,9 @@ void BVMat::WriteMatrixMarket(FILE* file)
   s_.chlmRsparse_ = (cholmod_sparse*)cholmod_malloc(1,
     sizeof(cholmod_sparse),common_);
   cholmod_sparse& a = *s_.chlmRsparse_;
-  Ensure(ois.Read(a.nrow,   stream));
-  Ensure(ois.Read(a.ncol,   stream));
-  Ensure(ois.Read(a.nzmax,  stream));
+  Ensure(ois.Read_size_t(a.nrow,   stream));
+  Ensure(ois.Read_size_t(a.ncol,   stream));
+  Ensure(ois.Read_size_t(a.nzmax,  stream));
   Ensure(ois.Read(a.stype,  stream));
   Ensure(ois.Read(a.itype,  stream));
   Ensure(ois.Read(a.xtype,  stream));
@@ -640,9 +640,9 @@ void BVMat::WriteMatrixMarket(FILE* file)
     Error("Cannot save image OIS of a non valid VMatrix(Cholmod.R.Factor)");
     return(false);
   }
-  Ensure(ois.Write(a.n,            stream));
-  Ensure(ois.Write(a.minor,        stream));
-  Ensure(ois.Write(a.nzmax,        stream));
+  Ensure(ois.Write_size_t(a.n,            stream));
+  Ensure(ois.Write_size_t(a.minor,        stream));
+  Ensure(ois.Write_size_t(a.nzmax,        stream));
   Ensure(ois.Write(a.itype,        stream));
   Ensure(ois.Write(a.xtype,        stream));
   Ensure(ois.Write(a.dtype,        stream));
@@ -665,11 +665,11 @@ void BVMat::WriteMatrixMarket(FILE* file)
   else if (a.is_super)
   {
 	//writes a supernodal factor
-    Ensure(ois.Write(a.nsuper,   stream));
-    Ensure(ois.Write(a.xsize,    stream));
-    Ensure(ois.Write(a.ssize,    stream));
-    Ensure(ois.Write(a.maxcsize, stream));
-    Ensure(ois.Write(a.maxesize, stream));
+    Ensure(ois.Write_size_t(a.nsuper,   stream));
+    Ensure(ois.Write_size_t(a.xsize,    stream));
+    Ensure(ois.Write_size_t(a.ssize,    stream));
+    Ensure(ois.Write_size_t(a.maxcsize, stream));
+    Ensure(ois.Write_size_t(a.maxesize, stream));
     Ensure(ois.Write(a.super,    a.nsuper+1, sizeof(int),    stream));
     Ensure(ois.Write(a.pi,       a.nsuper+1, sizeof(int),    stream));
     Ensure(ois.Write(a.px,       a.nsuper+1, sizeof(int),    stream));
@@ -686,14 +686,14 @@ void BVMat::WriteMatrixMarket(FILE* file)
 {
   code_ = ESC_chlmRfactor;
   size_t n;
-  Ensure(ois.Read(n, stream));
+  Ensure(ois.Read_size_t(n, stream));
   s_.chlmRfactor_ = (cholmod_factor*)cholmod_malloc(1,
     sizeof(cholmod_factor),common_);
   cholmod_factor& a = *s_.chlmRfactor_;
   a.n = n;
   size_t& nzmax = a.nzmax;
-  Ensure(ois.Read(a.minor,        stream));
-  Ensure(ois.Read(a.nzmax,        stream));
+  Ensure(ois.Read_size_t(a.minor,        stream));
+  Ensure(ois.Read_size_t(a.nzmax,        stream));
   Ensure(ois.Read(a.itype,        stream));
   Ensure(ois.Read(a.xtype,        stream));
   Ensure(ois.Read(a.dtype,        stream));
@@ -743,11 +743,11 @@ void BVMat::WriteMatrixMarket(FILE* file)
     a.nz    = NULL;
     a.i     = NULL;
 	//reads supernodal dimensions
-    Ensure(ois.Read(a.nsuper,   stream));
-    Ensure(ois.Read(a.xsize,    stream));
-    Ensure(ois.Read(a.ssize,    stream));
-    Ensure(ois.Read(a.maxcsize, stream));
-    Ensure(ois.Read(a.maxesize, stream));
+    Ensure(ois.Read_size_t(a.nsuper,   stream));
+    Ensure(ois.Read_size_t(a.xsize,    stream));
+    Ensure(ois.Read_size_t(a.ssize,    stream));
+    Ensure(ois.Read_size_t(a.maxcsize, stream));
+    Ensure(ois.Read_size_t(a.maxesize, stream));
   //allocate supernodal vectors
     a.super = cholmod_malloc(a.nsuper+1, sizeof(int),    common_);
     a.pi    = cholmod_malloc(a.nsuper+1, sizeof(int),    common_);
@@ -783,12 +783,12 @@ void BVMat::WriteMatrixMarket(FILE* file)
     Error("Cannot save image OIS of a non valid VMatrix(Cholmod.R.Triplet)");
     return(false);
   }
-  Ensure(ois.Write(a.nrow,  stream));
-  Ensure(ois.Write(a.ncol,  stream));
-  Ensure(ois.Write(a.nzmax, stream));
+  Ensure(ois.Write_size_t(a.nrow,  stream));
+  Ensure(ois.Write_size_t(a.ncol,  stream));
+  Ensure(ois.Write_size_t(a.nzmax, stream));
   Ensure(ois.Write(a.stype, stream));
   Ensure(ois.Write(a.xtype, stream));
-  Ensure(ois.Write(a.nnz,   stream));
+  Ensure(ois.Write_size_t(a.nnz,   stream));
   Ensure(ois.Write(a.itype, stream));
   Ensure(ois.Write(a.dtype, stream));
   Ensure(ois.Write(a.i,     a.nzmax, sizeof(int),    stream));    
@@ -806,12 +806,12 @@ void BVMat::WriteMatrixMarket(FILE* file)
   s_.chlmRtriplet_ = (cholmod_triplet*)cholmod_malloc(1,
     sizeof(cholmod_triplet),common_);
   cholmod_triplet& a = *s_.chlmRtriplet_;
-  Ensure(ois.Read(a.nrow,  stream));
-  Ensure(ois.Read(a.ncol,  stream));
-  Ensure(ois.Read(a.nzmax, stream));
+  Ensure(ois.Read_size_t(a.nrow,  stream));
+  Ensure(ois.Read_size_t(a.ncol,  stream));
+  Ensure(ois.Read_size_t(a.nzmax, stream));
   Ensure(ois.Read(a.stype, stream));
   Ensure(ois.Read(a.xtype, stream));
-  Ensure(ois.Read(a.nnz,   stream));
+  Ensure(ois.Read_size_t(a.nnz,   stream));
   Ensure(ois.Read(a.itype, stream));
   Ensure(ois.Read(a.dtype, stream));
   a.i = cholmod_malloc(a.nzmax, sizeof(int),    common_);
