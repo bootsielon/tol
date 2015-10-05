@@ -1107,7 +1107,7 @@ CMAKE_SYSTEM == "Linux-3.19.3-100.fc20.x86_64"
               VERSION_BUILD,
               tolBuildDate,
               tolBuildTime,
-              TOL_COMPILER_ID, TOL_BUILD_SYSTEM, sizeof(void*)*8 );
+              TOL_COMPILER_ID, TOL_BUILD_SYSTEM, int(sizeof(void*)*8) ) ;
     init_ = true;
   }
   return aux_;
