@@ -124,7 +124,9 @@ Text GetVersionFromTolProject(Text branch)
   Real CheckTOLRelease(Real maxDaysOfDelay)
 //////////////////////////////////////////////////////////////////////////////
 {
-  If(Or(OSUnix,ToLower(GetFilePrefix(TOLSessionPath))!="tolbase"),1,
+  Set platInfo = PlatformInfo(?);
+  Real isWin32MSVC = (platInfo[3]=="MSVC" & platInfo[1]==4);
+  If(Or(!isWin32MSVC, ToLower(GetFilePrefix(TOLSessionPath))!="tolbase"), 1,
   {
     Date tol_release_check = If(FileExist("tol_release_check.tol"),
     {
