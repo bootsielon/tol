@@ -5,4 +5,4 @@ add_tol_sublibrary( blinalg
   linalg.cpp mfastpro.cpp tol_blas.cpp )
   
 target_include_directories( blinalg PRIVATE 
-  ${CBLAS_INCLUDE_DIR} ${CLAPACK_INCLUDE_DIR} )
+  ${TOL_CBLAS_INCLUDE_DIR} ${CLAPACK_INCLUDE_DIR} )

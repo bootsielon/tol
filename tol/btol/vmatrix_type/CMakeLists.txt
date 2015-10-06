@@ -9,4 +9,4 @@ add_tol_sublibrary( vmatrix_type
 target_include_directories( vmatrix_type PRIVATE
   "${CHOLMOD_INCLUDE_DIR}"
   "${PROJECT_SOURCE_DIR}/bmath/gsl_ext" 
-  "${CBLAS_INCLUDE_DIR}" )
+  "${TOL_CBLAS_INCLUDE_DIR}" )
