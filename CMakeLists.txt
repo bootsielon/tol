@@ -50,35 +50,71 @@ if( WIN32 )
     "C/C++ header files and libraries for development purposes")
 endif( WIN32 )
 
-configure_file( ${CMAKE_SOURCE_DIR}/CPackOptions.cmake.in ${PROJECT_BINARY_DIR}/CPackOptions.cmake )
+if( UNIX )
+  # BIN
+  file( TO_CMAKE_PATH "${TOL_RUNTIME_DIR}/bin/tol*" exe_pattern )
+  file( GLOB RT_EXE  ${exe_pattern} )
+  install( FILES ${RT_EXE} DESTINATION "local/tol3.2-i/bin" PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_WRITE WORLD_EXECUTE)
+  file( TO_CMAKE_PATH "${TOL_RUNTIME_DIR}/bin/stdlib" stdlib_dir )
+  install( DIRECTORY ${stdlib_dir} DESTINATION "local/tol3.2-i/bin")
+  # LIB
+  file( TO_CMAKE_PATH "${TOL_RUNTIME_DIR}/lib" lib_dir )
+  install( DIRECTORY ${lib_dir} DESTINATION "local/tol3.2-i")
+  # INCLUDE
+  file( TO_CMAKE_PATH "${TOL_RUNTIME_DIR}/include" include_dir )
+  install( DIRECTORY ${include_dir} DESTINATION "local/tol3.2-i")
+endif( UNIX )
 
-set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/NSIS/nsis_tol.bmp") 
-string(REPLACE "/" "\\\\" CPACK_PACKAGE_ICON ${CPACK_PACKAGE_ICON}) 
+configure_file( ${CMAKE_SOURCE_DIR}/CPackOptions.cmake.in ${PROJECT_BINARY_DIR}/CPackOptions.cmake )
 
 # => http://stackoverflow.com/questions/21144655/customizing-nsis-installer-using-cpack
 # => http://www.cmake.org/Wiki/CMake:CPackPackageGenerators
 
-set(CPACK_PACKAGE_NAME "TOL (GNU)")
+if( WIN32 )
+  set(CPACK_PACKAGE_NAME "TOL (GNU)")
+endif( WIN32 )
+if( UNIX )
+  set(CPACK_PACKAGE_NAME "TOL")
+endif( UNIX )
 set(CPACK_PACKAGE_VENDOR "Tol-Project")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Time Oriented Language")
 set(CPACK_PACKAGE_VERSION_MAJOR "3")
 set(CPACK_PACKAGE_VERSION_MINOR "2")
 set(CPACK_PACKAGE_VERSION_PATCH "0")
 set(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}")
-set(CPACK_PACKAGE_NAMEV "tol-gnu-v${CPACK_PACKAGE_VERSION}")
+if( WIN32 )
+  set(CPACK_PACKAGE_NAMEV "tol-gnu-v${CPACK_PACKAGE_VERSION}")
+endif( WIN32 )
+if( UNIX )
+  set(CPACK_PACKAGE_NAMEV "tol-v${CPACK_PACKAGE_VERSION}")
+endif( UNIX )
+set(CPACK_PACKAGE_CONTACT "Pedro Gea <pgea@bayesforecast.com>")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "${CPACK_PACKAGE_VENDOR}\\\\${CPACK_PACKAGE_NAMEV}")
 set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "${CPACK_PACKAGE_NAMEV}")
+
+set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/NSIS/nsis_tol.bmp") 
+if( WIN32 )
+  string(REPLACE "/" "\\\\" CPACK_PACKAGE_ICON ${CPACK_PACKAGE_ICON}) 
+endif( WIN32 )
 
 set(CPACK_PROPERTIES_FILE "${PROJECT_BINARY_DIR}/CPackOptions.cmake")
 
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/tol/COPYING" )
+if( WIN32 )
   string(REPLACE "/" "\\\\" CPACK_RESOURCE_FILE_LICENSE ${CPACK_RESOURCE_FILE_LICENSE})
-set(CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/NSIS/tolbase-install.ico" )
-  string(REPLACE "/" "\\\\" CPACK_NSIS_MUI_ICON ${CPACK_NSIS_MUI_ICON})
-set(CPACK_NSIS_MUI_UNIICON "${CMAKE_SOURCE_DIR}/NSIS/tolbase-uninstall.ico" )
-  string(REPLACE "/" "\\\\" CPACK_NSIS_MUI_UNIICON ${CPACK_NSIS_MUI_UNIICON})
+endif( WIN32 )
 
-set(CPACK_NSIS_HELP_LINK "www.tol-project.org")
+if( UNIX )
+set(CPACK_DEBIAN_PACKAGE_SECTION "Mathematics")
+endif( UNIX )
+
+if( WIN32 )
+  set(CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/NSIS/tolbase-install.ico" )
+    string(REPLACE "/" "\\\\" CPACK_NSIS_MUI_ICON ${CPACK_NSIS_MUI_ICON})
+  set(CPACK_NSIS_MUI_UNIICON "${CMAKE_SOURCE_DIR}/NSIS/tolbase-uninstall.ico" )
+    string(REPLACE "/" "\\\\" CPACK_NSIS_MUI_UNIICON ${CPACK_NSIS_MUI_UNIICON})
+  set(CPACK_NSIS_HELP_LINK "www.tol-project.org")
+endif( WIN32 )
 
 # => http://www.mantidproject.org/NSIS_CPACK_Customisations
 # => http://nsis.sourceforge.net/Environmental_Variables:_append,_prepend,_and_remove_entries
@@ -113,5 +149,12 @@ if(WIN32)
   # crea otros accesos directos
   set(CPACK_NSIS_MENU_LINKS "http://www.tol-project.org" "Tol-Project Site")
 endif(WIN32)
+
+if( UNIX )
+  # nombre del instalador:
+  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAMEV}")
+  # crea acceso directos a estos ejecutables (pares nombre_archivo nombre_acceso)
+  set(CPACK_PACKAGE_EXECUTABLES tolsh "tolsh-v${CPACK_PACKAGE_VERSION}")
+endif( UNIX )
 
 include(CPack)
