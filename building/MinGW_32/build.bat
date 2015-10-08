@@ -78,7 +78,7 @@ if "%cont%"=="n" GOTO skip_cmake
 if "%project%"=="tol" (
   cmake -DTOL_EXTERNAL_DEVEL_DIR="%tol_contribs%" -DCMAKE_TOOLCHAIN_FILE="%tolp_trunk%\tol\cmake\mingw-m32.toolchain.cmake" -DCMAKE_BUILD_TYPE=%mode% -G"CodeLite - MinGW Makefiles" "%tolp_trunk%\%project%"
 ) else (
-  cmake -DTOL_PREFIX_PATH="%tolp_trunk%\tol\CodeLite\Release\Runtime_Base" -DCMAKE_TOOLCHAIN_FILE="%tolp_trunk%\tol\cmake\mingw-m32.toolchain.cmake" -DCMAKE_BUILD_TYPE=%mode% -G"CodeLite - MinGW Makefiles" "%tolp_trunk%\%project%"
+  cmake -DTOL_PREFIX_PATH="%tolp_trunk%\tol\CodeLite\Release\Runtime_Base" -DCMAKE_TOOLCHAIN_FILE="%tolp_trunk%\tol\cmake\mingw-m32.toolchain.cmake" -DCMAKE_INSTALL_PREFIX= -DCMAKE_BUILD_TYPE=%mode% -G"CodeLite - MinGW Makefiles" "%tolp_trunk%\%project%"
 )
 :skip_cmake
 
