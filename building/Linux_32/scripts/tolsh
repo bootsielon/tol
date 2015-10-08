@@ -1,0 +1,2 @@
+#!/bin/bash
+rlwrap /usr/lib/tol3.2/bin/tolsh -d
