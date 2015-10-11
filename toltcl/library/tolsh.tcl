@@ -590,6 +590,6 @@ proc logtmp { msg } {
   close $fd
 }
 
-puts "voy ::tolsh::run $argv"
+#puts "voy ::tolsh::run $argv"
 ::tolsh::run $::argv
 exit
