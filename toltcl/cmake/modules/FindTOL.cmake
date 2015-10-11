@@ -13,8 +13,11 @@ include( LibFindMacros )
 
 set( TOL_FOUND 0 )
 
-if( EXISTS ${TOL_PREFIX_PATH} )
-
+if( DEFINED TOL_PREFIX_PATH )
+  if( NOT IS_ABSOLUTE ${TOL_PREFIX_PATH} )
+    file( TO_CMAKE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${TOL_PREFIX_PATH}" TOL_PREFIX_PATH )
+    get_filename_component( TOL_PREFIX_PATH ${TOL_PREFIX_PATH} ABSOLUTE )
+  endif()
   #find includes
   find_path(
     TOL_INCLUDE_DIR
@@ -27,7 +30,7 @@ if( EXISTS ${TOL_PREFIX_PATH} )
     PATHS ${TOL_PREFIX_PATH}
     PATH_SUFFIXES "lib"
     NO_DEFAULT_PATH )
-else(  EXISTS ${TOL_PREFIX_PATH} )
+else( DEFINED TOL_PREFIX_PATH )
 
   #find includes
   find_path(
@@ -35,7 +38,7 @@ else(  EXISTS ${TOL_PREFIX_PATH} )
     NAMES "tol/tol_bcommon.h" )
   find_library( TOL_LIBRARY
     NAMES tol )
-endif( EXISTS ${TOL_PREFIX_PATH} )
+endif( DEFINED TOL_PREFIX_PATH )
 
 set( TOL_PROCESS_INCLUDES TOL_INCLUDE_DIR )
 set( TOL_PROCESS_LIBS TOL_LIBRARY )

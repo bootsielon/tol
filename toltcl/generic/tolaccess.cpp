@@ -694,7 +694,8 @@ int Tol_FindSOInSet(BSet * ptrSet, const BSyntaxObject * syn,
 		      Tol_FindSOInSet(ptrSet,
 				      syn, indexes))) {
       /* found!!! */
-      indexes.AppendObject((void*)j);      
+	  intptr_t jCast = j;
+      indexes.AppendObject((void*)jCast);      
       return 1;
     }
   }
@@ -803,7 +804,7 @@ int Tol_GetReference(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     Tcl_DStringFree(&dstr);
     int last = indexes.GetLast();
     for(j = last; j >= 0; j--)
-      items[last+2-j] = Tcl_NewIntObj(long(*indexes._GetObject(j)));
+      items[last+2-j] = Tcl_NewIntObj(intptr_t(*indexes._GetObject(j)));
     Tcl_SetListObj(obj_result, indexes.GetSize()+2, items);
     Tcl_Free((char*)items);
     return TCL_OK;
