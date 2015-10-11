@@ -451,15 +451,19 @@ if( WIN32 AND TOL_EXTERNAL_DEVEL_DIR )
     file( GLOB tcl-libs "${TOL_EXTERNAL_DEVEL_DIR}/tcl-libs/*" )
     file( INSTALL ${tcl-libs} DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" )
   endif( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/lib/tkdnd" )
-  if( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/lib/tcl8.4" )
-    file( INSTALL
-          "${TOL_EXTERNAL_PREFIX}/lib/dde1.3"
-          "${TOL_EXTERNAL_PREFIX}/lib/reg1.2"
-          "${TOL_EXTERNAL_PREFIX}/lib/tcl8.4"
-          "${TOL_EXTERNAL_PREFIX}/lib/TclCurl7.22.0"
-          "${TOL_EXTERNAL_PREFIX}/lib/tk8.4"
-          DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" )
-  endif( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/lib/tcl8.4" )
+  
+  set( tcldirs "")
+  foreach( pdir tcl8 tk8 dde reg TclCurl )
+    file( GLOB pdirx.y RELATIVE "${TOL_EXTERNAL_PREFIX}/lib" "${TOL_EXTERNAL_PREFIX}/lib/${pdir}*" )
+	list( APPEND tcldirs ${pdirx.y} )
+  endforeach( pdir tcl8 tk8 dde reg TclCurl )
+  list( GET tcldirs 0 tcldir0)
+  if( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/lib/${tcldir0}" )
+    foreach( d ${tcldirs} )
+	  file( INSTALL "${TOL_EXTERNAL_PREFIX}/lib/${d}" DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" )
+	endforeach( d ${tcldirs} )
+  endif( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/lib/${tcldir0}" )
+  
   if( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/include/tcl.h" )
     file( GLOB tcl_h "${TOL_EXTERNAL_PREFIX}/include/tcl*.h" )
     file( GLOB tk_h "${TOL_EXTERNAL_PREFIX}/include/tk*.h" )

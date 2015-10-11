@@ -228,14 +228,14 @@ typedef long off_t;
 #if (defined(_MSC_VER))
 //Disable paranoid warning in Visual C++ 7: '<' : no coinciden signed/unsigned
 #pragma warning(disable : 4018)
-#endif
-
 //no suitable definition provided for explicit template instantiation request
 #pragma warning(disable : 4661)
 //disable warnings on extern before template instantiation
 #pragma warning(disable : 4231)
 // identifier was truncated to '255' characters in the browser information
 #pragma warning(disable : 4786)
+#endif
+
 #   else
 #	define TOL_DLLIMPORT
 #	define TOL_DLLEXPORT
