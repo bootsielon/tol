@@ -368,8 +368,11 @@ endif( )
 
 create_header_links( )
 
-set( write_config_h 1 )
-if( write_config_h )
+if( NOT DEFINED WRITE_CONFIG_H )
+  set( WRITE_CONFIG_H 1 )
+endif( NOT DEFINED WRITE_CONFIG_H )
+  
+if( ${WRITE_CONFIG_H} )
   message( STATUS "Invoking CONFIGURE_FILE" )
   CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in 
     ${CMAKE_CURRENT_BINARY_DIR}/tol/config.h )
@@ -486,6 +489,9 @@ if( WIN32 AND TOL_EXTERNAL_DEVEL_DIR )
           "${TOL_EXTERNAL_PREFIX}/lib/libltdl.dll.a" 
           "${TOL_EXTERNAL_PREFIX}/lib/libgsl.dll.a"
           "${TOL_EXTERNAL_PREFIX}/lib/libgslcblas.dll.a"
+		  "${TOL_EXTERNAL_PREFIX}/lib/libblas.lib"
+		  "${TOL_EXTERNAL_PREFIX}/lib/liblapack.lib"
+		  "${TOL_EXTERNAL_PREFIX}/lib/liblapacke.lib"
           DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" )
   endif( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/lib/libltdl.dll.a" )
   file( GLOB tcl_a "${TOL_EXTERNAL_PREFIX}/lib/libtcl*.a" )
