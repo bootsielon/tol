@@ -85,6 +85,35 @@ Text _.autodoc.member.TolPlatform =
       TextJoinWith(words, "")
     })
   };
+  
+  /*
+    This function must be invoked while building the package, similar to this:
+    
+    Set _.preload = TolPackage::TolPlatform::DefinePreload( ? );
+  */
+  ////////////////////////////////////////////////////////////////////////////
+  Set DefinePreload( Real void )
+  ////////////////////////////////////////////////////////////////////////////  
+  {
+    Text preloadFile = GetAbsolutePath("./") + ObtainDllFolder( ? ) + "/preload.tol";
+    Set If( FileExist( preloadFile ), Include( preloadFile ), Copy( Empty ) )
+  };
+
+    /*
+    This function must be invoked from the StartAction, similar to this:
+    
+    TolPackage::TolPlatform::PreloadLibraries( _.preload );
+  */
+  ////////////////////////////////////////////////////////////////////////////
+  Real PreloadLibraries( Set preload )
+  ////////////////////////////////////////////////////////////////////////////  
+  {
+    Text dir = GetAbsolutePath("./") + ObtainDllFolder( ? );
+    Real Group( "And", EvalSet( preload, Real( Text name )
+      {
+        Real LoadDynLib( dir + "/" + name )
+      } ), 1 )
+  };
 
   ////////////////////////////////////////////////////////////////////////////
   Text ObtainDllFolder(Real void)
