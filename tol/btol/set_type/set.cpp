@@ -326,56 +326,58 @@ void BSet::RobStruct (BList* arg, BStruct* str,	BSubType sub)
 //--------------------------------------------------------------------
 {
   if(arg && str)
-  {
+    {
     BList* argLst = arg;
     BList* lst	  = NIL;
     BList* aux	  = NIL;
     for(BInt n=0; (n<str->Size()); n++)
-    {
+      {
 //    Std(BText("\nRobStruct Field ")+n+" "+(*str)[n].Name()+" -> ");
       if(argLst)
-      {
-	      BSyntaxObject* obj = (BSyntaxObject*)Car(argLst);
-	      BText name = obj->Name();
-	      BText desc = obj->Description();
-	      if((*str)[n].Grammar()!=obj->Grammar())
-	      {
-	        BText id = name;
-	        if(!id.HasName()) { id = obj->Dump(); }
-	        if(!id.HasName()) { id = desc; }
-	        Error(id + I2(" is not an object of type ",
-			                  " no es un objeto de tipo ") +
-		           (*str)[n].Grammar()->Name()+ ".\n "+
-		           I2("Cannot create field ","No se puede crear el campo")+
-		              (*str)[n].Name()+
-		           I2(" of structure "," de la estructura ")+str->Name());
-	      }
+        {
+        BSyntaxObject* obj = (BSyntaxObject*)Car(argLst);
+        BText name = obj->Name();
+        BText desc = obj->Description();
+        BGrammar * gra_n = (*str)[n].Grammar();
+        if( gra_n != GraAnything() &&
+            gra_n !=obj->Grammar() )
+          {
+          BText id = name;
+          if(!id.HasName()) { id = obj->Dump(); }
+          if(!id.HasName()) { id = desc; }
+          Error(id + I2(" is not an object of type ",
+                        " no es un objeto de tipo ") +
+                (*str)[n].Grammar()->Name()+ ".\n "+
+                I2("Cannot create field ","No se puede crear el campo")+
+                (*str)[n].Name()+
+                I2(" of structure "," de la estructura ")+str->Name());
+          }
         LstFastAppend(lst,aux,obj);
-	      argLst = Cdr(argLst);
-      }
+        argLst = Cdr(argLst);
+        }
       else
-      {
-	      Error(I2("Too few parameters to create a set with structure ",
-		             "Faltan argumentos para crear un conjunto con estructura ")+
-		    str->Name());
-      }
+        {
+        Error(I2("Too few parameters to create a set with structure ",
+                 "Faltan argumentos para crear un conjunto con estructura ")+
+              str->Name());
+        }
     }
     if(argLst)
-    {
-	    Error(I2("Too mach parameters to create a set with structure ",
-		           "Sobran argumentos para crear un conjunto con estructura ")+
-	          str->Name());
-    }
+      {
+      Error(I2("Too mach parameters to create a set with structure ",
+               "Sobran argumentos para crear un conjunto con estructura ")+
+            str->Name());
+      }
     DESTROY(arg);
     RobElement(lst);
     PutStruct (str);
     PutSubType(sub);
   }
   else
-  {
+    {
     RobElement(arg);
     PutSubType(sub);
-  }
+    }
 }
 
 //--------------------------------------------------------------------
