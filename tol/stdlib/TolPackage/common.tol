@@ -136,7 +136,8 @@
     Code obtainList = Eval("server::Obtain"<<mode<<"List");
     Set improveList = obtainList(client, Platform(?), Version, UnknownDate);
     Set selImproveList = Select(improveList, Real (Set record) {
-      TextMatch(Name(record), txtPattern)
+      //TextMatch(Name(record), txtPattern)
+      TextMatch(record::name<<"."<<record::high<<"."<<record::low, txtPattern)
     });
     If(Card(selImproveList), {
       Set record = selImproveList[1];

@@ -464,7 +464,7 @@ Class @Catalog
         Set pkgRecord =  [[ 
           Text identifier = row[3];
           Text name = name_variant[1];
-          Text variant = If(Card(name_variant)>1, name_variant[1], "");
+          Text variant = If(Card(name_variant)>1, name_variant[2], "");
           Real high = Eval(pkgInfo[2]);
           Real low = Eval(pkgInfo[3]);
           Text repository = row[1];
