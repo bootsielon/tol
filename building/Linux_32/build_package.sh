@@ -1,9 +1,13 @@
 #!/bin/bash
 
-echo -n "package? "
-read answer
+if [ "$1" = "" ]; then
+  echo -n "package? "
+  read package
+else
+  package=$1
+fi
 
-PACKAGE_DIR=$(dirname $0)/../../../OfficialTolArchiveNetwork/$answer
+PACKAGE_DIR=$(dirname $0)/../../../OfficialTolArchiveNetwork/$package
 if [ -f "$PACKAGE_DIR/CMakeLists.txt" ]; then 
   cd $PACKAGE_DIR
   CMAKE_DIR=BUILD_CMAKE/m32/release
@@ -41,7 +45,7 @@ if [ "$answer" = "y" ]; then
   make
 fi
 
-echo -n "press enter to exit "
+echo -n "press enter to continue "
 read answer
 
 
