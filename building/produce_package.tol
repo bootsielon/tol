@@ -1,0 +1,7 @@
+
+// Se definen las fuentes de código conocidas:
+Real TolPackage::Builder::AppendSource("Trac_TOL", "SVN", "https://www.tol-project.org/svn/tolp/OfficialTolArchiveNetwork/");
+// Se define el repositorio de paquetes:
+Real TolPackage::Builder::AppendRepository("Repos", DBConnect::Obtain("bysforofitol"));
+// Se construye el paquete
+Real If(ObjectExist("Text", "Package"), TolPackage::Builder::ProducePackage(Package, "Trac_TOL", ?, "Repos", 1));
