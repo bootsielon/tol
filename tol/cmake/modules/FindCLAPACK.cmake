@@ -22,6 +22,11 @@
 # USA.
 #
 
+find_package( LAPACK REQUIRED )
+if( LAPACK_FOUND )
+  message( STATUS "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}")
+endif()
+
 if( NOT CLAPACK_NAME )
   set( CLAPACK_NAME clapack )
 endif( NOT CLAPACK_NAME )
@@ -51,11 +56,12 @@ if ( CLAPACK_FOUND )
   else( CLAPACK_NAME STREQUAL "lapacke" )
     set( NameFunction "clapack_dpotrf" )
   endif( CLAPACK_NAME STREQUAL "lapacke" )
-  set(CMAKE_REQUIRED_LIBRARIES lapack)
+  set(CMAKE_REQUIRED_LIBRARIES ${LAPACK_LIBRARIES})
   check_library_exists( "${CLAPACK_LIBRARY}" ${NameFunction} "" FOUND_CLAPACK_DPOTRF )
   if( NOT FOUND_CLAPACK_DPOTRF )
     message( WARNING "Could not find LAPACKE_dpotrf in ${CLAPACK_LIBRARY}, take a look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. You most likely have to set CLAPACK_LIBRARY by hand (i.e. -DLAPACK_LIBRARY='/path/to/libclapack.so') !" )
   endif( NOT FOUND_CLAPACK_DPOTRF )
+  set(CMAKE_REQUIRED_LIBRARIES )
 endif( CLAPACK_FOUND )
 
 mark_as_advanced( CLAPACK_LIBRARY )
