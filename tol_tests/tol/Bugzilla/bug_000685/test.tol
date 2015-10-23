@@ -17,13 +17,22 @@
   Serie getNoiseSem(Real Void)
   ////////////////////////////////////////////////////////////////////////////
   {
-      Set a = Ois.Load("test.oza");
-  //  Serie noise = Eval("Serie a::DaiCocaRegPet2000Model20090417.Est::"
-  //  "bsr.estim::eval.average::Obs.CtLV.CocaRegPet2000::serNoise");
-      Serie noise = Eval("Serie a::SemAquaLimPet1000Model20090417.Est::"
-      "bsr.estim::eval.average::Obs.Sem.AquaLimPet1000::serNoise");
-      noise
-  
+    // Local old definitions of structs used in test.oza
+    Struct @BSR.LinearBlock { Text Name, Real InitialValue };
+    Struct @BSR.NoiseDistrib { Text Name, Real Nu, Text SigmaName, 
+      Real SigmaIndex, Set SigmaPrior, Set Arima, Set ArimaAuxInfo, 
+      VMatrix Cov, VMatrix L, VMatrix Li, Set EquIdx, Set TimeInfo
+    };
+    Struct @BSR.ModelDef { Set DocInfo, Set LinearBlock, 
+      Set InputMissingBlock, Set OutputMissingBlock, Set NoiseDistrib, 
+      VMatrix Y, VMatrix X, VMatrix a, VMatrix A
+    };
+    Set a = Ois.Load("test.oza");
+    //  Serie noise = Eval("Serie a::DaiCocaRegPet2000Model20090417.Est::"
+    //  "bsr.estim::eval.average::Obs.CtLV.CocaRegPet2000::serNoise");
+    Serie noise = Eval("Serie a::SemAquaLimPet1000Model20090417.Est::"
+    "bsr.estim::eval.average::Obs.Sem.AquaLimPet1000::serNoise");
+    noise
   };
   ////////////////////////////////////////////////////////////////////////////
   Set aux = SetOfSerie(getNoiseSem(0));
