@@ -440,7 +440,6 @@ if( WIN32 AND TOL_EXTERNAL_DEVEL_DIR )
   endif( )  
   file( TO_CMAKE_PATH "${TOL_EXTERNAL_PREFIX}/bin/*.dll" dll_pattern )
   file( GLOB RT_DLL  ${dll_pattern} )
-  list( APPEND RT_DLL ${LAPACK_LIBRARIES} )
   foreach( dll libboost_filesystem.dll libboost_system.dll)
     list( APPEND RT_DLL "${TOL_EXTERNAL_PREFIX}/lib/${dll}" )
   endforeach( )
@@ -489,9 +488,9 @@ if( WIN32 AND TOL_EXTERNAL_DEVEL_DIR )
           "${TOL_EXTERNAL_PREFIX}/lib/libltdl.dll.a" 
           "${TOL_EXTERNAL_PREFIX}/lib/libgsl.dll.a"
           "${TOL_EXTERNAL_PREFIX}/lib/libgslcblas.dll.a"
-		  "${TOL_EXTERNAL_PREFIX}/lib/libblas.lib"
-		  "${TOL_EXTERNAL_PREFIX}/lib/liblapack.lib"
-		  "${TOL_EXTERNAL_PREFIX}/lib/liblapacke.lib"
+		  "${TOL_EXTERNAL_PREFIX}/lib/libblas.dll.a"
+		  "${TOL_EXTERNAL_PREFIX}/lib/liblapack.dll.a"
+		  "${TOL_EXTERNAL_PREFIX}/lib/liblapacke.dll.a"
           DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" )
   endif( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/lib/libltdl.dll.a" )
   file( GLOB tcl_a "${TOL_EXTERNAL_PREFIX}/lib/libtcl*.a" )

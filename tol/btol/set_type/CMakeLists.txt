@@ -1,5 +1,7 @@
 create_header_links( )
 
+message( STATUS "CMAKE_SIZEOF_VOID_P = ${CMAKE_SIZEOF_VOID_P}")
+
 add_definitions(
   -DTOLPLAT_SYSTEM_NAME=\"${CMAKE_SYSTEM_NAME}\"
   -DTOLPLAT_SYSTEM_VERSION=\"${CMAKE_SYSTEM_VERSION}\"
