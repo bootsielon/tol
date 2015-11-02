@@ -54,7 +54,7 @@ if "!answer!"=="y" (
 )
 
 echo.
-set /p answer="mingw32-make? (y/n) "
+set /p answer="make? (y/n) "
 if "!answer!"=="y" (
   mingw32-make
 )

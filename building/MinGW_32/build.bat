@@ -6,6 +6,8 @@ rem *********************************************************
 rem  Se ha de ejecutar desde el propio directorio MinGW_32.
 rem  Durante el proceso por cada una de las etapas.
 rem *********************************************************
+setlocal enabledelayedexpansion
+
 
 call cmake_prepare.bat
 
@@ -47,7 +49,7 @@ set tolp_trunk=%tolp_root%\trunk
 echo.  tolp_trunk=%tolp_trunk%
 if "%project%"=="tol" (
   set tol_contribs=%tolp_root%\toldevel-rtools-m32
-  echo.  tol_contribs=%tol_contribs%
+  echo.  tol_contribs=!tol_contribs!
 )
 if exist "%tolp_trunk%\%project%\CodeLite\%mode%" (
   echo./!\ There is already a built folder of %project%
