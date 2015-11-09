@@ -1,0 +1,18 @@
+Real GlobalizeSeries := False;
+Real DBOpen("db_test","","",[["sqlite","../db_test.db",""]]);
+
+Set rand_series = For(1,3,Serie(Real k)
+{
+  Serie ser = SubSer(Gaussian(0,1,Weekly),y2015m04,y2015m12d31);
+  Eval("RS_"<<FormatReal(k,"%05.0lf")+"=ser")
+});
+
+Real DBCreateSeriesTable("rand_series",rand_series,"dt_date", "datetime");
+
+
+Set rand_series_ = { DBSeries(
+  "SELECT * FROM rand_series",
+  Weekly,
+  EvalSet(rand_series,Name)) };
+
+Real DBClose("db_test");

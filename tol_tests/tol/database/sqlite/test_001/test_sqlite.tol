@@ -1,16 +1,16 @@
-Real DBOpen("db1","","",[["sqlite","db1.db",""]]);
+Real DBOpen("db_test","","",[["sqlite","../db_test.db",""]]);
 
 //Real DBExecQuery("DROP TABLE student");
 
 Real DBExecQuery("
-DROP TABLE IF EXISTS student;
-CREATE TABLE IF NOT EXISTS student(
-  code VARCHAR,
+DROP TABLE IF EXISTS studQu;
+CREATE TABLE IF NOT EXISTS studQu(
+  code VARCHAR(16),
   qualify FLOAT
 )");
 
 
-Text query.insert = "INSERT INTO student "<<
+Text query.insert = "INSERT INTO studQu "<<
 SetSum(For(1,200,Text(Real k)
 {
   "\n"<<
@@ -21,6 +21,6 @@ SetSum(For(1,200,Text(Real k)
 
 Real DBExecQuery(query.insert);
 
-Set DBTable("SELECT * FROM student");
+Set DBTable("SELECT * FROM studQu");
 
-Real DBClose("db1");
+Real DBClose("db_test");
