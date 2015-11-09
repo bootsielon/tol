@@ -1,0 +1,26 @@
+Real DBOpen("db1","","",[["sqlite","db1.db",""]]);
+
+//Real DBExecQuery("DROP TABLE student");
+
+Real DBExecQuery("
+DROP TABLE IF EXISTS student;
+CREATE TABLE IF NOT EXISTS student(
+  code VARCHAR,
+  qualify FLOAT
+)");
+
+
+Text query.insert = "INSERT INTO student "<<
+SetSum(For(1,200,Text(Real k)
+{
+  "\n"<<
+  If(k>1,"UNION ALL\n","")<<
+  "SELECT 'S"<<IntRand(111111,999999)<<"' as code, "<<
+  Real Rand(0,10)<<" as qualify"
+}));
+
+Real DBExecQuery(query.insert);
+
+Set DBTable("SELECT * FROM student");
+
+Real DBClose("db1");
