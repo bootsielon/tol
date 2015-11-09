@@ -49,6 +49,7 @@ typedef struct sqlitedx {
   int num_cols;
   int num_rows;
   int current_tuple;
+  int result_step;
 } sqlited;
 
 
@@ -92,6 +93,7 @@ DLLEXPORT(sqlited *)sqlite_Open( void **args)
   dbd->num_cols = 0;
   dbd->num_rows = 0;
   dbd->current_tuple = 0;
+  dbd->result_step = 0;
 
   rc = sqlite3_open_v2(database, &(dbd->conn),
    SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, 0);
@@ -170,10 +172,14 @@ DLLEXPORT(int) sqlite_OpenQuery(sqlited *dbd, const char *query)
 
   if(ok!=SQLITE_OK)
   { // Error
+    stdOutWriter("\nERROR: [sqlite_OpenQuery] \n");
     stdOutWriter(sqlite3_errmsg(dbd->conn));
+    stdOutWriter("\nquery:\n");
+    stdOutWriter(query);    
+    stdOutWriter("\n");
     return 0; 
   } 
-  dbd->num_cols = sqlite3_data_count(dbd->result);
+  dbd->num_cols = sqlite3_column_count(dbd->result);
   return 1;
 }
 
@@ -184,17 +190,22 @@ DLLEXPORT(int) sqlite_OpenQuery(sqlited *dbd, const char *query)
  */
 DLLEXPORT(int) sqlite_ExecQuery(sqlited *dbd, const char *query)
 {
-  const char *pzTail=0;
-  int ok = sqlite3_prepare_v2(
-    dbd->conn,       /* Database handle */
-    query,           /* SQL statement, UTF-8 encoded */
-    strlen(query),   /* Maximum length of zSql in bytes. */
-    &(dbd->result),  /* OUT: Statement handle */
-    &pzTail           /* OUT: Pointer to unused portion of zSql */
+  char *errmsg=0;
+  int ok_exec;
+  ok_exec = sqlite3_exec(
+    dbd->conn,                                  /* An open database */
+    query,                           /* SQL to be evaluated */
+    NULL,  /* Callback function */
+    NULL,                                    /* 1st argument to callback */
+    &errmsg                              /* Error msg written here */
   );
-  if(ok!=SQLITE_OK)
+  if(ok_exec!=SQLITE_OK)
   { // Error
-    stdOutWriter(sqlite3_errmsg(dbd->conn));
+    stdOutWriter("\nERROR: [sqlite_ExecQuery] \n");
+    stdOutWriter(errmsg);
+    stdOutWriter("\nquery:\n");
+    stdOutWriter(query);    
+    stdOutWriter("\n");
     return 0; 
   } 
   dbd->num_rows = sqlite3_changes(dbd->conn);
@@ -206,12 +217,12 @@ DLLEXPORT(int) sqlite_ExecQuery(sqlited *dbd, const char *query)
  */
 DLLEXPORT(int) sqlite_GetNext(sqlited *dbd)
 {
-  int ok = sqlite3_step(dbd->result);    
-  if(ok!=SQLITE_DONE) {
-    stdOutWriter(sqlite3_errmsg(dbd->conn));
-    return(0);
-  }
-  return(1);
+  if(dbd->result_step==SQLITE_DONE) { return(0); }
+  dbd->result_step = sqlite3_step(dbd->result); 
+  if(dbd->result_step==SQLITE_ROW) { return(1); }
+  if(dbd->result_step==SQLITE_DONE) { return(1); }
+  stdOutWriter(sqlite3_errmsg(dbd->conn));
+  return(0);
 }
 
 //--------------------------------------------------------------------
@@ -249,6 +260,8 @@ DLLEXPORT(int) sqlite_GetFieldType (sqlited *dbd, int nfield)
   strcpy(name,sqlite3_column_name(dbd->result, nfield));
   for(n=0;name[n];n++) { name[n] = tolower(name[n]); }  
   if((n>3) & (name[0]=='d') & (name[1]=='t') & (name[2]=='_')) 
+  { dbType = TypeDBDate; }
+  else if((n>3) & (name[0]=='d') & (name[1]=='d') & (name[2]=='_')) 
   { dbType = TypeDBDate; }
   else if((type==SQLITE_INTEGER) || (type==SQLITE_FLOAT))
   {
