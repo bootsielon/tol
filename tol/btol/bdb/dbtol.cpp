@@ -129,21 +129,22 @@ typedef struct dbm_hdl
 } DBM_hdl;
 
 // char array of DBM module aliases
-#define DBM_ALIASES { "odbc", "mysql", "postgres" }
+#define DBM_ALIASES { "odbc", "mysql", "postgres", "sqlite" }
 // char array of DBM module file names
-#define DBM_MODULES { "tolodbc%d%s\0", "tolmysql%d%s\0", "tolpgsql%d%s\0" }
+#define DBM_MODULES { "tolodbc%d%s\0", "tolmysql%d%s\0", "tolpgsql%d%s\0", "tolsqlite%d%s\0" }
 // char array of DB Manager names
-#define DBM_NAMES { "ODBC", "MySQL", "PostgreSQL" }
+#define DBM_NAMES { "ODBC", "MySQL", "PostgreSQL", "SQLite" }
 // indexes for files string in array above
 #define ODBC  0 
 #define MYSQL 1 
 #define PGSQL 2 
-#define MAX_DBM_HANDLERS 3
+#define SQLITE 3 
+#define MAX_DBM_HANDLERS 4
 
 const char *dbm_aliases_[] = DBM_ALIASES;
 const char *dbm_modules_[] = DBM_MODULES;
 const char *dbm_names_[] = DBM_NAMES;
-DBM_hdl *dbm_handlers_[3] = { NULL, NULL, NULL };
+DBM_hdl *dbm_handlers_[4] = { NULL, NULL, NULL, NULL };
 
 typedef struct db_list //!< struct to List opened databases
 {

@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="libtolpgsql"
-	ProjectGUID="{10793CDE-F71F-4DAB-919F-CA5CD86C98EE}"
-	RootNamespace="libtolpgsql"
+	Name="libtolsqlite"
+	ProjectGUID="{E8525A9F-18C9-416D-B22C-FD6BB9135AD8}"
+	RootNamespace="libtolsqlite"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -43,20 +43,20 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Release/libtolpgsql.tlb"
+				TypeLibraryName=".\Release/libtolsqlite.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(PGSQL_INCLUDE)"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBTOLPGSQL_EXPORTS;_CRT_SECURE_NO_DEPRECATE"
+				AdditionalIncludeDirectories="$(sqlite_INCLUDE)"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBTOLsqlite_EXPORTS;_CRT_SECURE_NO_DEPRECATE"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				StructMemberAlignment="3"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\Release/libtolpgsql.pch"
+				PrecompiledHeaderFile=".\Release/libtolsqlite.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
@@ -76,15 +76,14 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libpq.lib"
-				OutputFile=".\Release/tolpgsql0.dll"
+				OutputFile=".\Release/tolsqlite0.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="$(PGSQL_LIB)"
-				ProgramDatabaseFile=".\Release/libtolpgsql.pdb"
+				AdditionalLibraryDirectories="$(sqlite_LIB)"
+				ProgramDatabaseFile=".\Release/libtolsqlite.pdb"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary=".\Release/libtolpgsql.lib"
+				ImportLibrary=".\Release/libtolsqlite.lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -99,7 +98,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Release/libtolpgsql.bsc"
+				OutputFile=".\Release/libtolsqlite.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -140,19 +139,19 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Debug/libtolpgsql.tlb"
+				TypeLibraryName=".\Debug/libtolsqlite.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(PGSQL_INCLUDE)"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;LIBTOLPGSQL_EXPORTS;_CRT_SECURE_NO_DEPRECATE"
+				AdditionalIncludeDirectories="$(sqlite_INCLUDE)"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;LIBTOLsqlite_EXPORTS;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				StructMemberAlignment="3"
-				PrecompiledHeaderFile=".\Debug/libtolpgsql.pch"
+				PrecompiledHeaderFile=".\Debug/libtolsqlite.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
 				ProgramDataBaseFileName=".\Debug/"
@@ -173,16 +172,15 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libpq.lib"
-				OutputFile=".\Debug/tolpgsql0.dll"
+				OutputFile=".\Debug/tolsqlite0.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="$(PGSQL_LIB)"
+				AdditionalLibraryDirectories="$(sqlite_LIB)"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Debug/libtolpgsql.pdb"
+				ProgramDatabaseFile=".\Debug/libtolsqlite.pdb"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary=".\Debug/libtolpgsql.lib"
+				ImportLibrary=".\Debug/libtolsqlite.lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -197,7 +195,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Debug/libtolpgsql.bsc"
+				OutputFile=".\Debug/libtolsqlite.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -238,20 +236,20 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Release/libtolpgsql.tlb"
+				TypeLibraryName=".\Release/libtolsqlite.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(PGSQL_INCLUDE)"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBTOLPGSQL_EXPORTS;_CRT_SECURE_NO_DEPRECATE"
+				AdditionalIncludeDirectories="$(sqlite_INCLUDE)"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBTOLsqlite_EXPORTS;_CRT_SECURE_NO_DEPRECATE"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				StructMemberAlignment="3"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\Release/libtolpgsql.pch"
+				PrecompiledHeaderFile=".\Release/libtolsqlite.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
@@ -271,15 +269,14 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libpq.lib"
-				OutputFile=".\Release/tolpgsql0.dll"
+				OutputFile=".\Release/tolsqlite0.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="$(PGSQL_LIB)"
-				ProgramDatabaseFile=".\Release/libtolpgsql.pdb"
+				AdditionalLibraryDirectories="$(sqlite_LIB)"
+				ProgramDatabaseFile=".\Release/libtolsqlite.pdb"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary=".\Release/libtolpgsql.lib"
+				ImportLibrary=".\Release/libtolsqlite.lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -294,7 +291,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Release/libtolpgsql.bsc"
+				OutputFile=".\Release/libtolsqlite.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -316,7 +313,7 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
-				RelativePath="..\..\dbdrivers\libtolpgsql.c"
+				RelativePath="..\..\dbdrivers\libtolsqlite.c"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -344,6 +341,10 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\dbdrivers\sqlite\sqlite3.c"
+				>
 			</File>
 		</Filter>
 		<Filter

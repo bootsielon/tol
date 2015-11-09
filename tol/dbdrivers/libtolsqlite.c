@@ -220,7 +220,7 @@ DLLEXPORT(int) sqlite_GetNext(sqlited *dbd)
   if(dbd->result_step==SQLITE_DONE) { return(0); }
   dbd->result_step = sqlite3_step(dbd->result); 
   if(dbd->result_step==SQLITE_ROW) { return(1); }
-  if(dbd->result_step==SQLITE_DONE) { return(1); }
+  if(dbd->result_step==SQLITE_DONE) { return(0); }
   stdOutWriter(sqlite3_errmsg(dbd->conn));
   return(0);
 }
@@ -339,48 +339,58 @@ DLLEXPORT(int) sqlite_FreeText(sqlited *dbd, char **txt_val) { return 1; }
  */
 DLLEXPORT(int) sqlite_GetAsDate(sqlited *dbd, int nfield, struct dateStruct **dateval)
 {
-  if (dbd->result) 
-  {
-    char s1=0,s2=0,s3=0,s4=0,s5=0,s6=0;   
-    const char *txt_val = sqlite3_column_text(dbd->result, nfield);
-    int len = strlen(txt_val);
-    if(len<10) { return(0); }
-    if(len==10) 
-    { 
-      sscanf(txt_val,"%hu%c%hu%c%hu",
-        (*dateval)->year, s1, 
-        (*dateval)->month, s2,
-        (*dateval)->day);
-      (*dateval)->hour = (*dateval)->minute = (*dateval)->second = (*dateval)->msecond = 0;
-    }
-    else if(len==19)
-    {
-      sscanf(txt_val,"%hu%c%hu%c%huc%huc%huc%hu",
-        (*dateval)->year, s1, 
-        (*dateval)->month, s2,
-        (*dateval)->day, s3,
-        (*dateval)->hour, s4,
-        (*dateval)->minute, s5,
-        (*dateval)->second);
-        (*dateval)->msecond = 0;
-    }
-    else if(len==23)
-    {
-      sscanf(txt_val,"%hu%c%hu%c%huc%huc%huc%hu",
-        (*dateval)->year, s1, 
-        (*dateval)->month, s2,
-        (*dateval)->day, s3,
-        (*dateval)->hour, s4,
-        (*dateval)->minute, s5,
-        (*dateval)->second, s6,
-        (*dateval)->msecond);
-    }
-    return 1;
-  }
+  int err = 0;
+  
+  if(!dbd->result) { err = 1; }
   else
+  {
+    char s1=0,s2=0,s3=0,s4=0,s5=0,s6=0;  
+    int y,m,d,h,i,s,ms; 
+    const char *txt_val = sqlite3_column_text(dbd->result, nfield);
+    if(!txt_val) { err=2; }
+    else
+    {
+      int len = strlen(txt_val);
+      if(len==10) 
+      { 
+        sscanf(txt_val,"%d%c%d%c%d",
+          &y, &s1, &m, &s2, &d);
+        (*dateval)->year  = (unsigned short)y;
+        (*dateval)->month = (unsigned short)m;
+        (*dateval)->day   = (unsigned short)d;
+        (*dateval)->hour = (*dateval)->minute = (*dateval)->second = (*dateval)->msecond = 0;
+      }
+      else if(len==19)
+      {
+        sscanf(txt_val,"%d%c%d%c%d%c%d%c%d%c%d",
+          &y, &s1, &m, &s2, &d, &s3, &h, &s4, &i, &s5, &s);
+        (*dateval)->year   = (unsigned short)y;
+        (*dateval)->month  = (unsigned short)m;
+        (*dateval)->day    = (unsigned short)d;
+        (*dateval)->hour   = (unsigned short)h;
+        (*dateval)->minute = (unsigned short)i;
+        (*dateval)->second = (unsigned short)s;
+        (*dateval)->msecond = 0;
+      }
+      else if((len==22)||(len==23))
+      {
+        sscanf(txt_val,"%d%c%d%c%d%c%d%c%d%c%d%c%d",
+          &y, &s1, &m, &s2, &d, &s3, &h, &s4, &i, &s5, &s, &s6, &ms);
+        (*dateval)->year    = (unsigned short)y;
+        (*dateval)->month   = (unsigned short)m;
+        (*dateval)->day     = (unsigned short)d;
+        (*dateval)->hour    = (unsigned short)h;
+        (*dateval)->minute  = (unsigned short)i;
+        (*dateval)->second  = (unsigned short)s;
+        (*dateval)->msecond = (unsigned short)ms;
+      }
+      else { err = 3; }
+    }
+  }
+  if(err)
   {
     stdOutWriter("Error: sqlite_GetAsDate: Not a Date value.\n");
     return 0;
   }
-  return 0;
+  return 1;
 }

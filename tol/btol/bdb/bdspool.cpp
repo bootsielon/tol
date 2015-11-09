@@ -270,15 +270,15 @@ DefExtOpr(1, BSetDBGetOpened, "DBGetOpened", 1, 1,
   I2("Returns a set of all opened databases of the \"dbtype\" type.\n"
      "If an empty string is given, then all databases are returned. "
      "Along with each database, it's alias, type and status are returned.\n"
-     "All possible values for 'dbType' are: \"ODBC\", \"MySQL\" y "
-     "\"PostgreSQL\".\n",
+     "All possible values for 'dbType' are: \"ODBC\", \"MySQL\", "
+     "\"PostgreSQL\", \"SQLite\".\n",
      "Devuelve un conjunto de las bases de datos abiertas cuyo tipo "
      "coincide con el proporcionado(\"tipoBD\").\n"
      "Si se proporciona una cadena de texto vacía, entonces todas "
      "las bases de datos abiertas son incluídas.\n"
      "Para cada base de datos se devuelve su alias, tipo y estado.\n"
      "Los posibles valores para 'tipoDB' son: \"ODBC\", \"MySQL\", "
-     "\"PostgreSQL\"\n"),
+     "\"PostgreSQL\", \"SQLite\"\n"),
 	  BOperClassify::BayesDataBase_);
 //--------------------------------------------------------------------
 void BSetDBGetOpened::CalcContens()

@@ -22,6 +22,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtolodbc", "libtolodbc\li
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtolmysql", "libtolmysql\libtolmysql.vcproj", "{5C9D97C1-5E2F-476F-A0D8-87ABE7ECAAAA}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtolsqlite", "libtolsqlite\libtolsqlite.vcproj", "{E8525A9F-18C9-416D-B22C-FD6BB9135AD8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -65,6 +67,12 @@ Global
 		{5C9D97C1-5E2F-476F-A0D8-87ABE7ECAAAA}.profile|Win32.Build.0 = profile|Win32
 		{5C9D97C1-5E2F-476F-A0D8-87ABE7ECAAAA}.Release|Win32.ActiveCfg = Release|Win32
 		{5C9D97C1-5E2F-476F-A0D8-87ABE7ECAAAA}.Release|Win32.Build.0 = Release|Win32
+		{E8525A9F-18C9-416D-B22C-FD6BB9135AD8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E8525A9F-18C9-416D-B22C-FD6BB9135AD8}.Debug|Win32.Build.0 = Debug|Win32
+		{E8525A9F-18C9-416D-B22C-FD6BB9135AD8}.profile|Win32.ActiveCfg = profile|Win32
+		{E8525A9F-18C9-416D-B22C-FD6BB9135AD8}.profile|Win32.Build.0 = profile|Win32
+		{E8525A9F-18C9-416D-B22C-FD6BB9135AD8}.Release|Win32.ActiveCfg = Release|Win32
+		{E8525A9F-18C9-416D-B22C-FD6BB9135AD8}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
