@@ -64,6 +64,10 @@ DLLEXPORT(int) sqlite_PutHCIWriter(void (* pF)(const char *))
   return 1;
 }
 
+
+char out_msg[32000];
+
+
 //--------------------------------------------------------------------
 /*! Opens the database allocating the handle.
  *  RETURN:  sqlited struct, or NULL in case of error
@@ -99,10 +103,10 @@ DLLEXPORT(sqlited *)sqlite_Open( void **args)
    SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, 0);
   if(rc!=SQLITE_OK)
   {
-    char out_msg[32000];
-    sprintf(out_msg, "Can't open database: %s\n", sqlite3_errmsg(dbd->conn));
+    sprintf(out_msg,"\n<E>\nERROR: [SQLite] Can't open database: %s\n</E>\n", 
+      sqlite3_errmsg(dbd->conn));
+    stdOutWriter(out_msg);   
     sqlite3_close_v2(dbd->conn);
-    stdOutWriter(out_msg);
     return(0);
   }
   strcpy(dbd->version,sqlite3_libversion());
@@ -172,11 +176,9 @@ DLLEXPORT(int) sqlite_OpenQuery(sqlited *dbd, const char *query)
 
   if(ok!=SQLITE_OK)
   { // Error
-    stdOutWriter("\nERROR: [sqlite_OpenQuery] \n");
-    stdOutWriter(sqlite3_errmsg(dbd->conn));
-    stdOutWriter("\nquery:\n");
-    stdOutWriter(query);    
-    stdOutWriter("\n");
+    sprintf(out_msg,"\n<E>\nERROR: [SQLite] Can't open query: %s\n\n%s\n</E>\n", 
+      query, sqlite3_errmsg(dbd->conn));
+    stdOutWriter(out_msg);
     return 0; 
   } 
   dbd->num_cols = sqlite3_column_count(dbd->result);
@@ -201,11 +203,9 @@ DLLEXPORT(int) sqlite_ExecQuery(sqlited *dbd, const char *query)
   );
   if(ok_exec!=SQLITE_OK)
   { // Error
-    stdOutWriter("\nERROR: [sqlite_ExecQuery] \n");
-    stdOutWriter(errmsg);
-    stdOutWriter("\nquery:\n");
-    stdOutWriter(query);    
-    stdOutWriter("\n");
+    sprintf(out_msg,"\n<E>\nERROR: [SQLite] Can't exec query: %s\n\n%s\n</E>\n", 
+      query, errmsg);
+    stdOutWriter(out_msg);    
     return 0; 
   } 
   dbd->num_rows = sqlite3_changes(dbd->conn);
@@ -285,7 +285,9 @@ DLLEXPORT(int) sqlite_GetFieldName(sqlited *dbd, int nfield, char *fieldName)
     strcpy(fieldName,sqlite3_column_name(dbd->result, nfield));
     return 1;
   }
-  stdOutWriter("Error: sqlite_GetFieldName: No previous result found.\n");
+  sprintf(out_msg,"\n<E>\nERROR: [SQLite] Cannot get %d-th field name: %s\n</E>\n", 
+    nfield, sqlite3_errmsg(dbd->conn));
+  stdOutWriter(out_msg);
   return 0;
 }
 
