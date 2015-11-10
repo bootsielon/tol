@@ -22,3 +22,8 @@ if( PostgreSQL_FOUND )
   install( TARGETS tolpgsql0 RUNTIME DESTINATION bin LIBRARY DESTINATION lib )
 endif( )
 
+add_library( tolsqlite0 SHARED libtolsqlite.c sqlite/sqlite3.c )
+set_target_properties( tolsqlite0 PROPERTIES PREFIX "" )
+target_include_directories( tolsqlite0 PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/sqlite" )
+install( TARGETS tolsqlite0 RUNTIME DESTINATION bin LIBRARY DESTINATION lib )
+  
