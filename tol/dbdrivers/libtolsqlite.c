@@ -176,8 +176,8 @@ DLLEXPORT(int) sqlite_OpenQuery(sqlited *dbd, const char *query)
 
   if(ok!=SQLITE_OK)
   { // Error
-    sprintf(out_msg,"\n<E>\nERROR: [SQLite] Can't open query: %s\n\n%s\n</E>\n", 
-      query, sqlite3_errmsg(dbd->conn));
+    sprintf(out_msg,"\n<E>\nERROR: [SQLite] Can't open query: \n\n%s\n</E>\n", 
+      sqlite3_errmsg(dbd->conn));
     stdOutWriter(out_msg);
     return 0; 
   } 
@@ -203,8 +203,8 @@ DLLEXPORT(int) sqlite_ExecQuery(sqlited *dbd, const char *query)
   );
   if(ok_exec!=SQLITE_OK)
   { // Error
-    sprintf(out_msg,"\n<E>\nERROR: [SQLite] Can't exec query: %s\n\n%s\n</E>\n", 
-      query, errmsg);
+    sprintf(out_msg,"\n<E>\nERROR: [SQLite] Can't exec query: \n\n%s\n</E>\n", 
+      errmsg);
     stdOutWriter(out_msg);    
     return 0; 
   } 
