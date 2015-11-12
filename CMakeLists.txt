@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
 project(TOL-Installer)
 
+if(LIB64)
+  message( STATUS "LIB64" )
+endif()
+
 if(WIN32)
   # módulo adicional para construir el instalados con NSIS
   set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/NSIS" ${CMAKE_MODULE_PATH})
@@ -42,6 +46,17 @@ set(CPACK_PACKAGE_CONTACT "Pedro Gea <pgea@bayesforecast.com>")
 if(UNIX)
   set(CPACK_DEBIAN_PACKAGE_SECTION "Mathematics")
 endif(UNIX)
+
+if( UNIX )
+  EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
+  message( STATUS "Architecture: ${ARCHITECTURE}" )
+  set( CPACK_RPM_PACKAGE_AUTOREQ " no" )
+  #set( CPACK_RPM_PACKAGE_REQUIRES "suitesparse >= 3, boost-filesystem >= 1.41, boost-thread >= 1.41, fftw-devel >= 3")
+  set( CPACK_RPM_PACKAGE_REQUIRES " boost-filesystem >= 1.41, boost-thread >= 1.41, suitesparse >= 3, fftw >= 3, gsl >= 1.13, bzip2-libs, zlib, libtool-ltdl, libcurl >= 7.19 " )
+  set( CPACK_RPM_PACKAGE_ARCHITECTURE ${ARCHITECTURE} )
+endif( UNIX )
+
+#set( CPACK_RPM_PACKAGE_ARCHITECTURE 
 
 if(WIN32)
   set(CPACK_PACKAGE_INSTALL_DIRECTORY "${CPACK_PACKAGE_VENDOR}\\\\${CPACK_PACKAGE_NAMEV}")
