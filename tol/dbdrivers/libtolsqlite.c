@@ -88,7 +88,6 @@ DLLEXPORT(sqlited *)sqlite_Open( void **args)
   host =     args[3];
 
   dbd = (sqlited *)malloc(sizeof(sqlited));
-  dbd->result = NULL;
   dbd->conn = NULL;
   dbd->version[0]='\0';
   dbd->database[0]='\0';
@@ -117,16 +116,25 @@ DLLEXPORT(sqlited *)sqlite_Open( void **args)
 //--------------------------------------------------------------------
 DLLEXPORT(int) sqlite_CloseQuery(sqlited *dbd)
 {
-
+  int ok = 0;
+  int fin = 0;
   if(dbd->result) 
   {
     //res= dbd->result;
-    sqlite3_finalize(dbd->result);
-    dbd->result=NULL;
-    return 1;
+    fin = sqlite3_finalize(dbd->result);
+    if(fin == SQLITE_OK)
+    {
+      dbd->result=NULL;
+      dbd->result = NULL;
+      dbd->context = NULL;
+      dbd->num_cols = 0;
+      dbd->num_rows = 0;
+      dbd->current_tuple = 0;
+      dbd->result_step = 0;
+      ok=1;
+    }
   } 
-  else 
-    return 0;
+  return ok;
 }
 
 //--------------------------------------------------------------------
@@ -166,7 +174,9 @@ DLLEXPORT(int) sqlite_GetDataBaseName(sqlited *dbd, char *database, size_t size)
 DLLEXPORT(int) sqlite_OpenQuery(sqlited *dbd, const char *query)
 {
   const char *pzTail=0;
-  int ok = sqlite3_prepare_v2(
+  int ok;
+  if(dbd->result) { sqlite_CloseQuery(dbd); }
+  ok = sqlite3_prepare_v2(
     dbd->conn,       /* Database handle */
     query,           /* SQL statement, UTF-8 encoded */
     strlen(query),   /* Maximum length of zSql in bytes. */
@@ -206,7 +216,7 @@ DLLEXPORT(int) sqlite_ExecQuery(sqlited *dbd, const char *query)
     sprintf(out_msg,"\n<E>\nERROR: [SQLite] Can't exec query: \n\n%s\n</E>\n", 
       errmsg);
     stdOutWriter(out_msg);    
-    return 0; 
+    return -1; 
   } 
   dbd->num_rows = sqlite3_changes(dbd->conn);
   return (dbd->num_rows<0) ? 0 : dbd->num_rows;
