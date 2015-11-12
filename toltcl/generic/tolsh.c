@@ -29,7 +29,14 @@ int AppInit(Tcl_Interp *interp)
     return TCL_ERROR;
     }
   SetupArgv( interp );
-  Tcl_PkgRequire( interp, "TolshApp", TOLTCL_VERSION, 1);
+  Tcl_VarEval( interp, "lappend", " auto_path", " [file join",
+               " [file dir [file dir ", Tcl_GetNameOfExecutable(),
+               " ] ] lib ]", NULL );
+  if ( !Tcl_PkgRequire( interp, "TolshApp", TOLTCL_VERSION, 1) )
+    {
+    printf( "%s\n", Tcl_GetStringResult( interp ) );
+    Tcl_Exit( -1 );
+    }
   return TCL_OK;
 }
 

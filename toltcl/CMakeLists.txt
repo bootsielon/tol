@@ -1,6 +1,8 @@
 cmake_minimum_required( VERSION 2.8 )
 project( TOLTCL )
 
+set( INSTALL_WITH_TOL 1 )
+
 set( CMAKE_MODULE_PATH
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules"
   ${CMAKE_MODULE_PATH} )
@@ -54,7 +56,11 @@ if( TCL_FOUND )
   message( STATUS ${TCL_STUB_LIBRARY} )
   message( STATUS ${TCL_INCLUDE_PATH} )
   message( STATUS ${TCL_LIBRARY_PATH} )
-  get_filename_component( CMAKE_INSTALL_PREFIX ${TCL_LIBRARY_PATH} PATH )
+  if( ${INSTALL_WITH_TOL} )
+    set( CMAKE_INSTALL_PREFIX ${TOL_PREFIX_PATH} )
+  else( ${INSTALL_WITH_TOL} )
+    get_filename_component( CMAKE_INSTALL_PREFIX ${TCL_LIBRARY_PATH} PATH )
+  endif( )
   message( STATUS "Using CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}" )
 else( TCL_FOUND )
   message( SEND_ERROR "TCL extensions need Tcl Stubs library" )
