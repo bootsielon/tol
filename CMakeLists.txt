@@ -53,6 +53,8 @@ if( UNIX )
   set( CPACK_RPM_PACKAGE_AUTOREQ " no" )
   #set( CPACK_RPM_PACKAGE_REQUIRES "suitesparse >= 3, boost-filesystem >= 1.41, boost-thread >= 1.41, fftw-devel >= 3")
   set( CPACK_RPM_PACKAGE_REQUIRES " boost-filesystem >= 1.41, boost-thread >= 1.41, suitesparse >= 3, fftw >= 3, gsl >= 1.13, bzip2-libs, zlib, libtool-ltdl, libcurl >= 7.19 " )
+  # if the user wants to use the dbdrivers he must install
+  # postgresql-libs >= 8.4, mysql-libs, unixODBC
   set( CPACK_RPM_PACKAGE_ARCHITECTURE ${ARCHITECTURE} )
 endif( UNIX )
 
