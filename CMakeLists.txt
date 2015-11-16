@@ -50,15 +50,20 @@ endif(UNIX)
 if( UNIX )
   EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
   message( STATUS "Architecture: ${ARCHITECTURE}" )
+
+  # RPM
   set( CPACK_RPM_PACKAGE_AUTOREQ " no" )
   #set( CPACK_RPM_PACKAGE_REQUIRES "suitesparse >= 3, boost-filesystem >= 1.41, boost-thread >= 1.41, fftw-devel >= 3")
   set( CPACK_RPM_PACKAGE_REQUIRES " boost-filesystem >= 1.41, boost-thread >= 1.41, suitesparse >= 3, fftw >= 3, gsl >= 1.13, bzip2-libs, zlib, libtool-ltdl, libcurl >= 7.19 " )
   # if the user wants to use the dbdrivers he must install
   # postgresql-libs >= 8.4, mysql-libs, unixODBC
   set( CPACK_RPM_PACKAGE_ARCHITECTURE ${ARCHITECTURE} )
-endif( UNIX )
 
-#set( CPACK_RPM_PACKAGE_ARCHITECTURE 
+  # DEB
+  #set(CPACK_DEBIAN_PACKAGE_DEPENDS "liblapacke (>= 3.5.0-2), libblas3 (>= 1.2)")
+  set( CPACK_DEBIAN_PACKAGE_DEPENDS "libboost-filesystem-dev (>= 1.41), libboost-thread-dev (>= 1.41), libsuitesparse-dev, libfftw3-dev, libgsl0-dev (>= 1.13), bzip2, zlib1g-dev, libltdl-dev, libcurl3 (>=7.19)" )
+# ya estaban libcurl3 y bzip2
+endif( UNIX )
 
 if(WIN32)
   set(CPACK_PACKAGE_INSTALL_DIRECTORY "${CPACK_PACKAGE_VENDOR}\\\\${CPACK_PACKAGE_NAMEV}")
@@ -115,6 +120,11 @@ if(UNIX)
   # INCLUDE
   file(TO_CMAKE_PATH "${TOL_RUNTIME_DIR}/include" include_dir)
   install(DIRECTORY ${include_dir} DESTINATION "lib/tol${CPACK_PACKAGE_VERSION}")
+  # SCRIPTS (/usr/bin)
+  ## !!
+  ## file(TO_CMAKE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/building/Linux_32/scripts/tol*" sh_pattern)
+  ## file(GLOB RT_SH  ${sh_pattern})
+  ## install(FILES ${RT_SH} DESTINATION "bin" PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_WRITE WORLD_EXECUTE)
 endif(UNIX)
 
 # => http://stackoverflow.com/questions/21144655/customizing-nsis-installer-using-cpack
