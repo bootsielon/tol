@@ -38,7 +38,7 @@ rem =======================================
 
 set ok=1
 
-if not exist "%dest%\Stdlib.*.*.zip" (
+if not exist "%dest%\StdLib.*.*.zip" (
   set ok=0
   echo./!\ Package StdLib cannot be downloaded.
 )
