@@ -25,7 +25,7 @@ cd %dest%
 
 rem Adds wget path to variable path.
 rem wget version should have option --content-disposition.
-set path=C:\Program Files (x86)\GnuWin32\bin;%path%
+set path=C:\Program Files (x86)\GnuWin32\bin;C:\Program Files\GnuWin32\bin;%path%
 
 echo.### Downloading StdLib ###
 wget --content-disposition "http://packages.tol-project.org/OfficialTolArchiveNetwork/repository.php?action=download&format=attachment&tol_package_version=4&package=StdLib" 
