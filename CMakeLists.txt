@@ -1,10 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 project(TOL-Installer)
 
-if(LIB64)
-  message( STATUS "LIB64" )
-endif()
-
 if(WIN32)
   # módulo adicional para construir el instalados con NSIS
   set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/NSIS" ${CMAKE_MODULE_PATH})
@@ -19,10 +15,9 @@ endif(NOT TOL_RUNTIME_DIR)
 if(WIN32)
   # usando MinGW
   set(CPACK_PACKAGE_NAME "TOL (GNU)")
-endif(WIN32)
-if(UNIX)
+else(WIN32)
   set(CPACK_PACKAGE_NAME "TOL")
-endif(UNIX)
+endif(WIN32)
 
 set(CPACK_PACKAGE_VENDOR "Tol-Project")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Time Oriented Language")
@@ -40,6 +35,58 @@ if(UNIX)
   set(CPACK_PACKAGE_NAMEV "tol-${CPACK_PACKAGE_VERSION}")
 endif(UNIX)
 
+# System specific information: https://cmake.org/pipermail/cmake/attachments/20100722/04976a73/attachment-0001.obj
+if(UNIX)
+  if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+    set(SPECIFIC_SYSTEM_VERSION_NAME "${CMAKE_SYSTEM_NAME}")
+    set(SPECIFIC_SYSTEM_PREFERED_CPACK_GENERATOR "TGZ")
+    if(EXISTS "/etc/issue")
+      set(LINUX_NAME "")
+      file(READ "/etc/issue" LINUX_ISSUE)
+      message( STATUS "LINUX_ISSUE = ${LINUX_ISSUE}" )
+      # CentOS case
+      if(LINUX_ISSUE MATCHES "CentOS")
+        string(REGEX MATCH "release ([0-9]+)" CENTOS "${LINUX_ISSUE}")
+        set(LINUX_NAME "CentOS_${CMAKE_MATCH_1}")  
+        set(SPECIFIC_SYSTEM_PREFERED_CPACK_GENERATOR "RPM")      
+      endif(LINUX_ISSUE MATCHES "CentOS")
+      # Fedora case
+      if(LINUX_ISSUE MATCHES "Fedora")
+        string(REGEX MATCH "release ([0-9]+)" FEDORA "${LINUX_ISSUE}")
+        set(LINUX_NAME "FC${CMAKE_MATCH_1}")  
+        set(SPECIFIC_SYSTEM_PREFERED_CPACK_GENERATOR "RPM")      
+      endif(LINUX_ISSUE MATCHES "Fedora")
+      # Ubuntu case
+      if(LINUX_ISSUE MATCHES "Ubuntu")
+        string(REGEX MATCH "buntu ([0-9]+\\.[0-9]+)" UBUNTU "${LINUX_ISSUE}")
+        set(LINUX_NAME "Ubuntu_${CMAKE_MATCH_1}")        
+        set(SPECIFIC_SYSTEM_PREFERED_CPACK_GENERATOR "DEB")
+      endif(LINUX_ISSUE MATCHES "Ubuntu")
+      # Debian case
+      if(LINUX_ISSUE MATCHES "Debian")
+        string(REGEX MATCH "Debian .*ux ([a-zA-Z]*/?[a-zA-Z]*) .*" DEBIAN "${LINUX_ISSUE}")
+        set(LINUX_NAME "Debian_${CMAKE_MATCH_1}")
+        string(REPLACE "/" "_" LINUX_NAME ${LINUX_NAME}) 
+        set(SPECIFIC_SYSTEM_PREFERED_CPACK_GENERATOR "DEB")       
+      endif(LINUX_ISSUE MATCHES "Debian")      
+      # Open SuSE case
+      if(LINUX_ISSUE MATCHES "SUSE")
+        string(REGEX MATCH "SUSE  ([0-9]+\\.[0-9]+)" SUSE "${LINUX_ISSUE}")
+        set(LINUX_NAME "openSUSE_${CMAKE_MATCH_1}")
+        string(REPLACE "/" "_" LINUX_NAME ${LINUX_NAME})   
+        set(SPECIFIC_SYSTEM_PREFERED_CPACK_GENERATOR "RPM")     
+      endif(LINUX_ISSUE MATCHES "SUSE")
+      # Mandriva case
+      # TODO      
+      if(LINUX_NAME) 
+         set(SPECIFIC_SYSTEM_VERSION_NAME "${CMAKE_SYSTEM_NAME}-${LINUX_NAME}")
+      endif(LINUX_NAME)    
+    endif(EXISTS "/etc/issue")      
+  endif(CMAKE_SYSTEM_NAME MATCHES "Linux")
+  set(SPECIFIC_SYSTEM_VERSION_NAME "${SPECIFIC_SYSTEM_VERSION_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
+  set(SPECIFIC_COMPILER_NAME "")
+endif(UNIX)
+
 # obligatorio para DEB
 set(CPACK_PACKAGE_CONTACT "Pedro Gea <pgea@bayesforecast.com>")
 
@@ -48,10 +95,36 @@ if(UNIX)
 endif(UNIX)
 
 if( UNIX )
+  get_property(LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS)
+  if ("${LIB64}" STREQUAL "TRUE")
+    set(LIBSUFFIX 64)
+  else()
+    set(LIBSUFFIX "")
+  endif()
+
   EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
   message( STATUS "Architecture: ${ARCHITECTURE}" )
+  message( STATUS "SPECIFIC_SYSTEM_PREFERED_CPACK_GENERATOR = ${SPECIFIC_SYSTEM_PREFERED_CPACK_GENERATOR}" )
+  if( SPECIFIC_SYSTEM_PREFERED_CPACK_GENERATOR STREQUAL "RPM" )
+    EXECUTE_PROCESS( 
+      COMMAND rpmbuild --eval "%_arch" 
+      OUTPUT_VARIABLE CPACK_RPM_PACKAGE_ARCHITECTURE
+      ERROR_VARIABLE IGNORE_ERROR
+      OUTPUT_STRIP_TRAILING_WHITESPACE )
+
+    EXECUTE_PROCESS( 
+      COMMAND rpmbuild --eval "${CPACK_PACKAGE_VERSION_PATCH}%dist" 
+      OUTPUT_VARIABLE CPACK_RPM_PACKAGE_RELEASE 
+      ERROR_VARIABLE IGNORE_ERROR
+      OUTPUT_STRIP_TRAILING_WHITESPACE )
+
+    set( RPM_FILE_NAME "${CPACK_PACKAGE_NAMEV}-${CPACK_RPM_PACKAGE_RELEASE}.${CPACK_RPM_PACKAGE_ARCHITECTURE}" )
+    message( STATUS "RPM_FILE_NAME = '${RPM_FILE_NAME}'" )
+  endif()
 
   # RPM
+  set( CPACK_RPM_PACKAGE_URL "www.tol-project.org" )
+  set( CPACK_RPM_PACKAGE_RELOCATABLE ON )
   set( CPACK_RPM_PACKAGE_AUTOREQ " no" )
   #set( CPACK_RPM_PACKAGE_REQUIRES "suitesparse >= 3, boost-filesystem >= 1.41, boost-thread >= 1.41, fftw-devel >= 3")
   set( CPACK_RPM_PACKAGE_REQUIRES " boost-filesystem >= 1.41, boost-thread >= 1.41, suitesparse >= 3, fftw >= 3, gsl >= 1.13, bzip2-libs, zlib, libtool-ltdl, libcurl >= 7.19 " )
@@ -111,15 +184,19 @@ if(UNIX)
   # BIN
   file(TO_CMAKE_PATH "${TOL_RUNTIME_DIR}/bin/tol*" exe_pattern)
   file(GLOB RT_EXE  ${exe_pattern})
-  install(FILES ${RT_EXE} DESTINATION "lib/tol${CPACK_PACKAGE_VERSION}/bin" PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_WRITE WORLD_EXECUTE)
+  set( PREFIX_TOL "lib${LIBSUFFIX}/tol${CPACK_PACKAGE_VERSION}" ) 
+  install(FILES ${RT_EXE} DESTINATION "${PREFIX_TOL}/bin"
+    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ 
+                GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_WRITE
+                WORLD_EXECUTE)
   file(TO_CMAKE_PATH "${TOL_RUNTIME_DIR}/bin/stdlib" stdlib_dir)
-  install(DIRECTORY ${stdlib_dir} DESTINATION "lib/tol${CPACK_PACKAGE_VERSION}/bin")
+  install(DIRECTORY ${stdlib_dir} DESTINATION "${PREFIX_TOL}/bin")
   # LIB
   file(TO_CMAKE_PATH "${TOL_RUNTIME_DIR}/lib" lib_dir)
-  install(DIRECTORY ${lib_dir} DESTINATION "lib/tol${CPACK_PACKAGE_VERSION}")
+  install(DIRECTORY ${lib_dir} DESTINATION "${PREFIX_TOL}")
   # INCLUDE
   file(TO_CMAKE_PATH "${TOL_RUNTIME_DIR}/include" include_dir)
-  install(DIRECTORY ${include_dir} DESTINATION "lib/tol${CPACK_PACKAGE_VERSION}")
+  install(DIRECTORY ${include_dir} DESTINATION "${PREFIX_TOL}")
   # SCRIPTS (/usr/bin)
   ## !!
   ## file(TO_CMAKE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/building/Linux_32/scripts/tol*" sh_pattern)
@@ -180,7 +257,12 @@ endif(WIN32)
 
 if(UNIX)
   # nombre del paquete instalador
-  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAMEV}")
+  if( SPECIFIC_SYSTEM_PREFERED_CPACK_GENERATOR STREQUAL "RPM" )
+    set(CPACK_PACKAGE_FILE_NAME "${RPM_FILE_NAME}")
+  else()
+    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAMEV}")
+  endif()
+  message( STATUS "CPACK_PACKAGE_FILE_NAME = ${CPACK_PACKAGE_FILE_NAME}" )
 endif(UNIX)
 
 include(CPack)
