@@ -1,0 +1,10 @@
+# execute confenv.sh
+
+echo "TOL installed in %{_prefix}/@PREFIX_TOL@"
+
+%{_prefix}/@PREFIX_TOL@/bin/confenv.sh %{_prefix}/@PREFIX_TOL@
+
+# create symbolic links
+
+ln -sf %{_prefix}/@PREFIX_TOL@/bin/tolsh.sh /usr/bin/tolsh
+ln -sf %{_prefix}/@PREFIX_TOL@/bin/tolcon.sh /usr/bin/tolcon

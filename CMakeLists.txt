@@ -183,7 +183,7 @@ endif(WIN32)
 if(UNIX)
   # BIN
   file(TO_CMAKE_PATH "${TOL_RUNTIME_DIR}/bin/tol*" exe_pattern)
-  file(GLOB RT_EXE  ${exe_pattern})
+  file(GLOB RT_EXE  ${exe_pattern} "${TOL_RUNTIME_DIR}/bin/confenv.sh" )
   set( PREFIX_TOL "lib${LIBSUFFIX}/tol${CPACK_PACKAGE_VERSION}" ) 
   install(FILES ${RT_EXE} DESTINATION "${PREFIX_TOL}/bin"
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ 
@@ -258,6 +258,9 @@ endif(WIN32)
 if(UNIX)
   # nombre del paquete instalador
   if( SPECIFIC_SYSTEM_PREFERED_CPACK_GENERATOR STREQUAL "RPM" )
+    configure_file( ${CMAKE_SOURCE_DIR}/cpack/rpm_post_install.sh.in ${CMAKE_CURRENT_BINARY_DIR}/rpm_post_install.sh )
+    set( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_BINARY_DIR}/rpm_post_install.sh" )
+    
     set(CPACK_PACKAGE_FILE_NAME "${RPM_FILE_NAME}")
   else()
     set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAMEV}")
