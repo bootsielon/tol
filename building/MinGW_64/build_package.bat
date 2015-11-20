@@ -14,8 +14,7 @@ if not exist "%tolp_root%\trunk" (
 )
 
 set init_dir=%CD%
-set tolp_runtime=C:\Users\toldevel\trunk\tol\CodeLite\Release\TOL_WIN64_BETA
-rem %tolp_root%\trunk\tol\CodeLite\Release\Runtime_Base
+set tolp_runtime=%tolp_root%\trunk\tol\CodeLite64\Release\Runtime_Base
 set tol_cmake_dir=%tolp_root%\trunk\tol\cmake
 
 if "%1"=="" (
