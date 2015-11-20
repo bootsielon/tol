@@ -17,16 +17,19 @@ check_tol_program () {
   fi
 }
 
-if [ $# -ne 2 ]; then
-  echo "usage: $0 dir output.sh"
+if [ $# -eq 1 ]; then
+  TOL_PREFIX=$1
+  TOLENV=$1/bin/tolenv.sh
+elif [ $# -eq 2 ]; then
+  TOL_PREFIX=$1
+  TOLENV=$2
+else
+  echo "usage: $0 TOL_PREFIX_DIR ?tolenv.sh?"
   exit
 fi
 
-# check if dir provided is a tol installation
-#
-
-check_tol_program $1 bin/tolcon
-check_tol_program $1 bin/tolsh
+check_tol_program $TOL_PREFIX bin/tolcon
+check_tol_program $TOL_PREFIX bin/tolsh
 
 # look for R
 #
@@ -42,9 +45,6 @@ R_HOME_DIR=$(R RHOME)
 Rcpp_INSTALLED=$(check_installed Rcpp)
 Rinside_INSTALLED=$(check_installed RInside)
 
-echo Rcpp_INSTALLED=$Rcpp_INSTALLED
-echo Rinside_INSTALLED=$Rinside_INSTALLED
-
 if [ $Rcpp_INSTALLED -eq 1 ] ; then
   echo "Rcpp is installed"
 else
@@ -58,17 +58,16 @@ else
   echo "RInside is not installed"
 fi
 
-_LD_PATH=$1/lib:$R_HOME_DIR/lib
+_LD_PATH=$TOL_PREFIX/lib:$R_HOME_DIR/lib
 if [ x"$RINSIDE_PATH" != x ]; then
  _LD_PATH=$_LD_PATH:$RINSIDE_PATH/lib
 fi
 
-cat << EOF > $2
+cat << EOF > $TOLENV
 # environment needed for tol processes
 #
 LD_LIBRARY_PATH=$_LD_PATH:\$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
 export R_HOME=$R_HOME_DIR
 EOF
-
 
