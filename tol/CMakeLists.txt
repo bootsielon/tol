@@ -99,50 +99,6 @@ macro( add_tol_sublibrary name )
 endmacro( )
 
 set( skip_copy_headers 0 )
-macro( create_header_links__ )
-  #message( "create_header_links from ${CMAKE_CURRENT_SOURCE_DIR}" )
-  if( skip_copy_headers )
-    message( STATUS "Skipping create_header_links for ${CMAKE_CURRENT_SOURCE_DIR}" )
-  else( )
-      file( GLOB headers RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" *.h *.hpp )
-      if( WIN32 )
-        set( cmd "copy_if_different" )
-      else( WIN32 )
-        set( cmd "create_symlink" )
-      endif( WIN32 )
-      foreach( h ${headers} )
-        execute_process(
-          COMMAND "${CMAKE_COMMAND}" "-E" ${cmd} 
-          "${CMAKE_CURRENT_SOURCE_DIR}/${h}"
-          "${PROJECT_BINARY_DIR}/tol/${h}"
-          RESULT_VARIABLE rc
-          OUTPUT_VARIABLE output
-          ERROR_VARIABLE error
-          )
-       endforeach( h )
-  endif( )  
-endmacro( create_header_links__ )
-
-macro( create_header_links2 )
-  if( WIN32 )
-    set( cmd "copy" )
-  else( WIN32 )
-    set( cmd "create_symlink" )
-  endif( WIN32 )
-  file( GLOB headers RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" *.h *.hpp )
-  foreach( h ${headers} )
-    set( srcFile "${CMAKE_CURRENT_SOURCE_DIR}/${h}" )
-    set( destFile "${PROJECT_BINARY_DIR}/tol/${h}" )
-    if( NOT EXISTS ${destFile} OR ( ${srcFile} IS_NEWER_THAN ${destFile} ) )
-        message( STATUS "Copying from %{srcFile} to ${newFile}" )
-        execute_process(
-          COMMAND "${CMAKE_COMMAND}" "-E" ${cmd} ${srcFile} ${destFile}
-          RESULT_VARIABLE rc
-          OUTPUT_VARIABLE output
-          ERROR_VARIABLE error )
-    endif()
-  endforeach( )
-endmacro( create_header_links2 )
 
 set( COPY_HEADERS_DEPENDS "" CACHE INTERNAL "" )
 macro( create_header_links )
@@ -151,10 +107,12 @@ macro( create_header_links )
   else( WIN32 )
     set( cmd "create_symlink" )
   endif( WIN32 )
+  file( GLOB headers RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" *.h *.hpp )
+  install( FILES ${headers} DESTINATION "include/tol"
+        COMPONENT DEVELOPMENT )
   if( skip_copy_headers )
     message( STATUS "Skipping create_header_links for ${CMAKE_CURRENT_SOURCE_DIR}" )
   else( skip_copy_headers )
-    file( GLOB headers RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" *.h *.hpp )
     set( lst  "" )
     foreach( h ${headers} )
       set( srcFile "${CMAKE_CURRENT_SOURCE_DIR}/${h}" )
@@ -422,9 +380,7 @@ add_custom_target( COPY_HEADERS ALL DEPENDS ${COPY_HEADERS_DEPENDS} )
 install( TARGETS tolcon RUNTIME DESTINATION bin )
 install( TARGETS tol
   RUNTIME DESTINATION bin ARCHIVE DESTINATION lib LIBRARY DESTINATION lib )
-install( DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tol" 
-  DESTINATION "include"
-  COMPONENT DEVELOPMENT )
+
 install( DIRECTORY stdlib COMPONENT RUNTIME DESTINATION "bin" 
   PATTERN "*.tol" 
   PATTERN "*.bst"
