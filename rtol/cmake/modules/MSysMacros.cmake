@@ -1,0 +1,12 @@
+if( MSYS )
+  get_filename_component( msys_usr $ENV{WD} DIRECTORY )
+  set( MSYS_USR_PATH ${msys_usr} CACHE INTERNAL "" )
+endif( MSYS )
+
+macro( msys_convert_path var path )
+  if( MSYS )
+    string( REGEX REPLACE ^/usr ${MSYS_USR_PATH} ${var} ${path} )
+  else( MSYS )
+    set( ${var} ${path} PARENT_SCOPE )
+  endif( MSYS )
+endmacro( )
