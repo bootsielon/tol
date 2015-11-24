@@ -13,5 +13,9 @@ set_target_properties( tolRlink PROPERTIES PREFIX "")
 target_link_libraries( tolRlink ${TOL_LIBRARIES} ${RINSIDE_LIBRARIES} )
 
 # message( STATUS "RTOL_DEST_DIR = ${RTOL_DEST_DIR}" )
-install( TARGETS tolRlink RUNTIME DESTINATION "bin" )
-  
+if( WIN32 )
+  install( TARGETS tolRlink RUNTIME DESTINATION "bin" )
+else( WIN32 )
+  install( TARGETS tolRlink RUNTIME LIBRARY DESTINATION "lib" )
+endif( WIN32 )
+
