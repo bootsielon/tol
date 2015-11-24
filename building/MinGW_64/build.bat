@@ -20,6 +20,7 @@ if "%project%"=="all" (
 if "%project%"=="tol" goto project_ok
 if "%project%"=="toltcl" goto project_ok
 if "%project%"=="tolbase" goto project_ok
+if "%project%"=="rtol" goto project_ok
 echo.First argument should be: tol, toltcl, tolbase or all.
 exit /b
 :project_ok
