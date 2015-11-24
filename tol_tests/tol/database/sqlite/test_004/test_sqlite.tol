@@ -1,0 +1,41 @@
+NameBlock connection = DBConnect::Create (
+  "db_test", "_", "_", 
+  "sqlite", "../db_test.db", "", 
+  "Checking SQLite connection from TOL"
+);
+
+Real connection::Open(?);
+Real DBExecQuery("PRAGMA foreign_keys = ON;");
+Real mustBeOk = DBExecQuery("
+BEGIN;
+DROP TABLE IF EXISTS track;
+DROP TABLE IF EXISTS artist;
+CREATE TABLE IF NOT EXISTS artist(
+  artistid    INTEGER PRIMARY KEY, 
+  artistname  TEXT
+);
+CREATE TABLE IF NOT EXISTS track(
+  trackid     INTEGER, 
+  trackname   TEXT, 
+  trackartist INTEGER,
+  FOREIGN KEY(trackartist) REFERENCES artist(artistid)
+);
+INSERT INTO artist VALUES(1, 'Dean Martin');
+INSERT INTO artist VALUES(2, 'Frank Sinatra');
+INSERT INTO artist VALUES(3, 'Sammy Davis Jr.');
+INSERT INTO track VALUES(11, 'That´s Amore', 1);
+INSERT INTO track VALUES(12, 'Christmas Blues', 1);
+INSERT INTO track VALUES(13, 'My Way', 2);
+INSERT INTO track VALUES(15, 'Boogie Woogie', 3);
+COMMIT;
+");
+
+Real mustFail = DBExecQuery("
+INSERT INTO track VALUES(0, 'Macarena', 0);
+");
+
+Set artist = DBTable("SELECT * FROM artist");
+Set track = DBTable("SELECT * FROM track");
+
+Real connection::Close(?);
+

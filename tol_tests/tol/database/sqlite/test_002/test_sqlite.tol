@@ -1,0 +1,58 @@
+NameBlock connection = DBConnect::Create (
+  "db_test", "_", "_", 
+  "sqlite", "../db_test.db", "", 
+  "Checking SQLite connection from TOL"
+);
+
+Real connection::Open(?);
+
+Real DBExecQuery("
+DROP TABLE IF EXISTS studQuRg;
+CREATE TABLE IF NOT EXISTS studQuRg(
+  co_code VARCHAR(16),
+  vl_qualify FLOAT,
+  dt_register DATE
+)");
+
+
+Real numReg = 10000;
+Real t0 = Copy(Time);
+
+Text query.insertValues = "
+PRAGMA synchronous = 0; 
+BEGIN;\n"<<
+SetSum(For(1,numReg,Text(Real k)
+{
+  "INSERT INTO studQuRg VALUES"
+  "('S"<<IntRand(111111,999999)<<"', "<<
+  Real Rand(0,10)<<", "<<
+  FormatDate(Today-IntRand(10,100),"'%c%Y-%m-%d'")<<");"
+}))+";
+COMMIT;
+PRAGMA synchronous = 2; 
+";
+Real tm.insertBuild = (Copy(Time)-t0)/numReg;
+
+Real t0 := Copy(Time);
+Real DBExecQuery(query.insertValues);
+Real tm.insertRun = (Copy(Time)-t0)/numReg;
+
+Set DBTable("SELECT * FROM studQuRg");
+
+Real connection::Close(?);
+
+/*
+Text query.insert = "
+PRAGMA fullfsync = 0;
+INSERT INTO studQuRg "<<
+SetSum(For(1,2000,Text(Real k)
+{
+  "\n"<<
+  If(k>1,"UNION ALL\n","")<<
+  "SELECT 'S"<<IntRand(111111,999999)<<"' as co_code, "<<
+  Real Rand(0,10)<<" as vl_qualify, "<<
+  FormatDate(Today-IntRand(10,100),"'%c%Y-%m-%d'")<<" as qualify"
+}))+";
+PRAGMA fullfsync = 1;";
+*/
+

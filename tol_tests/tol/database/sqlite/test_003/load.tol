@@ -1,0 +1,28 @@
+#Embed "config.tol";
+
+Real connection::Open(?);
+
+Set sqlite_master = DBTable("select * from sqlite_master ");
+
+Real loadTime = Copy(Time);
+Set series = For(1,tableNumber,Set(Real tab) {
+  Text tabId = "TRS"<<FormatReal(tab,"%05.0lf");
+  WriteLn("Loading random series for table "+tabId);
+//Set ser = { DBTable(
+//  "SELECT * FROM "+tabId+";") };
+  Set ser = { DBSeries(
+    "SELECT * FROM "+tabId+";",
+    $tms,
+    For(1,seriesByTable,Text(Real k)
+    {
+      tabId+".RS_"<<FormatReal(k,"%05.0lf")
+    })) }; 
+  Eval(tabId+"=ser")
+});
+
+Real loadTime := Copy(Time)-loadTime;
+
+Real loadTimeByDatum = loadTime / dataLength;
+
+Real connection::Close(?);
+

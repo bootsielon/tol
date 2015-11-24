@@ -1,0 +1,17 @@
+NameBlock connection = DBConnect::Create (
+  "db_test", "_", "_", 
+  "sqlite", "../db_test.db", "", 
+  "Checking SQLite connection from TOL"
+);
+
+@TimeSet tms = @TimeSet(Daily);
+Date first = y2010;
+Date last  = y2015m12d31;
+Real tableNumber = 100;
+Real seriesByTable = 100;
+
+Real seriesNumber = seriesByTable*tableNumber;
+Real seriesLength = DateDif($tms,first,last);
+Real dataLength = seriesLength*seriesNumber;
+Real GlobalizeSeries := False;
+

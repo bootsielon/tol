@@ -1,0 +1,39 @@
+#Embed "config.tol";
+
+Real connection::Open(?);
+
+Real genTime = 0;
+Real insertTime = 0;
+
+//Real tab = 1;
+Set For(1,tableNumber,Real(Real tab) {
+  Text tabId = "TRS"<<FormatReal(tab,"%05.0lf");
+  WriteLn("Generating random series for table "+tabId);
+  Real t0Gen = Copy(Time);
+  Set series = For(1,seriesByTable,Serie(Real k)
+  {
+    Serie ser = SubSer(Gaussian(0,1,$tms),first,last);
+    Eval("RS_"<<FormatReal(k,"%05.0lf")+"=ser")
+  });
+  Real genTime := genTime + Copy(Time) - t0Gen;
+  WriteLn("Inserting random series in table "+tabId);
+  Real t0Insert = Copy(Time);
+  Real DBExecQuery("
+  PRAGMA synchronous = 0;
+  BEGIN;
+  CREATE TABLE IF NOT EXISTS "+tabId+"(unused float);
+  ");
+  Real DBCreateSeriesTable(tabId,series,"dt_date", "datetime"); 
+  Real DBExecQuery("
+  COMMIT;
+  PRAGMA synchronous = 2;
+  ");
+  Real insertTime := insertTime + Copy(Time) - t0Insert;
+  True
+});
+  
+Real genTimeByDatum = genTime / dataLength;
+Real insertTimeByDatum = insertTime / dataLength;
+
+Real connection::Close(?);
+
