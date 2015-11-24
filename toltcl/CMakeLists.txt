@@ -61,6 +61,9 @@ if( TCL_FOUND )
   else( ${INSTALL_WITH_TOL} )
     get_filename_component( CMAKE_INSTALL_PREFIX ${TCL_LIBRARY_PATH} PATH )
   endif( )
+  if( WIN32 )
+    string( REPLACE "\\" "/" CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX} ) 
+  endif( WIN32 )
   message( STATUS "Using CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}" )
 else( TCL_FOUND )
   message( SEND_ERROR "TCL extensions need Tcl Stubs library" )
@@ -68,10 +71,6 @@ endif( TCL_FOUND )
   
 set( TOLTCL_DEST_DIR "lib/toltcl${TOLTCL_VERSION_MAJOR}.${TOLTCL_VERSION_MINOR}"
   CACHE INTERNAL "" )
-
-if( UNIX )
-  add_subdirectory( bin )
-endif( UNIX )
 
 add_subdirectory( generic )
 add_subdirectory( library )

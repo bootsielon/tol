@@ -1,5 +1,5 @@
 cmake_minimum_required( VERSION 2.8 )
-project( TOLTCL )
+project( TOLBASE )
 
 set( CMAKE_MODULE_PATH
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules"
@@ -53,6 +53,9 @@ endif( WIN32 AND TOL_PREFIX_PATH )
 if( TCL_FOUND )
   message( STATUS ${TCL_INCLUDE_PATH} )
   get_filename_component( CMAKE_INSTALL_PREFIX ${TCL_LIBRARY_PATH} PATH )
+  if( WIN32 )
+    string( REPLACE "\\" "/" CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX} ) 
+  endif( WIN32 )
   message( STATUS "Using CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}" )
 else( TCL_FOUND )
   message( SEND_ERROR "Tolbase needs Tcl library" )
