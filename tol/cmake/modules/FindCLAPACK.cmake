@@ -31,6 +31,14 @@ if( NOT CLAPACK_NAME )
   set( CLAPACK_NAME clapack )
 endif( NOT CLAPACK_NAME )
 
+if( NOT CLAPACK_DIR )
+  if( UNIX )
+    set( CLAPACK_DIR /usr )
+  else( UNIX )
+    message( STATUS "Unkown CLAPACK_DIR for system ${CMAKE_SYSTEM_NAME}" )
+  endif( UNIX )
+endif( NOT CLAPACK_DIR )
+
 find_library( CLAPACK_LIBRARY NAMES ${CLAPACK_NAME}
   HINTS ${CLAPACK_DIR}/lib ${CLAPACK_DIR}/lib64 
   PATH_SUFFIXES "atlas" "atlas-sse2" )
