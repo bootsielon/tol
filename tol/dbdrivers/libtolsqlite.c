@@ -28,7 +28,6 @@
 
 #ifdef UNIX
 #  define DLLEXPORT(f) f
-#  include <libpq-fe.h>
 #else
 #  include <windows.h>
 #  if defined (_MSC_VER) || ((__BORLANDC__ >= 0x0550) || (defined(__GNUC__) && defined(__declspec)) || (defined(MAC_TCL) && FUNCTION_DECLSPEC))
