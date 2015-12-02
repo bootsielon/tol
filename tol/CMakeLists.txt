@@ -109,23 +109,39 @@ function( get_tol_plat var )
 endfunction( get_tol_plat )
 
 function( download_tol_package pkg bin )
+  # WGET should be previously searched and the variables WGET_EXECUTABLE and WGET_ERROR_MESSAGE defined
   set( url "http://packages.tol-project.org/OfficialTolArchiveNetwork/repository.php?action=download&format=attachment&tol_package_version=4&package=${pkg}" )
-  if ( WGET_FOUND )
-    if( ${bin} )
-      get_tol_plat( tol_plat )
-      set( url "${url}%23${tol_plat}" )
-    else( )
-      set( tol_plat "" )
-    endif( )
-    message( STATUS "going to download last version of ${pkg} for platform '${tol_plat}' ..." )
-    execute_process( 
-      COMMAND ${WGET_EXECUTABLE} --content-disposition "${url}" 
-      OUTPUT_VARIABLE WGET_OUTPUT
-      ERROR_VARIABLE IGNORE_ERROR
-      OUTPUT_STRIP_TRAILING_WHITESPACE )
-  else( WGET_FOUND )
-    message( WARNING "Could not download package ${pkg} because wget command is not available" )
-  endif( WGET_FOUND )
+  # Obtains package name for current platform
+  if( ${bin} )
+    get_tol_plat( tol_plat )
+	set( url "${url}%23${tol_plat}" )	
+	set( pkg_plat "${pkg}#${tol_plat}" )
+	message( STATUS "Downloading last version of '${pkg}' for platform '${tol_plat}' ..." )
+  else( )
+    set( tol_plat "" )
+	set( pkg_plat "${pkg}" )	
+	message( STATUS "Downloading last version of '${pkg}' ..." )
+  endif( )
+  # Removes previous downloaded versions of the package if necessary
+  file( GLOB previous_packages "${CMAKE_CURRENT_BINARY_DIR}/${pkg_plat}.*.zip*" )
+  foreach( f ${previous_packages} )
+    file( REMOVE ${f} )
+  endforeach( )
+  # Download the requested package
+  execute_process( 
+    COMMAND ${WGET_EXECUTABLE} --content-disposition "${url}" 
+    OUTPUT_VARIABLE WGET_OUTPUT
+    ERROR_VARIABLE IGNORE_ERROR
+    OUTPUT_STRIP_TRAILING_WHITESPACE )
+  # Check if the package is correctly downloaded
+  # Execution variables cannot be used to check, since a file is downloaded even when the package is not founded
+  file( GLOB downloaded_package "${CMAKE_CURRENT_BINARY_DIR}/${pkg_plat}.*.zip" )
+  string( LENGTH "${downloaded_package}" download_check )
+  if( ${download_check} EQUAL 0 )
+    message( ${WGET_ERROR_MESSAGE} "Package '${pkg}' cannot be downloaded." )	
+  else( )
+    message( STATUS "Package '${pkg}' correctly downloaded." )
+  endif( )
 endfunction( download_tol_package )
 
 set( TOL_SUBLIBRARIES "" CACHE INTERNAL "" )
@@ -423,30 +439,6 @@ if( UNIX )
   add_subdirectory( bin )
 endif( UNIX )
 
-find_package( Wget )
-if ( WGET_FOUND )
-  download_tol_package( StdLib 0 )
-  download_tol_package( TclCore 1 )
-  message( "${CMAKE_CURRENT_BINARY_DIR}/*.zip.1" )
-  file( GLOB zip_copies "${CMAKE_CURRENT_BINARY_DIR}/*.zip.1" )
-  message( STATUS "zip_copies = ${zip_copies}" )
-  foreach( f ${zip_copies} )
-    string( REPLACE ".zip.1" ".zip" f_zip ${f} )
-    file( REMOVE ${f_zip} )
-    file( RENAME ${f} ${f_zip} )
-  endforeach( )
-  message( "${CMAKE_CURRENT_BINARY_DIR}/*.zip" )
-  file( GLOB default_zips "${CMAKE_CURRENT_BINARY_DIR}/*.zip" )
-  message( STATUS "default_zips = ${default_zips} " )
-  if( default_zips )
-    install( FILES ${default_zips}
-      DESTINATION bin/stdlib/DefaultPackages
-      COMPONENT RUNTIME )
-  endif( )
-else( WGET_FOUND )
-  message( WARNING "Could not download default packages 'StdLib' and 'TclCore' because wget command is not available. wget must be included in PATH in order to use it" )
-endif( WGET_FOUND )
-
 #message( STATUS "ALL_HEADERS_LIST ${ALL_HEADERS_LIST}" )
 add_custom_target( COPY_HEADERS ALL DEPENDS ${COPY_HEADERS_DEPENDS} )
 
@@ -536,3 +528,40 @@ if( WIN32 AND TOL_EXTERNAL_DEVEL_DIR )
   endif( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/lib/${name_tcl_a0}" )  
 
 endif( WIN32 AND TOL_EXTERNAL_DEVEL_DIR )
+
+# WGET_ERROR_MESSAGE can be defined for cmaking without errors relative to downloading default packages
+# For example: cmake -DWGET_ERROR_MESSAGE=WARNING ...
+if( NOT DEFINED WGET_ERROR_MESSAGE )
+  set( WGET_ERROR_MESSAGE FATAL_ERROR )
+endif( NOT DEFINED WGET_ERROR_MESSAGE )
+# Searching WGET command
+find_program( WGET_EXECUTABLE NAMES "wget" )
+# find_program is used instead find_package, since configuration files are not needed
+if( WGET_EXECUTABLE )
+  message( STATUS "WGET_EXECUTABLE = ${WGET_EXECUTABLE}" )
+  execute_process( 
+    COMMAND ${WGET_EXECUTABLE} --help 
+    OUTPUT_VARIABLE WGET_HELP
+    ERROR_VARIABLE IGNORE_ERROR
+    OUTPUT_STRIP_TRAILING_WHITESPACE )
+  # wget option 'content-disposition' is required; see download_tol_package
+  string(REPLACE "\n" " " WGET_HELP ${WGET_HELP})
+  string(FIND ${WGET_HELP} "--content-disposition" WGET_OK)
+  if( WGET_OK LESS 0 )
+    message( ${WGET_ERROR_MESSAGE} "WGET option 'content-disposition' not available. Install a newer version of WGET." )
+  else( WGET_OK LESS 0 )
+    # Download default packages
+    download_tol_package( StdLib 0 )
+    download_tol_package( TclCore 1 )
+	# Obtain the list of the downloaded default packages
+    file( GLOB default_zips "${CMAKE_CURRENT_BINARY_DIR}/*.zip" )	
+    message( STATUS "default_zips = ${default_zips} " )
+    if( default_zips )
+      install( FILES ${default_zips}
+        DESTINATION bin/stdlib/DefaultPackages
+        COMPONENT RUNTIME )
+    endif( )
+  endif( WGET_OK LESS 0 )
+else( WGET_EXECUTABLE )
+  message( ${WGET_ERROR_MESSAGE} "WGET is not available. Could not download default TOL packages." )
+endif( WGET_EXECUTABLE )
