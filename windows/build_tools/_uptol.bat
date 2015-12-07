@@ -52,6 +52,11 @@ If "%1"=="/pnsis" (
   Set _pnsis=1
   Goto NEXT_OPTS
 )
+If "%1"=="/dist" (
+  Set _dodist=1
+  Set _dotests=1
+  Goto NEXT_OPTS
+)
 If "%1"=="/tests" (
   Set _dotests=1
   Goto NEXT_OPTS
@@ -60,10 +65,7 @@ If "%1"=="/no_tests" (
   Set _dotests=0
   Goto NEXT_OPTS
 )
-If "%1"=="/dist" (
-  Set _dodist=1
-  Goto NEXT_OPTS
-)
+
 Set _msg_error=Opcion invalida %1
 Goto ERROR
 :NEXT_OPTS
@@ -128,10 +130,12 @@ Goto RET
 Rem Codigo generico de compilacion
 :COMPILE
 Rem Verifico que ejecutemos desde el SDK
-If Not Defined MSSdk (
+clrver 1> nul 2> nul
+If Not "%ERRORLEVEL%"=="0" (
   Set _msg_error=Solo se puede compilar desde una consola Microsoft Platform SDK
   Goto ERROR
 )
+
 If Not Defined _mod (
   Set _msg_error=Error interno! variable _mod no definida en COMPILE
   Goto ERROR
@@ -310,8 +314,7 @@ Rem Ejecuto los tests si me lo han pedido
 :DO_TESTS
 If "%_dodist%"=="1" (
   If "%_dotests%"=="0" (
-    Echo "Forzando los test de tol debido a que se ha solicitado /dist"
-    Set _dotests=1
+    Echo "NO se estan forzando los test a pesar de haber solicitado /dist"
   )
 )
 
@@ -370,8 +373,8 @@ If "%test_status%"=="FAIL" (
 
 Rem empaco la distribucion de tolbase si me lo han pedido
 If "%_dodist%"=="1" (
-  If Not Exist ..\NSIS\Tolbase*.exe (
-    Echo ..\NSIS\Tolbase*.exe no existe
+  If Not Exist ..\NSIS\tol*.exe (
+    Echo ..\NSIS\tol*.exe no existe
     If Not "%_pnsis%"=="1" (
       Echo Habilitando /pnsis para poder hacer /dist
       Set _pnsis=1
@@ -381,19 +384,19 @@ If "%_dodist%"=="1" (
 Set _cwd=%CD%
 If "%_pnsis%"=="1" (
 
-  Echo Generando el archivo de creación del instalador de tolbase ...
+  Echo Generando el archivo de creación del instalador de TOL ...
   ..\ActiveTOL\bin\tol -v ..\NSIS\Tolbase.nsi.generate.tol
   If Not Exist ..\NSIS\Tolbase.nsi (
     Set _msg_error=El empaquetado de tolbase ..ºNSIS\Tolbase.nsi no existe.
     Goto ERROR
   )
-  If Exist ..\NSIS\Tolbase*.exe (
-    Del /Q ..\NSIS\Tolbase*.exe
+  If Exist ..\NSIS\tol*.exe (
+    Del /Q ..\NSIS\tol*.exe
   )
-  Echo Creando instalador de tolbase ...
+  Echo Creando instalador de TOL ...
   makensis /V2 /X"SetCompressor /FINAL /SOLID lzma" ..\NSIS\Tolbase.nsi
-  If Exist ..\NSIS\Tolbase*.exe (
-    Echo El instalador de Tolbase ha sido creado en "%_cwd%\..\NSIS"
+  If Exist ..\NSIS\tol*.exe (
+    Echo El instalador de TOL ha sido creado en "%_cwd%\..\NSIS"
   ) Else (
     Set _msg_error=No se ha encontrado el resultado de ejecutar makensis
     Goto ERROR
@@ -404,8 +407,8 @@ If "%_pnsis%"=="1" (
 Rem envio el empaquetado hacia www.tol-project.org si se ha pedido
 Echo status es %test_status%
 If "%_dodist%"=="1" (
-  If Exist ..\NSIS\Tolbase*.exe (
-    For %%f In (..\NSIS\Tolbase*.exe) Do (
+  If Exist ..\NSIS\tol*.exe (
+    For %%f In (..\NSIS\tol-msvc-v*-win32.exe) Do (
       Echo encontrado %%~nxf
       Set _fbin=%%~nxf
     )
@@ -416,11 +419,11 @@ If "%_dodist%"=="1" (
     REM Echo copiando last_official_tol_release_win.txt hacia www.tol-project.org
     REM ..\ActiveTOL\bin\tol -v -c"Text WriteFile(\"last_official_tol_release_win.txt\",Version);"
     REM pscp last_official_tol_release_win.txt toldevel@tolp.localbayes.es:.
-    Echo copiando Tolbase hacia www.tol-project.org
-    pscp Tolbase*.exe toldevel@tolp.localbayes.es:/var/www/packages/win32/.
+    Echo copiando el instalador hacia www.tol-project.org
+    pscp tol*.exe toldevel@tolp.localbayes.es:/var/www/packages/win32/.
     If "%_branchid%"=="REMtrunkREM" (
-      Echo copiando tolbase-%_versionNumber%-setup.exe como tolbase-cvstrunk-setup.exe en www.tol-project.org 
-      plink tdt@cvs.tol-project.org "cp /home/bayes/pub/bin/win/tolbase-%_versionNumber%-setup.exe /home/bayes/pub/bin/win/tolbase-cvstrunk-setup.exe"
+      Echo copiando tol-msvc-v%_versionNumber%-win32.exe como tolbase-cvstrunk-setup.exe en www.tol-project.org 
+      plink tdt@cvs.tol-project.org "cp /home/bayes/pub/bin/win/tol-msvc-v%_versionNumber%-win32.exe /home/bayes/pub/bin/win/tolbase-cvstrunk-setup.exe"
     )
     REM Echo Moviendo el empaquetado a la carpeta de almacenamiento historico
     REM ..\ActiveTOL\bin\tol -v store_history.tol
@@ -431,7 +434,7 @@ If "%_dodist%"=="1" (
     Echo El resultado de tol_tests esta disponible en el archivo adjunto.>>%_fbody%
     Echo.>>%_fbody%
   ) Else (
-    Echo No se puede enviar Tolbase hacia www.tol-project.exe pues no existe en NSIS
+    Echo No se puede enviar el instalador hacia www.tol-project.exe pues no existe en NSIS
     Set _msg_error=Utilice /pnsis para construirlo
     Goto ERROR
   )  

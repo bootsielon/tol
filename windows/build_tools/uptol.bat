@@ -9,7 +9,6 @@ Rem Luego procede a ejecutar _uptol.bat
 
 SetLocal enableextensions enabledelayedexpansion
 
-
 If not "%1"=="/no_update" (
 ECHO Actualizando el codigo desde el repositorio
 svn update ..\..
@@ -38,19 +37,20 @@ If Not Exist ..\tol-contrib\nul (
 
 If Defined VS90COMNTOOLS (
   Echo Reconocido el entorno de desarrollo VS90
-  Set VSCOMNTOOLS=%VS90COMNTOOLS%
+  Set VSCOMNTOOLS=!VS90COMNTOOLS!
   Set winSrc=win-VC9
 ) Else If Defined VS80COMNTOOLS (
   Echo Reconocido el entorno de desarrollo VS80
-  Set VSCOMNTOOLS=%VS80COMNTOOLS%
+  Set VSCOMNTOOLS=!VS80COMNTOOLS!
   Set winSrc=win-VC8
 ) Else (
   Echo No hemos encontrado un entorno de desarrollo reconocido. Los entornos reconocidos con VS80 or VS90
   Goto END
 )
 
-CALL _uptol.bat %*
+Rem Se utiliza una ubicación 'limpia' de TOLHOME
+Set TOLHOME=!CD!\..\building_tolhome\
 
-..\ActiveTOL_Patch.exe -y
+CALL _uptol.bat %*
 
 :END

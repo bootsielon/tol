@@ -20,25 +20,31 @@ Set EvalSet(GetDir("root")[1],Real(Text file)
 
 Real PlainHeader(Text sourcePath, Text sdkIncPath)
 {
-  WriteLn("PlainHeader "+sourcePath);
-  Set dir = GetDir(sourcePath);
-  Set head = Select(dir[1],Real(Text s)
-  {
-    Or(TextEndAt(s,".h"),TextEndAt(s,".hpp"))
-  });
-  Set EvalSet(head,Real(Text file)
-  {
-    OSFilCopy(sourcePath+"/"+file,sdkIncPath+"/"+file)
-  });
-  Set sub = Select(dir[2],Real(Text s)
-  {
-    And(!TextBeginWith(s,"."),!TextBeginWith(s,"win"))
-  });
-  Set EvalSet(sub,Real(Text s)
-  {
-    PlainHeader(sourcePath+"/"+s, sdkIncPath)
-  });
-  True
+  Case(TextMatch(sourcePath, "*CodeLite*"), {
+    False
+  }, TextMatch(sourcePath, "*BUILD_CMAKE*"), {
+    False
+  }, True, {
+    WriteLn("PlainHeader "+sourcePath);
+    Set dir = GetDir(sourcePath);
+    Set head = Select(dir[1],Real(Text s)
+    {
+      Or(TextEndAt(s,".h"),TextEndAt(s,".hpp"))
+    });
+    Set EvalSet(head,Real(Text file)
+    {
+      OSFilCopy(sourcePath+"/"+file,sdkIncPath+"/"+file)
+    });
+    Set sub = Select(dir[2],Real(Text s)
+    {
+      And(!TextBeginWith(s,"."),!TextBeginWith(s,"win"))
+    });
+    Set EvalSet(sub,Real(Text s)
+    {
+      PlainHeader(sourcePath+"/"+s, sdkIncPath)
+    });
+    True
+  })
 };
   
   
