@@ -1,6 +1,8 @@
 cmake_minimum_required( VERSION 2.8 )
 project( TOLBASE )
 
+set( INSTALL_WITH_TOL 1 )
+
 set( CMAKE_MODULE_PATH
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules"
   ${CMAKE_MODULE_PATH} )
@@ -51,8 +53,15 @@ else( WIN32 AND TOL_PREFIX_PATH )
 endif( WIN32 AND TOL_PREFIX_PATH )
 
 if( TCL_FOUND )
+  message( STATUS "TK_LIBRARY_PATH = ${TK_LIBRARY_PATH}" )
+  message( STATUS ${TCL_STUB_LIBRARY} )
   message( STATUS ${TCL_INCLUDE_PATH} )
-  get_filename_component( CMAKE_INSTALL_PREFIX ${TCL_LIBRARY_PATH} PATH )
+  message( STATUS ${TCL_LIBRARY_PATH} )
+  if( INSTALL_WITH_TOL )
+    set( CMAKE_INSTALL_PREFIX ${TOL_PREFIX_PATH} )
+  else( INSTALL_WITH_TOL )
+    get_filename_component( CMAKE_INSTALL_PREFIX ${TCL_LIBRARY_PATH} PATH )
+  endif( INSTALL_WITH_TOL )
   if( WIN32 )
     string( REPLACE "\\" "/" CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX} ) 
   endif( WIN32 )
@@ -63,6 +72,10 @@ endif( TCL_FOUND )
   
 set( TOLBASE_DEST_DIR "lib/TolbaseApp${TOLBASE_VERSION_MAJOR}.${TOLBASE_VERSION_MINOR}"
   CACHE INTERNAL "" )
+
+if( UNIX )
+  add_subdirectory( bin )
+endif( UNIX )
 
 add_subdirectory( generic )
 add_subdirectory( lib )
