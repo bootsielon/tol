@@ -1,0 +1,18 @@
+
+Para compilar con MSVC se recomienda instalar:
+
+ + MS Visual Studio 2008 Express (VS2008ExpressENUX1397868.iso)
+   https://go.microsoft.com/fwlink/?LinkId=104679
+
+ + MS Windows SDK para Windows 7:
+   - GRMSDK_EN_DVD.iso    -- x86 environment.
+   - GRMSDKX_EN_DVD.iso   -- x64 environment.
+   - GRMSDKIAI_EN_DVD.iso -- Itanium environment.
+   https://www.microsoft.com/en-us/download/details.aspx?id=8442
+   == 
+   Desinstalar "Microsoft Visual C++ 2010 *** Redistributable" para evitar un problema conocido.
+   ==
+   Usar la ISO para instalar debido a un problema detectando la versión de .Net Framework 4
+   Ejecutar /Setup/SDKSetup.exe de la ISO
+   ==
+   Más detalles en: "notas_WindowsSDK.txt"

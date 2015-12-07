@@ -1,0 +1,35 @@
+GRMSDK_EN_DVD.iso    -- x86 environment.
+GRMSDKX_EN_DVD.iso   -- x64 environment.
+GRMSDKIAI_EN_DVD.iso -- Itanium environment.
+
+[PROBLEMA 1]
+
+Para evitar:
+
+Some Windows SDK components require the RTM .NET Framework 4. 
+Setup detected a pre-release version of .NET Framework 4. 
+If you continue with Setup, these components will not be installed. 
+If you want to install these components, click Cancel, then install the .NET Framework 4 
+from https://go.microsoft.com/fwlink/?LinkID=187668 and then rerun Setup.
+Click OK to continue.
+
+Ejecutar: /Setup/SDKSetup.exe de la ISO
+
+Source:
+http://stackoverflow.com/questions/31455926/windows-sdk-setup-failure
+
+[PROBLEMA 2]
+
+Para evitar:
+
+A problem occurred while installing selected Windows SDK components.
+Installation of the "Microsoft Windows SDK for Windows 7" product has reported the following error: Please refer to Samples\Setup\HTML\ConfigDetails.htm document for further information.
+Please attempt to resolve the problem and then start Windows SDK setup again. If you continue to have problems with this issue, please visit the SDK team support page at http://go.microsoft.com/fwlink/?LinkId=130245.
+Click the View Log button to review the installation log.
+To exit, click Finish.
+
+Desinstalar:
+Microsoft Visual C++ 2010 x86 Redistributable
+Microsoft Visual C++ 2010 x64 Redistributable
+
+https://support.microsoft.com/en-us/kb/2717426

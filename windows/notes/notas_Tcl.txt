@@ -1,0 +1,5 @@
+Se encontraron las versiones compiladas en:
+http://ftp.uni-hannover.de/pub/mirror/tcl/conferences/Software/ActiveState/ActiveTcl8.4.20.0/
+
+En ActiveState sólo se distribuyen 8.5 (8.5.18.0) y 8.6 (8.6.4.1):
+http://www.activestate.com/activetcl/downloads?_ga=1.109002178.1938648064.1448537458
