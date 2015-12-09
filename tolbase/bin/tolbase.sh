@@ -1,5 +1,5 @@
 #!/bin/sh
-# Shell wrapper for TOL executable.
+# Shell wrapper for TOL executable. 
 
 SCRIPT=$(readlink -f "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
