@@ -15,4 +15,5 @@ install( DIRECTORY
   autoscroll      markupparser  nbdbmanager      renderpane   wtree
   byswidget       markupviewer  notebookdb       rmtps_client
   mimetex         toltk         mkWidgets1.3     trycatch
-  COMPONENT RUNTIME DESTINATION ${TOLBASE_DEST_DIR} )
+  COMPONENT RUNTIME DESTINATION ${TOLBASE_DEST_DIR} 
+  PATTERN .svn EXCLUDE )
