@@ -38,6 +38,6 @@ ExternalProject_Add( tktable
 file( GLOB lib_children
   ${CMAKE_CURRENT_BINARY_DIR}/lib/* )
 
-#message( STATUS "children = ${children}" )
+#message( STATUS "lib_children = ${lib_children}" )
 
 install( DIRECTORY ${lib_children} COMPONENT RUNTIME DESTINATION lib )
