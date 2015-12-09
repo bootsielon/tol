@@ -79,4 +79,4 @@ endif( UNIX )
 
 add_subdirectory( generic )
 add_subdirectory( lib )
-
+add_subdirectory( ThirdParty )
