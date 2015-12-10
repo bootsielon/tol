@@ -41,9 +41,11 @@ package require trycatch
 package require snit
 package require markupparser
 
-namespace eval ::notebookdb::notebookdb:: {
-    namespace import -force ::trycatch::*
-}
+#(pgea) Se utilizará trycatch sin importar sus métodos
+#(pgea) para hacer el código compatible con tcl8.6
+# namespace eval ::notebookdb::notebookdb:: {
+#     namespace import -force ::trycatch::*
+# }
 
 #-----------------------------------------------------------------------
 # Public Functions
@@ -108,8 +110,8 @@ snit::type ::notebookdb::notebookdb {
             interp create $self.loader
             $self.loader alias page $self Loader.Page
 
-            try {
-                try {
+            ::trycatch::try {
+                ::trycatch::try {
                     $self.loader eval [list source $filename]
                 } catch -msg result {
                     throw notebookdb::loaderror \
@@ -174,7 +176,7 @@ snit::type ::notebookdb::notebookdb {
     method save {} {
         set fname $options(-dbfile)
 
-        try {
+        ::trycatch::try {
             $self SaveDatabase $fname
         } catch -msg errmsg {
             throw notebookdb::saveerror \

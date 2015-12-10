@@ -138,7 +138,7 @@ snit::type ::Notebook::prefsmanager {
         set fname [PrefFileName]
 
         if {[file exists $fname]} {
-            try {
+            ::trycatch::try {
                 source [PrefFileName]
                 tk scaling $prefs(scaling)
             } catch -msg errmsg {
@@ -149,7 +149,7 @@ snit::type ::Notebook::prefsmanager {
 
     # Save the preferences and notify observers.
     method save {} {
-        try {
+        ::trycatch::try {
             set f [open [PrefFileName] w]
 
             puts $f "# Notebook [version] Preferences File"

@@ -3,7 +3,9 @@ package require snit
 package require trycatch
 package require markupparser
 
-namespace import trycatch::*
+#(pgea) Se utilizará trycatch sin importar sus métodos
+#(pgea) para hacer el código compatible con tcl8.6
+# namespace import trycatch::*
 interp alias {} prefs {} ::Notebook::prefs
 
 #-----------------------------------------------------------------------
@@ -812,7 +814,7 @@ snit::widgetadaptor renderpane {
             set disptext $fileName
         }
 
-        try {
+        ::trycatch::try {
             set images [LoadImage $fileName $opts(-width) $opts(-height)]
         } catch -msg msg {
             puts "Couldn't load '$fileName': $msg"

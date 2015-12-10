@@ -4,10 +4,12 @@ package require mimetex
 package require notebookdb
 package require trycatch
 
-if { [ info commands "try" ] eq "" } {
-  namespace import ::trycatch::*
-}
-
+#(pgea) Se utilizará trycatch sin importar sus métodos
+#(pgea) para hacer el código compatible con tcl8.6
+#(pgea) Por ejemplo: ::trycatch::try ...
+# if { [ info commands "try" ] eq "" } {
+#   namespace import ::trycatch::*
+# }
 
 snit::type nbdbmanagerType {
 

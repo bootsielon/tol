@@ -189,7 +189,7 @@ snit::widget markupviewer {
 
     # Returns the expanded text of the page, which must exist.
     method pageexpand {name} {
-      try {
+      ::trycatch::try {
         set result [$db expand [$db get $name]]
       }
       return $result
