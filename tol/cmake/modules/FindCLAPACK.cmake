@@ -1,8 +1,8 @@
 # - Find CLAPACK
 # Find the native CLAPACK headers and libraries.
 #
-# CLAPACK_LIBRARIES - List of libraries when using cblas.
-# CLAPACK_FOUND - True if cblas found.
+# CLAPACK_LIBRARIES - List of libraries when using CLAPACK.
+# CLAPACK_FOUND - True if CLAPACK is found.
 #
 # Copyright 2009-2011 The TOL Development Team (http://www.tol-project.org)
 #
@@ -27,10 +27,6 @@ if( LAPACK_FOUND )
   message( STATUS "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}")
 endif()
 
-if( NOT CLAPACK_NAME )
-  set( CLAPACK_NAME clapack )
-endif( NOT CLAPACK_NAME )
-
 if( NOT CLAPACK_DIR )
   if( UNIX )
     set( CLAPACK_DIR /usr )
@@ -39,37 +35,50 @@ if( NOT CLAPACK_DIR )
   endif( UNIX )
 endif( NOT CLAPACK_DIR )
 
-find_library( CLAPACK_LIBRARY NAMES ${CLAPACK_NAME}
-  HINTS ${CLAPACK_DIR}/lib ${CLAPACK_DIR}/lib64 
-  PATH_SUFFIXES "atlas" "atlas-sse2" )
-
-set(CLAPACK_LIBRARIES ${CLAPACK_LIBRARY} )
+if( NOT CLAPACK_NAME )
+  set( CLAPACK_NAME clapack )
+endif( NOT CLAPACK_NAME )
 
 find_path( CLAPACK_INCLUDE_DIR
   NAMES "${CLAPACK_NAME}.h" 
   PATHS ${CLAPACK_DIR}
-  PATH_SUFFIXES "include" "include/${CLAPACK_NAME}")
+  PATH_SUFFIXES "include" "include/${CLAPACK_NAME}" atlas )
 
+# check if the lapack found already provide the clapack API
+include( CheckLibraryExists )
+if( CLAPACK_NAME STREQUAL "lapacke" )
+  set( NameFunction "LAPACKE_dpotrf" )
+else( CLAPACK_NAME STREQUAL "lapacke" )
+  set( NameFunction "clapack_dpotrf" )
+endif( CLAPACK_NAME STREQUAL "lapacke" )
 
-include( FindPackageHandleStandardArgs )
+set(CMAKE_REQUIRED_LIBRARIES ${LAPACK_LIBRARIES})
+check_library_exists( "" ${NameFunction} "" FOUND_CLAPACK_DPOTRF )
+if( FOUND_CLAPACK_DPOTRF  )
+  message( STATUS "${CLAPACK_NAME} API found in LAPACK" )
+  set( CLAPACK_LIBRARIES ${LAPACK_LIBRARIES} )
+  list( GET LAPACK_LIBRARIES 0 first )
+  set( CLAPACK_LIBRARY ${first} CACHE PATH "" FORCE )
+  set( CLAPACK_FOUND TRUE )
+else( FOUND_CLAPACK_DPOTRF )
+  find_library( CLAPACK_LIBRARY NAMES ${CLAPACK_NAME}
+    HINTS ${CLAPACK_DIR}/lib ${CLAPACK_DIR}/lib64 
+    PATH_SUFFIXES "atlas" "atlas-sse2" )
 
-# handle the QUIETLY and REQUIRED arguments and set CLAPACK_FOUND to TRUE
-# if all listed variables are TRUE
-find_package_handle_standard_args(CLAPACK DEFAULT_MSG CLAPACK_LIBRARY CLAPACK_INCLUDE_DIR )
+  set(CLAPACK_LIBRARIES ${CLAPACK_LIBRARY} )
+  include( FindPackageHandleStandardArgs )
 
-if ( CLAPACK_FOUND )
-  include( CheckLibraryExists )
-  if( CLAPACK_NAME STREQUAL "lapacke" )
-    set( NameFunction "LAPACKE_dpotrf" )
-  else( CLAPACK_NAME STREQUAL "lapacke" )
-    set( NameFunction "clapack_dpotrf" )
-  endif( CLAPACK_NAME STREQUAL "lapacke" )
-  set(CMAKE_REQUIRED_LIBRARIES ${LAPACK_LIBRARIES})
-  check_library_exists( "${CLAPACK_LIBRARY}" ${NameFunction} "" FOUND_CLAPACK_DPOTRF )
-  if( NOT FOUND_CLAPACK_DPOTRF )
-    message( WARNING "Could not find LAPACKE_dpotrf in ${CLAPACK_LIBRARY}, take a look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. You most likely have to set CLAPACK_LIBRARY by hand (i.e. -DLAPACK_LIBRARY='/path/to/libclapack.so') !" )
-  endif( NOT FOUND_CLAPACK_DPOTRF )
-  set(CMAKE_REQUIRED_LIBRARIES )
-endif( CLAPACK_FOUND )
+  # handle the QUIETLY and REQUIRED arguments and set CLAPACK_FOUND to TRUE
+  # if all listed variables are TRUE
+  find_package_handle_standard_args(CLAPACK DEFAULT_MSG CLAPACK_LIBRARY CLAPACK_INCLUDE_DIR )
 
+  if ( CLAPACK_FOUND )
+    set(CMAKE_REQUIRED_LIBRARIES ${LAPACK_LIBRARIES})
+    check_library_exists( "${CLAPACK_LIBRARY}" ${NameFunction} "" FOUND_CLAPACK_DPOTRF )
+    if( NOT FOUND_CLAPACK_DPOTRF )
+      message( WARNING "Could not find LAPACKE_dpotrf in ${CLAPACK_LIBRARY}, take a look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. You most likely have to set CLAPACK_LIBRARY by hand (i.e. -DLAPACK_LIBRARY='/path/to/libclapack.so') !" )
+    endif( NOT FOUND_CLAPACK_DPOTRF )
+    set(CMAKE_REQUIRED_LIBRARIES )
+  endif( CLAPACK_FOUND )
+endif( FOUND_CLAPACK_DPOTRF )
 mark_as_advanced( CLAPACK_LIBRARY )
