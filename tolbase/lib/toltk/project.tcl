@@ -109,7 +109,6 @@ namespace eval ::project {
 #
 #/////////////////////////////////////////////////////////////////////////////
   global tcl_platform
-  global toltk_images_path
   variable data
   variable widgets
   variable projects
@@ -127,14 +126,18 @@ namespace eval ::project {
   ::TolConsole::ReadIni
   
   # Gives a name for the application
-  # tol platform selection
-  array set tol_platform [lindex [toltcl::eval {PlatformInfo(?)} -named 1] 1]
-  if {$tol_platform(CompilerID) eq "GNU"} {
-    set prjtitle "TOLBase (GNU)"
-  } elseif {$tol_platform(CompilerID) eq "MSVC"} {
-    set prjtitle "TOLBase (MSVC)"
+  if { [string equal $tcl_platform(platform) "unix"] } {
+    set prjtitle "TOLBase"  
   } else {
-    set prjtitle "TOLBase"
+    # tol platform selection
+    array set tol_platform [lindex [toltcl::eval {PlatformInfo(?)} -named 1] 1]
+    if {$tol_platform(CompilerID) eq "GNU"} {
+      set prjtitle "TOLBase (GNU)"
+    } elseif {$tol_platform(CompilerID) eq "MSVC"} {
+      set prjtitle "TOLBase (MSVC)"
+    } else {
+      set prjtitle "TOLBase"
+    }
   }
   
   if { [info exists projects(Project,title)] && $projects(Project,title) ne "" } {
@@ -142,33 +145,17 @@ namespace eval ::project {
   }
   wm title . $prjtitle
 
-  #if { [TolConReq] }
-    #Creamos frame de trabajo
-    set widgets(mainmenu) [::project::CreateMdiMenu .main.mdi]
-	set widgets(mainframe) [frame .main]
-	set widgets(mainmdi) [mdi .main.mdi -mdimenu $widgets(mainmenu) \
-	                       -relief sunken -bd 1]
-    pack $widgets(mainmenu) -fill x -side top
-	pack $widgets(mainframe) -fill both -expand yes -side bottom
-    pack $widgets(mainmdi) -fill both -expand yes -side bottom
-	bind . <Control-Tab> "[list $widgets(mainmdi) cicle]; break"
+  #Creamos frame de trabajo
+  set widgets(mainmenu) [::project::CreateMdiMenu .main.mdi]
+  set widgets(mainframe) [frame .main]
+  set widgets(mainmdi) [mdi .main.mdi -mdimenu $widgets(mainmenu) \
+                         -relief sunken -bd 1]
+  pack $widgets(mainmenu) -fill x -side top
+  pack $widgets(mainframe) -fill both -expand yes -side bottom
+  pack $widgets(mainmdi) -fill both -expand yes -side bottom
+  bind . <Control-Tab> "[list $widgets(mainmdi) cicle]; break"
 
-    #(pgea) se adelanta para no ver el icono de TK intermedio
-    if { [string equal $tcl_platform(platform) "unix"] } {
-      wm iconbitmap . "@[file join $toltk_images_path tolbase-gnu-64.xbm]"
-    } else {
-      # tol platform selection
-      if {$tol_platform(CompilerID) eq "GNU"} {
-        wm iconbitmap . -default [file join $toltk_images_path tolbase-gnu.ico]
-      } elseif {$tol_platform(CompilerID) eq "MSVC"} {
-        wm iconbitmap . -default [file join $toltk_images_path tolbase-msvc.ico]
-      } else {
-        wm iconbitmap . -default [file join $toltk_images_path tolbase.ico]
-      }
-    }
-
-	::TolConsole::MainFrame $widgets(mainmdi) [TolConReq]
-  #
+  ::TolConsole::MainFrame $widgets(mainmdi) [TolConReq]
   
   if { [TolConReq] } {
     ::TolConsole::MenuMDI
@@ -217,14 +204,32 @@ namespace eval ::project {
 # PURPOSE: Inits the events & protocols associated to toplevel.
 #
 #/////////////////////////////////////////////////////////////////////////////
+  global tcl_platform
+  global toltk_images_path
   variable data
-
+  
   bind . <Map> "::project::mapMain %W"
   bind . <Unmap> "::project::unmapMain %W"
   # establezco los protocolos
   wm protocol . WM_DELETE_WINDOW [list ::project::OnDelete]
   bind . <Destroy> "::project::OnDestroy %W"
   set defgeom "[winfo vrootw .]x[winfo vrooth .]+0+0"
+  
+  #(pgea) se adelanta para no ver el icono de TK intermedio
+  if { [string equal $tcl_platform(platform) "unix"] } {
+    wm iconphoto . [image create photo .icon256 -format png -file [file join $toltk_images_path tolbase-256.png] ]
+  } else {
+    # tol platform selection
+    array set tol_platform [lindex [toltcl::eval {PlatformInfo(?)} -named 1] 1]
+    if {$tol_platform(CompilerID) eq "GNU"} {
+      wm iconbitmap . -default [file join $toltk_images_path tolbase-gnu.ico]
+    } elseif {$tol_platform(CompilerID) eq "MSVC"} {
+      wm iconbitmap . -default [file join $toltk_images_path tolbase-msvc.ico]
+    } else {
+      wm iconbitmap . -default [file join $toltk_images_path tolbase.ico]
+    }
+  }
+    
   wm state . normal
   wm geometry . [set geom [::iniFile::Read Project topgeom $defgeom]]
 puts "initWM: geometria: $geom"
