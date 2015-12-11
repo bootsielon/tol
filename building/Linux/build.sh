@@ -1,9 +1,10 @@
 #!/bin/bash
-#*********************************************************
+#************************************************************
 # La llamada al script recibe dos argumentos:
 #   ./build.sh [tol|toltcl|tolbase|rtol] [|release|debug]
-#*********************************************************
+#************************************************************
 # Durante el proceso se pregunta por cada una de las etapas.
+#************************************************************
 
 BUILD_DIR=$PWD/$(dirname $0)
 
@@ -15,12 +16,14 @@ else
 fi
 if !([ "$project" = "tol" ] || [ "$project" = "toltcl" ] || [ "$project" = "tolbase" ] || [ "$project" = "rtol" ]); then
   echo "(!) First argument should be: tol, toltcl, tolbase or rtol."
-  echo -n "press enter to exit "
-  read answer
   exit
 fi
 
 PROJECT_DIR=$BUILD_DIR/../../$project
+if ![ -d "$PROJECT_DIR" ]; then 
+  echo "(!) Cannot find folder: $PROJECT_DIR"
+  exit
+fi
 
 if [ "$2" = "" ]; then
   mode=release
@@ -28,9 +31,7 @@ else
   mode=$2
 fi
 if !([ "$mode" = "release" ] || [ "$mode" = "debug" ]); then
-  echo "(!) Second argument should be: release, debug or should be avoided."
-  echo -n "press enter to exit "
-  read answer  
+  echo "(!) Second argument should be: release, debug or should be avoided." 
   exit
 fi
 suffix=-$mode
@@ -38,24 +39,22 @@ if [ "$mode" = "release" ]; then
   suffix=
 fi
 
-CMAKE_DIR=~/CMake_Build/$project/$mode
-
 echo "----------------------------------------------------"
 echo " Building $project - $mode"
 echo "----------------------------------------------------"
 
+CMAKE_DIR=~/CMake_Build/$project/$mode
 if [ -d "$CMAKE_DIR" ]; then
   echo "/!\ There is already a built folder of $project."
   echo -n "mkdir? (y/n) "
   read answer
   if [ "$answer" = "y" ]; then
-    rm -r "$CMAKE_DIR"
+    rm -r -f "$CMAKE_DIR"
     mkdir -p "$CMAKE_DIR"
   fi
 else
   mkdir -p "$CMAKE_DIR"
 fi
-
 cd $CMAKE_DIR
 
 echo -n "cmake? (y/n) "
@@ -79,6 +78,3 @@ read answer
 if [ "$answer" = "y" ]; then
   sudo make install
 fi
-
-echo -n "press enter to exit "
-read answer

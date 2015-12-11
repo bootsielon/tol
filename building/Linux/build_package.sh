@@ -1,9 +1,10 @@
 #!/bin/bash
-#*********************************************************
+#************************************************************
 # La llamada al script recibe dos argumentos:
 #   ./build_package.sh [|<package_name>] [|release|debug]
-#*********************************************************
+#************************************************************
 # Durante el proceso se pregunta por cada una de las etapas.
+#************************************************************
 
 BUILD_DIR=$PWD/$(dirname $0)
 
@@ -15,15 +16,12 @@ else
 fi
 
 PACKAGE_DIR=$BUILD_DIR/../../../OfficialTolArchiveNetwork/$package
-
 if ![ -f "$PACKAGE_DIR/CMakeLists.txt" ]; then 
   if [ -d "$PACKAGE_DIR" ]; then 
     echo "(!) Cannot find the CMakeLists.txt"
   else
     echo "(!) Cannot find the package $package."
   fi
-  echo -n "press enter to exit "
-  read answer
   exit
 fi
 
@@ -34,8 +32,6 @@ else
 fi
 if !([ "$mode" = "release" ] || [ "$mode" = "debug" ]); then
   echo "(!) Second argument should be: release, debug or should be avoided."
-  echo -n "press enter to exit "
-  read answer  
   exit
 fi
 suffix=-$mode
@@ -43,12 +39,11 @@ if [ "$mode" = "release" ]; then
   suffix=
 fi
 
-CMAKE_DIR=~/CMake_Build/package/$package/$mode
-
 echo "----------------------------------------------------"
 echo " Building package $package - $mode"
 echo "----------------------------------------------------"
 
+CMAKE_DIR=~/CMake_Build/packages/$package/$mode
 if [ -d "$CMAKE_DIR" ]; then
   echo "/!\ There is already a built folder of $package."
   echo -n "mkdir? (y/n) "
@@ -60,7 +55,6 @@ if [ -d "$CMAKE_DIR" ]; then
 else
   mkdir -p "$CMAKE_DIR"
 fi
-
 cd $CMAKE_DIR
 
 echo -n "cmake? (y/n) "
@@ -74,6 +68,3 @@ read answer
 if [ "$answer" = "y" ]; then
   make
 fi
-
-echo -n "press enter to continue "
-read answer

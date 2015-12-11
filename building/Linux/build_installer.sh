@@ -1,20 +1,26 @@
 #!/bin/bash
-#*********************************************************
+#************************************************************
 # La llamada al script no recibe argumentos:
 #   ./build_instaler.sh
-#*********************************************************
+#************************************************************
 # Durante el proceso se pregunta por cada una de las etapas.
+#************************************************************
 
 BUILD_DIR=$PWD/$(dirname $0)
 
 TRUNK_DIR=$BUILD_DIR/../..
+if ![ -d "$TRUNK_DIR" ]; then 
+  echo "(!) Cannot find folder: $TRUNK_DIR"
+  exit
+fi
 
-CMAKE_DIR=~/CMake_Build/installer
+mode=release
 
 echo "----------------------------------------------------"
 echo " Building TOL installer "
 echo "----------------------------------------------------"
 
+CMAKE_DIR=~/CMake_Build/installer/$mode
 if [ -d "$CMAKE_DIR" ]; then
   echo "/!\ There is already a built folder of $package."
   echo -n "mkdir? (y/n) "
@@ -26,7 +32,6 @@ if [ -d "$CMAKE_DIR" ]; then
 else
   mkdir -p "$CMAKE_DIR"
 fi
-
 cd $CMAKE_DIR
 
 echo -n "cmake? (y/n) "
@@ -49,6 +54,3 @@ if [ "$answer" = "y" ]
 then
   cpack -G RPM
 fi
-
-echo -n "press enter to exit "
-read answer
