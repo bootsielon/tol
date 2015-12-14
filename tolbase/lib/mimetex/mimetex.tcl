@@ -9,7 +9,9 @@ namespace eval mimetex {
 
   array set defaultBin {
     Linux,4        linux32/mimetex
+    Linux,8        linux32/mimetex
     Windows\ NT,4  win32/mimetex.exe
+    Windows\ NT,8  win32/mimetex.exe
   }
 
   proc SetBinPath { path } {

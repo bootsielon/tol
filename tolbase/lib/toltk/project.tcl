@@ -11,6 +11,7 @@ package require btoplevel
 package require fmenu
 package require mdi
 package require bodbc
+package require Img
 
 #/////////////////////////////////////////////////////////////////////////////      
 namespace eval ::project {
