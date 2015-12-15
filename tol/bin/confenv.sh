@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # create tolenv.sh
 #
 
@@ -36,14 +36,12 @@ check_tol_program $TOL_PREFIX bin/tolsh
 
 if  command R RHOME >/dev/null 2>/dev/null ; then
   echo "R can be invoked"
+  R_HOME_DIR=$(R RHOME)
+  Rcpp_INSTALLED=$(check_installed Rcpp)
+  Rinside_INSTALLED=$(check_installed RInside)
 else
   echo "R cannot be invoked"
-  exit
 fi
-
-R_HOME_DIR=$(R RHOME)
-Rcpp_INSTALLED=$(check_installed Rcpp)
-Rinside_INSTALLED=$(check_installed RInside)
 
 if [ $Rcpp_INSTALLED -eq 1 ] ; then
   echo "Rcpp is installed"
@@ -66,8 +64,13 @@ fi
 cat << EOF > $TOLENV
 # environment needed for tol processes
 #
-LD_LIBRARY_PATH=$_LD_PATH:\$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH
-export R_HOME=$R_HOME_DIR
+export LD_LIBRARY_PATH=$_LD_PATH:\$LD_LIBRARY_PATH
+export TCLLIBPATH=$TOL_PREFIX/lib
+export TOL_LIBRARY=$TOL_PREFIX/bin/stdlib
 EOF
 
+if [ x"$R_HOME_DIR" != x ]; then
+cat << EOF >> $TOLENV
+export R_HOME=$R_HOME_DIR
+EOF
+fi

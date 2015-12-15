@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Shell wrapper for TOL executable.
 
 SCRIPT=$(readlink -f "$0")
