@@ -17,6 +17,11 @@
 #include <windows.h>
 #endif
 
+// Tcl_SetStartupScript
+#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION <= 5
+//#include "tclIntDecls.h"
+#endif
+
 static int g_argc = 0;
 static char **g_argv = NULL;
 
@@ -127,14 +132,7 @@ Tcl_AppInit(interp)
     if (Tk_Init(interp) == TCL_ERROR) {
 	return TCL_ERROR;
     }
-    Tcl_StaticPackage(interp, "Tk", Tk_Init, Tk_SafeInit);
-#ifdef TK_TEST
-    if (Tktest_Init(interp) == TCL_ERROR) {
-	return TCL_ERROR;
-    }
-    Tcl_StaticPackage(interp, "Tktest", Tktest_Init,
-            (Tcl_PackageInitProc *) NULL);
-#endif /* TK_TEST */
+    // Tcl_StaticPackage(interp, "Tk", Tk_Init, Tk_SafeInit);
 
 
     /*
@@ -160,6 +158,7 @@ Tcl_AppInit(interp)
      * then no user-specific startup file will be run under any conditions.
      */
 
+#if defined(WIN32)
     SetupArgv( interp );
     Tcl_VarEval( interp, "lappend", " auto_path", " [file join",
 		 " [file dir [file dir ", Tcl_GetNameOfExecutable(),
@@ -170,5 +169,13 @@ Tcl_AppInit(interp)
 	Tcl_Exit( -1 );
       }
     //Tcl_PkgRequire( interp, "TolbaseApp", TOLBASE_VERSION, 1);
+#else
+    const char* exeName = Tcl_GetNameOfExecutable();
+    Tcl_VarEval( interp, "file join",
+		 " [ file dir ", Tcl_GetNameOfExecutable(),
+		 " ] tolbase.tcl", NULL );
+    Tcl_Obj *objPath = Tcl_GetObjResult( interp );
+    Tcl_SetStartupScript( Tcl_GetObjResult( interp ), NULL ); 
+#endif
     return TCL_OK;
 }

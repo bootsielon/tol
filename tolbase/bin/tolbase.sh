@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Shell wrapper for TOL executable.
 
 SCRIPT=$(readlink -f "$0")
@@ -11,4 +11,9 @@ else
   echo "${SCRIPTPATH}/tolenv.sh not found, running without environment"
 fi
 
-exec ${SCRIPTPATH}/tolbase "${@}"
+#TFILE="/tmp/$(basename $0).$$.tmp.tcl"
+#echo lappend auto_path file normalize [file join [ file dir [info script] ] .. lib ] ]
+#echo package require TolbaseApp > ${TFILE}
+#echo after idle {file delete ${TFILE}} >> ${TFILE}
+
+${SCRIPTPATH}/tolbase ${SCRIPTPATH}/tolbase.tcl "${@}"
