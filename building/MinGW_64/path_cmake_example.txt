@@ -1,1 +1,0 @@
-C:\Program Files\CMake\bin;C:\RBuildTools\3.2\gcc-4.6.3\bin;C:\Program Files\R\R-3.2.0\bin;C:\Program Files\R\R-3.2.0\bin\i386;C:\Program Files\SlikSvn\bin\;C:\Program Files\NSIS 
