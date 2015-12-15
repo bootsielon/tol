@@ -16,7 +16,7 @@ else
 fi
 
 PACKAGE_DIR=$BUILD_DIR/../../../OfficialTolArchiveNetwork/$package
-if ![ -f "$PACKAGE_DIR/CMakeLists.txt" ]; then 
+if ! [ -f "$PACKAGE_DIR/CMakeLists.txt" ]; then 
   if [ -d "$PACKAGE_DIR" ]; then 
     echo "(!) Cannot find the CMakeLists.txt"
   else

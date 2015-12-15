@@ -20,7 +20,7 @@ if !([ "$project" = "tol" ] || [ "$project" = "toltcl" ] || [ "$project" = "tolb
 fi
 
 PROJECT_DIR=$BUILD_DIR/../../$project
-if ![ -d "$PROJECT_DIR" ]; then 
+if ! [ -d "$PROJECT_DIR" ]; then 
   echo "(!) Cannot find folder: $PROJECT_DIR"
   exit
 fi
@@ -61,7 +61,7 @@ echo -n "cmake? (y/n) "
 read answer
 if [ "$answer" = "y" ]; then
   if [ "$project" = "tol" ]; then 
-    cmake $PROJECT_DIR/. -DCMAKE_BUILD_TYPE=$mode -DCLAPACK_NAME=lapacke -DZIPARCHIVE_ROOT_DIR=/usr/local/ZipArchive$suffix -DZIPARCHIVE_AS_STATIC=TRUE -DCMAKE_INSTALL_PREFIX=/usr/local/tol3.2$suffix
+    cmake $PROJECT_DIR -DCMAKE_BUILD_TYPE=$mode -DCLAPACK_NAME=lapacke -DZIPARCHIVE_ROOT_DIR=/usr/local/ZipArchive$suffix -DZIPARCHIVE_AS_STATIC=TRUE -DCMAKE_INSTALL_PREFIX=/usr/local/tol3.2$suffix
   else
     cmake $PROJECT_DIR -DCMAKE_BUILD_TYPE=$mode -DTOL_PREFIX_PATH=/usr/local/tol3.2$suffix -DCMAKE_INSTALL_PREFIX=/usr/local/tol3.2$suffix
   fi  

@@ -1,9 +1,10 @@
 #!/bin/bash
-#*********************************************************
+#************************************************************
 # La llamada al script recibe un argumento:
 #   ./produce_package.sh [|<package_name>]
-#*********************************************************
+#************************************************************
 # Durante el proceso se pregunta por cada una de las etapas.
+#************************************************************
 
 BUILD_DIR=$PWD/$(dirname $0)
 
@@ -34,12 +35,10 @@ if [ -d "$PACKAGE_DIR" ]; then
       fi
     fi
   else
-    echo "The package '$package' does not containt binary files."
+    echo "/!\ The package $package has not a CMakeLists.txt."
   fi
 else
   echo "(!) Cannot find the package $package."
-  echo -n "press enter to exit "
-  read answer
   exit
 fi
 
@@ -48,6 +47,3 @@ read answer
 if [ "$answer" = "y" ]; then
   tolsh -c"Text Package=\"$package\"" ../produce_package.tol
 fi
-
-echo -n "press enter to continue "
-read answer

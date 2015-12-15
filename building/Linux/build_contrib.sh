@@ -18,8 +18,6 @@ CONTRIB_DIR=$BUILD_DIR/../../../contribs/$contrib
 
 if ! [ -d "$CONTRIB_DIR" ]; then 
   echo "(!) Cannot find the contrib $contrib."
-  echo -n "press enter to exit "
-  read answer
   exit
 fi
 
@@ -30,8 +28,6 @@ else
 fi
 if !([ "$mode" = "release" ] || [ "$mode" = "debug" ]); then
   echo "(!) Second argument should be: release, debug or should be avoided."
-  echo -n "press enter to exit "
-  read answer  
   exit
 fi
 suffix=-$mode
@@ -77,6 +73,3 @@ read answer
 if [ "$answer" = "y" ]; then
   sudo make install
 fi
-
-echo -n "press enter to continue "
-read answer

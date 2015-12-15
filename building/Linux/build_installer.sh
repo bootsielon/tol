@@ -9,7 +9,7 @@
 BUILD_DIR=$PWD/$(dirname $0)
 
 TRUNK_DIR=$BUILD_DIR/../..
-if ![ -d "$TRUNK_DIR" ]; then 
+if ! [ -d "$TRUNK_DIR" ]; then 
   echo "(!) Cannot find folder: $TRUNK_DIR"
   exit
 fi
