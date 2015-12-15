@@ -31,7 +31,7 @@ if( NOT CLAPACK_DIR )
   if( UNIX )
     set( CLAPACK_DIR /usr )
   else( UNIX )
-    message( STATUS "Unkown CLAPACK_DIR for system ${CMAKE_SYSTEM_NAME}" )
+    message( STATUS "Unknown CLAPACK_DIR for system ${CMAKE_SYSTEM_NAME}" )
   endif( UNIX )
 endif( NOT CLAPACK_DIR )
 
