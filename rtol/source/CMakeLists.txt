@@ -7,6 +7,8 @@ include_directories( ${RINSIDE_INCLUDE_DIRS} )
 message( STATUS "Using TOL_INCLUDE_DIR = ${TOL_INCLUDE_DIR}" )
 message( STATUS "Using RINSIDE_INCLUDE_DIRS = ${RINSIDE_INCLUDE_DIRS}" )
 
+SET(CMAKE_INSTALL_RPATH "$ORIGIN")
+
 add_library( tolRlink SHARED tolRlink.cpp )
 
 set_target_properties( tolRlink PROPERTIES PREFIX "")
