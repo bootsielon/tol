@@ -12,7 +12,11 @@ SET(CMAKE_INSTALL_RPATH "$ORIGIN")
 add_library( tolRlink SHARED tolRlink.cpp )
 
 set_target_properties( tolRlink PROPERTIES PREFIX "")
-target_link_libraries( tolRlink ${TOL_LIBRARIES} ${RINSIDE_LIBRARIES} )
+
+target_link_libraries( tolRlink ${TOL_LIBRARIES} )
+if( WIN32 )
+  target_link_libraries( tolRlink ${R_LIBRARY_BASE} )
+endif( WIN32 )
 
 # message( STATUS "RTOL_DEST_DIR = ${RTOL_DEST_DIR}" )
 if( WIN32 )
