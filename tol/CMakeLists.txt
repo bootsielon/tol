@@ -237,6 +237,7 @@ add_definitions( -DHAVE_CONFIG_H -DUSE_DELAY_INIT -D__USE_ZIP_ARCHIVE__
 
 if( CMAKE_SYSTEM_NAME STREQUAL "Linux" )
   add_definitions( -DUNIX )
+  #set( CMAKE_SHARED_LINKER_FLAGS "-rdynamic ${CMAKE_SHARED_LINKER_FLAGS}" )
 endif( )
 
 if ( MINGW )

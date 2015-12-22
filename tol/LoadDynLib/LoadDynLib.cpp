@@ -33,6 +33,7 @@ This file implements the global built-in function used to load libraries.
 #include <tol/tol_blanguag.h>
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bdatgra.h>
+#include <tol/tol_bsetgra.h>
 #include <tol/tol_bdir.h>
 
 #include <ltdl.h>
@@ -122,6 +123,94 @@ BGraContensP<BNameBlock>* NewUserNameBlock()
     contens_ = true;
   }
 }
+
+//--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatDynLoad);
+DefExtOpr(1, BDatDynLoad, "DynLoad", 1, 2, "Text Set",
+          "(Text libraryPath [, Set options])",
+          I2("Load a dynamic library without TOL built-in functions.",
+             "Carga una librería dinámica sin funciones TOL nativas."),
+          BOperClassify::Statistic_);
+void BDatDynLoad::CalcContens()
+//--------------------------------------------------------------------
+{
+  if(CheckNonDeclarativeAction("LoadDynLib")) { return; }
+  BText& libraryPath = Text(Arg(1));
+  lt_dladvise advise;
+  if( Arg( 2 ) )
+    {
+    BSet& options = Set( Arg( 2 ) );
+    bool hasAdvise = false;
+    bool global = false;
+    BSyntaxObject *obj = options["global"];
+    if ( obj && obj->Grammar() == GraReal( ) )
+      {
+      BDat &dGlobal = Dat( obj );
+      global = dGlobal.Value() != 0;
+      hasAdvise = true;
+      }
+    else
+      {
+      Warning( "DynLoad: global option provided but with wrong type, must be Real" );
+      }
+    if ( hasAdvise )
+      {
+      if ( !lt_dladvise_init( &advise ) )
+        {
+        if ( global )
+          {
+          lt_dladvise_global( &advise );
+          }
+        }
+      else
+        {
+        advise = NULL;
+        Warning( "DynLoad: not using advise, lt_dladvise_init failed" );
+        }
+      }
+    else
+      {
+      advise = NULL;
+      }
+    }
+  else
+    {
+    advise = NULL;
+    }
+//Std(BText("\nTRACE BLoadDynLib::Evaluator 1 libraryPath=")+libraryPath);
+//Std(BText("\nTRACE BLoadDynLib::Evaluator 2 libraryName=")+libraryName);
+  BUserNameBlock* unb ATTR_UNUSED = NULL;
+
+  // se cambia el directorio de trabajo (cwd) inicial
+  BText currentDir = BDir::GetCurrent();
+  BDir::ChangeCurrent(GetFilePath(libraryPath));
+
+  lt_dlhandle handleLib;
+
+  // abro la DynLib
+  handleLib = lt_dlopenadvise( libraryPath, advise );
+  
+  // se retorna al directorio de trabajo (cwd) inicial
+  BDir::ChangeCurrent(currentDir);
+
+  if ( !handleLib ) 
+  {
+  //Std(BText("\nTRACE BLoadDynLib::Evaluator 3 lt_dlerror='")+lt_dlerror()+"'");
+    BText reason( lt_dlerror( ) );
+    Error(BText("[LoadDynLib(\"")+libraryPath+"\")]"+" \n"
+    "  lt_dlopen error:'"+reason+"'");
+    contens_ = false;
+  } 
+  else
+  {
+    contens_ = true;
+  }
+  if ( advise )
+    {
+    lt_dladvise_destroy( &advise );
+    }
+}
+
 
 //--------------------------------------------------------------------
 class BLoadDynLib: public BExternalOperator
