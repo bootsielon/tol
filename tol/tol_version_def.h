@@ -22,8 +22,8 @@
 // DEFINES
 ////////////////////////////////////////////////////////////////////////////////////
 #define VERSION_MAJOR   3
-#define VERSION_MINOR   5
-#define VERSION_BUILD   "b000"
+#define VERSION_MINOR   3
+#define VERSION_BUILD   "p001"
 
 #if defined(_MSC_VER)
 #include "tol_build_date.h"
