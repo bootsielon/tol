@@ -15,6 +15,8 @@
 #include "locale.h"
 #ifdef WIN32
 #include <windows.h>
+#else
+#include "tol/tol_init.h"
 #endif
 
 // Tcl_SetStartupScript
@@ -99,6 +101,7 @@ main(argc, argv)
     TK_LOCAL_MAIN_HOOK(&argc, &argv);
 #endif
 
+    const char * version = TOLVersion();
     Tk_Main(argc, argv, TK_LOCAL_APPINIT);
     return 0;			/* Needed only to prevent compiler warning. */
 }

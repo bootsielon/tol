@@ -1,5 +1,5 @@
 add_definitions( -DTCL_THREADS -DTOLBASE_VERSION=\"${TOLBASE_VERSION_MAJOR}.${TOLBASE_VERSION_MINOR}\")
-include_directories( ${TCL_INCLUDE_PATH} )
+include_directories( ${TCL_INCLUDE_PATH} ${TOL_INCLUDE_DIR} )
  
 message( STATUS "Using TCL_INCLUDE_PATH = ${TCL_INCLUDE_PATH}" )
 message( STATUS "Using TCL_LIBRARY = ${TCL_LIBRARY}" )
@@ -23,7 +23,11 @@ endif(MINGW)
 
 add_executable( tolbase tolbase.c ${RES_FILES})
 
-target_link_libraries( tolbase ${TCL_LIBRARY} ${TK_LIBRARY} )
+if( WIN32 )
+  target_link_libraries( tolbase ${TCL_LIBRARY} ${TK_LIBRARY} )
+else( WIN32 )
+  target_link_libraries( tolbase ${TCL_LIBRARY} ${TK_LIBRARY} ${TOL_LIBRARY} )
+endif( WIN32 )
 
 message( STATUS "TOLBASE_DEST_DIR = ${TOLBASE_DEST_DIR}" )
 install( TARGETS tolbase RUNTIME DESTINATION "bin" )
