@@ -1,6 +1,10 @@
 #include <tcl.h>
 #include "toltcl.h"
 
+#if !defined(WIN32)
+#include "tol/tol_init.h"
+#endif
+
 static int g_argc = 0;
 static char **g_argv = NULL;
 
@@ -44,6 +48,7 @@ int main(int argc, char *argv[])
 {
   g_argc = argc;
   g_argv = argv;
+  const char * version = TOLVersion();
   Tcl_Main( 1, argv, AppInit );
   return 0;
 }
