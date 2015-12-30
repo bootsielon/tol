@@ -15,11 +15,20 @@ set_target_properties( toltcl PROPERTIES OUTPUT_NAME
 
 set_target_properties( toltcl PROPERTIES COMPILE_FLAGS "-DBUILD_TOLTCL -DUSE_TCL_STUBS")
 
-target_link_libraries( toltcl
-  ${TCL_STUB_LIBRARY} ${TOL_LIBRARY} )
+if( WIN32 )
+  target_link_libraries( toltcl
+    ${TCL_STUB_LIBRARY} ${TOL_LIBRARY} )
+else( WIN32 )
+  target_link_libraries( toltcl
+    ${TCL_STUB_LIBRARY} )
+endif( WIN32 )
 
 add_executable( tolsh tolsh.c )
-target_link_libraries( tolsh ${TCL_LIBRARY} )
+if( WIN32 )
+  target_link_libraries( tolsh ${TCL_LIBRARY} )
+else( WIN32 )
+  target_link_libraries( tolsh ${TCL_LIBRARY} ${TOL_LIBRARY} )
+endif( WIN32 )
 
 message( STATUS "TOLTCL_DEST_DIR = ${TOLTCL_DEST_DIR}" )
 install( TARGETS tolsh RUNTIME DESTINATION "bin" )
