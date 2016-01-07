@@ -8,6 +8,9 @@ message( STATUS "Using TCL_INCLUDE_PATH = ${TCL_INCLUDE_PATH}" )
 message( STATUS "Using TCL_STUB_LIBRARY = ${TCL_STUB_LIBRARY}" )
 message( STATUS "Using TCL_LIBRARY = ${TCL_LIBRARY}" )
 
+if( UNIX )
+  SET(CMAKE_INSTALL_RPATH "$ORIGIN/..") 
+endif( UNIX )
 add_library( toltcl SHARED
   crash.c toltcl.c pool.cpp tclutils.cpp tolaccess.cpp tolsergrp.cpp 
   toltableset.cpp toltime.cpp
@@ -26,6 +29,9 @@ else( WIN32 )
     ${TCL_STUB_LIBRARY} )
 endif( WIN32 )
 
+if( UNIX )
+  SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib") 
+endif( UNIX )
 add_executable( tolsh tolsh.c )
 if( WIN32 )
   target_link_libraries( tolsh ${TCL_LIBRARY} )

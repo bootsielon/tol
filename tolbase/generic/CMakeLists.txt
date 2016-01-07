@@ -21,6 +21,9 @@ if(MINGW)
   endif(CMAKE_SIZEOF_VOID_P EQUAL 4)
 endif(MINGW)
 
+if( UNIX )
+  SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+endif( UNIX )
 add_executable( tolbase tolbase.c ${RES_FILES})
 
 if( WIN32 )

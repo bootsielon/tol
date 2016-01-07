@@ -422,6 +422,9 @@ foreach( d
 #    list( APPEND tol_sublibs ${d} )
 #  endif( )
 endforeach( )
+if( UNIX )
+  SET(CMAKE_INSTALL_RPATH "$ORIGIN") 
+endif( UNIX )
 add_library( tol SHARED ${TOL_SUBLIBRARIES} )
 if( WIN32 )
   set( PLATFORM_LIBRARIES ws2_32 )
@@ -433,6 +436,9 @@ target_link_libraries( tol
   ${ZIPARCHIVE_LIBRARY} ${CHOLMOD_LIBRARIES} ${LTDL_LIBRARIES}
   ${PLATFORM_LIBRARIES} ${LAPACK_LIBRARIES} )
 
+if( UNIX )
+  SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib") 
+endif( UNIX )
 add_executable( tolcon tol.cpp )
 target_link_libraries( tolcon tol )
 
