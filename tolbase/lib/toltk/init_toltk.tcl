@@ -72,7 +72,7 @@ proc TraceMainGeometry { msg } {
   package require -exact BLT 2.4
   package require autoscroll 1.1
   package require tclodbc
-  package require -exact Toltcl 3.2
+  package require -exact Toltcl 3.3
   package require rmtps_client
   package require byswidget
   package require mkWidgets 1.3
