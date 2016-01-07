@@ -1,0 +1,50 @@
+if( CMAKE_SYSTEM_NAME MATCHES "Linux" )
+  set( SPECIFIC_SYSTEM_VERSION_NAME "${CMAKE_SYSTEM_NAME}" )
+  set( SPECIFIC_SYSTEM_PREFERED_CPACK_GENERATOR "TGZ" )
+  if( EXISTS "/etc/issue" )
+    set( LINUX_NAME "" )
+    file( READ "/etc/issue" LINUX_ISSUE )
+    message( STATUS "LINUX_ISSUE = ${LINUX_ISSUE}" )
+    # CentOS case
+    if( LINUX_ISSUE MATCHES "CentOS" )
+      string( REGEX MATCH "release ([0-9]+)" CENTOS "${LINUX_ISSUE}" )
+      set( LINUX_NAME "CentOS_${CMAKE_MATCH_1}" )  
+      set( SPECIFIC_SYSTEM_PREFERED_CPACK_GENERATOR "RPM" )      
+    endif( LINUX_ISSUE MATCHES "CentOS" )
+    # Fedora case
+    if( LINUX_ISSUE MATCHES "Fedora" )
+      string( REGEX MATCH "release ([0-9]+)" FEDORA "${LINUX_ISSUE}" )
+      set( LINUX_NAME "FC${CMAKE_MATCH_1}" )  
+      set( SPECIFIC_SYSTEM_PREFERED_CPACK_GENERATOR "RPM" )      
+    endif( LINUX_ISSUE MATCHES "Fedora" )
+    # Ubuntu case
+    if( LINUX_ISSUE MATCHES "Ubuntu" )
+      string( REGEX MATCH "buntu ([0-9]+\\.[0-9]+)" UBUNTU "${LINUX_ISSUE}" )
+      set( LINUX_NAME "Ubuntu_${CMAKE_MATCH_1}" )        
+      set( SPECIFIC_SYSTEM_PREFERED_CPACK_GENERATOR "DEB" )
+    endif( LINUX_ISSUE MATCHES "Ubuntu" )
+    # Debian case
+    if( LINUX_ISSUE MATCHES "Debian" )
+      string( REGEX MATCH "Debian .*ux ([a-zA-Z]*/?[a-zA-Z]*) .*" DEBIAN "${LINUX_ISSUE}" )
+      set( LINUX_NAME "Debian_${CMAKE_MATCH_1}" )
+      string( REPLACE "/" "_" LINUX_NAME ${LINUX_NAME} ) 
+      set( SPECIFIC_SYSTEM_PREFERED_CPACK_GENERATOR "DEB" )       
+    endif( LINUX_ISSUE MATCHES "Debian" )      
+    # Open SuSE case
+    if( LINUX_ISSUE MATCHES "SUSE" )
+      string( REGEX MATCH "SUSE  ([0-9]+\\.[0-9]+)" SUSE "${LINUX_ISSUE}" )
+      set( LINUX_NAME "openSUSE_${CMAKE_MATCH_1}" )
+      string( REPLACE "/" "_" LINUX_NAME ${LINUX_NAME} )   
+      set( SPECIFIC_SYSTEM_PREFERED_CPACK_GENERATOR "RPM" )     
+    endif( LINUX_ISSUE MATCHES "SUSE" )
+    # Mandriva case
+    # TODO      
+    if( LINUX_NAME ) 
+      set( SPECIFIC_SYSTEM_VERSION_NAME "${CMAKE_SYSTEM_NAME}-${LINUX_NAME}" )
+    endif( LINUX_NAME )    
+  endif( EXISTS "/etc/issue" )      
+endif( CMAKE_SYSTEM_NAME MATCHES "Linux" )
+
+set( SPECIFIC_SYSTEM_VERSION_NAME "${SPECIFIC_SYSTEM_VERSION_NAME}-${CMAKE_SYSTEM_PROCESSOR}" )
+
+message( STATUS "SPECIFIC_SYSTEM_VERSION_NAME = ${SPECIFIC_SYSTEM_VERSION_NAME}" )
