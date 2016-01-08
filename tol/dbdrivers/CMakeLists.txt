@@ -22,11 +22,17 @@ if( PostgreSQL_FOUND )
   install( TARGETS tolpgsql0 RUNTIME DESTINATION bin LIBRARY DESTINATION lib )
 endif( )
 
+include(CheckCSourceCompiles)
+CHECK_C_SOURCE_COMPILES(
+    "#include <math.h>\nint main() { int a = isnan(0e0); return 0; }\n"
+    HAVE_ISNAN )
+message( STATUS "HAVE_ISNAN = ${HAVE_ISNAN}")	
 add_library( tolsqlite0 SHARED libtolsqlite.c sqlite/sqlite3.c )
+target_compile_definitions( tolsqlite0 PRIVATE -DHAVE_ISNAN=${HAVE_ISNAN} )
 set_target_properties( tolsqlite0 PROPERTIES PREFIX "" )
-if ( CMAKE_BUILD_TYPE STREQUAL "Release" )
-  set_target_properties( tolsqlite0 PROPERTIES COMPILE_FLAGS "-O2" )
-endif()
+#if ( CMAKE_BUILD_TYPE STREQUAL "Release" )
+#  set_target_properties( tolsqlite0 PROPERTIES COMPILE_FLAGS "-O2" )
+#endif()
 target_include_directories( tolsqlite0 PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/sqlite" )
 install( TARGETS tolsqlite0 RUNTIME DESTINATION bin LIBRARY DESTINATION lib )
   
