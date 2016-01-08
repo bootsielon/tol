@@ -48,7 +48,9 @@ int main(int argc, char *argv[])
 {
   g_argc = argc;
   g_argv = argv;
+  #if !defined(WIN32)
   const char * version = TOLVersion();
+  #endif
   Tcl_Main( 1, argv, AppInit );
   return 0;
 }
