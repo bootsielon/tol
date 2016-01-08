@@ -85,9 +85,9 @@ set( CPACK_DEBIAN_gui_PACKAGE_DEPENDS "tol-core (= ${CPACK_PACKAGE_VERSION}), tk
 #file(GLOB RT_EXE  ${exe_pattern} "${TOL_RUNTIME_DIR}/bin/confenv.sh" )
 set( PREFIX_TOL "lib${LIBSUFFIX}/tol${CPACK_PACKAGE_VERSION}" ) 
 install(FILES 
-  "${TOL_RUNTIME_DIR}/bin/confenv.sh"
-  "${TOL_RUNTIME_DIR}/bin/tolcon.sh"
-  "${TOL_RUNTIME_DIR}/bin/tolsh.sh"
+#  "${TOL_RUNTIME_DIR}/bin/confenv.sh"
+#  "${TOL_RUNTIME_DIR}/bin/tolcon.sh"
+#  "${TOL_RUNTIME_DIR}/bin/tolsh.sh"
   "${TOL_RUNTIME_DIR}/bin/tolcon"
   "${TOL_RUNTIME_DIR}/bin/tolsh"
   DESTINATION "${PREFIX_TOL}/bin"
@@ -117,7 +117,7 @@ install( DIRECTORY ${include_dir} DESTINATION "${PREFIX_TOL}"
 # TOLBASE = gui
 subdirlist( tclExtDirs "${TOL_RUNTIME_DIR}/lib" )
 install(FILES 
-  "${TOL_RUNTIME_DIR}/bin/tolbase.sh"
+#  "${TOL_RUNTIME_DIR}/bin/tolbase.sh"
   "${TOL_RUNTIME_DIR}/bin/tolbase"
   DESTINATION "${PREFIX_TOL}/bin"
   COMPONENT gui
@@ -135,11 +135,11 @@ install( DIRECTORY ${tclExtDirs} DESTINATION "${PREFIX_TOL}/lib"
 ## install(FILES ${RT_SH} DESTINATION "bin" PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_WRITE WORLD_EXECUTE)
 
 # nombre del paquete instalador
-if( SPECIFIC_SYSTEM_PREFERED_CPACK_GENERATOR STREQUAL "RPM" )
-  configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/rpm_post_install.sh.in 
-    ${CMAKE_CURRENT_BINARY_DIR}/rpm_post_install.sh )
-  set( CPACK_RPM_core_POST_INSTALL_SCRIPT_FILE
-    "${CMAKE_CURRENT_BINARY_DIR}/rpm_post_install.sh" PARENT_SCOPE )
-endif( SPECIFIC_SYSTEM_PREFERED_CPACK_GENERATOR STREQUAL "RPM" )
+#if( SPECIFIC_SYSTEM_PREFERED_CPACK_GENERATOR STREQUAL "RPM" )
+#  configure_file(
+#    ${CMAKE_CURRENT_SOURCE_DIR}/rpm_post_install.sh.in 
+#    ${CMAKE_CURRENT_BINARY_DIR}/rpm_post_install.sh )
+#  set( CPACK_RPM_core_POST_INSTALL_SCRIPT_FILE
+#    "${CMAKE_CURRENT_BINARY_DIR}/rpm_post_install.sh" PARENT_SCOPE )
+#endif( SPECIFIC_SYSTEM_PREFERED_CPACK_GENERATOR STREQUAL "RPM" )
 # Estudiar como hacer lo mismo con CPACK_DEBIAN_core_PACKAGE_CONTROL_EXTRA
