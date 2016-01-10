@@ -79,10 +79,6 @@ endif( TCL_FOUND )
 set( TOLTCL_DEST_DIR "lib/toltcl${TOLTCL_VERSION_MAJOR}.${TOLTCL_VERSION_MINOR}"
   CACHE INTERNAL "" )
 
-if( UNIX )
-  add_subdirectory( bin )
-endif( UNIX )
-
 add_subdirectory( generic )
 add_subdirectory( library )
 
