@@ -442,10 +442,6 @@ endif( UNIX )
 add_executable( tolcon tol.cpp )
 target_link_libraries( tolcon tol )
 
-if( UNIX )
-  add_subdirectory( bin )
-endif( UNIX )
-
 #message( STATUS "ALL_HEADERS_LIST ${ALL_HEADERS_LIST}" )
 add_custom_target( COPY_HEADERS ALL DEPENDS ${COPY_HEADERS_DEPENDS} )
 
