@@ -103,9 +103,6 @@ set( CPACK_DEBIAN_gui_PACKAGE_DEPENDS "tol-core (= ${CPACK_PACKAGE_VERSION}), tk
 #file(GLOB RT_EXE  ${exe_pattern} "${TOL_RUNTIME_DIR}/bin/confenv.sh" )
 set( PREFIX_TOL "lib${LIBSUFFIX}/tol${CPACK_PACKAGE_VERSION}" ) 
 install(FILES 
-#  "${TOL_RUNTIME_DIR}/bin/confenv.sh"
-#  "${TOL_RUNTIME_DIR}/bin/tolcon.sh"
-#  "${TOL_RUNTIME_DIR}/bin/tolsh.sh"
   "${TOL_RUNTIME_DIR}/bin/tolcon"
   "${TOL_RUNTIME_DIR}/bin/tolsh"
   DESTINATION "${PREFIX_TOL}/bin"
@@ -135,7 +132,7 @@ install( DIRECTORY ${include_dir} DESTINATION "${PREFIX_TOL}"
 # TOLBASE = gui
 subdirlist( tclExtDirs "${TOL_RUNTIME_DIR}/lib" )
 install(FILES 
-#  "${TOL_RUNTIME_DIR}/bin/tolbase.sh"
+  "${TOL_RUNTIME_DIR}/bin/tolbase.tcl"
   "${TOL_RUNTIME_DIR}/bin/tolbase"
   DESTINATION "${PREFIX_TOL}/bin"
   COMPONENT gui
