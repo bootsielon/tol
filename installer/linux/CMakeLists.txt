@@ -120,8 +120,10 @@ file(TO_CMAKE_PATH "${TOL_RUNTIME_DIR}/lib" lib_dir)
 file( GLOB TOL_SH_LIBS  "${TOL_RUNTIME_DIR}/lib/*.so" )
 install( FILES ${TOL_SH_LIBS} DESTINATION "${PREFIX_TOL}/lib"
   COMPONENT core)
-file( GLOB toltcl_dir  "${TOL_RUNTIME_DIR}/lib/toltcl*" )
-install( DIRECTORY ${toltcl_dir} DESTINATION "${PREFIX_TOL}/lib"
+file( GLOB toltcl_dirs  
+  "${TOL_RUNTIME_DIR}/lib/toltcl*"
+  "${TOL_RUNTIME_DIR}/lib/TclCurl*" )
+install( DIRECTORY ${toltcl_dirs} DESTINATION "${PREFIX_TOL}/lib"
   COMPONENT core )
 
 # INCLUDE
@@ -141,7 +143,8 @@ install(FILES
   WORLD_EXECUTE)
 install( DIRECTORY ${tclExtDirs} DESTINATION "${PREFIX_TOL}/lib"
   COMPONENT gui
-  PATTERN *toltcl* EXCLUDE )
+  PATTERN *toltcl* EXCLUDE
+  PATTERN *TclCurl* EXCLUDE )
 
 # SCRIPTS (/usr/bin)
 ## !!
