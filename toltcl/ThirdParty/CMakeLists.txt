@@ -4,8 +4,13 @@ get_filename_component( TCL_LIB_DIR ${TCL_LIBRARY} DIRECTORY )
 get_filename_component( TK_LIB_DIR ${TK_LIBRARY} DIRECTORY )
 
 if( BUILD_TCLCURL )
+  if( TCLCURL_VERSION )
+    set( tclcurl_tgz "TclCurl-${TCLCURL_VERSION}.tar.gz" )
+  else( TCLCURL_VERSION )
+    set( tclcurl_tgz "TclCurl-7.22.0.tar.gz" )
+  endif( TCLCURL_VERSION )
   ExternalProject_Add( tclcurl
-    URL ${CMAKE_CURRENT_SOURCE_DIR}/TclCurl-7.22.0.tar.gz
+    URL ${CMAKE_CURRENT_SOURCE_DIR}/${tclcurl_tgz}
     PREFIX ${CMAKE_CURRENT_BINARY_DIR}
     CONFIGURE_COMMAND ${CMAKE_CURRENT_BINARY_DIR}/src/tclcurl/configure
     --prefix=${CMAKE_CURRENT_BINARY_DIR}
