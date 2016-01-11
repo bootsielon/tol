@@ -1,7 +1,9 @@
 #include <tcl.h>
 #include "toltcl.h"
 
-#if !defined(WIN32)
+#if defined(WIN32)
+#include "windows.h"
+#else
 #include "tol/tol_init.h"
 #endif
 
@@ -26,6 +28,27 @@ void SetupArgv( Tcl_Interp *interp )
     Tcl_SetVar2Ex(interp, "argc", NULL, Tcl_NewIntObj(g_argc-1), TCL_GLOBAL_ONLY);
 }
 
+#if defined(WIN32)
+void SetupDllSearchPath( const char *argv0 )
+{
+  int n;
+  //const char **strArr;
+  const char **ptr;
+  Tcl_DString dstr;
+  
+  //ptr = &strArr;
+  Tcl_SplitPath( argv0, &n, &ptr );
+  if( n >= 2 )
+    {
+	  Tcl_DStringInit( &dstr );
+      Tcl_JoinPath( n - 1, ptr,  &dstr );
+	  SetDllDirectory( Tcl_DStringValue( &dstr ) );
+	  Tcl_DStringFree( &dstr );
+    }
+  Tcl_Free( (char*)ptr );
+}
+#endif
+
 int AppInit(Tcl_Interp *interp)
 {
   if( Tcl_Init(interp) == TCL_ERROR )
@@ -33,8 +56,12 @@ int AppInit(Tcl_Interp *interp)
     return TCL_ERROR;
     }
   SetupArgv( interp );
+  const char *argv0 = Tcl_GetNameOfExecutable();
+#if defined(WIN32)
+  SetupDllSearchPath( argv0 );
+#endif   
   Tcl_VarEval( interp, "lappend", " auto_path", " [file join",
-               " [file dir [file dir ", Tcl_GetNameOfExecutable(),
+               " [file dir [file dir ", argv0,
                " ] ] lib ]", NULL );
   if ( !Tcl_PkgRequire( interp, "TolshApp", TOLTCL_VERSION, 1) )
     {
