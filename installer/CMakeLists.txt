@@ -20,5 +20,3 @@ if( WIN32 )
 else(WIN32)
   add_subdirectory( linux )
 endif( WIN32 )
-
-include( CPack )

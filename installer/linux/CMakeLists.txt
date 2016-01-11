@@ -165,3 +165,5 @@ install( DIRECTORY ${tclExtDirs} DESTINATION "${PREFIX_TOL}/lib"
 #    "${CMAKE_CURRENT_BINARY_DIR}/rpm_post_install.sh" PARENT_SCOPE )
 #endif( SPECIFIC_SYSTEM_PREFERED_CPACK_GENERATOR STREQUAL "RPM" )
 # Estudiar como hacer lo mismo con CPACK_DEBIAN_core_PACKAGE_CONTROL_EXTRA
+
+include( CPack )

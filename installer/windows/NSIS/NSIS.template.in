@@ -21,7 +21,7 @@
   Var IS_DEFAULT_INSTALLDIR
 ;--------------------------------
   !include "StrFunc.nsh"
-  !addincludedir @CMAKE_SOURCE_DIR@/NSIS
+  !addincludedir @CMAKE_SOURCE_DIR@/windows/NSIS
   !include EnvVarUpdate.nsh
 ;Include Modern UI
 
