@@ -19,7 +19,7 @@
    USA.
  */
 
-#include "VButils.h"
+#include "vbutils.h"
 
 /*
   Convert a Character Array to a BSTR String

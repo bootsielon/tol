@@ -20,12 +20,19 @@
  */
 
 #include <windows.h>
-#include <config.h>
-#include <tol_init.h>
-#include <tol_bout.h>
-#include <tol_list.h>
+#if defined(_MSC_VER)
+  #include <config.h>
+  #include <tol_init.h>
+  #include <tol_bout.h>
+  #include <tol_list.h>
+#else
+  #include <tol/config.h>
+  #include <tol/tol_init.h>
+  #include <tol/tol_bout.h>
+  #include <tol/tol_list.h>
+#endif
 
-#include "VButils.h"
+#include "vbutils.h"
 
 /*
  *  Decompile all Tol objects
@@ -33,7 +40,7 @@
  *  returns 1 if there was some object to be decompiled, otherwise returns 0
  */
 //---------------------------------------------------------------------------
-short __declspec(dllexport) CALLBACK TolDecompileAll()
+DLLEXPORT(short) TolDecompileAll()
 //---------------------------------------------------------------------------
 {
   BList *P = VB_stack.Cdr();
@@ -57,7 +64,7 @@ short __declspec(dllexport) CALLBACK TolDecompileAll()
  *  returns 1 if an object whith that name was found and decompiled, otherwise returns 0
  */
 //---------------------------------------------------------------------------
-short __declspec(dllexport) CALLBACK TolDecompile(BSTR name)
+DLLEXPORT(short) TolDecompile(BSTR name)
 //---------------------------------------------------------------------------
 {
   LPSTR str_name = (LPSTR)name;
@@ -107,7 +114,7 @@ int VBTol_EvalExpr(char * expr, short* nerror, short* nwarning)
  *  returns 1 if an object was created by the evaluation, otherwise 0
  */
 //---------------------------------------------------------------------------
-short __declspec(dllexport) CALLBACK TolEval(BSTR expr, short* nerror, short* nwarning)
+DLLEXPORT(short) TolEval(BSTR expr, short* nerror, short* nwarning)
 //---------------------------------------------------------------------------
 {
   LPSTR str_expr;
@@ -131,7 +138,7 @@ void VBTol_InstallHciWriter()
  * initlib - if it's non zero the InitLibrary will be loaded
  */
 //---------------------------------------------------------------------------
-void __declspec(dllexport) CALLBACK TolInit(long addr, BSTR vmode, short initlib)
+DLLEXPORT(void) TolInit(long addr, BSTR vmode, short initlib)
 //---------------------------------------------------------------------------
 {
   VB_Writer = (FN_PTR)addr;

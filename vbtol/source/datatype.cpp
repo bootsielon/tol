@@ -21,16 +21,23 @@
    USA.
  */
 
-#include <config.h>
-#include <tol_init.h>
-#include <tol_bgrammar.h>
+#if defined(_MSC_VER)
+  #include <config.h>
+  #include <tol_init.h>
+  #include <tol_bgrammar.h> 
+#else
+  #include <tol/config.h>
+  #include <tol/tol_init.h>
+  #include <tol/tol_bgrammar.h>
+#endif
+
 #include <tol/tol_bdat.h>
 #include <tol/tol_bdatgra.h>
 #include <tol/tol_blanguag.h>
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bmatgra.h>
 
-#include "VButils.h"
+#include "vbutils.h"
 
 /*
  *  Obtains the value of an object TOL of type Text
@@ -41,7 +48,7 @@
  *  returns 1 if the object was found and its value returned, otherwise 0
  */
 //---------------------------------------------------------------------------
-short __declspec(dllexport) CALLBACK TolGetText(BSTR lvalue, BSTR * retvalue)
+extern "C" __declspec(dllexport) short __stdcall TolGetText(BSTR lvalue, BSTR * retvalue)
 //---------------------------------------------------------------------------
 {
   LPSTR str_lvalue = (LPSTR)lvalue;
@@ -68,7 +75,7 @@ short __declspec(dllexport) CALLBACK TolGetText(BSTR lvalue, BSTR * retvalue)
  *  returns 1 if the object was created, otherwise returns 0
  */
 //---------------------------------------------------------------------------
-short __declspec(dllexport) CALLBACK TolCreateText(BSTR name, BSTR value)
+extern "C" __declspec(dllexport) short __stdcall TolCreateText(BSTR name, BSTR value)
 //---------------------------------------------------------------------------
 {
   LPSTR str_name = (LPSTR)name;
@@ -109,7 +116,7 @@ struct stolreal
  *  returns 1 if the object was found and its value returned, otherwise 0
  */
 //---------------------------------------------------------------------------
-short __declspec(dllexport) CALLBACK TolGetReal(BSTR lvalue, stolreal * retvalue)
+extern "C" __declspec(dllexport) short __stdcall TolGetReal(BSTR lvalue, stolreal * retvalue)
 //---------------------------------------------------------------------------
 {
   LPSTR str_lvalue = (LPSTR)lvalue;
@@ -145,7 +152,7 @@ short __declspec(dllexport) CALLBACK TolGetReal(BSTR lvalue, stolreal * retvalue
  *  returns 1 if the object was created, otherwise returns 0
  */
 //---------------------------------------------------------------------------
-short __declspec(dllexport) CALLBACK TolCreateReal(BSTR name, stolreal * value)
+extern "C" __declspec(dllexport) short __stdcall TolCreateReal(BSTR name, stolreal * value)
 //---------------------------------------------------------------------------
 {
   LPSTR str_name = (LPSTR)name;
@@ -342,7 +349,7 @@ short GetMatrixRange(BSTR lvalue,
  *  an incorrect type of the array retmask given as a parameter
  */
 //---------------------------------------------------------------------------
-short __declspec(dllexport) CALLBACK TolGetRange(BSTR lvalue,
+extern "C" __declspec(dllexport) short __stdcall TolGetRange(BSTR lvalue,
                                                  long frow, long lrow,
                                                  long fcol, long lcol,
                                                  LPSAFEARRAY FAR * retvalue,
@@ -367,7 +374,7 @@ short __declspec(dllexport) CALLBACK TolGetRange(BSTR lvalue,
  *  an incorrect type of the array retmask given as a parameter
  */
 //---------------------------------------------------------------------------
-short __declspec(dllexport) CALLBACK TolGetMatrix(BSTR lvalue,
+extern "C" __declspec(dllexport) short __stdcall TolGetMatrix(BSTR lvalue,
                                                   LPSAFEARRAY FAR * retvalue,
                                                   LPSAFEARRAY FAR * retmask)
 //---------------------------------------------------------------------------
@@ -390,7 +397,7 @@ short __declspec(dllexport) CALLBACK TolGetMatrix(BSTR lvalue,
  *  an incorrect type of the array retmask given as a parameter
  */
 //---------------------------------------------------------------------------
-short __declspec(dllexport) CALLBACK TolGetRow(BSTR lvalue, long row,
+extern "C" __declspec(dllexport) short __stdcall TolGetRow(BSTR lvalue, long row,
                                                LPSAFEARRAY FAR * retvalue,
                                                LPSAFEARRAY FAR * retmask)
 //---------------------------------------------------------------------------
@@ -415,7 +422,7 @@ short __declspec(dllexport) CALLBACK TolGetRow(BSTR lvalue, long row,
  *  an incorrect type of the array retmask given as a parameter
  */
 //---------------------------------------------------------------------------
-short __declspec(dllexport) CALLBACK TolGetColumn(BSTR lvalue, long col,
+extern "C" __declspec(dllexport) short __stdcall TolGetColumn(BSTR lvalue, long col,
                                                   LPSAFEARRAY FAR * retvalue,
                                                   LPSAFEARRAY FAR * retmask)
 //---------------------------------------------------------------------------
@@ -436,7 +443,7 @@ short __declspec(dllexport) CALLBACK TolGetColumn(BSTR lvalue, long col,
  *            was correct and its value returned; otherwise returns 0.
  */
 //---------------------------------------------------------------------------
-short __declspec(dllexport) CALLBACK TolGetCell(BSTR lvalue, long row, long col,
+extern "C" __declspec(dllexport) short __stdcall TolGetCell(BSTR lvalue, long row, long col,
                                                 stolreal * retvalue)
 //---------------------------------------------------------------------------
 {
@@ -609,7 +616,7 @@ short PutMatrixRange(BSTR lvalue, long row, long col,
  *  an incorrect type of the array mask given as a parameter
  */
 //---------------------------------------------------------------------------
-short __declspec(dllexport) CALLBACK TolPutRange(BSTR lvalue, long row, long col,
+extern "C" __declspec(dllexport) short __stdcall TolPutRange(BSTR lvalue, long row, long col,
                                                  LPSAFEARRAY FAR * value,
                                                  LPSAFEARRAY FAR * mask)
 //---------------------------------------------------------------------------
@@ -634,7 +641,7 @@ short __declspec(dllexport) CALLBACK TolPutRange(BSTR lvalue, long row, long col
  *  an incorrect type of the array mask given as a parameter
  */
 //---------------------------------------------------------------------------
-short __declspec(dllexport) CALLBACK TolPutRow(BSTR lvalue, long row,
+extern "C" __declspec(dllexport) short __stdcall TolPutRow(BSTR lvalue, long row,
                                                LPSAFEARRAY FAR * value,
                                                LPSAFEARRAY FAR * mask)
 //---------------------------------------------------------------------------
@@ -659,7 +666,7 @@ short __declspec(dllexport) CALLBACK TolPutRow(BSTR lvalue, long row,
  *  an incorrect type of the array mask given as a parameter
  */
 //---------------------------------------------------------------------------
-short __declspec(dllexport) CALLBACK TolPutColumn(BSTR lvalue, long col,
+extern "C" __declspec(dllexport) short __stdcall TolPutColumn(BSTR lvalue, long col,
                                                   LPSAFEARRAY FAR * value,
                                                   LPSAFEARRAY FAR * mask)
 //---------------------------------------------------------------------------
@@ -680,7 +687,7 @@ short __declspec(dllexport) CALLBACK TolPutColumn(BSTR lvalue, long col,
  *            was correct and its value updated; otherwise returns 0.
  */
 //---------------------------------------------------------------------------
-short __declspec(dllexport) CALLBACK TolPutCell(BSTR lvalue, long row, long col,
+extern "C" __declspec(dllexport) short __stdcall TolPutCell(BSTR lvalue, long row, long col,
                                                 stolreal * value)
 //---------------------------------------------------------------------------
 {
@@ -731,7 +738,7 @@ short __declspec(dllexport) CALLBACK TolPutCell(BSTR lvalue, long row, long col,
  *  an incorrect type of the array retmask given as a parameter
  */
 //---------------------------------------------------------------------------
-short __declspec(dllexport) CALLBACK TolCreateMatrix(BSTR name,
+extern "C" __declspec(dllexport) short __stdcall TolCreateMatrix(BSTR name,
                                                      LPSAFEARRAY FAR * value,
                                                      LPSAFEARRAY FAR * mask)
 //---------------------------------------------------------------------------

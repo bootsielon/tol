@@ -24,10 +24,22 @@
 
 #include <string.h>
 #include <windows.h>
-#include <config.h>
-#include <tol_init.h>
-#include <tol_bmatgra.h>
 
+#if defined(_MSC_VER)
+  #include <config.h>
+  #include <tol_init.h>
+  #include <tol_bmatgra.h>
+#else
+  #include <tol/config.h>
+  #include <tol/tol_init.h>
+  #include <tol/tol_bmatgra.h>
+#endif
+
+#if defined(_MSC_VER)
+  #define DLLEXPORT(f) f __declspec(dllexport) CALLBACK
+#else
+  #define DLLEXPORT(f) extern "C" __declspec(dllexport) f __stdcall
+#endif
 
 class BList;
 
