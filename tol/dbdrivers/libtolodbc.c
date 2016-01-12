@@ -425,7 +425,7 @@ DLLEXPORT(int) odbc_OpenQuery(odbcd *dbd, const char *query)
 DLLEXPORT(int) odbc_ExecQuery(odbcd *dbd, const char *query)
 {
   SQLRETURN status;
-  SQLINTEGER row_count=-1;
+  SQLLEN row_count=-1;
   
   if(odbc_OpenQuery(dbd, query))
   {
@@ -472,18 +472,18 @@ DLLEXPORT(int) odbc_GetFieldType(odbcd *dbd, int nfield)
 {
   SQLCHAR szColName [SQLMAXWORD+1];
   SQLSMALLINT pfSqlType, pibScale, pfNullable;
-  SQLUINTEGER pcbColDef;
+  SQLULEN ColumnSize;
   SQLRETURN status;
   int ret = TypeDBUnknown;
  
   status = SQLDescribeCol(dbd->hstmt, nfield+1, szColName, SQLMAXWORD, NULL,
-			  &pfSqlType, &pcbColDef, &pibScale, &pfNullable);
+			  &pfSqlType, &ColumnSize, &pibScale, &pfNullable);
   if(!checkSQLRet(status, dbd, __LINE__, GET_DIAG_STMT)) {
     return -1;
   }
 
   dbd->typeList[nfield] = pfSqlType;
-  //printf( "pfSqlType=%d\n", pfSqlType ); 
+  // printf( "pfSqlType=%d\n", pfSqlType ); 
   switch (pfSqlType)
     {
     case SQL_VARCHAR: case SQL_CHAR: case SQL_LONGVARCHAR: 
@@ -523,13 +523,13 @@ DLLEXPORT(int) odbc_GetFieldName(odbcd *dbd, int nfield, char *fieldName)
   SQLRETURN status;
 
   SQLSMALLINT pfSqlType;
-  SQLUINTEGER pcbColDef;
+  SQLULEN ColumnSize;
   SQLSMALLINT pibScale;
   SQLSMALLINT pfNullable;
   
   status = SQLDescribeCol(dbd->hstmt, nfield+1,
 			  (SQLCHAR*)fieldName, SQLMAXWORD, NULL,
-			  &pfSqlType, &pcbColDef,
+			  &pfSqlType, &ColumnSize,
 			  &pibScale, &pfNullable);
 
   if(!checkSQLRet(status, dbd, __LINE__, GET_DIAG_STMT))
@@ -595,7 +595,7 @@ DLLEXPORT(int) odbc_GetAsReal(odbcd *dbd, int nfield, long double *realval)
 
   // variables for SQLGetData function
   SQLPOINTER pointer;
-  SQLINTEGER pcbValue;
+  SQLLEN pcbValue;
   int size;
   char szErrMsg[256];
   SQLSMALLINT targetType = SQL_C_DEFAULT;
@@ -689,7 +689,8 @@ printf( "case SQL_BIGINT:\n" );
 DLLEXPORT(int) odbc_GetAsText(odbcd *dbd, int n_field, UCHAR **txt_val)
 {
   SQLRETURN status;
-  SQLINTEGER num_available=0, num_required=MAX_TEXT_FIELD_LENGTH;
+  SQLINTEGER num_required=MAX_TEXT_FIELD_LENGTH;
+  SQLLEN num_available=0;
   UCHAR *str, *long_str;
 
   str = (UCHAR*) calloc(num_required, sizeof(UCHAR));
@@ -742,7 +743,7 @@ DLLEXPORT(int) odbc_GetAsDate(odbcd *dbd, int nfield, struct dateStruct **dateva
   SQL_TIMESTAMP_STRUCT *x_timestamp;
 
   SQLPOINTER pointer;
-  SQLINTEGER pcbValue;
+  SQLLEN pcbValue;
   int size;
   char *errmsg;
   SQLSMALLINT type = dbd->typeList[nfield];
@@ -772,6 +773,7 @@ DLLEXPORT(int) odbc_GetAsDate(odbcd *dbd, int nfield, struct dateStruct **dateva
 #if (ODBCVER >= 0x0300)
     case SQL_TYPE_TIMESTAMP:
 #endif
+      // printf( "preparing to extract SQL_TYPE_TIMESTAMP\n" );
       size        = sizeof(struct tagTIMESTAMP_STRUCT);
       x_timestamp = (struct tagTIMESTAMP_STRUCT *)malloc(size);
       if(x_timestamp==NULL) { stdOutWriter("Out of memory\n"); return 0; }
@@ -793,7 +795,6 @@ DLLEXPORT(int) odbc_GetAsDate(odbcd *dbd, int nfield, struct dateStruct **dateva
   if(!checkSQLRet(status, dbd, __LINE__, GET_DIAG_STMT)) { 
     return 0; 
   }
-
   /* pcbValue must be the length of the data available to return.
    * But also can be: 
    *  SQL_NO_TOTAL (there's still data to retrieve), or
@@ -826,13 +827,34 @@ DLLEXPORT(int) odbc_GetAsDate(odbcd *dbd, int nfield, struct dateStruct **dateva
 #if (ODBCVER >= 0x0300)
     case SQL_TYPE_TIMESTAMP:
 #endif
+#ifdef __DUMP_TIMESTAMP__
+      printf( "year = %hd\n", x_timestamp->year );
+      printf( "month = %hd\n", x_timestamp->month );
+      printf( "day = %hd\n", x_timestamp->day );
+      printf( "hour = %hd\n", x_timestamp->hour );
+      printf( "minute = %hd\n", x_timestamp->minute );
+      printf( "second = %hd\n", x_timestamp->second );
+      printf( "fraction = %d\n", x_timestamp->fraction );
+#endif
       (*dateval)->year    = (unsigned short)(x_timestamp->year);
       (*dateval)->month   = (unsigned short)(x_timestamp->month);
       (*dateval)->day     = (unsigned short)(x_timestamp->day);
       (*dateval)->hour    = (unsigned short)(x_timestamp->hour);
       (*dateval)->minute  = (unsigned short)(x_timestamp->minute);
       (*dateval)->second  = (unsigned short)(x_timestamp->second);
-      (*dateval)->msecond = (unsigned short)(x_timestamp->fraction);
+      // The fraction of a second, in billionths of a second.  Possible values are 0 to 999,999,999.
+      //(*dateval)->msecond = (unsigned short)(x_timestamp->fraction);
+      if ( x_timestamp->fraction > 999999999 )
+	{
+        (*dateval)->msecond = 999;
+	}
+      else
+        {
+        (*dateval)->msecond = (unsigned short)(x_timestamp->fraction/1000000.0);
+        }
+#ifdef __DUMP_TIMESTAMP__
+      printf( "(*dateval)->msecond = %d\n", (*dateval)->msecond );
+#endif
     }
   
   return 1;
