@@ -49,7 +49,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;..\..\tol\win-VC9&quot;;&quot;$(GSL_INC)&quot;;&quot;$(GOOGLE_SPARSEHASH)&quot;;..\generic;../../tol;../../tol/lang;../../tol/bbasic;../../tol/bmath;../../tol/bmath/barith;../../tol/bmath/bfunct;../../tol/bmath/blinalg;../../tol/bmath/bprdist;../../tol/bmath/bstat;../../tol/bmath/dcdflib;../../tol/bmath/mathobjects;../../tol/bparser;../../tol/btol;../../tol/btol/bdb;../../tol/btol/bgrammar;../../tol/btol/bgsl;../../tol/btol/bmodel;../../tol/btol/code_type;../../tol/btol/complex_type;../../tol/btol/date_type;../../tol/btol/matrix_type;../../tol/btol/polynomial_type;../../tol/btol/ratio_type;../../tol/btol/real_type;../../tol/btol/serie_type;../../tol/btol/set_type;../../tol/btol/text_type;../../tol/btol/timeset_type"
+				AdditionalIncludeDirectories="..\..\tol\win-VC9;&quot;$(GSL_INC)&quot;;&quot;$(GOOGLE_SPARSEHASH)&quot;;..\..\tol;..\..\tol\lang;..\..\tol\bbasic;..\..\tol\bmath;..\..\tol\bmath\barith;..\..\tol\bmath\bfunct;..\..\tol\bmath\blinalg;..\..\tol\bmath\bprdist;..\..\tol\bmath\bstat;..\..\tol\bmath\dcdflib;..\..\tol\bmath\mathobjects;..\..\tol\bparser;..\..\tol\btol;..\..\tol\btol\bdb;..\..\tol\btol\bgrammar;..\..\tol\btol\bgsl;..\..\tol\btol\bmodel;..\..\tol\btol\code_type;..\..\tol\btol\complex_type;..\..\tol\btol\date_type;..\..\tol\btol\matrix_type;..\..\tol\btol\polynomial_type;..\..\tol\btol\ratio_type;..\..\tol\btol\real_type;..\..\tol\btol\serie_type;..\..\tol\btol\set_type;..\..\tol\btol\text_type;..\..\tol\btol\timeset_type"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;HAVE_CONFIG_H;ISFILE_IMPLEMENTED;_TOL_FROZEN_;__USE_OIS__"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="3"
@@ -151,7 +151,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				InlineFunctionExpansion="0"
-				AdditionalIncludeDirectories="&quot;..\..\tol\win-VC8&quot;;&quot;$(GSL_INC)&quot;;&quot;$(GOOGLE_SPARSEHASH)&quot;;..\generic;../../tol;../../tol/lang;../../tol/bbasic;../../tol/bmath;../../tol/bmath/barith;../../tol/bmath/bfunct;../../tol/bmath/blinalg;../../tol/bmath/bprdist;../../tol/bmath/bstat;../../tol/bmath/dcdflib;../../tol/bmath/mathobjects;../../tol/bparser;../../tol/btol;../../tol/btol/bdb;../../tol/btol/bgrammar;../../tol/btol/bgsl;../../tol/btol/bmodel;../../tol/btol/code_type;../../tol/btol/complex_type;../../tol/btol/date_type;../../tol/btol/matrix_type;../../tol/btol/polynomial_type;../../tol/btol/ratio_type;../../tol/btol/real_type;../../tol/btol/serie_type;../../tol/btol/set_type;../../tol/btol/text_type;../../tol/btol/timeset_type"
+				AdditionalIncludeDirectories="..\..\tol\win-VC9;&quot;$(GSL_INC)&quot;;&quot;$(GOOGLE_SPARSEHASH)&quot;;..\..\tol;..\..\tol\lang;..\..\tol\bbasic;..\..\tol\bmath;..\..\tol\bmath\barith;..\..\tol\bmath\bfunct;..\..\tol\bmath\blinalg;..\..\tol\bmath\bprdist;..\..\tol\bmath\bstat;..\..\tol\bmath\dcdflib;..\..\tol\bmath\mathobjects;..\..\tol\bparser;..\..\tol\btol;..\..\tol\btol\bdb;..\..\tol\btol\bgrammar;..\..\tol\btol\bgsl;..\..\tol\btol\bmodel;..\..\tol\btol\code_type;..\..\tol\btol\complex_type;..\..\tol\btol\date_type;..\..\tol\btol\matrix_type;..\..\tol\btol\polynomial_type;..\..\tol\btol\ratio_type;..\..\tol\btol\real_type;..\..\tol\btol\serie_type;..\..\tol\btol\set_type;..\..\tol\btol\text_type;..\..\tol\btol\timeset_type"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;ISFILE_IMPLEMENTED;_TOL_FROZEN_;HAVE_CONFIG_H;__RELEASE__;GLS_DLL;__USE_OIS__"
 				StringPooling="false"
 				BasicRuntimeChecks="3"
