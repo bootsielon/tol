@@ -1,12 +1,13 @@
 #!/bin/bash
 #************************************************************
 # La llamada al script recibe dos argumentos:
-#   ./build.sh [tol|toltcl|tolbase|rtol] [|release|debug]
+#   ./build.sh [tol|toltcl|tolbase|rtol] [|Release|Debug]
 #************************************************************
 # Durante el proceso se pregunta por cada una de las etapas.
 #************************************************************
 
 BUILD_DIR=$PWD/$(dirname $0)
+source $BUILD_DIR/current_version.sh
 
 if [ "$1" = "" ]; then
   echo -n "project? "
@@ -26,16 +27,16 @@ if ! [ -d "$PROJECT_DIR" ]; then
 fi
 
 if [ "$2" = "" ]; then
-  mode=release
+  mode=Release
 else
   mode=$2
 fi
-if !([ "$mode" = "release" ] || [ "$mode" = "debug" ]); then
-  echo "(!) Second argument should be: release, debug or should be avoided." 
+if !([ "$mode" = "Release" ] || [ "$mode" = "Debug" ]); then
+  echo "(!) Second argument should be: Release, Debug or should be avoided." 
   exit
 fi
 suffix=-$mode
-if [ "$mode" = "release" ]; then
+if [ "$mode" = "Release" ]; then
   suffix=
 fi
 
@@ -61,9 +62,9 @@ echo -n "cmake? (y/n) "
 read answer
 if [ "$answer" = "y" ]; then
   if [ "$project" = "tol" ]; then 
-    cmake $PROJECT_DIR -DCMAKE_BUILD_TYPE=$mode -DCLAPACK_NAME=lapacke -DZIPARCHIVE_ROOT_DIR=/usr/local/ZipArchive$suffix -DZIPARCHIVE_AS_STATIC=TRUE -DCMAKE_INSTALL_PREFIX=/usr/local/tol3.2$suffix
+    cmake $PROJECT_DIR -DCMAKE_BUILD_TYPE=$mode -DCLAPACK_NAME=lapacke -DZIPARCHIVE_ROOT_DIR=/usr/local/ZipArchive$suffix -DZIPARCHIVE_AS_STATIC=TRUE -DCMAKE_INSTALL_PREFIX=/usr/local/tol$version$suffix
   else
-    cmake $PROJECT_DIR -DCMAKE_BUILD_TYPE=$mode -DTOL_PREFIX_PATH=/usr/local/tol3.2$suffix -DCMAKE_INSTALL_PREFIX=/usr/local/tol3.2$suffix
+    cmake $PROJECT_DIR -DCMAKE_BUILD_TYPE=$mode -DTOL_PREFIX_PATH=/usr/local/tol$version$suffix -DCMAKE_INSTALL_PREFIX=/usr/local/tol$version$suffix
   fi  
 fi
 

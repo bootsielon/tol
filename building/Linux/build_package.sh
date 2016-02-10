@@ -1,12 +1,13 @@
 #!/bin/bash
 #************************************************************
 # La llamada al script recibe dos argumentos:
-#   ./build_package.sh [|<package_name>] [|release|debug]
+#   ./build_package.sh [|<package_name>] [|Release|Debug]
 #************************************************************
 # Durante el proceso se pregunta por cada una de las etapas.
 #************************************************************
 
 BUILD_DIR=$PWD/$(dirname $0)
+source $BUILD_DIR/current_version.sh
 
 if [ "$1" = "" ]; then
   echo -n "package? "
@@ -26,16 +27,16 @@ if ! [ -f "$PACKAGE_DIR/CMakeLists.txt" ]; then
 fi
 
 if [ "$2" = "" ]; then
-  mode=release
+  mode=Release
 else
   mode=$2
 fi
-if !([ "$mode" = "release" ] || [ "$mode" = "debug" ]); then
-  echo "(!) Second argument should be: release, debug or should be avoided."
+if !([ "$mode" = "Release" ] || [ "$mode" = "Debug" ]); then
+  echo "(!) Second argument should be: Release, Debug or should be avoided."
   exit
 fi
 suffix=-$mode
-if [ "$mode" = "release" ]; then
+if [ "$mode" = "Release" ]; then
   suffix=
 fi
 
@@ -60,7 +61,7 @@ cd $CMAKE_DIR
 echo -n "cmake? (y/n) "
 read answer
 if [ "$answer" = "y" ]; then
-  cmake $PACKAGE_DIR -DTOL_PREFIX_PATH=/usr/local/tol3.2$suffix -DCMAKE_BUILD_TYPE=$mode
+  cmake $PACKAGE_DIR -DTOL_PREFIX_PATH=/usr/local/tol$version$suffix -DCMAKE_BUILD_TYPE=$mode
 fi
 
 echo -n "make? (y/n) "

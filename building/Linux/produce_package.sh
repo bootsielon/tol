@@ -7,6 +7,7 @@
 #************************************************************
 
 BUILD_DIR=$PWD/$(dirname $0)
+source $BUILD_DIR/current_version.sh
 
 if [ "$1" = "" ]; then
   echo -n "package? "
@@ -16,7 +17,6 @@ else
 fi
 
 PACKAGE_DIR=$BUILD_DIR/../../../OfficialTolArchiveNetwork/$package
-
 if [ -d "$PACKAGE_DIR" ]; then 
   if [ -f "$PACKAGE_DIR/CMakeLists.txt" ]; then
     echo -n "build? (y/n) "
@@ -45,5 +45,5 @@ fi
 echo -n "produce? (y/n) "
 read answer
 if [ "$answer" = "y" ]; then
-  tolsh -c"Text Package=\"$package\"" ../produce_package.tol
+  /usr/local/tol$version/bin/tolsh.sh -c"Text Package=\"$package\"" ../produce_package.tol
 fi

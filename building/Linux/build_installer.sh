@@ -7,14 +7,15 @@
 #************************************************************
 
 BUILD_DIR=$PWD/$(dirname $0)
+source $BUILD_DIR/current_version.sh
 
-TRUNK_DIR=$BUILD_DIR/../..
-if ! [ -d "$TRUNK_DIR" ]; then 
-  echo "(!) Cannot find folder: $TRUNK_DIR"
+INSTALLER_DIR=$BUILD_DIR/../../installer
+if ! [ -d "$INSTALLER_DIR" ]; then 
+  echo "(!) Cannot find folder: $INSTALLER_DIR"
   exit
 fi
 
-mode=release
+mode=Release
 
 echo "----------------------------------------------------"
 echo " Building TOL installer "
@@ -38,7 +39,7 @@ echo -n "cmake? (y/n) "
 read answer
 if [ "$answer" = "y" ]
 then
-  cmake $TRUNK_DIR -DTOL_RUNTIME_DIR=/usr/local/tol3.2 -DCMAKE_BUILD_TYPE=release
+  cmake $INSTALLER_DIR -DTOL_RUNTIME_DIR=/usr/local/tol$version -DCMAKE_BUILD_TYPE=$mode
 fi
 
 echo -n "cpack -G DEB? (y/n) "

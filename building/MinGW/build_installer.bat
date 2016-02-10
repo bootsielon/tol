@@ -31,13 +31,21 @@ if !PROCESSOR_ARCHITECTURE!==x86 (
   )
 )
 
-set TRUNK_DIR=!BUILD_DIR!\..\..
-if not exist "!TRUNK_DIR!" (
-  echo.^(^^!^) Cannot find folder: !TRUNK_DIR!
+set INSTALL_DIR=!BUILD_DIR!\..\..\installer
+if not exist "!INSTALL_DIR!" (
+  echo.^(^^!^) Cannot find folder: !INSTALL_DIR!
   exit /b
 )
 
-set mode=release
+set mode=Release
+
+echo.
+set /p answer="include tolbase? (y/n) "
+if "!answer!"=="y" (
+  set cmake_opt_tolbase=-DINCLUDE_TOLBASE=ON
+) else (
+  set cmake_opt_tolbase=-DINCLUDE_TOLBASE=OFF
+)
 
 echo.
 echo.----------------------------------------------------
@@ -58,41 +66,11 @@ if exist "!CMAKE_DIR!" (
 )
 cd "!CMAKE_DIR!"
 
-rem set init_dir=%CD%
-rem set tolp_trunk=%tolp_root%\trunk
-rem echo.  tolp_trunk=%tolp_trunk%
-rem 
-rem set installer_dir=%tolp_trunk%\building\MinGW_32\installer%
-rem echo.  installer_dir=%installer_dir%
-rem 
-rem if exist "%installer_dir%" (
-rem   echo./!\ There is already a built folder of the installer
-rem   set is_built=y
-rem ) else (
-rem   set is_built=n
-rem )
-rem 
-rem echo.
-rem set /p cont="continue? (y/n) "
-rem if "%cont%"=="y" GOTO continue_ok
-rem exit /b
-rem :continue_ok
-
-rem echo.
-rem set /p cont="mkdir? (y/n) "
-rem if "%cont%"=="n" GOTO skip_mkdir
-rem cd "%tolp_trunk%"
-rem if "%is_built%"=="y" rmdir /S /Q "%installer_dir%"
-rem mkdir "%installer_dir%"
-rem :skip_mkdir
-rem 
-rem cd "%installer_dir%"
-
 echo.
 set /p answer="cmake? (y/n) "
 if "!answer!"=="y" (
   set TOL_RUNTIME=!USERPROFILE!\CMake_Build\tol\!mode!-!platform!\Runtime_Base
-  cmake -DTOL_RUNTIME_DIR=!TOL_RUNTIME! -DCMAKE_BUILD_TYPE=!mode! -G"CodeLite - MinGW Makefiles" "!TRUNK_DIR!"
+  cmake !cmake_opt_tolbase! -DTOL_PLATFORM=!platform! -DTOL_RUNTIME_DIR=!TOL_RUNTIME! -DCMAKE_BUILD_TYPE=!mode! -G"CodeLite - MinGW Makefiles" "!INSTALL_DIR!"
 )
 
 echo.

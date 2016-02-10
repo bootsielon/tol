@@ -1,7 +1,7 @@
 @echo off
 rem ************************************************************
 rem  La llamada al script recibe dos argumentos:
-rem    build_package [|<package_name>] [|release|debug]
+rem    build_package [|<package_name>] [|Release|Debug]
 rem ************************************************************
 rem  Durante el proceso se pregunta por cada una de las etapas.
 rem ************************************************************
@@ -48,10 +48,10 @@ if not exist "!PACKAGE_DIR!\CMakeLists.txt" (
 )
 
 set mode=%2
-if "!mode!"=="" set mode=release
-if "!mode!"=="release" goto mode_ok
-if "!mode!"=="debug" goto mode_ok
-echo.^(^^!^) Second argument should be: release, debug or should be avoided.
+if "!mode!"=="" set mode=Release
+if "!mode!"=="Release" goto mode_ok
+if "!mode!"=="Debug" goto mode_ok
+echo.^(^^!^) Second argument should be: Release, Debug or should be avoided.
 exit /b
 :mode_ok
 
