@@ -9,7 +9,7 @@ include( LibFindMacros )
 
 # The version number.
 set (RTOL_VERSION_MAJOR 3)
-set (RTOL_VERSION_MINOR 2)
+set (RTOL_VERSION_MINOR 3)
 
 # look for tol
 find_package( TOL REQUIRED )

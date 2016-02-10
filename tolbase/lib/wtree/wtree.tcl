@@ -1,7 +1,9 @@
 if { [ string compare $::tcl_version "8.5" ] >= 0 } {
   package require tile
 }
-package require treectrl 2.2.9
+
+#(pgea) package require treectrl 2.2.9
+package require treectrl 2.2.8
 package require autoscroll
 package require snit
 
