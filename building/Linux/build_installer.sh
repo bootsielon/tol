@@ -23,7 +23,7 @@ echo "----------------------------------------------------"
 
 CMAKE_DIR=~/CMake_Build/installer/$mode
 if [ -d "$CMAKE_DIR" ]; then
-  echo "/!\ There is already a built folder of $package."
+  echo "/!\ There is already a built folder of the installer."
   echo -n "mkdir? (y/n) "
   read answer
   if [ "$answer" = "y" ]; then
