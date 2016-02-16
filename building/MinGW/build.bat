@@ -88,7 +88,7 @@ cd "!CMAKE_DIR!"
 echo.
 set /p answer="cmake? (y/n) "
 if "!answer!"=="y" (
-  set CMAKE_TOOLCHAIN=!BUILD_DIR!\..\..\tol\cmake\mingw-m!platform!.toolchain.cmake
+  set CMAKE_TOOLCHAIN=!BUILD_DIR!\..\..\tol\cmake\mingw-m!platform!-O3-mtune_native.toolchain.cmake
   if "!project!"=="tol" (
     cmake -DCLAPACK_NAME=lapacke -DTOL_EXTERNAL_DEVEL_DIR="!TOL_CONTRIBS!" -DCMAKE_TOOLCHAIN_FILE="!CMAKE_TOOLCHAIN!" -DCMAKE_BUILD_TYPE=!mode! -G"CodeLite - MinGW Makefiles" "!PROJECT_DIR!"
   ) else (
