@@ -1,7 +1,7 @@
 @echo off
 rem ************************************************************
 rem  La llamada al script recibe dos argumentos:
-rem    build [tol|toltcl|tolbase|rtol] [|Release|Debug]
+rem    build [tol|toltcl|tolbase|vbtol|rtol] [|Release|Debug]
 rem ************************************************************
 rem  Durante el proceso se pregunta por cada una de las etapas.
 rem ************************************************************
@@ -39,8 +39,9 @@ if "%1"=="" (
 if "!project!"=="tol" goto project_ok
 if "!project!"=="toltcl" goto project_ok
 if "!project!"=="tolbase" goto project_ok
+if "!project!"=="vbtol" goto project_ok
 if "!project!"=="rtol" goto project_ok
-echo.^(^^!^) First argument should be: tol, toltcl, tolbase or rtol.
+echo.^(^^!^) First argument should be: tol, toltcl, tolbase, vbtol or rtol.
 exit /b
 :project_ok
 
