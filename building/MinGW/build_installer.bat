@@ -55,7 +55,7 @@ echo.----------------------------------------------------
 set CMAKE_DIR=!USERPROFILE!\CMake_Build\installer\!mode!-!platform!
 if exist "!CMAKE_DIR!" (
   echo.
-  echo./^^!\ There is already a built folder of !project!
+  echo./^^!\ There is already a built folder of the installer.
   set /p answer="mkdir? (y/n) "
   if "!answer!"=="y" (
     rmdir /s /Q "!CMAKE_DIR!"
