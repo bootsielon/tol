@@ -101,7 +101,9 @@ main(argc, argv)
     TK_LOCAL_MAIN_HOOK(&argc, &argv);
 #endif
 
+#ifndef WIN32
     const char * version = TOLVersion();
+#endif
     Tk_Main(argc, argv, TK_LOCAL_APPINIT);
     return 0;			/* Needed only to prevent compiler warning. */
 }
