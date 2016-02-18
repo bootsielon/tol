@@ -21,6 +21,7 @@
 #include "libtolbdb.h"
 
 #include <stdlib.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -685,45 +686,150 @@ printf( "case SQL_BIGINT:\n" );
   return 1;
 }
 
+//#define CHUNK_SIZE 16*1024
+#define CHUNK_SIZE 4*1024
+#define INITIAL_ARRAY_SIZE 10
+#define GROW_ARRAY_INCR 10
+
+typedef struct 
+{
+  uint32_t NumberOfChunks;
+  int32_t LastChunk;
+  SQLLEN SizeOfLastChunk;
+  char **ArrayOfChunks;
+  SQLLEN SizeOfChunk;
+} ChunkOfTextType;
+
+void ChunkOfTextType_Init( ChunkOfTextType *chunkData )
+{
+  uint32_t i;
+  chunkData->NumberOfChunks = INITIAL_ARRAY_SIZE;
+  chunkData->ArrayOfChunks = calloc( INITIAL_ARRAY_SIZE, sizeof( char* ) );
+  for( i = 0; i < INITIAL_ARRAY_SIZE; ++i )
+    {
+      chunkData->ArrayOfChunks[i] = NULL;
+    }
+  chunkData->LastChunk = -1;
+  chunkData->SizeOfLastChunk = 0;
+  chunkData->SizeOfChunk = CHUNK_SIZE;
+}
+
+void ChunkOfTextType_Release( ChunkOfTextType *chunkData )
+{
+  uint32_t i;
+  for( i = 0; i < chunkData->NumberOfChunks; ++i )
+    {
+      if( chunkData->ArrayOfChunks[i] )
+	{
+	  free( chunkData->ArrayOfChunks[i] );
+	  chunkData->ArrayOfChunks[i] = NULL;
+	}
+    }
+  free( chunkData->ArrayOfChunks );
+  chunkData->ArrayOfChunks = NULL;
+  chunkData->NumberOfChunks = 0;
+  chunkData->LastChunk = -1;
+  chunkData->SizeOfLastChunk = 0;
+}
+
+char * ChunkOfTextType_GetChunk( ChunkOfTextType *chunkData )
+{
+  chunkData->LastChunk++;
+  if ( chunkData->LastChunk == chunkData->NumberOfChunks )
+    {
+      /*
+	printf( "reallocating array of chunks: LastChunk = %ld\n", chunkData->LastChunk );*/
+      uint32_t sizeNew = chunkData->NumberOfChunks + GROW_ARRAY_INCR;
+      int32_t i;
+      chunkData->ArrayOfChunks = realloc( chunkData->ArrayOfChunks, 
+					  sizeNew * sizeof( char* ) );
+      for( i = chunkData->LastChunk; i < sizeNew; ++i )
+	{
+	  chunkData->ArrayOfChunks[i] = NULL;
+	}
+      chunkData->NumberOfChunks = sizeNew;
+    }
+  if ( !chunkData->ArrayOfChunks[ chunkData->LastChunk ] )
+    {
+      chunkData->ArrayOfChunks[ chunkData->LastChunk ] = calloc( CHUNK_SIZE, sizeof(char) );
+    }
+  return chunkData->ArrayOfChunks[ chunkData->LastChunk ];
+}
+
+void ChunkOfTextType_DiscardLast( ChunkOfTextType *chunkData )
+{
+  if ( chunkData->LastChunk >= 0 )
+    {
+      --chunkData->LastChunk;
+    }
+}
+
+void ChunkOfTextType_SetLastSize( ChunkOfTextType *chunkData )
+{
+  chunkData->SizeOfLastChunk = strlen( chunkData->ArrayOfChunks[ chunkData->LastChunk ] );
+}
+
+char *ChunkOfTextType_GetCopyFullBuffer( ChunkOfTextType *chunkData )
+{
+  uint32_t size = chunkData->LastChunk * (chunkData->SizeOfChunk - 1) + chunkData->SizeOfLastChunk;
+  char *buffer = malloc( size + 1), *ptr;
+  uint32_t i;
+
+  //printf( "GetCopyFullBuffer: size = %ld, LastChunk = %ld, SizeOfLastChunk = %ld\n", size, chunkData->LastChunk, chunkData->SizeOfLastChunk );
+  ptr = buffer;
+  for( i = 0; i < chunkData->LastChunk; ++i )
+    {
+      memcpy( ptr, chunkData->ArrayOfChunks[i], chunkData->SizeOfChunk - 1);
+      ptr += chunkData->SizeOfChunk - 1;
+    }
+  // copy last chunk
+  memcpy( ptr, chunkData->ArrayOfChunks[i], chunkData->SizeOfLastChunk );
+  buffer[ size ] = '\0';
+  return buffer;
+}
+
 //-------------------------------------------------------------------
 DLLEXPORT(int) odbc_GetAsText(odbcd *dbd, int n_field, UCHAR **txt_val)
 {
-  SQLRETURN status;
-  SQLINTEGER num_required=MAX_TEXT_FIELD_LENGTH;
-  SQLLEN num_available=0;
-  UCHAR *str, *long_str;
+  ChunkOfTextType chunkData;
+  char *buffer = NULL;
+  SQLLEN LenOrInd;
+  SQLRETURN     rc; 
 
-  str = (UCHAR*) calloc(num_required, sizeof(UCHAR));
-  if(str==NULL) {
-    stdOutWriter("Out of memory retrieving text ODBC.\n");
-    return 0;
-  }
-  
-  status = SQLGetData(dbd->hstmt,n_field+1,SQL_CHAR,str,num_required,&num_available);
-  if((status!=SQL_SUCCESS) && (status!=SQL_SUCCESS_WITH_INFO)) { return 0; }
-  if(num_available==SQL_NULL_DATA) { return 1; }
+  ChunkOfTextType_Init( &chunkData );
 
-  if(status==SQL_SUCCESS_WITH_INFO)
-  {
-    long_str = (UCHAR*) calloc(num_available+1, sizeof(UCHAR));
-    if(long_str==NULL) {
-      stdOutWriter("Out of memory retrieving text from ODBC.\n");
-      return 0;
-    }
-    long_str = (unsigned char*) strncpy((char*)long_str,(char*)str,MAX_TEXT_FIELD_LENGTH-1);
-    free(str);
-    str = (UCHAR*) calloc((num_available+2)-num_required, sizeof(UCHAR));
-    if(str==NULL) {
-      stdOutWriter("Out of memory retrieving text from ODBC.\n");
-      return 0;
-    }
-    status = SQLGetData(dbd->hstmt,n_field+1,SQL_CHAR,str,num_available,&num_available);
-    long_str = (unsigned char*) strncat((char*)long_str, (char*)str, num_available);
-    free(str);
-    str = long_str;
-  }
-    
-  *txt_val = str;
+  do
+    {
+      buffer = ChunkOfTextType_GetChunk( &chunkData );
+      rc = SQLGetData( dbd->hstmt, n_field+1, 
+		       SQL_C_CHAR, buffer, chunkData.SizeOfChunk,
+		       &LenOrInd );
+      //printf( "rc = %ld LenOrInd = %ld\n", rc, LenOrInd ); 
+      if ( rc == SQL_NO_DATA )
+	{
+	  ChunkOfTextType_DiscardLast( &chunkData );
+	  break;
+	}
+      if ( rc == SQL_ERROR )
+	{
+	  ChunkOfTextType_Release( &chunkData );
+	  return 0;
+	}
+      if ( LenOrInd == SQL_NO_TOTAL )
+	{
+	  continue;
+	}
+      if ( LenOrInd ==  SQL_NULL_DATA )
+	{
+	  // Esto solo puede pasar en el primer chunk
+	  ChunkOfTextType_Release( &chunkData );
+	  *txt_val = NULL;
+	  return 1;
+	}
+      ChunkOfTextType_SetLastSize( &chunkData );
+    } while( 1 );
+  *txt_val = ChunkOfTextType_GetCopyFullBuffer( &chunkData );
+  ChunkOfTextType_Release( &chunkData );
   return 1;
 }
 

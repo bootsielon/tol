@@ -18,11 +18,11 @@ Real {
   { //Create all neccesary tables:
     Real res01 = If (DBExecQuery("drop table pruebas1") == 0, 1, 0);
     Real res02 = If (DBExecQuery("CREATE TABLE pruebas1 (
-                      `campo1` VARCHAR(1),
-                      `campo2` VARCHAR(255),
-                      `campo3` TEXT,
-                      `campo4` TEXT,
-                      `campo5` TEXT)
+                      campo1 VARCHAR(1),
+                      campo2 VARCHAR(255),
+                      campo3 TEXT,
+                      campo4 TEXT,
+                      campo5 TEXT)
                      ") == 0,1,0);
 
     Real (res01 & res02)
@@ -43,6 +43,8 @@ Real {
 
   Real TestRow(Set row)
   {
+    Set lengths = EvalSet( row, Real(Text field) {TextLength(field)} );
+    Set View( lengths, "" ); WriteLn( "" );
     Real (TextMatch(row[1],"A")&
           TextMatch(row[2],Repeat("ABCDE",25))&
           ((TextLength(row[3]) == 0))&
@@ -66,11 +68,11 @@ Real {
   Real res = If (testDB,
   {
     Set ODBC   = DBStructODBC("odbc");
-    Real res01 = DBOpen(aliasNames[1],user,passwd, ODBC);
+    Real res01 = DBOpen(aliasNames[1],user,passwd);
 
     Real res02 = InitDB(0);
-    Real res03 = FillDB(100);
-    Real res04 = TestDB(100);
+    Real res03 = FillDB(1);
+    Real res04 = TestDB(1);
 
     Real res20 = DBClose(aliasNames[1]);
 

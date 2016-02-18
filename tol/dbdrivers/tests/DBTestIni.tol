@@ -5,17 +5,17 @@
 // DB variables:
 
 //If FALSE, no DB check will be done:
-Real testDB    = False;
+Real testDB    = True;
 
 // Same user/password for all test databases:
-Text user      = "user";
-Text passwd    = "password";
+Text user      = "toldevel";
+Text passwd    = "tol!116.";
 
 // Database name for native access:
-Text dbName    = "test";
+Text dbName    = "bysfortoldevel";
 
 //Host name for mysql access:
-Text host      = "localhost";
+Text host      = "t-mysql01.localbayes.es";
 
 // Aliasnames for two ODBC handlers:
-Set aliasNames = [["test2","test3"]];
+Set aliasNames = [["MySQLTolDevel", "OTAN","MSSQLTolDevel"]];

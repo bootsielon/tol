@@ -1,3 +1,7 @@
+if( CMAKE_COMPILER_IS_GNUCC )
+  add_definitions( -Wimplicit-function-declaration )
+endif( )
+
 if( ODBC_FOUND )
   add_library( tolodbc0 SHARED libtolodbc.c )
   set_target_properties( tolodbc0 PROPERTIES PREFIX "" )
