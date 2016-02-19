@@ -62,7 +62,7 @@ echo -n "cmake? (y/n) "
 read answer
 if [ "$answer" = "y" ]; then
   if [ "$project" = "tol" ]; then 
-    cmake $PROJECT_DIR -DCMAKE_BUILD_TYPE=$mode -DCLAPACK_NAME=lapacke -DZIPARCHIVE_ROOT_DIR=/usr/local/ZipArchive$suffix -DZIPARCHIVE_AS_STATIC=TRUE -DCMAKE_INSTALL_PREFIX=/usr/local/tol$version$suffix
+    cmake $PROJECT_DIR -DCMAKE_BUILD_TYPE=$mode -DZIPARCHIVE_ROOT_DIR=/usr/local/ZipArchive$suffix -DZIPARCHIVE_AS_STATIC=TRUE -DCMAKE_INSTALL_PREFIX=/usr/local/tol$version$suffix
   else
     cmake $PROJECT_DIR -DCMAKE_BUILD_TYPE=$mode -DTOL_PREFIX_PATH=/usr/local/tol$version$suffix -DCMAKE_INSTALL_PREFIX=/usr/local/tol$version$suffix
   fi  
