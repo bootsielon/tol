@@ -124,6 +124,7 @@ BGraContensP<BNameBlock>* NewUserNameBlock()
   }
 }
 
+#ifndef _MSC_VER
 //--------------------------------------------------------------------
 DeclareContensClass(BDat, BDatTemporary, BDatDynLoad);
 DefExtOpr(1, BDatDynLoad, "DynLoad", 1, 2, "Text Set",
@@ -210,7 +211,7 @@ void BDatDynLoad::CalcContens()
     lt_dladvise_destroy( &advise );
     }
 }
-
+#endif
 
 //--------------------------------------------------------------------
 class BLoadDynLib: public BExternalOperator
