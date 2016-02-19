@@ -64,7 +64,14 @@ if [ "$answer" = "y" ]; then
   if [ "$project" = "tol" ]; then 
     cmake $PROJECT_DIR -DCMAKE_BUILD_TYPE=$mode -DZIPARCHIVE_ROOT_DIR=/usr/local/ZipArchive$suffix -DZIPARCHIVE_AS_STATIC=TRUE -DCMAKE_INSTALL_PREFIX=/usr/local/tol$version$suffix
   else
-    cmake $PROJECT_DIR -DCMAKE_BUILD_TYPE=$mode -DTOL_PREFIX_PATH=/usr/local/tol$version$suffix -DCMAKE_INSTALL_PREFIX=/usr/local/tol$version$suffix
+    if [ "$project" = "toltcl" ]; then
+      OPT_3PARTY="-DBUILD_TCLCURL=TRUE"
+    elif [ "$project" = "tolbase" ]; then
+      OPT_3PARTY="-DBUILD_TCLODBC=TRUE -DBUILD_TKTABLE=TRUE"
+    else 
+      OPT_3PARTY=
+    fi
+    cmake $PROJECT_DIR $OPT_3PARTY -DCMAKE_BUILD_TYPE=$mode -DTOL_PREFIX_PATH=/usr/local/tol$version$suffix -DCMAKE_INSTALL_PREFIX=/usr/local/tol$version$suffix
   fi  
 fi
 

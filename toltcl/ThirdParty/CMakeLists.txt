@@ -8,6 +8,7 @@ if( NOT TCLCURL_VERSION )
 endif( )
 
 if( BUILD_TCLCURL )
+  message( STATUS "Third party TclCurl${TCLCURL_VERSION} will be built." )
   set( tclcurl_tgz "TclCurl-${TCLCURL_VERSION}.tar.gz" )
   ExternalProject_Add( tclcurl
     URL ${CMAKE_CURRENT_SOURCE_DIR}/${tclcurl_tgz}
