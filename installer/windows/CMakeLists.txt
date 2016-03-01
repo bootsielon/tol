@@ -15,19 +15,23 @@ if(${TOL_PLATFORM} EQUAL "64")
   # el instalador es sin embargo un ejecutable de 32 bits
   set(CPACK_NSIS_INSTALL_ROOT "$PROGRAMFILES64")
   set(win_system_name win64)
+  set(TOL_ENV_VAR TOLGNU_ROOT_64)
+  set(CPACK_PACKAGE_NAME "TOL (GNU-64)")
 else()
   message(STATUS "Installer for TOL 32-bits")
   set(CPACK_NSIS_INSTALL_ROOT "$PROGRAMFILES32")
   set(win_system_name win32)
+  set(TOL_ENV_VAR TOLGNU_ROOT)
+  set(CPACK_PACKAGE_NAME "TOL (GNU)")
 endif()
-
-set(CPACK_PACKAGE_NAME "TOL (GNU)")
 
 if(INCLUDE_TOLBASE)
   message(STATUS "Installer includes tolbase")
+  set(CPACK_PACKAGE_NAMEV_INSTALL "tol-gnu-v${CPACK_PACKAGE_VERSION}")
   set(CPACK_PACKAGE_NAMEV "tol-gnu-v${CPACK_PACKAGE_VERSION}")
 else()
   message(STATUS "Installer includes only tolsh")
+  set(CPACK_PACKAGE_NAMEV_INSTALL "tol-gnu-v${CPACK_PACKAGE_VERSION}")  
   # se utiliza un nombre diferente para el instalador sin tolbase
   set(CPACK_PACKAGE_NAMEV "tolsh-gnu-v${CPACK_PACKAGE_VERSION}")
 endif()
@@ -35,8 +39,8 @@ endif()
 #! Debería comprobarse que fueron compilados e instalados en el Runtime_Base
 #! los proyectos tol, toltcl y rtol, y también tolbase si corresponde.
 
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "${CPACK_PACKAGE_VENDOR}\\\\${CPACK_PACKAGE_NAMEV}")
-set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "${CPACK_PACKAGE_NAMEV}")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "${CPACK_PACKAGE_VENDOR}\\\\${CPACK_PACKAGE_NAMEV_INSTALL}")
+set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "${CPACK_PACKAGE_NAMEV_INSTALL}")
 
 # => http://www.cmake.org/Wiki/CMake:Component_Install_With_CPack
 
@@ -105,12 +109,12 @@ set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAMEV}-${win_system_name}")
 message(STATUS "Instaler Name: ${CPACK_PACKAGE_FILE_NAME}")
 
 set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
-  DeleteRegValue HKCU \\\"Environment\\\" TOLGNU_ROOT
-  WriteRegExpandStr HKLM \\\"SYSTEM\\\\CurrentControlSet\\\\Control\\\\Session Manager\\\\Environment\\\" TOLGNU_ROOT \\\$INSTDIR
+  DeleteRegValue HKCU \\\"Environment\\\" ${TOL_ENV_VAR}
+  WriteRegExpandStr HKLM \\\"SYSTEM\\\\CurrentControlSet\\\\Control\\\\Session Manager\\\\Environment\\\" ${TOL_ENV_VAR} \\\$INSTDIR
   SendMessage \\\${HWND_BROADCAST} \\\${WM_WININICHANGE} 0 \\\"STR:Environment\\\" /TIMEOUT=5000
 ") 
 set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
-  DeleteRegValue HKLM \\\"SYSTEM\\\\CurrentControlSet\\\\Control\\\\Session Manager\\\\Environment\\\" TOLGNU_ROOT
+  DeleteRegValue HKLM \\\"SYSTEM\\\\CurrentControlSet\\\\Control\\\\Session Manager\\\\Environment\\\" ${TOL_ENV_VAR}
   SendMessage \\\${HWND_BROADCAST} \\\${WM_WININICHANGE} 0 \\\"STR:Environment\\\" /TIMEOUT=5000
 ") 
 
@@ -130,4 +134,4 @@ endif()
 set(CPACK_NSIS_MENU_LINKS "http://www.tol-project.org" "Tol-Project Site")
 
 # include(CPack) ha de hacerse en este mismo archivo para que funcione adecuadamente
-include( CPack )
+include(CPack)
