@@ -59,10 +59,13 @@ int AppInit(Tcl_Interp *interp)
   const char *argv0 = Tcl_GetNameOfExecutable();
 #if defined(WIN32)
   SetupDllSearchPath( argv0 );
-#endif   
   Tcl_VarEval( interp, "lappend", " auto_path", " [file join",
-               " [file dir [file dir ", argv0,
-               " ] ] lib ]", NULL );
+               " [file dir [file dir {", argv0,
+               "} ] ] lib ]", NULL );
+#else
+  Tcl_VarEval( interp, "lappend", " auto_path", " [file join",
+               " [file dir [file dir [expr {[file type {", argv0, "}] eq {link} ? [file readlink {", argv0, "}] : {", argv0 ,"}} ] ] ] lib ]", NULL );
+#endif   
   if ( !Tcl_PkgRequire( interp, "TolshApp", TOLTCL_VERSION, 1) )
     {
     printf( "%s\n", Tcl_GetStringResult( interp ) );

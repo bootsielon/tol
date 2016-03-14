@@ -216,6 +216,8 @@ Tol_InitKernelCmd(clientData, interp, objc, objv)
 {
   int lang;
   char* vmode;
+  const char *argv0 = Tcl_GetNameOfExecutable();
+
   if (objc > 3) {
     Tcl_AppendResult(interp, "wrong # args: should be \"",
                      Tcl_GetString(objv[0]),"?lang ?vmode??\"", NULL);
@@ -245,6 +247,7 @@ Tol_InitKernelCmd(clientData, interp, objc, objv)
      * Initialize kernel
      */
     
+    Tcl_VarEval( 
     InitTolKernel(Tcl_GetNameOfExecutable(), lang, vmode&&vmode[0]?vmode:NULL);
     
 #if defined( __HANDLE_GSL_ERRORS__ )

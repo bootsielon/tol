@@ -175,10 +175,9 @@ Tcl_AppInit(interp)
       }
     //Tcl_PkgRequire( interp, "TolbaseApp", TOLBASE_VERSION, 1);
 #else
-    const char* exeName = Tcl_GetNameOfExecutable();
-    Tcl_VarEval( interp, "file join",
-		 " [ file dir ", Tcl_GetNameOfExecutable(),
-		 " ] tolbase.tcl", NULL );
+    const char* argv0 = Tcl_GetNameOfExecutable();
+    Tcl_VarEval( interp, "file join ",
+		 "[ file dir [expr {[file type {", argv0, "}] eq {link} ? [file readlink {", argv0, "}] : {", argv0 ,"}} ] ] tolbase.tcl", NULL );
     Tcl_Obj *objPath = Tcl_GetObjResult( interp );
     Tcl_SetStartupScript( Tcl_GetObjResult( interp ), NULL ); 
 #endif

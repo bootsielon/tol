@@ -23,6 +23,10 @@
 #include <win_tolinc.h>
 #endif
 
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #include <tol/tol_version_def.h> 
 
 #include <tol/tol_init.h>
@@ -1544,7 +1548,22 @@ void InitTolKernel(const char* calledProgram, int lang, const char* vmode )
     }
     free(mode);
   }
-  InitGrammars(calledProgram);
+
+  const char * ptr = calledProgram;
+  char realPath[1024];
+
+#ifdef HAVE_UNISTD_H
+  ssize_t r = readlink( ptr, realPath, 1024 );
+  if ( r > 0 )
+    {
+    realPath[r] = '\0';
+    ptr = realPath;
+    }
+#endif
+
+  printf( "Inicializando con %s\n", ptr );
+
+  InitGrammars( ptr );
 }
 
 
@@ -1576,6 +1595,19 @@ void InitializeFromMainArgs(int argc, char *argv[], char *env[])
   BList* stack = NIL;
   bool loadInitProject = true;
   bool loadDefaultPackages = true;
+
+  const char * argv0 = argv[0];
+  char realPath[1024];
+  
+#ifdef HAVE_UNISTD_H
+  ssize_t r = readlink( argv0, realPath, 1024 );
+  if ( r > 0 )
+    {
+    realPath[r] = '\0';
+    argv0 = realPath;
+    }
+#endif
+
   if(!helpMode) {
     BInt i = 1;
     TrcIG("Parsing TOL executable arguments");
@@ -1599,7 +1631,7 @@ void InitializeFromMainArgs(int argc, char *argv[], char *env[])
         else if  (com == 'h') { helpMode = BTRUE; }
         else if  (com == 'c')
         {
-          InitGrammars(argv[0]);
+          InitGrammars( argv0 );
           if(initTOL) { LoadInitLibrary(loadInitProject,loadDefaultPackages); }
           Trace(I2("\nCompiling command line argument -c :\n",
                    "\nCompilando argumento -c de la línea de comandos :\n  ") + par+"\n");
@@ -1629,7 +1661,7 @@ void InitializeFromMainArgs(int argc, char *argv[], char *env[])
       }
       else
       {
-        InitGrammars(argv[0]);
+        InitGrammars( argv0 );
         if(initTOL) { LoadInitLibrary(loadInitProject,loadDefaultPackages); }
         if(arg.HasName()) {
           BText fName = argv[i];
@@ -1732,7 +1764,7 @@ void InitializeFromMainArgs(int argc, char *argv[], char *env[])
   }
   if(dialogMode)
   {
-    InitGrammars(argv[0]);
+    InitGrammars( argv0 );
     // unused
     /*aliveObjects_1 =*/ AliveObjects();
     if(initTOL) { LoadInitLibrary(loadInitProject,loadDefaultPackages); }
