@@ -247,7 +247,6 @@ Tol_InitKernelCmd(clientData, interp, objc, objv)
      * Initialize kernel
      */
     
-    Tcl_VarEval( 
     InitTolKernel(Tcl_GetNameOfExecutable(), lang, vmode&&vmode[0]?vmode:NULL);
     
 #if defined( __HANDLE_GSL_ERRORS__ )
