@@ -101,10 +101,12 @@ main(argc, argv)
     TK_LOCAL_MAIN_HOOK(&argc, &argv);
 #endif
 
+  g_argc = argc;
+  g_argv = argv;
 #ifndef WIN32
     const char * version = TOLVersion();
 #endif
-    Tk_Main(argc, argv, TK_LOCAL_APPINIT);
+    Tk_Main( 1, argv, TK_LOCAL_APPINIT);
     return 0;			/* Needed only to prevent compiler warning. */
 }
 
@@ -163,8 +165,8 @@ Tcl_AppInit(interp)
      * then no user-specific startup file will be run under any conditions.
      */
 
-#if defined(WIN32)
     SetupArgv( interp );
+#if defined(WIN32)
     Tcl_VarEval( interp, "lappend", " auto_path", " [file join",
 		 " [file dir [file dir ", Tcl_GetNameOfExecutable(),
 		 " ] ] lib ]", NULL );
