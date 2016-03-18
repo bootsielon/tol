@@ -35,7 +35,7 @@
 #if defined(__TOLTCL_MINOR_VERSION__)
 #define TOLTCL_MINOR_VERSION 	__TOLTCL_MINOR_VERSION__
 #else
-#define TOLTCL_MINOR_VERSION 	2
+#define TOLTCL_MINOR_VERSION 	3
 #endif
 
 #define TOLTCL_TO_STRING0( x ) #x
