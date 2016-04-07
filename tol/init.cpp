@@ -23,7 +23,7 @@
 #include <win_tolinc.h>
 #endif
 
-#if HAVE_UNISTD_H
+#ifndef WIN32
 #include <unistd.h>
 #endif
 
@@ -1551,7 +1551,7 @@ void InitTolKernel(const char* calledProgram, int lang, const char* vmode )
 
   const char * ptr = calledProgram;
 
-#if HAVE_UNISTD_H
+#ifndef WIN32
   char realPath[1024];
   ssize_t r = readlink( ptr, realPath, 1024 );
   if ( r > 0 )
@@ -1597,8 +1597,8 @@ void InitializeFromMainArgs(int argc, char *argv[], char *env[])
   bool loadDefaultPackages = true;
 
   const char * argv0 = argv[0];
-  
-#if HAVE_UNISTD_H
+
+#ifndef WIN32  
   char realPath[1024];
   ssize_t r = readlink( argv0, realPath, 1024 );
   if ( r > 0 )
