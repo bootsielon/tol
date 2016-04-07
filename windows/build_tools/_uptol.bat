@@ -307,8 +307,7 @@ If Not Exist ..\ActiveTOL\bin\vbtol.dll (
 )
 
 Rem descargo paquetes que se distriburan por omision con TOL
-Rem Real TolPackage::Client::_.DefaultFetch(?);
-..\ActiveTOL\bin\tolsh.exe -c "TolPackage::Client::_.DefaultFetch(?)"
+call download_default_packages.bat
 
 Rem Ejecuto los tests si me lo han pedido
 :DO_TESTS

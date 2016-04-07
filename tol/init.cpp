@@ -1307,7 +1307,7 @@ void LoadInitLibrary(int loadInitProject, int loadDefaultPackages)
   BDir initTolPath = InitTolPath();
   if (initTolPath.Exist()) 
   {
-    InitTOLFile(initTolPath.Name(), loadDefaultPackages);
+    InitTOLFile(initTolPath.Name(), loadDefaultPackages!=0);
     if(loadInitProject)
     {
       BDir initProject = GetFilePath(initTolPath.Name())+"_init_project.tol";
@@ -1550,9 +1550,9 @@ void InitTolKernel(const char* calledProgram, int lang, const char* vmode )
   }
 
   const char * ptr = calledProgram;
-  char realPath[1024];
 
 #if HAVE_UNISTD_H
+  char realPath[1024];
   ssize_t r = readlink( ptr, realPath, 1024 );
   if ( r > 0 )
     {
@@ -1597,9 +1597,9 @@ void InitializeFromMainArgs(int argc, char *argv[], char *env[])
   bool loadDefaultPackages = true;
 
   const char * argv0 = argv[0];
-  char realPath[1024];
   
 #if HAVE_UNISTD_H
+  char realPath[1024];
   ssize_t r = readlink( argv0, realPath, 1024 );
   if ( r > 0 )
     {
