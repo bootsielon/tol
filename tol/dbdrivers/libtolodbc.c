@@ -587,10 +587,11 @@ DLLEXPORT(int) odbc_GetAsReal(odbcd *dbd, int nfield, long double *realval)
   SQLCHAR _sqlchar;            // for SQL_BIT, SQL_TINYINT
   SQLSMALLINT _smallint;       // for SQL_SMALLINT
   // unused variable ‘_bigint’ [-Wunused-variable]
-  // TOLSQL_BIGINT _bigint;       // for SQL_BIGINT
+  // TOLSQL_BIGINT _bigint;    // for SQL_BIGINT
   SQLINTEGER _integer;         // for SQL_INTEGER
-  //SQLCHAR *_decimal;           // for SQL_DECIMAL SQL_NUMERIC
-  SQLCHAR   szNumeric[256];    // for SQL_DECIMAL SQL_NUMERIC SQL_BIGINT
+  //SQLCHAR *_decimal;         // for SQL_DECIMAL SQL_NUMERIC
+  SQLCHAR szNumeric[256];      // for SQL_DECIMAL SQL_NUMERIC SQL_BIGINT
+  double _numeric = 0.0;       // ...
   SQLDOUBLE _double;           // for SQL_DOUBLE, SQL_FLOAT
   SQLREAL _real;               // for SQL_REAL
 
@@ -603,7 +604,7 @@ DLLEXPORT(int) odbc_GetAsReal(odbcd *dbd, int nfield, long double *realval)
   SQLSMALLINT type = dbd->typeList[nfield];
 
   // returned data initilization
-  *realval = 0.0;
+  //(pgea) *realval = 0.0;
 
   // allocate space depending on the field type
   switch(type)
@@ -676,7 +677,8 @@ printf( "case SQL_BIGINT:\n" );
       *realval = (long double)(_integer); break;
     case SQL_DECIMAL: case SQL_NUMERIC: case SQL_BIGINT:
       //sscanf((char *)_decimal, "%Lf", realval); break;
-      sscanf( (const char *)szNumeric, "%Lf", realval); break;
+      sscanf((const char *)szNumeric, "%lf", &_numeric); 
+      *realval = (long double)(_numeric); break;
     case SQL_DOUBLE: case SQL_FLOAT:
       *realval = (long double)(_double); break;
     case SQL_REAL:
