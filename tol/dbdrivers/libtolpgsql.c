@@ -380,35 +380,57 @@ DLLEXPORT(int) postgres_GetAsDate(pgsqld *dbd, int nfield,
     oid = PQftype(dbd->result, nfield);
     
     switch(oid)
+    {
+      case 1114: // timestamp  
+      //no: case 1184: // timestamptz
+	  {
+	    tmp=(char*)malloc(5*sizeof(char));
+	    auxTmp=PQgetvalue(dbd->result, dbd->current_tuple, nfield);
+	    tmp=strncpy(tmp, auxTmp,4);
+	    tmp[4]='\0';
+	    (*dateval)->year = (unsigned short)atoi(tmp);
+	    auxTmp = auxTmp+(5*sizeof(char));
+	    tmp=(char *)strncpy(tmp, auxTmp,2);
+	    tmp[2]='\0';
+	    (*dateval)->month = (unsigned short)atoi(tmp);
+	    auxTmp=auxTmp+(3*sizeof(char));
+	    tmp=(char *)strncpy(tmp, auxTmp, 2);
+	    (*dateval)->day = (unsigned short)atoi(tmp);
+	    auxTmp=auxTmp+(3*sizeof(char));
+	    tmp=(char *)strncpy(tmp, auxTmp, 2);
+	    (*dateval)->hour = (unsigned short)atoi(tmp);
+	    auxTmp=auxTmp+(3*sizeof(char));
+	    tmp=(char *)strncpy(tmp, auxTmp, 2);
+	    (*dateval)->minute = (unsigned short)atoi(tmp);
+	    auxTmp=auxTmp+(3*sizeof(char));
+	    tmp=(char *)strncpy(tmp, auxTmp, 2);
+	    (*dateval)->second = (unsigned short)atoi(tmp);
+	    (*dateval)->msecond = 0;
+	    free(tmp);
+	    return 1;	  
+	  }
+      case 1082: // date
       {
-      case 1114: // timestamp, timestamptz
-	{
-	  tmp=(char*)malloc(5*sizeof(char));
-	  auxTmp=PQgetvalue(dbd->result, dbd->current_tuple, nfield);
-	  tmp=strncpy(tmp, auxTmp,4);
-	  tmp[4]='\0';
-	  (*dateval)->year = (unsigned short)atoi(tmp);
-	  auxTmp = auxTmp+(5*sizeof(char));
-	  tmp=(char *)strncpy(tmp, auxTmp,2);
-	  tmp[2]='\0';
-	  (*dateval)->month = (unsigned short)atoi(tmp);
-	  auxTmp=auxTmp+(3*sizeof(char));
-	  tmp=(char *)strncpy(tmp, auxTmp, 2);
-	  (*dateval)->day = (unsigned short)atoi(tmp);
-	  auxTmp=auxTmp+(3*sizeof(char));
-	  tmp=(char *)strncpy(tmp, auxTmp, 2);
-	  (*dateval)->hour = (unsigned short)atoi(tmp);
-	  auxTmp=auxTmp+(3*sizeof(char));
-	  tmp=(char *)strncpy(tmp, auxTmp, 2);
-	  (*dateval)->minute = (unsigned short)atoi(tmp);
-	  auxTmp=auxTmp+(3*sizeof(char));
-	  tmp=(char *)strncpy(tmp, auxTmp, 2);
-	  (*dateval)->second = (unsigned short)atoi(tmp);
-	  (*dateval)->msecond = 0;
-	  free(tmp);
-	  return 1;	  
-	}
-      }
+	    tmp=(char*)malloc(5*sizeof(char));
+	    auxTmp=PQgetvalue(dbd->result, dbd->current_tuple, nfield);
+	    tmp=strncpy(tmp, auxTmp,4);
+	    tmp[4]='\0';
+	    (*dateval)->year = (unsigned short)atoi(tmp);
+	    auxTmp = auxTmp+(5*sizeof(char));
+	    tmp=(char *)strncpy(tmp, auxTmp,2);
+	    tmp[2]='\0';
+	    (*dateval)->month = (unsigned short)atoi(tmp);
+	    auxTmp=auxTmp+(3*sizeof(char));
+	    tmp=(char *)strncpy(tmp, auxTmp, 2);
+	    (*dateval)->day = (unsigned short)atoi(tmp);
+	    (*dateval)->hour = 0;
+	    (*dateval)->minute = 0;
+	    (*dateval)->second = 0;
+	    (*dateval)->msecond = 0;
+	    free(tmp);
+	    return 1;	  
+	  }
+    }
   }
 
   return 0;
