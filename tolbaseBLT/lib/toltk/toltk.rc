@@ -1,0 +1,23 @@
+! I like gray backgrounds
+
+! *background : #d9d9d9
+
+*borderWidth : 1
+
+! almost white
+
+*Scrollbar.troughColor : gray95
+
+! Tree canvas background should be white
+
+*Tree.c.background : white
+
+! Text background is fine in white
+
+*Text.background   : white
+
+*ComboBox.background : white
+
+*Entry.background : white
+
+*Listbox.background : white

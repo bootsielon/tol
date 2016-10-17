@@ -1,0 +1,36 @@
+add_definitions( -DTCL_THREADS -DTOLBASE_VERSION=\"${TOLBASE_VERSION_MAJOR}.${TOLBASE_VERSION_MINOR}\")
+include_directories( ${TCL_INCLUDE_PATH} ${TOL_INCLUDE_DIR} )
+ 
+message( STATUS "Using TCL_INCLUDE_PATH = ${TCL_INCLUDE_PATH}" )
+message( STATUS "Using TCL_LIBRARY = ${TCL_LIBRARY}" )
+message( STATUS "Using TK_LIBRARY = ${TK_LIBRARY}" )
+
+if ( WIN32 )
+  set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -mwindows" )
+endif( WIN32 )
+
+set(RES_FILES "")
+if(MINGW)
+  set(RES_FILES "tolbase-gnu.rc")
+  set(CMAKE_RC_COMPILER_INIT windres)
+  ENABLE_LANGUAGE(RC)
+  if(CMAKE_SIZEOF_VOID_P EQUAL 4)
+    SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> -i <SOURCE> -o <OBJECT> -F pe-i386")
+  else(CMAKE_SIZEOF_VOID_P EQUAL 4)
+    SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> -i <SOURCE> -o <OBJECT> -F pe-x86-64")
+  endif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+endif(MINGW)
+
+if( UNIX )
+  SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+endif( UNIX )
+add_executable( tolbase tolbase.c ${RES_FILES})
+
+if( WIN32 )
+  target_link_libraries( tolbase ${TCL_LIBRARY} ${TK_LIBRARY} )
+else( WIN32 )
+  target_link_libraries( tolbase ${TCL_LIBRARY} ${TK_LIBRARY} ${TOL_LIBRARY} )
+endif( WIN32 )
+
+message( STATUS "TOLBASE_DEST_DIR = ${TOLBASE_DEST_DIR}" )
+install( TARGETS tolbase RUNTIME DESTINATION "bin" )

@@ -1,0 +1,70 @@
+#//////////////////////////////////////////////////////////////////////////////
+# blistboxplus
+#//////////////////////////////////////////////////////////////////////////////
+mcset es "File_lbp"          "File"
+
+#//////////////////////////////////////////////////////////////////////////////
+# btable
+#//////////////////////////////////////////////////////////////////////////////
+mcset en "descdate%%" "Insert a %"
+mcset en "descdate%a" "Abbreviated weekday name (Mon, Tue, etc.)"
+mcset en "descdate%A" "Full weekday name (Monday, Tuesday, etc.)"
+mcset en "descdate%b" "Abbreviated month name (Jan, Feb, etc.)"
+mcset en "descdate%B" "Full month name"
+mcset en "descdate%c" "Locale specific date and time. The format for date and time in the default C locale on Unix/Mac is %a %b %d %H:%M:%S %Y. On Windows, this value is the locale specific long date and time, as specified in the Regional Options control panel settings"
+mcset en "descdate%C" "First two digits of the four-digit year (19 or 20)"
+mcset en "descdate%d" "Day of month (01 - 31)"
+mcset en "descdate%D" "Date as %m/%d/%y"
+mcset en "descdate%e" "Day of month (1 - 31), no leading zeros"
+mcset en "descdate%h" "Abbreviated month name"
+mcset en "descdate%H" "Hour in 24-hour format (00 - 23)"
+mcset en "descdate%I" "Hour in 12-hour format (01 - 12)"
+mcset en "descdate%j" "Day of year (001 - 366)"
+mcset en "descdate%k" "Hour in 24-hour format, without leading zeros (0 - 23)"
+mcset en "descdate%l" "Hour in 12-hour format, without leading zeros (1 - 12)"
+mcset en "descdate%m" "Month number (01 - 12)"
+mcset en "descdate%M" "Minute (00 - 59)"
+mcset en "descdate%n" "Insert a newline"
+mcset en "descdate%p" "AM/PM indicator"
+mcset en "descdate%r" "Time in a locale-specific meridian format. The meridian format in the default C locale is %I:%M:%S %p"
+mcset en "descdate%R" "Time as %H:%M"
+mcset en "descdate%s" "Count of seconds since the epoch, expressed as a decimal integer"
+mcset en "descdate%S" "Seconds (00 - 59)"
+mcset en "descdate%t" "Insert a tab"
+mcset en "descdate%T" "Time as %H:%M:%S"
+mcset en "descdate%u" "Weekday number (Monday = 1, Sunday = 7)"
+mcset en "descdate%U" "Week of year (00 - 52), Sunday is the first day of the week"
+mcset en "descdate%V" "Week of year according to ISO-8601 rules. Week 1 of a given year is the week containing 4 January"
+mcset en "descdate%w" "Weekday number (Sunday = 0, Saturday = 6)"
+mcset en "descdate%W" "Week of year (00 - 52), Monday is the first day of the week"
+mcset en "descdate%x" "Locale specific date format. The format for a date in the default C locale for Unix/Mac is %m/%d/%y. On Windows, this value is the locale specific short date format, as specified in the Regional Options control panel settings"
+mcset en "descdate%X" "Locale specific 24-hour time format. The format for a 24-hour time in the default C locale for Unix/Mac is %H:%M:%S. On Windows, this value is the locale specific time format, as specified in the Regional Options control panel settings"
+mcset en "descdate%y" "Year without century (00 - 99)"
+mcset en "descdate%Y" "Year with century (e.g. 1990)"
+mcset en "descdate%Z" "Time zone name"
+
+mcset en "descreal%%" "No conversion: just insert %."
+mcset en "descreal%d" "Convert integer to signed decimal string"
+mcset en "descreal%u" "Convert integer to unsigned decimal string"
+mcset en "descreal%i" "Convert integer to signed decimal string; the integer may either be in decimal, in octal (with a leading 0) or in hexadecimal (with a leading 0x)"
+mcset en "descreal%o" "Convert integer to unsigned octal string"
+mcset en "descreal%x" "Convert integer to unsigned hexadecimal string, using digits ``0123456789abcdef'' for x and ``0123456789ABCDEF'' for X)"
+mcset en "descreal%c" "Convert integer to the Unicode character it represents"
+mcset en "descreal%s" "No conversion; just insert string"
+mcset en "descreal%f" "Convert floating-point number to signed decimal string of the form xx.yyy, where the number of y's is determined by the precision (default: 6). If the precision is 0 then no decimal point is output"
+mcset en "descreal%e" "Convert floating-point number to scientific notation in the form x.yyye±zz, where the number of y's is determined by the precision (default: 6). If the precision is 0 then no decimal point is output. If the E form is used then E is printed instead of e"
+mcset en "descreal%g" "If the exponent is less than -4 or greater than or equal to the precision, then convert floating-point number as for %e or %E. Otherwise convert as for %f. Trailing zeroes and a trailing decimal point are omitted"
+
+mcset en "CellNotReal" "Cell is not a real number"
+mcset en "CellNotDate" "Cell is not a date"
+mcset en "LikeChangeTypeText" "Would you like to change the type of the column to text?"
+mcset en "TypeSetText" "Type will be set to text"
+mcset en "SomeCellNotReal" "Some cells are not real"
+mcset en "SomeCellNotDate" "Some cells are not a date"
+mcset en "onlywin" "This function is only available on Windows platforms"
+mcset en "excellimit" "The table is too big for Excel"
+
+#//////////////////////////////////////////////////////////////////////////////
+# bsersel
+#//////////////////////////////////////////////////////////////////////////////
+mcset en "loading" "Loading Series..."

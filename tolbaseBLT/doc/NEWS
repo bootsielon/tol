@@ -1,0 +1,9 @@
+* What was new in tolTcl-1.0a:
+
+** Changed project structure in order to put under gnu autoconf utilities
+Now support autoconf shell script "configure" to build the library
+
+** tolTcl library become a new Open Source project under gnu/GPL license terms.
+TolTcl was an internal project developed in 2002 at Bayes Decisión, SA 
+(Spain, Madrid). Is the base software used with TOLBase, another open source
+project. TOLBase is a user interface written in tcl/tk for programming in tol.

@@ -1,0 +1,66 @@
+Tolbase - TOL Graphic User Interface 
+===========================================
+
+This is Tolbase, the TOL Graphic User Interface written in Tcl/Tk.
+Tolbase is free software, you can redistribute it and/or modify it under
+the terms of the GNU General Public License.
+
+The GNU General Public License does not permit this software to be
+redistributed in proprietary programs.
+
+This software is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+Availability
+============
+
+The current "stable" version of Tolbase is always available from
+http://www.tol-project.org under download section.
+
+
+Installation
+============
+
+Tolbase follows the standard GNU installation procedure.  Please consult
+the INSTALL file in this distribution for more detailed instructions.
+
+More information about Tolbase
+==============================
+
+The project homepage is http://www.tol-project.org
+
+See the NEWS file for recent changes to this software.
+
+The TOL Manual is being written. 
+
+Reporting Bugs
+==============
+
+A list of known bugs can be found in the BUGS file.  
+Details of compilation problems can be found in the INSTALL file.
+
+If you find a bug which is not listed in these files please report it
+to the website or at the nexts email address:
+   Jorge Suit Pérez <jsperez@bayesinf.com>
+   Daniel Rus <daniel@uponeits.com>
+
+All bug reports should include:
+
+       The version number of TOL, and where you obtained it.
+       The hardware and operating system
+       The compiler used, including version number and compilation options
+       A description of the bug behaviour
+       A short program which reproducibly exercises the bug
+
+It is also useful if you can report whether the same problem occurs
+when the software is compiled without optimization.
+
+Thank you.
+
+Contributing to TolTcl
+======================
+
+If you are interested in participating in TolTcl development, please send
+an email to <request@bayesinf.com> or direct to Jorge Suit Pérez
+<jsperez@bayesinf.com> or Daniel Rus <daniel@uponeits.com>.

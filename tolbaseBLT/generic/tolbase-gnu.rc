@@ -1,0 +1,54 @@
+
+#include <windows.h>
+
+// Icon resources
+1 ICON "../lib/toltk/images/tolbase-gnu.ico"
+
+// Version Information resources
+1 VERSIONINFO
+    FILEVERSION     3,2,0,0
+    PRODUCTVERSION  3,2,0,0
+    FILEOS          VOS__WINDOWS32
+    FILETYPE        VFT_APP
+    FILESUBTYPE     VFT2_UNKNOWN
+    FILEFLAGSMASK   VS_FF_DEBUG | VS_FF_PRERELEASE | VS_FF_PATCHED | VS_FF_INFOINFERRED
+    FILEFLAGS       0
+{
+    BLOCK "StringFileInfo"
+    {
+        BLOCK "040901B5" // English
+        {
+            VALUE "Comments", ""
+            VALUE "CompanyName", "Bayes Forecast"
+            VALUE "FileDescription", "TOLBase (GNU)"
+            VALUE "FileVersion", "3.2.0.0"
+            VALUE "InternalName", "tolbase"
+            VALUE "LegalCopyright", "GPL-3"
+            VALUE "LegalTrademarks", ""
+            VALUE "OriginalFilename", "tolbase.exe"
+            VALUE "PrivateBuild", ""
+            VALUE "ProductName", "TOLBase"
+            VALUE "ProductVersion", "3.2.0.0"
+            VALUE "SpecialBuild", ""
+        }
+        BLOCK "0C0A0352" // Español
+        {
+            VALUE "Comments", ""
+            VALUE "CompanyName", "Bayes Forecast"
+            VALUE "FileDescription", "TOLBase (GNU)"
+            VALUE "FileVersion", "3.2.0.0"
+            VALUE "InternalName", "tolbase"
+            VALUE "LegalCopyright", "GPL-3"
+            VALUE "LegalTrademarks", ""
+            VALUE "OriginalFilename", "tolbase.exe"
+            VALUE "PrivateBuild", ""
+            VALUE "ProductName", "TOLBase"
+            VALUE "ProductVersion", "3.2.0.0"
+            VALUE "SpecialBuild", ""
+        }
+    }
+    BLOCK "VarFileInfo"
+    {
+        VALUE "Translation", 0x0409, 0x01B5, 0x0C0A, 0x0352
+    }
+}

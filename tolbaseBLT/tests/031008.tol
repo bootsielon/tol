@@ -1,0 +1,37 @@
+////////////////////////////////////////////////////////////////////////////// 
+Real ReaPower(Real x, Real y) 
+////////////////////////////////////////////////////////////////////////////// 
+{ 
+  Case 
+  ( 
+    EQ(y,0), 1, 
+    And(EQ(x,0), GT(y,0)), 0, 
+    And(EQ(x,0), LT(y,0)), 1/0, 
+    And(NE(x,0), NE(y,0)), Sign(x)*(Abs(x)^y) 
+  ) 
+}; 
+////////////////////////////////////////////////////////////////////////////// 
+PutDescription("Calcula la potencia y de un numero x. La funcion ^ no retorna 
+correctamente el valor para x <= 0 e y no entero o 0, en las versiones 
+1.1.8 y 1.1.9", 
+ReaPower); 
+////////////////////////////////////////////////////////////////////////////// 
+ 
+Set TestReaPower = 
+{ 
+  Set xSet = SetOfReal(3, 0, -3); 
+  Set ySet = SetOfReal(3, 4/3, 3/2, 1/2, 1/3, 0, -1/3, -1/2, -3/2, -4/3, -3); 
+   
+  Set data = EvalSet(CartProd(xSet, ySet), Set(Set reg) 
+  { 
+    Real x = reg[1]; 
+    Real y = reg[2]; 
+  
+    Real pow = ReaPower(x,y); 
+    Real ori = x^y; 
+    SetOfReal(x, y, pow, ori) 
+  }); 
+   
+  Set header = SetOfText("x", "y", "ReaPower(x, y)", "x^y"); 
+  SetOfSet(header)<<data 
+};

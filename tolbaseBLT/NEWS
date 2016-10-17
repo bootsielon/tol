@@ -1,0 +1,159 @@
+* What is new in TolBase-1.1.3
+
+** Progressbar
+
+   A progressbar file (_progressbar.tol) with a dialog was added to provide Tol Code 
+   programmers the capability to display a progress bar for the large time waiting 
+   process.
+
+** Graph Functions & TolMethods
+
+   New interface was created to allow users to graph by means of calling functions.
+   Allowed graphics:
+       - series.   (with TclChartSerie  function)
+       - sets.     (with TclChartSet    function)
+       - matrices. (with TclChartMatrix function) 
+
+   In all of those functions the "title" option was modified to allow this property
+   as title of graph and window.
+
+   For more information Wiew the following article:
+   http://news.tol-project.org/modules.php?name=News&file=article&sid=12&mode=&order=0&thold=0
+
+** Global variables
+
+   Normalized the value of 'dir' to obtain the full path.
+
+** Tabulate Functions
+
+   Added functions to tabulate a tol Set and tol Serie.
+       - Tol_SetTabulate
+       - Tol_SerieTabulate
+
+** MDI
+ 
+   New options in mdi forms
+       - backimg   -> to specify a background image. 
+       - resizable -> controls when user can or cannot resize the window.
+
+** BD Connection
+   
+   New option added
+       - autoconnect -> "1" or "0" (default) to connect automatically with Data Base.
+
+** Functions Search
+
+   The form was changed to a document instead of a dialog.
+   The elements of the form has been reordered.
+   Search allows not case sensitive.
+   The results of the search it's show by means of blisboxplus
+   Search functions are included in proyect
+   If it's possible, allows to visualize the function within the file
+
+** TolBase Options
+
+   New option was added in this subject: 
+   - "program paths" tab in TolBase options dialog. Allows to specify paths for:
+          - browser 
+          - PDFViewer 
+
+      Those programs will be used to view help, data and so on.
+
+
+* What is new in TolBase-1.1.2
+
+** MDI
+
+   Modified the visualization format of the windows and forms of TolBase to
+   perform an MDI environment.
+   A principal (or container) window exists and all the forms will be located
+   in this area.
+
+** ToolBar Main
+
+   Added button bar in the main form.
+
+** Status Main
+
+   Added status bar in the main form, inncluding text info and a small clock.
+
+** Multiple projects
+
+   The load of different projects or modules is allowed. The project
+   specification is read from "tolbase/lib/toltk/project.ini".
+   The project.ini file has now a different structure:
+   [Project]      # Required and required to be first
+   title=         # title of the main window, can be left empty (Uses TOLBase
+                  # by default)
+   splash=        # Full path to splash image to use, can be left empty (Uses
+                  # the image in $toltklibrary/toltk/images/splash.gif by default)
+   [PrjName1]
+   name=          # Project's namespace
+   path=          # Project file paths, there must be a tcl dir within
+                  # and a file named name.tcl with a name::name function
+                  # this function is the one which tolbase will load
+                  # from here on user must load the rest of files for the project
+   [PrjName2]
+   ...
+
+** GUI functions
+
+   It is possible to apply functions to any TOL variable from the object
+   inspector. This can be defined in the global set "GuiFunction". Examples can
+   be found in _guifunction.tol at tolInitLib. Those calls are saved in _eval.tol
+
+** Eval window
+
+   The evaluation window has a Syntax Check command now.
+   Now it is also possible checking or evaluating just the selected text.
+
+** File editor
+
+   Added the possibility of compiling a file without saving it. If any text
+   is selected it is evaluated(in the eval window), otherwise file is
+   included, but not compiled. It is very useful!
+   Only one editor of the same TOL file can be opened.
+   Syntax Check can be done now only for selected text.
+
+** Project Editor
+
+   Bound some actions: Compile (F9), Decompile (F8), Insert Node (Ins),
+   Delete Node (Del), View Node Attributes (Space) and Open Node (Return).
+   Node paths are stored relative to project's one in case it belongs to
+   the same unit as the project base directory, otherwise the full path
+   will be used.
+   When adding a node it searches from the last opened node directory or the
+   project base directory.
+   Nodes can be inserted instead of appended. Do this by selecting "Add node".
+
+** SQL Editor
+
+   Added some reserved words for SQL and SQL Server functions.
+   When text window contains a selected text only the selection is executed,
+   else all text of eval window is executed.
+
+** Parameters TolBase
+
+   Command line arguments are now parsed:
+
+     .tol, .bdt, .bst, .bmt, .prj files along with:
+
+     -i : Includes the file associate
+          Example: tolbase.exe -i test.tol
+     -r : Compiles the file associate
+          Example: tolbase.exe -r test.tol
+     -b : Opens TolBase, it executes sentences indicated and it closes TolBase
+          Example: tolbase.exe -b -i table.bst -r test.tol
+
+** Graph
+
+   Added an option to self-fit an opening graph.
+   "Jump to first data", "Jump to last data", "Play backwards" and
+   "Play forward" options modified to work correctly within the 4 axis.
+
+** Autocorrelation graphs:
+
+   "Lags" and "Sigmas" options apply only to active graph. Before this fix,
+   they were applied to all graphs.
+
+
