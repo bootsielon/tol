@@ -244,15 +244,13 @@ proc ::TolInspector::CreatePaneLeft { paneLeft } {
 
   # creation of the left tree
   set wt_tree [::wtree $sw1.wt -table 0 -filter no \
-    -background white -showroot 1 -selectmode single -showheader 1 \
+    -background white -showroot 1 -selectmode single -showheader 0 \
     -highlightbackground gray75 -highlightcolor black \
     -highlightthickness 0 -font $toltk_options(fonts,Label) \
-    -columns [::TolInspector::WNodeDef 1] ]
-  #@> poner showheader a 0
+    -columns [::TolInspector::LNodeDef] ]
     
   # configuration of the left tree
-  #$wt_tree column configure "range 1 end" -visible no
-  #$wt_tree column configure tail -visible no
+  $wt_tree column configure "range 1 end" -visible no
   $wt_tree column configure first -expand yes -weight 1
   $wt_tree column configure all -itembackground ""       
   $wt_tree notify bind $wt_tree <Selection> "::TolInspector::SelectObject"    
@@ -262,30 +260,30 @@ proc ::TolInspector::CreatePaneLeft { paneLeft } {
   # creation of the root node "Tol Objects"
   set img [::Bitmap::get Objects]
   #@ Se pone el style a mano, no sé la manera natural de hacer esto con wtree
-  $wt_tree item style set root [WiName 1] [$wt_tree column cget [WiName 1] -itemstyle]
-  $wt_tree item text root [WiName 1] [mc "Tol Objects"]
-  $wt_tree item image root [WiName 1] $img
+  $wt_tree item style set root [LiName] [$wt_tree column cget [LiName] -itemstyle]
+  $wt_tree item text root [LiName] [mc "Tol Objects"]
+  $wt_tree item image root [LiName] $img
 
   # creation of the node father "Grammars"
   set img [::Bitmap::get Grammars]  
-  set wt_row [::TolInspector::WNode 1 "" Root $img [mc "Grammars"] "" "" "" "root-grammars" "Grammar"]
+  set wt_row [::TolInspector::LNode "" Root $img [mc "Grammars"] "Grammar"]
   $wt_tree insert $wt_row -at child -relative root -tags "root-grammars"
   # Inserts in the node of grammars a node by each grammar that exists in Tol
   InsertGrammars
 
   # creation of the node father "Packages"
   set img [::Bitmap::get "package"]  
-  set wt_row [::TolInspector::WNode 1 "" Root $img [mc "Packages"] "" "" "" "root-packages" "Package"]    
+  set wt_row [::TolInspector::LNode "" Root $img [mc "Packages"] "Package"]    
   $wt_tree insert $wt_row -at child -relative root -tags "root-packages" -button yes
 
   # creation of the node father "Included Files"
   set img [::Bitmap::get "Files"]
-  set wt_row [::TolInspector::WNode 1 "" Root $img [mc "Included Files"] "" "" "" "root-files" "File"]    
+  set wt_row [::TolInspector::LNode "" Root $img [mc "Included Files"] "File"]    
   $wt_tree insert $wt_row -at child -relative root -tags "root-files" -button yes
       
   # creation of the node father "Console Objects"  
   set img [::Bitmap::get "Console"]
-  set wt_row [::TolInspector::WNode 1 "" Root $img [mc "Console Objects"] "" "" "" "root-console" "Console"]  
+  set wt_row [::TolInspector::LNode "" Root $img [mc "Console Objects"] "Console"]  
   $wt_tree insert $wt_row -at child -relative root -tags "root-console" -button yes
       
   # associates the tree to scrolled window 
@@ -338,9 +336,11 @@ proc ::TolInspector::CreatePaneRight { paneRight } {
     -background white -showroot 0 -selectmode extended -showheader 1 \
     -highlightbackground gray75 -highlightcolor black \
     -highlightthickness 0 -font $toltk_options(fonts,Label) \
-    -columns [::TolInspector::WNodeDef 0] ]
+    -columns [::TolInspector::RNodeDef] ]
   # configuration of the tree of variables
-  $wt_vars column configure all -itembackground ""     
+  $wt_vars column configure [RiGrammar] -visible no
+  $wt_vars column configure [RiReference] -visible no
+  $wt_vars column configure all -itembackground ""
   $wt_vars notify bind $wt_vars <Expand-before> "::TolInspector::OpenVariable %I"
   $wt_vars notify bind $wt_vars <Selection> "::TolInspector::SelectItem $wt_vars"
   #@! el bind debería poder hacerse directamente sobre el wtree
@@ -352,8 +352,10 @@ proc ::TolInspector::CreatePaneRight { paneRight } {
     -background white -showroot 0 -selectmode extended -showheader 1 \
     -highlightbackground gray75 -highlightcolor black \
     -highlightthickness 0 -font $toltk_options(fonts,Label) \
-    -columns [::TolInspector::WNodeDef 0] ]
+    -columns [::TolInspector::RNodeDef] ]
   # configuration of the tree of functions
+  $wt_funcs column configure [RiGrammar] -visible no
+  $wt_funcs column configure [RiReference] -visible no
   $wt_funcs column configure all -itembackground ""     
   $wt_funcs notify bind $wt_funcs <Selection> "::TolInspector::SelectItem $wt_funcs"      
   bind ${wt_funcs}.frameTree.t <Button-1> "::focus $wt_funcs"      

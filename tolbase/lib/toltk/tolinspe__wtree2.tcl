@@ -17,7 +17,7 @@ proc ::TolInspector::ClearConsoleObjSel {wt} {
   variable vars_selected
 
   foreach var $vars_selected {
-    set name [$wt item text $var [WiName 0]]
+    set name [$wt item text $var [RiName]]
     #puts "name=$name"
     #Quitamos el objeto de la consola de tol
     ::tol::console stack release $name
@@ -91,7 +91,7 @@ proc ::TolInspector::PostVariable { x y } {
   }
   
   set parent [$wt_tree selection get 0]
-  set parent_tolReference [$wt_tree item text $parent [WiTolReference 1]]
+  set parent_tolReference [$wt_tree item text $parent [LiReference]]
   
   set InRootConsole [string equal $parent_tolReference "Console"]
   set InRootFiles [string equal $parent_tolReference "File"]
@@ -105,11 +105,11 @@ proc ::TolInspector::PostVariable { x y } {
     set vars_selected [$wt_vars selection get 0 end] ;# curselection
     if { [lsearch $vars_selected $node_act] >= 0 } {
       foreach var $vars_selected {
-        set itemid  [$wt_vars item text $var [WiIndex 0]]
-        set path    [$wt_vars item text $var [WiPath 0]]
-        set grammar [$wt_vars item text $var [WiGrammar 0]]
-        set objName [$wt_vars item text $var [WiName 0]]
-        set object [$wt_vars item text $var [WiTolReference 0]]  
+        set itemid  [$wt_vars item text $var [RiIndex]]
+        set path    [$wt_vars item text $var [RiPath]]
+        set grammar [$wt_vars item text $var [RiGrammar]]
+        set objName [$wt_vars item text $var [RiName]]
+        set object [$wt_vars item text $var [RiReference]]  
         
         #puts "OBJECT=$objName, PATH=$path"
         
@@ -468,11 +468,11 @@ proc ::TolInspector::PostFunction { x y } {
     set vars_selected [$wt_funcs selection get 0 end] ;# curselection
     if { [lsearch $vars_selected $node_act] >= 0 } {
       foreach var $vars_selected {
-        set itemid  [$wt_funcs item text $var [WiIndex 0]]
-        set path    [$wt_funcs item text $var [WiPath 0]]
-        set grammar [$wt_funcs item text $var [WiGrammar 0]]
-        set objName [$wt_funcs item text $var [WiName 0]]
-        set object [$wt_funcs item text $var [WiTolReference 0]]   
+        set itemid  [$wt_funcs item text $var [RiIndex]]
+        set path    [$wt_funcs item text $var [RiPath]]
+        set grammar [$wt_funcs item text $var [RiGrammar]]
+        set objName [$wt_funcs item text $var [RiName]]
+        set object [$wt_funcs item text $var [RiReference]]   
         # La única gramática seleccionable en wt_funcs es Code
         lappend code_selected [list $object $objName $path]
       }
@@ -533,7 +533,7 @@ proc ::TolInspector::PostTree { x y } {
   set selection [$wt_tree selection get 0]
   if { ![string length $selection] } { return }
   
-  set tolReference [$wt_tree item text $selection [WiTolReference 1]]
+  set tolReference [$wt_tree item text $selection [LiReference]]
   if { [llength $tolReference] == 2 } {
     set InRootFiles [string equal [lindex $tolReference 0] "File"]
   } else {
@@ -552,15 +552,15 @@ proc ::TolInspector::PostTree { x y } {
       
       if { $index == 0 } return
       # if user selects a root or a grammar doesn't nothing      
-      set tolReference [$wt_tree item text $index [WiTolReference 1]]
+      set tolReference [$wt_tree item text $index [LiReference]]
       if { [llength $tolReference] == 1 } return
       
       # label of object showed in the tree
-      set objName [$wt_tree item text [WiName 1]]
-      set object [$wt_tree item text [WiTolReference 1]]
+      set objName [$wt_tree item text [LiName]]
+      set object [$wt_tree item text [LiReference]]
       
       if {$InRootFiles} {
-        set objName [$wt_tree item text $index [WiPath 1]]
+        set objName [lindex $tolReference 1]
       }   
       # TICKET: #1438
       # Por que se pregunta aqui por los objetos de consola?
@@ -632,7 +632,7 @@ proc ::TolInspector::AddToConsole {wt} {
   variable vars_selected
 
   foreach var $vars_selected {
-    set reference [$wt item text $var [WiTolReference 0]]
+    set reference [$wt item text $var [RiReference]]
     #Tolcon_Trace "GetObjectFromAddress(\"[::tol::info address $reference]\")"
     ::tol::console eval "GetObjectFromAddress(\"[::tol::info address $reference]\")"
   }  
@@ -649,7 +649,7 @@ proc ::TolInspector::AddToEvalWindow {wt} {
 
   set names ""
   foreach var $vars_selected {   
-    lappend names [$wt item text $var [WiName 0]]
+    lappend names [$wt item text $var [RiName]]
   }
   ::TolConsole::ToEvalWindow [ListToStr $names]
 }
