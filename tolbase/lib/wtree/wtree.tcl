@@ -314,7 +314,6 @@ snit::widget wtree {
         -showrootbutton no -showbuttons yes -showlines yes \
         -scrollmargin 16 -xscrolldelay "500 50" -yscrolldelay "500 50"
 
-
     $tree notify install <<ItemSelected>>
     $tree notify install <<Escape>>
 
@@ -744,7 +743,8 @@ snit::widget wtree {
                       -text [ msgcat::mc $opts(-label) ] \
                       -image $opts(-image) \
                       -itembackground "\#e0e8f0 {}" \
-                      -tags $opts(-tags) ]
+                      -tags $opts(-tags) ]                     
+      # "
       set column_info($idx,ID) $colID
       set column_info(MAPIDX,$colID) $idx
       set column_info($idx,elements) $col_elements
@@ -838,7 +838,7 @@ snit::widget wtree {
     # tipo tabla
     set item [ $tree item create \
                    -button $insopt(-button) \
-                   -tags insopt(-tags) ]
+                   -tags $insopt(-tags) ]
     set idx 0
     set idx_last  [ expr [ llength $options(-columns) ] - 1 ]
     # 'data' es una lista con informacion para cada columna. Lo que

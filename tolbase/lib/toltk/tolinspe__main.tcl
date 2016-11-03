@@ -8,6 +8,7 @@
 package require bguifunction
 package require snit
 package require btable
+package require wtree 
 
 if { 0 && ![info exists toltk_script_path] } {
   set toltk_script_path [file dirname [info script]]
@@ -19,22 +20,15 @@ if {"unix" eq $::tcl_platform(platform)} {
     set comm [string map "%d $units" {
       %W yview scroll %d units
     }]
+    #@! REVISAR
     bind TreeView <$but> $comm
   }
 } else {
+  #@! REVISAR
   bind TreeView <MouseWheel> {
     %W yview scroll [expr int(-1*%D/36)] units
   }
 }
-#
-##/////////////////////////////////////////////////////////////////////////////
-#proc dump { args } {
-##
-## PURPOSE: Auxiliary procedure to show a string
-##
-##/////////////////////////////////////////////////////////////////////////////
-#puts $args
-#}
 
 #/////////////////////////////////////////////////////////////////////////////
 proc startupResources { } {
@@ -84,77 +78,39 @@ namespace eval ::TolInspector {
 # VARIABLES:
 #   data: 
 #   regFunLst:    List array with functions defined by user
-#   tolset:       Name of the current TOL set variable
-#   tolindex:
-#   at_set:
-#   node_prefix:
-#   ht_tree:      Tree widget containing the TOL objects (:blt::treeview)
-#   blt_tree:     Tree widget containing the TOL objects (:blt::tree)
+#   wt_tree:      Tree widget containing the TOL objects (::wtree)
 #   w_tabset:     Tabset widget containing trees of variables and functions
-#   ht_vars:      Tree widget containing the tree of Variables
-#                 (:blt::treeview)
-#   blt_vartree:  Tree widget containing the tree of Variables (:blt::tree)
+#   wt_vars:      Tree widget containing the tree of Variables (::wtree)
 #   data_menu:    Array with data of menus
 #   group_id:
-#   ht_funcs:     Tree widget containing the tree of Functions
-#                 (:blt::treeview)
-#   blt_functree: Tree widget containing the tree of Functions (:blt::tree)
-#   item_data:    Array to hold the full content & description of items
-#   item_id:      Current index of item to insert in ht_* starting from 1
-#   OnSelectItem: Command to invoke on SelectItem in ht_*
+#   wt_funcs:     Tree widget containing the tree of Functions (::wtree)
+#   OnSelectItem: Command to invoke on SelectItem in wt_*
 #   OnBusyCmd:    Command to invoke when busy
 #   SubTypeImgs:  Images associated to types of set
 #
 #/////////////////////////////////////////////////////////////////////////////
   variable data
+  variable arguments
   
   # List array with functions defined by user
   variable regFunLst
   
-  # name of the current TOL set variable.
-  variable tolset ""
-  variable tolindex ""
-  # estas variables desapareceran cuando ::tol::forallchild admita scripts
-  # completos y no solo nombres de proc
-  variable at_set
-  variable node_prefix
-
-  variable iterSet ""
-  variable knownReference ""
-
-  variable gra_parent ""
   # tree widget containing the TOL objects.
-  variable ht_tree   ;# is a ::blt::treeview
-  variable blt_tree  ;# is a ::blt::tree
-
+  variable wt_tree   ;# is a ::wtree
+  
   # tabset widget containing trees of variables and functions 
   variable w_tabset
 
-  # list widget containing the variables. It's the window of
-  # the tab Variable
-  variable ht_vars      ;# is a ::blt::treeview
-  variable blt_vartree  ;# is a ::blt::tree
+  # list widget containing the variables. It's the window of the tab Variable
+  variable wt_vars      ;# is a ::wtree
   
   variable data_menu
   variable group_id -1
 
-  # list widget containing the functions. It's the window of
-  # the tab Functions
-  variable ht_funcs     ;# is a ::blt::treeview
-  variable blt_functree ;# is a ::blt::tree
+  # list widget containing the functions. It's the window of the tab Functions
+  variable wt_funcs     ;# is a ::wtree
 
-  # array to hold the full content & description of items
-  variable item_data
-
-  # current index of item to insert in ht_* starting from 1
-  variable item_id
-  
-  # tell if we are processing a SelectSet event
-
-  #variable selecting_set
-  #variable closing
-
-  # command to invoke on SelectItem in ht_*
+  # command to invoke on SelectItem in wt_*
   variable OnSelectItem
 
   # command to invoke when busy
@@ -178,71 +134,12 @@ proc ::TolInspector::SubTypeImage { idx } {
 }
 
 #/////////////////////////////////////////////////////////////////////////////
-proc ::TolInspector::CreateColumns { ht } {
-#
-# PURPOSE: Creates the columns (index, name, content, path, description )
-#          of the tree of variables or functions
-#
-# PARAMETERS:
-#   ht: path of ::blt::treeview of variables or ::blt::treeview of functions
-#
-#/////////////////////////////////////////////////////////////////////////////
-  # main column ==> Name
-  $ht column configure treeView -text [mc "Name"] -justify left \
-      -bg white -activetitlebackground gray90 -pad 3
-  # index column
-  $ht column insert 0 Index \
-      -bg white -justify left -activetitlebackground gray90
-  # columns Content Path & Description
-  #(pgea) se oculta la columna correspondiente a la referencia
-  $ht column insert end Content Description Path\
-      -bg white -justify left -activetitlebackground gray90 -pad 3
-  $ht column insert end Reference -hide yes
-  foreach c {Index Content Description Path} {
-    $ht column configure $c -text [mc "$c"]
-  }
-  # associates the command of order to each one of the titles of the
-  # columns of the trees
-  foreach column [$ht column names] {
-    $ht column configure $column \
-      -command [list ::TolInspector::SortColumn $ht $column]
-  }
-}
-
-#/////////////////////////////////////////////////////////////////////////////
-proc ::TolInspector::SortColumn {ht column} {
-#
-# PURPOSE: Associates the command of order to the title of a column of the
-#          tree of variables or the tree of functions
-#
-# PARAMETERS:
-#   ht:     path of ::blt::treeview of variables or ::blt::treeview of
-#           functions
-#   column: name of the column of this tree
-#
-#/////////////////////////////////////////////////////////////////////////////  
-  set old [$ht sort cget -column] 
-  set decreasing 0
-  if { "$old" == "$column" } {
-    set decreasing [$ht sort cget -decreasing]
-    set decreasing [expr !$decreasing]
-  }
-  $ht sort configure -decreasing $decreasing -column $column -mode integer
-  $ht configure -flat no
-  $ht sort auto yes
-
-  blt::busy hold $ht
-  update
-  blt::busy release $ht
-}
-
-#/////////////////////////////////////////////////////////////////////////////
 proc ::TolInspector::Create { w args } {
 #
 # PURPOSE: Creates the object inspector, that contains two panels with three
 #          treeviews and three trees.
 #           - One for the left side of the inspector (with grammars,
-#             included files, console objects and object's spool)
+#             included files and console objects)
 #           - And two for the right one (one for variables tab and one for
 #             functions tab)
 #
@@ -255,13 +152,10 @@ proc ::TolInspector::Create { w args } {
 #
 #/////////////////////////////////////////////////////////////////////////////
   global toltk_options
-  variable ht_tree
-  variable blt_tree
-  variable ht_vars
-  variable blt_vartree
+  variable wt_tree  
+  variable wt_vars  
   variable data_menu
-  variable ht_funcs
-  variable blt_functree
+  variable wt_funcs  
   variable w_tabset
   variable OnSelectItem
   variable OnBusyCmd ""
@@ -271,10 +165,6 @@ proc ::TolInspector::Create { w args } {
 
   variable widgets
   variable data
-
-  array set data {
-    pool,objects ""
-  }
 
   array set options {
     -onselcmd ""
@@ -286,10 +176,11 @@ proc ::TolInspector::Create { w args } {
   # initializes the command OnSelectItem to ""
   set OnSelectItem $options(-onselcmd)
 
-  #variable selecting_set 0
-  #variable closing 0
-
   #upvar \#0 ::TolTk::Images Images
+  
+  bind TreeCtrl <Button1-Motion> {
+    TreeCtrl::Motion1 %W %x %y
+  }
 
   # creation of PANED WINDOW MAIN
   set pwMain [PanedWindow $w -side bottom -pad 0 -width 4]
@@ -329,10 +220,11 @@ proc ::TolInspector::Create { w args } {
 
   # esto es para evitar que aparezca el icono open cuando
   # relleno estando el mouse sobre ht_*
-  $ht_vars  bind Entry <Enter>  ""
-  $ht_vars  bind Entry <Leave>  ""
-  $ht_funcs bind Entry <Enter>  ""
-  $ht_funcs bind Entry <Leave>  ""
+  #@! Por revisar
+  #@! $ht_vars  bind Entry <Enter>  ""
+  #@! $ht_vars  bind Entry <Leave>  ""
+  #@! $ht_funcs bind Entry <Enter>  ""
+  #@! $ht_funcs bind Entry <Leave>  ""
 }
 
 #/////////////////////////////////////////////////////////////////////////////
@@ -345,68 +237,68 @@ proc ::TolInspector::CreatePaneLeft { paneLeft } {
 #
 #/////////////////////////////////////////////////////////////////////////////
   global toltk_options
-  variable blt_tree
-  variable ht_tree
+  variable wt_tree
   
   # creation of the ScrolledWindow of the left side
-  set sw1 [ScrolledWindow $paneLeft.sw -ipad 0 -borderwidth 0 -scrollbar both ]
+  set sw1 [ScrolledWindow $paneLeft.sw -ipad 0 -borderwidth 0 -scrollbar none]
+
   # creation of the left tree
-  set blt_tree [::blt::tree create tree$sw1.ht]
-  set ht_tree [::blt::treeview $sw1.ht -tree $blt_tree -bg white \
-           -hideroot no -activeicons "" \
-           -selectbackground gray75 -selectforeground black \
-           -selectcommand ::TolInspector::SelectObject \
-           -highlightthickness 0 -font $toltk_options(fonts,Label)]
+  set wt_tree [::wtree $sw1.wt -table 0 -filter no \
+    -background white -showroot 1 -selectmode single -showheader 1 \
+    -highlightbackground gray75 -highlightcolor black \
+    -highlightthickness 0 -font $toltk_options(fonts,Label) \
+    -columns [::TolInspector::WNodeDef 1] ]
+  #@> poner showheader a 0
+    
   # configuration of the left tree
-  $ht_tree configure \
-           -closecommand  "::TolInspector::CloseObject %#" \
-           -opencommand   "::TolInspector::OpenObject %#"
-  $ht_tree style configure text -bg white     
-  $ht_tree column configure treeView -bg white
-  $ht_tree column insert end FileName -hide true  
+  #$wt_tree column configure "range 1 end" -visible no
+  #$wt_tree column configure tail -visible no
+  $wt_tree column configure first -expand yes -weight 1
+  $wt_tree column configure all -itembackground ""       
+  $wt_tree notify bind $wt_tree <Selection> "::TolInspector::SelectObject"    
+  $wt_tree notify bind $wt_tree <Expand-before> "::TolInspector::OpenObject %I"
+  $wt_tree notify bind $wt_tree <Collapse-before> "::TolInspector::CloseObject %I"  
+           
   # creation of the root node "Tol Objects"
   set img [::Bitmap::get Objects]
-  $ht_tree entry configure root -label [mc "Tol Objects"]\
-           -icons [list $img $img]
+  #@ Se pone el style a mano, no sé la manera natural de hacer esto con wtree
+  $wt_tree item style set root [WiName 1] [$wt_tree column cget [WiName 1] -itemstyle]
+  $wt_tree item text root [WiName 1] [mc "Tol Objects"]
+  $wt_tree item image root [WiName 1] $img
 
   # creation of the node father "Grammars"
   set img [::Bitmap::get Grammars]  
-  set blt_idx [$blt_tree insert root -label "root-grammars"\
-           -tags "root-grammars"]
-  $ht_tree entry configure $blt_idx -label [mc "Grammars"]\
-           -icons [list $img $img]
+  set wt_row [::TolInspector::WNode 1 "" Root $img [mc "Grammars"] "" "" "" "root-grammars" "Grammar"]
+  $wt_tree insert $wt_row -at child -relative root -tags "root-grammars"
   # Inserts in the node of grammars a node by each grammar that exists in Tol
   InsertGrammars
 
   # creation of the node father "Packages"
   set img [::Bitmap::get "package"]  
-  set blt_idx [$blt_tree insert root -label "root-packages"\
-           -tags "root-packages"]
-  $ht_tree entry configure $blt_idx -label [mc "Packages"]\
-           -icons [list $img $img] -button yes
+  set wt_row [::TolInspector::WNode 1 "" Root $img [mc "Packages"] "" "" "" "root-packages" "Package"]    
+  $wt_tree insert $wt_row -at child -relative root -tags "root-packages" -button yes
 
   # creation of the node father "Included Files"
   set img [::Bitmap::get "Files"]
-  set blt_idx [$blt_tree insert root -label "root-files" -tags "root-files"]
-  $ht_tree entry configure $blt_idx -label [mc "Included Files"] \
-      -icons [list $img $img] -button yes
+  set wt_row [::TolInspector::WNode 1 "" Root $img [mc "Included Files"] "" "" "" "root-files" "File"]    
+  $wt_tree insert $wt_row -at child -relative root -tags "root-files" -button yes
+      
   # creation of the node father "Console Objects"  
   set img [::Bitmap::get "Console"]
-  set blt_idx [$blt_tree insert root -label "root-console"\
-          -tags "root-console"]
-  $ht_tree entry configure $blt_idx -label [mc "Console Objects"] \
-      -icons [list $img $img] -button yes
-  # creation of the node father "Objects' Spool" 
-  set img [::Bitmap::get "pool"]
-  set blt_idx [$blt_tree insert root -label "root-pool" -tags "root-pool"]
-  $ht_tree entry configure $blt_idx -label [mc "Objects' Spool"] \
-      -icons [list $img $img] -button yes
-  # associates the tree to scrolled window
-  $sw1 setwidget $ht_tree
+  set wt_row [::TolInspector::WNode 1 "" Root $img [mc "Console Objects"] "" "" "" "root-console" "Console"]  
+  $wt_tree insert $wt_row -at child -relative root -tags "root-console" -button yes
+      
+  # associates the tree to scrolled window 
+  $sw1 setwidget $wt_tree
+
   # packing 
   pack $sw1 -fill both -expand yes
+  
   # bind the focus on tree
-  bind $ht_tree  <Button-1> "::focus $ht_tree"
+  bind ${wt_tree}.frameTree.t <Button-1> "::focus $wt_tree"
+  
+  # expand/collapse (and fill/unfill) a node with a double clic
+  bind ${wt_tree}.frameTree.t <Double-1> "$wt_tree item toggle \[ $wt_tree selection get 0 \]"
 }
 
 #/////////////////////////////////////////////////////////////////////////////
@@ -420,10 +312,8 @@ proc ::TolInspector::CreatePaneRight { paneRight } {
 #/////////////////////////////////////////////////////////////////////////////
   global toltk_options
   variable w_tabset
-  variable blt_vartree 
-  variable ht_vars
-  variable blt_functree
-  variable ht_funcs
+  variable wt_vars
+  variable wt_funcs
   
   # creates the tabset to display the variables & functions    
   #set w_tabset [::blt::tabset $paneRight.ts -relief flat\
@@ -433,8 +323,9 @@ proc ::TolInspector::CreatePaneRight { paneRight } {
             -bd 0 -outerpad 0 -tier 2 -slant right -textside right \
             -highlightthickness 0]
   # creates the scrolled windows for each one of the tabs
-  set sw21 [ScrolledWindow $w_tabset.sw1]
-  set sw22 [ScrolledWindow $w_tabset.sw2]
+  set sw21 [ScrolledWindow $w_tabset.sw12 -scrollbar none]  
+  set sw22 [ScrolledWindow $w_tabset.sw22 -scrollbar none]
+  
   # inserts in the tabset the tabs of functions and variables
   $w_tabset insert end \
       Variables -text [mc Variables] -selectbackground \#d9d9d9 -bg gray75 \
@@ -443,47 +334,43 @@ proc ::TolInspector::CreatePaneRight { paneRight } {
       -image [::Bitmap::get Functions] -pady 0
 
   # Creation of the right TREE RIGHT with VARIABLES
-  set blt_vartree [::blt::tree create tree$sw21.vars]
-  set ht_vars [::blt::treeview $sw21.vars -tree $blt_vartree -flat no\
-           -bg white -hideroot yes -linewidth 0 -activeicons {}\
-           -selectmode multiple\
-           -selectbackground gray75 -selectforeground black \
-           -highlightthickness 0 -font $toltk_options(fonts,Label)]
-  #tv_ordered_selection tvsel -tv $ht_vars
+  set wt_vars [::wtree $sw21.vars -table 1 -filter no \
+    -background white -showroot 0 -selectmode extended -showheader 1 \
+    -highlightbackground gray75 -highlightcolor black \
+    -highlightthickness 0 -font $toltk_options(fonts,Label) \
+    -columns [::TolInspector::WNodeDef 0] ]
   # configuration of the tree of variables
-  $ht_vars configure \
-    -opencommand   "::TolInspector::OpenVariable %#" \
-    -selectcommand "::TolInspector::SelectItem $ht_vars"
-  $ht_vars style configure text -bg white
-  bind $ht_vars  <Button-1> "::focus $ht_vars"
-    
+  $wt_vars column configure all -itembackground ""     
+  $wt_vars notify bind $wt_vars <Expand-before> "::TolInspector::OpenVariable %I"
+  $wt_vars notify bind $wt_vars <Selection> "::TolInspector::SelectItem $wt_vars"
+  #@! el bind debería poder hacerse directamente sobre el wtree
+  bind ${wt_vars}.frameTree.t  <Button-1> "::focus $wt_vars"    
+  bind ${wt_vars}.frameTree.t <Double-1> "::TolInspector::SelectionExpand"
+  
   # Creation of the right TREE RIGHT with FUNCTIONS
-  set blt_functree [::blt::tree create tree$sw22.funcs]
-  set ht_funcs [::blt::treeview $sw22.funcs -tree $blt_functree -flat no\
-          -bg white -hideroot yes -linewidth 0 -activeicons {} \
-          -selectmode multiple\
-          -selectbackground gray75 -selectforeground black \
-          -highlightthickness 0 -font $toltk_options(fonts,Label)]
+  set wt_funcs [::wtree $sw22.vars -table 1 -filter no \
+    -background white -showroot 0 -selectmode extended -showheader 1 \
+    -highlightbackground gray75 -highlightcolor black \
+    -highlightthickness 0 -font $toltk_options(fonts,Label) \
+    -columns [::TolInspector::WNodeDef 0] ]
   # configuration of the tree of functions
-  $ht_funcs configure  -selectcommand "::TolInspector::SelectItem $ht_funcs"
-  $ht_funcs style configure text -bg white
-  bind $ht_funcs <Button-1> "::focus $ht_funcs"
+  $wt_funcs column configure all -itembackground ""     
+  $wt_funcs notify bind $wt_funcs <Selection> "::TolInspector::SelectItem $wt_funcs"      
+  bind ${wt_funcs}.frameTree.t <Button-1> "::focus $wt_funcs"      
   
   # associates the trees to scrolled windows
-  $sw21 setwidget $ht_vars
-  $sw22 setwidget $ht_funcs
+  $sw21 setwidget $wt_vars
+  $sw22 setwidget $wt_funcs  
   # configure the tabs
   $w_tabset tab configure Variables -window $sw21 -fill both -padx 0 
   $w_tabset tab configure Functions -window $sw22 -fill both -padx 0
-  # create the columns of the trees of variables and functions
-  CreateColumns $ht_vars
-  CreateColumns $ht_funcs
+
   # packing the tabset
   pack $w_tabset -fill both -expand yes
   $w_tabset tab configure Variables\
-         -command "::TolInspector::SelectItem $ht_vars"
+         -command "::TolInspector::SelectItem $wt_vars"
   $w_tabset tab configure Functions\
-         -command "::TolInspector::SelectItem $ht_funcs"
+         -command "::TolInspector::SelectItem $wt_funcs"
 }
 
 #/////////////////////////////////////////////////////////////////////////////
@@ -493,11 +380,11 @@ proc ::TolInspector::CreateMenus {} {
 #
 #/////////////////////////////////////////////////////////////////////////////
   variable data_menu
-  variable ht_vars
-  variable ht_funcs
-  variable ht_tree
+  variable wt_vars
+  variable wt_funcs
+  variable wt_tree  
 
-  set data_menu(main)          [menu $ht_vars.m -tearoff 0]
+  set data_menu(main)          [menu $wt_tree.m -tearoff 0]
   set data_menu(Code,File)     [menu $data_menu(main).mcof -tearoff 0]
   set data_menu(Complex,File)  [menu $data_menu(main).mcxf -tearoff 0]
   set data_menu(Date,File)     [menu $data_menu(main).mdaf -tearoff 0]
@@ -546,11 +433,10 @@ proc ::TolInspector::CreateMenus {} {
   set data_menu(TimeSet,View)       [menu $data_menu(main).mtiv   -tearoff 0]
   #$ht_vars  bind Entry <Button-3> +[$ht_vars bind Entry <Button-1>]
   
-  # composes the  menus for each one of the trees, depending the node
-  # that is selected
-  $ht_vars  bind all <Button-3> +[list ::TolInspector::PostVariable %X %Y]
-  $ht_funcs bind all <Button-3> +[list ::TolInspector::PostFunction %X %Y]
-  $ht_tree  bind all <Button-3> +[list ::TolInspector::PostTree     %X %Y]
+  # composes the  menus for each one of the trees, depending the node that is selected
+  bind ${wt_tree}.frameTree.t <Button-3> "::TolInspector::PostTree %X %Y" 
+  bind ${wt_vars}.frameTree.t <Button-3> "::TolInspector::PostVariable %X %Y" 
+  bind ${wt_funcs}.frameTree.t <Button-3> "::TolInspector::PostFunction %X %Y" 
 }
 
 #/////////////////////////////////////////////////////////////////////////////
@@ -579,15 +465,8 @@ proc ::TolInspector::Destroy { } {
 #          content & description of items
 #
 #/////////////////////////////////////////////////////////////////////////////  
-  variable blt_tree
-  variable blt_vartree
-  variable blt_functree
-  variable item_data
-
-  ::blt::tree destroy $blt_tree
-  ::blt::tree destroy $blt_vartree
-  ::blt::tree destroy $blt_functree
-  unset item_data
+  #@! wtree destroy ??
+  return
 }
 
 #/////////////////////////////////////////////////////////////////////////////
@@ -640,20 +519,19 @@ proc ::TolInspector::TrimContent { grammar content } {
 }
 
 #>> [tolinspe_wtree1.tcl]
-#>> proc ::TolInspector::_InsertChild
 #>> proc ::TolInspector::InsertChild
-#>> proc ::TolInspector::Insert_HTItem
+#>> proc ::TolInspector::InsertItem
 #>> proc ::TolInspector::ClearHiertables
-#>> proc ::TolInspector::getPackageReference
 #>> proc ::TolInspector::OpenObject
 #>> proc ::TolInspector::InsertPackages
 #>> proc ::TolInspector::InsertGrammars
 #>> proc ::TolInspector::InsertFiles
 #>> proc ::TolInspector::InsertConsoleObj
-#>> proc ::TolInspector::InsertPoolObj
 #>> proc ::TolInspector::InsertSubset
 
+#/////////////////////////////////////////////////////////////////////////////
 proc ::TolInspector::FilterNameBlockMember { name } {
+#/////////////////////////////////////////////////////////////////////////////
   set st_reg [ regexp {(.+::)?(_)?(\.)?(.*)} $name => p1 p2 p3 p4]
   if { !$st_reg } {
     list -show 1 -fcolor "black" -name $name
@@ -681,17 +559,17 @@ proc ::TolInspector::FilterNameBlockMember { name } {
 #>> proc ::TolInspector::ClearConsoleObjSel
 #>> proc ::TolInspector::UpdateFileRoot
 #>> proc ::TolInspector::UpdateConsoleObj
-#>> proc ::TolInspector::UpdatePoolObj
 
 #>> [tolinspe_wtree1.tcl]
 #>> proc ::TolInspector::SelectObject
 #>> proc ::TolInspector::SelectFileRoot
 #>> proc ::TolInspector::SelectConsoleRoot
-#>> proc ::TolInspector::SelectPoolRoot
 #>> proc ::TolInspector::SelectGrammar
 #>> proc ::TolInspector::SelectSet
 
+#/////////////////////////////////////////////////////////////////////////////
 proc ::TolInspector::GetParentGrammar { set_ref } {
+#/////////////////////////////////////////////////////////////////////////////
   set root [ lindex $set_ref 0 ]
   set L [ llength $set_ref ]
   if { ( $root eq "File" && $L <= 2 ) } {
@@ -701,21 +579,10 @@ proc ::TolInspector::GetParentGrammar { set_ref } {
   }
 }
 
-#/////////////////////////////////////////////////////////////////////////////
-proc ::TolInspector::HasSubset { args } {
-#/////////////////////////////////////////////////////////////////////////////  
-  if { [string equal [lindex $args 0] "Set"] } {
-    variable has_button 1
-    return 0
-  }
-  return 1
-}
-
 #>> [tolinspe_wtree1.tcl]
 #>> proc ::TolInspector::CloseObject
 #>> proc ::TolInspector::OpenVariable
 #>> proc ::TolInspector::SelectItem
-#>> proc ::TolInspector::FillText
 
 #/////////////////////////////////////////////////////////////////////////////
 proc ::TolInspector::GetItemName { prefix idx_list } {
@@ -737,11 +604,11 @@ proc ::TolInspector::OnBusy { cmd } {
 proc ::TolInspector::Busy { } {
 #/////////////////////////////////////////////////////////////////////////////  
   variable OnBusyCmd
-  variable ht_tree
-  variable ht_vars
+  variable wt_tree  
+  variable wt_vars
 
-  $ht_tree configure -cursor watch
-  $ht_vars configure -cursor watch
+  $wt_tree configure -cursor watch
+  $wt_vars configure -cursor watch
   if { [string length $OnBusyCmd] } {
     eval $OnBusyCmd 1
   }
@@ -751,11 +618,11 @@ proc ::TolInspector::Busy { } {
 proc ::TolInspector::NotBusy { } {
 #/////////////////////////////////////////////////////////////////////////////  
   variable OnBusyCmd
-  variable ht_tree
-  variable ht_vars
+  variable wt_tree   
+  variable wt_vars
 
-  $ht_tree configure -cursor ""
-  $ht_vars configure -cursor ""
+  $wt_tree configure -cursor ""
+  $wt_vars configure -cursor ""
 
   if { [string length $OnBusyCmd] } {
     eval $OnBusyCmd 0
@@ -767,17 +634,16 @@ proc ::TolInspector::NotBusy { } {
 #>> proc Tol_*
 #>> proc TolGui_*
 
+
 #>> [tolinspe__wtree2.tcl]
 #>> proc ::TolInspector::PostVariable
 #>> proc ::TolInspector::PostFunction
 #>> proc ::TolInspector::PostTree
-#>> proc ::TolInspector::RemoveFromSpool
-#>> proc ::TolInspector::AddToSpool
 #>> proc ::TolInspector::AddToEvalWindow
 #>> proc ::TolInspector::SelectAll
 #>> proc ::TolInspector::ToggleSelection
 
-#>> [tolinspe__draw.tcl]
+#>> [__draw.tcl]
 #>> proc ::TolInspector::ExportBDTMatrix
 #>> proc ::TolInspector::Draw*
 #>> proc ::TolInspector::Table*
@@ -795,7 +661,6 @@ proc ::TolInspector::DecompileFile {name} {
 # TODO: Actualmente en name solo puede llegar el nombre de un archivo
 #
 #/////////////////////////////////////////////////////////////////////////////
-  variable data
   #puts "DECOMPILE 1.1, name=$name"
   if {[file isfile $name]} {
     set path $name
@@ -810,17 +675,6 @@ proc ::TolInspector::DecompileFile {name} {
       if [string equal $dataEd(nameFile) $path] {
         set dataEd(isCompiled) 0
       }
-    }
-  }
-  #puts "DECOMPILE 1.3"
-  #Quitar del spool todos los objetos provenientes de este archivo
-  
-  foreach _obj $data(pool,objects) {
-    array set obj $_obj
-    #Tolcon_Trace "REFERENCIA: $obj(reference)"
-    if {[string equal [lindex $obj(reference) 0] $path]} {
-      set idx [lsearch $data(pool,objects) $_obj]
-      set data(pool,objects) [lreplace $data(pool,objects) $idx $idx]
     }
   }
   # https://www.tol-project.org/ticket/1483
@@ -927,7 +781,6 @@ proc ::TolInspector::CallUserFunction {grammar idx} {
 #/////////////////////////////////////////////////////////////////////////////
   variable regFunLst
   variable group_id
-  variable data
   variable options_selected
 
   upvar \#0 ::TolInspector::options_selected($grammar) items_selected
@@ -975,40 +828,3 @@ proc ::TolInspector::CallUserFunction {grammar idx} {
     ::TolInspector::UpdateConsoleObj
   }
 }
-
-namespace eval ::LoadStatus {
-  variable data
-}
-
-#proc ::LoadStatus::Show {file} {
-#    
-#  set f [toplevel .topStatus]
-#  #wm protocol $path WM_DELETE_WINDOW [list ::Editor::OnDelete $this]
-#  # bind Destroy más abajo
-#  
-#  label $f.lfile -text $file
-#  # frame y label para barra de estado
-#  set data(sb,frame) [frame $f.fop -relief groove -bd 1 -height 7]
-#  set data(sb,objs)  [label $f.fop.objs -relief groove -bd 1 -width 16]
-#  set data(sb,files) [label $f.fop.files -text [mc "Not Compiled"] \
-#          -relief raised -bd 1 -width 16]
-#  set data(sb,time)  [label $f.fop.time -bd 1 -width 14]
-#  set data(sb,rell)  [label $f.fop.rell -relief groove -bd 1]
-#  
-#  
-#  # empaquetamos los label de estado
-#  pack $f.fop.objs $f.fop.files $f.fop.time -side left
-#  pack $f.fop.rell -expand true -fill x
-#  
-#  grid $f.lfile -sticky news
-#  grid $f.fop   -sticky ews
-#  
-#  grid rowconfigure    $f 1 -weight 1
-#  grid columnconfigure $f 0 -weight 1
-#    
-#}
-#
-#
-#proc ::LoadStatus::Hide {w} {
-#    
-#

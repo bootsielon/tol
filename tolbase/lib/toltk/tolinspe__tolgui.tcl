@@ -1,5 +1,18 @@
+#/////////////////////////////////////////////////////////////////////////////
 
+#/////////////////////////////////////////////////////////////////////////////
+proc TclList2SetOfText { lst } {
+#/////////////////////////////////////////////////////////////////////////////
+  set result [ list ]
+  foreach i $lst {
+    lappend result \"[string map {\" \\\"} $i]\"
+  }
+  return "SetOfText([join $result ,])"
+}
+
+#/////////////////////////////////////////////////////////////////////////////
 proc Tol_GetViewPrivateMembers { } {
+#/////////////////////////////////////////////////////////////////////////////
   set viewOpt 0
   catch {
     # no funciona 
@@ -16,7 +29,9 @@ proc Tol_GetViewPrivateMembers { } {
   return $viewOpt
 }
 
+#/////////////////////////////////////////////////////////////////////////////
 proc Tol_ObjIsClassOf { obj_addr cls_name } {
+#/////////////////////////////////////////////////////////////////////////////
   tol::console eval [ string map [ list %A $obj_addr %C $cls_name ] {
     Real __gui_check__ = IsInstanceOf( GetObjectFromAddress( "%A" ),"%C" )
   } ]
@@ -26,7 +41,9 @@ proc Tol_ObjIsClassOf { obj_addr cls_name } {
   expr { round($x) }
 }
 
+#/////////////////////////////////////////////////////////////////////////////
 proc Tol_ClassOf { obj_addr } {
+#/////////////////////////////////////////////////////////////////////////////
   tol::console eval [ string map [ list %A $obj_addr ] {
     Text __gui_classof__ = {
       Anything obj = GetObjectFromAddress( "%A" );
@@ -40,12 +57,16 @@ proc Tol_ClassOf { obj_addr } {
   set x
 }
 
+#/////////////////////////////////////////////////////////////////////////////
 proc Tol_ClassOfFromReference { objReference } {
+#/////////////////////////////////////////////////////////////////////////////
   set addr [ ::tol::info address $objReference ]
   return [ Tol_ClassOf $addr ]
 }
 
+#/////////////////////////////////////////////////////////////////////////////
 proc Tol_StructOf { obj_addr } {
+#/////////////////////////////////////////////////////////////////////////////
   set tolcode [ string map [ list %A $obj_addr ]  {
     Text {
       Anything obj = GetObjectFromAddress( "%A" );
@@ -56,7 +77,9 @@ proc Tol_StructOf { obj_addr } {
   return [ lindex [ toltcl::eval $tolcode ] 0 ]
 }
 
+#/////////////////////////////////////////////////////////////////////////////
 proc Tol_StructOfFromReference { objReference } {
+#/////////////////////////////////////////////////////////////////////////////
   # WATCH!!!!
   # when Tol_StructOfFromReference is invoken on {File xxx} xxx is
   # decompiled!!!!
@@ -68,8 +91,10 @@ proc Tol_StructOfFromReference { objReference } {
   return [ Tol_StructOf $addr ]
 }
 
+#/////////////////////////////////////////////////////////////////////////////
 #(pgea) nueva funcion para obtener la informacion de instancia
 proc Tol_InstanceInfo { obj_addr } {
+#/////////////////////////////////////////////////////////////////////////////
   tol::console eval [ string map [ list %A $obj_addr ] {
     Text __gui_instanceinfo__ = {
       Anything __intance__ = GetObjectFromAddress("%A");
@@ -83,14 +108,18 @@ proc Tol_InstanceInfo { obj_addr } {
   set x
 }
 
+#/////////////////////////////////////////////////////////////////////////////
 #(pgea) nueva funcion para obtener la informacion de instancia
 proc Tol_InstanceInfoFromReference { objReference } {
+#/////////////////////////////////////////////////////////////////////////////
   set addr [ ::tol::info address $objReference ]
   return [ Tol_InstanceInfo $addr ]
 }
 
+#/////////////////////////////////////////////////////////////////////////////
 #(pgea) nueva funcion para obtener el contenido de la instancia
 proc Tol_InstanceContent { obj_addr } {
+#/////////////////////////////////////////////////////////////////////////////
   tol::console eval [ string map [ list %A $obj_addr ] {
     Text __gui_instancecontent__ = {
       Anything __intance__ = GetObjectFromAddress("%A");
@@ -104,13 +133,17 @@ proc Tol_InstanceContent { obj_addr } {
   set x
 }
 
+#/////////////////////////////////////////////////////////////////////////////
 #(pgea) nueva funcion para obtener el contenido de la instancia
 proc Tol_InstanceContentFromReference { objReference } {
+#/////////////////////////////////////////////////////////////////////////////
   set addr [ ::tol::info address $objReference ]
   return [ Tol_InstanceContent $addr ]
 }
 
+#/////////////////////////////////////////////////////////////////////////////
 proc TolGui_GetMenuEntries { selection idx } {
+#/////////////////////////////////////////////////////////////////////////////
   #puts "TolGui_GetMenuEntries $selection $idx"
   array set instances {}
   array set menu_class {}
@@ -141,7 +174,9 @@ proc TolGui_GetMenuEntries { selection idx } {
   set menu_info
 }
 
+#/////////////////////////////////////////////////////////////////////////////
 proc TolGui_StoreSetElementsInOZA { object } {
+#/////////////////////////////////////////////////////////////////////////////
   set saveIn [ tk_getSaveFile -defaultextension .oza \
                    -parent . -title [ mc "Store OZA" ] \
                    -filetypes {{oza {.oza}}} ]
@@ -155,7 +190,9 @@ proc TolGui_StoreSetElementsInOZA { object } {
   }
 }
 
+#/////////////////////////////////////////////////////////////////////////////
 proc TolGui_StoreSelectionInOZA { selection } {
+#/////////////////////////////////////////////////////////////////////////////
   set saveIn [ tk_getSaveFile -defaultextension .oza \
                    -parent . -title [ mc "Store OZA" ] \
                    -filetypes {{oza {.oza}}} ]
@@ -178,7 +215,9 @@ proc TolGui_StoreSelectionInOZA { selection } {
   }
 }
 
+#/////////////////////////////////////////////////////////////////////////////
 proc TolGui_InsertEntriesMatrixChart { mm selection } {
+#/////////////////////////////////////////////////////////////////////////////
   if {  ![ llength $selection ] } {
     return 0
   }
@@ -207,7 +246,9 @@ proc TolGui_InsertEntriesMatrixChart { mm selection } {
   }
 }
 
+#/////////////////////////////////////////////////////////////////////////////
 proc TolGui_ChartMatrix { selection } {
+#/////////////////////////////////////////////////////////////////////////////
   set lst_addr {}
   foreach r $selection {
     set a [ tol::info address $r ]
@@ -241,7 +282,9 @@ proc TolGui_ChartMatrix { selection } {
   toltcl::eval $tolexpr
 }
 
+#/////////////////////////////////////////////////////////////////////////////
 proc TolGui_InsertEntriesFromMenuManager { targetMenu selection } {
+#/////////////////////////////////////////////////////////////////////////////
   set addrList [ list ]
   foreach obj_info $selection {
     set tcl_ref [ lindex $obj_info 0 ]
@@ -250,7 +293,9 @@ proc TolGui_InsertEntriesFromMenuManager { targetMenu selection } {
   ::MenuManager::insertEntriesForSelection $targetMenu $addrList
 }
 
+#/////////////////////////////////////////////////////////////////////////////
 proc TolGui_GetObjMenu { obj_addr } {
+#/////////////////////////////////////////////////////////////////////////////
   set try [ catch {
     tol::console eval [ string map [ list %A $obj_addr ] {
       GuiTools::@MenuDesc __aux_menu__ = GetObjectFromAddress("%A");
@@ -267,7 +312,9 @@ proc TolGui_GetObjMenu { obj_addr } {
   set result
 }
 
+#/////////////////////////////////////////////////////////////////////////////
 proc TolGui_InvokeMethod { method obj_addr } {
+#/////////////////////////////////////////////////////////////////////////////
   #puts "TolGui_InvokeMethod $method $obj_addr"
   set try [ catch {
     tol::console eval [ string map [ list %A $obj_addr %M $method ] {
@@ -281,15 +328,9 @@ proc TolGui_InvokeMethod { method obj_addr } {
   tol::console stack release __aux_result__
 }
 
-proc TclList2SetOfText { lst } {
-  set result [ list ]
-  foreach i $lst {
-    lappend result \"[string map {\" \\\"} $i]\"
-  }
-  return "SetOfText([join $result ,])"
-}
-
+#/////////////////////////////////////////////////////////////////////////////
 proc TolGui_InvokeGroup { cname function group } {
+#/////////////////////////////////////////////////////////////////////////////
   set SOA [ TclList2SetOfText $group ]
   set try [ catch {
     tol::console eval \
