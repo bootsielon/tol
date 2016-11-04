@@ -57,6 +57,7 @@ proc ::TolInspector::UpdateConsoleObj { } {
   #@! $ht_tree selection mark root-console
   $wt_tree selection clear
   $wt_tree selection add $idx_con
+
   #Tolcon_Trace "Abierto el nodo root-console"
   if { [$wt_tree item state get $idx_con focus] } {
     SelectObject
@@ -663,10 +664,6 @@ proc ::TolInspector::SelectAll {wt} {
 #   wt -> wtree's object
 #
 #/////////////////////////////////////////////////////////////////////////////
-  #set found [$ht find]
-  #if {[llength $found] > 1} {
-  #  $ht selection set [lindex $found 1] [lindex $found end]
-  #} 
   $wt selection add 0 end
 }
 
@@ -679,10 +676,6 @@ proc ::TolInspector::ToggleSelection {wt} {
 #   wt -> wtree's object
 #
 #/////////////////////////////////////////////////////////////////////////////
-  #set found [$ht find]
-  #if {[llength $found] > 1} {
-  #  $ht selection toggle [lindex $found 1] [lindex $found end]
-  #} 
   set sel [$wt selection get 0 end]
   $wt selection add 0 end
   $wt selection modify {} $sel  
@@ -710,5 +703,18 @@ proc ::TolInspector::SelectionCollapse { } {
     $wt_tree collapse $node
     $wt_tree selection clear
     $wt_tree selection add $parent
+  }
+}
+
+#/////////////////////////////////////////////////////////////////////////////
+proc ::TolInspector::ToggleItem { x y } {
+#/////////////////////////////////////////////////////////////////////////////
+  variable wt_tree
+
+  set lstxy [$wt_tree identify $x $y]
+  if { [llength $lstxy] } {
+    if { [lindex $lstxy 0] == "item" } {
+      $wt_tree item toggle [lindex $lstxy 1]
+    }
   }
 }

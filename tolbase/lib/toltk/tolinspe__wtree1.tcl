@@ -124,7 +124,7 @@ proc ::TolInspector::InsertItem {wt grammar name content path desc subtype} {
   #upvar \#0 ::TolTk::Images Images
 
   set parent_grammar $arguments(parent_grammar)  
-
+  
   #@ Si la llamada a InsertChild viene de SelectSet el argumento tolref 
   #@ no está definido y se crea a partir de parent_tolref
   set tolref $arguments(tolref)
@@ -182,20 +182,31 @@ proc ::TolInspector::InsertItem {wt grammar name content path desc subtype} {
   #?     set label " "
   #?   }
   #? }
-    
-  #@ ::TolInspector::LNode index grammar 
-  #@   icon name content description path reference
-  set wt_row [::TolInspector::RNode $arguments(index) $grammar \
-    $icon_grammar $name $data3 $brief_desc $path $tolref]
   
-  set idx [$wt insert $wt_row -at child -relative root]
+  #@ ::TolInspector::RNode index grammar 
+  #@   icon name content description path reference
+  #@! set wt_row [::TolInspector::RNode $arguments(index) $grammar \
+    $icon_grammar $name $data3 $brief_desc $path $tolref]  
+  #@! set idx [$wt insert $wt_row -at child -relative root]
+  #@! Las líneas anteriores parecen lentas y se sustituyen por las siguientes:
+  set idx [$wt item create -button 1]
+  $wt item element configure $idx \
+    [RiIndex] eTXT -text $arguments(index) , \
+    [RiGrammar] eTXT -text $grammar , \
+    [RiName] eIMG -image $icon_grammar + eTXT -text $name , \
+    [RiContent] eTXT -text $data3 , \
+    [RiDescription] eTXT -text $brief_desc , \
+    [RiPath] eTXT -text $path , \
+    [RiReference] eTXT -text $tolref
+  $wt item lastchild root $idx  
+ 
   $wt item element configure $idx \
     [RiIndex] eTXT -fill $fcolor , \
     [RiName] eTXT -fill $fcolor , \
     [RiContent] eTXT -fill $fcolor , \
     [RiDescription] eTXT -fill $fcolor , \
     [RiPath] eTXT -fill $fcolor
-  
+
   incr arguments(index)
 }
 
@@ -210,17 +221,16 @@ proc ::TolInspector::ClearHiertables { } {
   variable wt_funcs
   variable OnSelectItem
 
-  foreach it [$wt_vars item children root] {
-    $wt_vars item delete $it
-  }
-  foreach it [$wt_funcs item children root] {
-    $wt_funcs item delete $it
-  }  
+  $wt_vars selection clear
+  $wt_vars item delete all
+  $wt_funcs selection clear
+  $wt_funcs item delete all
+
   #@ToDo $wt_vars  column configure Index -hide no
   #@ToDo $wt_funcs column configure Index -hide no
   
-  $w_tabset tab configure Variables -text [mc Variables] -state normal
-  $w_tabset tab configure Functions -state normal
+  $w_tabset itemconfigure Variables -text [mc Variables] -state normal 
+  $w_tabset itemconfigure Functions -state normal
 
   if { [string length $OnSelectItem] } {
     $OnSelectItem
@@ -263,7 +273,7 @@ proc ::TolInspector::OpenObject { node } {
     #@ Argumentos pasados por atributo
     #@  + parent_grammar es usado por InsertSubset para abrir o no un nodo
     #@  + parent_tolref es usado por InsertSubset para determinar tolref
-    set arguments(parent_grammar) [GetParentGrammar $tolReference]     
+    set arguments(parent_grammar) [$wt_tree item text $node [LiGrammar]]
     set arguments(parent_tolref) $tolReference
     ::tol::forallchild $tolReference ::TolInspector::InsertSubset
     NotBusy
@@ -398,7 +408,7 @@ proc ::TolInspector::InsertSubset { args } {
   ## para distinguir set de nameblocks
   set parent_grammar $arguments(parent_grammar)
   #@ para obtener el icono de las instancias
-  set parent_tolref $arguments(parent_tolref)  
+  set parent_tolref $arguments(parent_tolref)
   
 #@# Tolcon_Trace "InsertSubset $args"   
   catch {
@@ -463,11 +473,13 @@ proc ::TolInspector::SelectObject { } {
   variable w_tabset
   variable wt_tree
   variable arguments
-
+  
   set node [$wt_tree selection get 0]
   if { ![string length $node] } return
   if { $node == 0 } {
     ClearHiertables
+    #@D $w_tabset itemconfigure Variables -state disabled
+    #@D $w_tabset itemconfigure Functions -state disabled    
     return
   }
   
@@ -477,20 +489,27 @@ proc ::TolInspector::SelectObject { } {
   if { [llength $tolReference] == 1 } {
     #@ Aquí llegan los nodos raíz y las gramáticas
     #@ Argumentos pasados por atributo
-    #@  + parent_grammar es usado por InsertItem para determinar el color de sus miembros si es NameBlock      
+    #@  + parent_grammar es usado por InsertItem para saber si es NameBlock  
     set arguments(parent_grammar) ""
     switch $tolReference {
       Package SelectPackageRoot
       File    SelectFileRoot
       Console SelectConsoleRoot
-      default ClearHiertables
+      default {
+        ClearHiertables
+        #@D $w_tabset itemconfigure Variables -state disabled
+        #@D $w_tabset itemconfigure Functions -state disabled
+      }
     }
   } elseif { [lindex $tolReference 0] == "Grammar" } {
     #@ Argumentos pasados por atributo
-    #@  + parent_grammar es usado por InsertItem para determinar el color de sus miembros si es NameBlock  
+    #@  + parent_grammar es usado por InsertItem para saber si es NameBlock
     set arguments(parent_grammar) ""
     SelectGrammar
   } else {
+    #@ Argumentos pasados por atributo
+    #@  + parent_grammar es usado por InsertItem para saber si es NameBlock
+    set arguments(parent_grammar) [$wt_tree item text $node [LiGrammar]]
     SelectSet $tolReference
   }
   NotBusy
@@ -512,7 +531,9 @@ proc ::TolInspector::SelectPackageRoot { } {
   set arguments(index) 1
 
   ClearHiertables
-  $w_tabset select 0 ;# Variables
+  $w_tabset itemconfigure Variables -text [mc Packages]  
+  $w_tabset raise Variables  
+  #@D $w_tabset itemconfigure Functions -state disabled  
   
   #@=> tiene que incrementarse automáticamente es el contador del foreach  
   
@@ -542,9 +563,9 @@ proc ::TolInspector::SelectFileRoot { } {
   set arguments(index) 1
 
   ClearHiertables
-  $w_tabset tab configure Variables -text [mc Files]
-  #  $w_tabset tab configure Functions -state disabled
-  $w_tabset select 0 ;# Variables
+  $w_tabset itemconfigure Variables -text [mc Files]
+  $w_tabset raise Variables
+  #@D $w_tabset itemconfigure Functions -state disabled
   
   #@=> tiene que incrementarse automáticamente es el contador del foreach  
   foreach f [lreverse [::tol::info included]] {
@@ -567,7 +588,6 @@ proc ::TolInspector::SelectConsoleRoot { } {
 #          and inserts it in the right wtree.
 #
 #/////////////////////////////////////////////////////////////////////////////
-  variable w_tabset
   variable wt_tree
   variable arguments
   
@@ -576,12 +596,13 @@ proc ::TolInspector::SelectConsoleRoot { } {
   set arguments(index) 1
 
   ClearHiertables
+
 #(pgea) se quita la linea que oculta la columna del indice y que
 #(pgea) el procedimimento anterior ClearHiertables muestra
 #  $ht_vars column  configure Index -hide yes
-#  $w_tabset tab configure Functions -state disabled
   
   foreach co [::tol::console stack list] {
+  Tolcon_Trace "co $co"
     #puts "SelectConsoleRoot: co = $co"
     set gra  [lindex $co 0]
     set name [lindex $co 1]
@@ -661,8 +682,8 @@ proc ::TolInspector::SelectGrammar { } {
       }  
     }
   } else {
-#    $w_tabset tab configure Variables -state disabled
-#    $w_tabset select 1
+    $w_tabset raise Functions  
+    #@D $w_tabset itemconfigure Variables -state disabled
   }
   foreach fun  [::tol::info functions $grammar] {
     set finfo [::tol::info functions $grammar $fun]
@@ -688,14 +709,12 @@ proc ::TolInspector::SelectSet { tolReference } {
   ClearHiertables
   
   #@ Argumentos pasados por atributo
-  #@  + index es usado e incrementado por InsertItem      
-  #@  + parent_grammar es usado por InsertItem para determinar el color de sus miembros si es NameBlock
+  #@  + index es usado e incrementado por InsertItem
   #@  + tolref indica a InsertItem que se ha de obtener desde parent_tolref
   #@  + parent_tolref es usado por InsertItem para encontrar tolref  
   set arguments(index) 1  
-  set arguments(parent_grammar) [GetParentGrammar $tolReference]
   set arguments(tolref) ""
-  set arguments(parent_tolref) $tolReference  
+  set arguments(parent_tolref) $tolReference 
   ::tol::forallchild $tolReference ::TolInspector::InsertChild
 }
 

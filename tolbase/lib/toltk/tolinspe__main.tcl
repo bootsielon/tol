@@ -296,7 +296,7 @@ proc ::TolInspector::CreatePaneLeft { paneLeft } {
   bind ${wt_tree}.frameTree.t <Button-1> "::focus $wt_tree"
   
   # expand/collapse (and fill/unfill) a node with a double clic
-  bind ${wt_tree}.frameTree.t <Double-1> "$wt_tree item toggle \[ $wt_tree selection get 0 \]"
+  bind ${wt_tree}.frameTree.t <Double-1> "::TolInspector::ToggleItem %x %y"
 }
 
 #/////////////////////////////////////////////////////////////////////////////
@@ -313,23 +313,20 @@ proc ::TolInspector::CreatePaneRight { paneRight } {
   variable wt_vars
   variable wt_funcs
   
-  # creates the tabset to display the variables & functions    
-  #set w_tabset [::blt::tabset $paneRight.ts -relief flat\
-            -bd 0 -outerpad 0 -tier 2 -slant none -textside top \
-            -highlightthickness 0 -side left -rotate 90]
-  set w_tabset [::blt::tabset $paneRight.ts -relief flat\
-            -bd 0 -outerpad 0 -tier 2 -slant right -textside right \
-            -highlightthickness 0]
-  # creates the scrolled windows for each one of the tabs
-  set sw21 [ScrolledWindow $w_tabset.sw12 -scrollbar none]  
-  set sw22 [ScrolledWindow $w_tabset.sw22 -scrollbar none]
+  # creates the tabset to display the variables & functions
+  set w_tabset [NoteBook $paneRight.nb -tabbevelsize 8 -tabpady {2 6} \
+    -font $toltk_options(fonts,Label)]            
   
-  # inserts in the tabset the tabs of functions and variables
-  $w_tabset insert end \
-      Variables -text [mc Variables] -selectbackground \#d9d9d9 -bg gray75 \
-      -image [::Bitmap::get Variables] -pady 0\
-      Functions -text [mc Functions] -selectbackground \#d9d9d9 -bg gray75 \
-      -image [::Bitmap::get Functions] -pady 0
+  # inserts in the tabset the tabs of functions and variables        
+  $w_tabset insert 0 Variables -text [mc Variables] -image [::Bitmap::get Variables] -background \#d9d9d9
+  $w_tabset insert 1 Functions -text [mc Functions] -image [::Bitmap::get Functions] -background \#d9d9d9
+  $w_tabset raise Variables
+  
+  # creates the scrolled windows for each one of the tabs
+  set tab1 [$w_tabset getframe Variables]
+  set tab2 [$w_tabset getframe Functions] 
+  set sw21 [ScrolledWindow $tab1.sw12 -scrollbar none]  
+  set sw22 [ScrolledWindow $tab2.sw22 -scrollbar none] 
 
   # Creation of the right TREE RIGHT with VARIABLES
   set wt_vars [::wtree $sw21.vars -table 1 -filter no \
@@ -344,7 +341,7 @@ proc ::TolInspector::CreatePaneRight { paneRight } {
   $wt_vars notify bind $wt_vars <Expand-before> "::TolInspector::OpenVariable %I"
   $wt_vars notify bind $wt_vars <Selection> "::TolInspector::SelectItem $wt_vars"
   #@! el bind debería poder hacerse directamente sobre el wtree
-  bind ${wt_vars}.frameTree.t  <Button-1> "::focus $wt_vars"    
+  bind ${wt_vars}.frameTree.t <Button-1> "::focus $wt_vars"    
   bind ${wt_vars}.frameTree.t <Double-1> "::TolInspector::SelectionExpand"
   
   # Creation of the right TREE RIGHT with FUNCTIONS
@@ -364,15 +361,17 @@ proc ::TolInspector::CreatePaneRight { paneRight } {
   $sw21 setwidget $wt_vars
   $sw22 setwidget $wt_funcs  
   # configure the tabs
-  $w_tabset tab configure Variables -window $sw21 -fill both -padx 0 
-  $w_tabset tab configure Functions -window $sw22 -fill both -padx 0
+  $tab1 configure -borderwidth 2 -background \#d9d9d9
+  $tab2 configure -borderwidth 2 -background \#d9d9d9
 
   # packing the tabset
-  pack $w_tabset -fill both -expand yes
-  $w_tabset tab configure Variables\
-         -command "::TolInspector::SelectItem $wt_vars"
-  $w_tabset tab configure Functions\
-         -command "::TolInspector::SelectItem $wt_funcs"
+  pack $tab1.sw12 -fill both -expand yes
+  pack $tab2.sw22 -fill both -expand yes    
+  pack $w_tabset -fill both -expand yes  
+  #@! $w_tabset tab configure Variables\
+  #@!        -command "::TolInspector::SelectItem $wt_vars"
+  #@! $w_tabset tab configure Functions\
+  #@!        -command "::TolInspector::SelectItem $wt_funcs"
 }
 
 #/////////////////////////////////////////////////////////////////////////////
@@ -568,18 +567,6 @@ proc ::TolInspector::FilterNameBlockMember { name } {
 #>> proc ::TolInspector::SelectConsoleRoot
 #>> proc ::TolInspector::SelectGrammar
 #>> proc ::TolInspector::SelectSet
-
-#/////////////////////////////////////////////////////////////////////////////
-proc ::TolInspector::GetParentGrammar { set_ref } {
-#/////////////////////////////////////////////////////////////////////////////
-  set root [ lindex $set_ref 0 ]
-  set L [ llength $set_ref ]
-  if { ( $root eq "File" && $L <= 2 ) } {
-    set root
-  } else {
-    lindex [ tol::info var $set_ref ] 0
-  }
-}
 
 #>> [tolinspe_wtree1.tcl]
 #>> proc ::TolInspector::CloseObject
