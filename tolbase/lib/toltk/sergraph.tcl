@@ -644,40 +644,31 @@ proc ::SeriesGraph::AccumulateGraph {this} {
 #
 # PARAMETERS:
 #   this -> Instance of BayesTable
-#   ts   -> tabset in which options must be created
+#   ts   -> tabset (=>NoteBook) in which options must be created
 #
 #/////////////////////////////////////////////////////////////////////////////
   #insertar tabset
-  $ts insert end Series
-  set f [frame $ts.f]
-  $ts tab configure "Series" -text "Series" -window $f\
-    -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-
-  set w_tabset [::blt::tabset $f.ts -relief flat -highlightthickness 0\
-		        -bd 0 -outerpad 0 -tier 2 -slant right -textside right]
-  $w_tabset insert end DateFormat Axis X-Markers Y-Markers Legend
-
-  set f1 [frame $w_tabset.f1]
-  set f2 [frame $w_tabset.f2]
-  set f3 [frame $w_tabset.f3]
-  set f4 [frame $w_tabset.f4]
-  set f5 [frame $w_tabset.f5]
-
-
-  $w_tabset tab configure "DateFormat" -text [mc "Date Format"]\
-    -window $f1 -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-  $w_tabset tab configure "Axis" -text [mc "Axis"] \
-    -window $f2 -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-  $w_tabset tab configure "X-Markers" -text [mc "X-Markers"]\
-    -window $f3 -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-  $w_tabset tab configure "Y-Markers" -text [mc "Y-Markers"]\
-    -window $f4 -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-  $w_tabset tab configure "Legend" -text [mc "Legend"]\
-    -window $f5 -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-
-
+  set num_i 1
+  set lab_i Series
+  $ts insert $num_i $lab_i -text "  [mc $lab_i]  " -background \#d9d9d9 
+  set tab_i [$ts getframe $lab_i]
+  $tab_i configure -borderwidth 2 -background \#d9d9d9  
+  set f [frame $tab_i.f]
+  pack $tab_i.f -fill both -expand yes
+  
+  set w_tabset [NoteBook $f.nb -tabbevelsize 8 -tabpady {2 6} -font {Arial 8}]
+  set num_i 0
+  foreach lab_i [list "Date Format" Axis "X-Markers" "Y-Markers" Legend] {
+    $w_tabset insert $num_i $lab_i -text "  [mc $lab_i]  " -background \#d9d9d9 
+    set tab_i [$w_tabset getframe $lab_i]
+    $tab_i configure -borderwidth 2 -background \#d9d9d9
+    incr num_i
+    set f$num_i [frame $tab_i.f]
+    pack $tab_i.f -fill both -expand yes
+  }
+  $w_tabset raise [$w_tabset pages 0]
+  
   OptionsGet $this
-
   OptionsCreateDateFormat $this $f1
   OptionsCreateAxis       $this $f2
   OptionsCreateXMarkers   $this $f3
@@ -688,6 +679,7 @@ proc ::SeriesGraph::AccumulateGraph {this} {
   OptionsCheck $this
   OptionsSet   $this
 
+  $w_tabset compute_size
   grid $w_tabset -sticky news  
   grid rowconfigure    $f 0 -weight 1
   grid columnconfigure $f 0 -weight 1
