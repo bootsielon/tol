@@ -1645,20 +1645,19 @@ proc ::Editor::OptionsCreate {this path} {
   wm resizable $dialog 0 0
   wm protocol $dialog WM_DELETE_WINDOW [list ::Editor::OptionsDestroy $this $dialog]
   set w [$dialog getframe]
-  set w_tabset [::blt::tabset $w.ts -relief flat -highlightthickness 0\
-            -bd 0 -outerpad 0 -tier 2 -slant right -textside right ]
-    
+  set w_tabset [NoteBook $w.nb -tabbevelsize 8 -tabpady {2 6} -font {Arial 8}]
   #insertar tabset
-  $w_tabset insert end Headers Others
-  set f1 [frame $w_tabset.f1]
-  set f2 [frame $w_tabset.f2]
-    
-    
-  $w_tabset tab configure "Headers" -text [mc "Headers"] -window $f1\
-          -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-  $w_tabset tab configure "Others" -text [mc "Others"] -window $f2\
-          -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-    
+  set num_i 0
+  foreach lab_i [list Headers Others] {
+    $w_tabset insert $num_i $lab_i -text "  [mc $lab_i]  " -background \#d9d9d9 
+    set tab_i [$w_tabset getframe $lab_i]
+    $tab_i configure -borderwidth 2 -background \#d9d9d9
+    incr num_i    
+    set f$num_i [frame $tab_i.f]
+    pack $tab_i.f -fill both -expand yes  
+  }
+  $w_tabset raise [$w_tabset pages 0]
+  
   OptionsGet $this
   OptionsCreateHeaders $this $f1
   OptionsCreateOthers  $this $f2
@@ -1682,6 +1681,7 @@ proc ::Editor::OptionsCreate {this path} {
     -command [list ::Editor::OptionsDestroy $this $dialog]
   
   pack $w_bbox   -fill x -expand false -side bottom
+  $w_tabset compute_size  
   pack $w_tabset -fill both -expand true
   
   bind $dialog <F1> "ShowHelp Tb4Eda ; break"    

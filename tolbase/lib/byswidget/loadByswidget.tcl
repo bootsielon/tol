@@ -15,10 +15,10 @@ package require bmultiselect
 package require bfieldsdialog
 package require beditselector
 package require bodbc
-package require bsersel
+#@!NO package require bsersel
 package require btable
 package require barima
 package require bdialog
-package require btab
+#@!NO package require btab
 
 package provide byswidget 1.0

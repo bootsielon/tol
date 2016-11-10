@@ -590,21 +590,20 @@ proc ::CalendarTms::OptionsCreate {instance} {
   # Create the frame within the dialog
   set w [$dialog getframe]
   wm resizable $dialog 0 0
+    
   # Create the set of tabs
-  set w_tabset [::blt::tabset $w.ts -relief flat -highlightthickness 0\
-            -bd 0 -outerpad 0 -tier 2 -slant right -textside right]
-  $w_tabset insert end General Style Highlight
-  # Create each one of frames
-  set f1 [frame $w_tabset.f1]
-  set f2 [frame $w_tabset.f2]
-  set f3 [frame $w_tabset.f3]
-  # Create each one of tabs
-  $w_tabset tab configure "General" -text [mc "General"]\
-          -window $f1 -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-  $w_tabset tab configure "Style" -text [mc "Style"]\
-          -window $f2 -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-  $w_tabset tab configure "Highlight" -text [mc "Highligth"]\
-          -window $f3 -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
+  set w_tabset [NoteBook $w.nb -tabbevelsize 8 -tabpady {2 6} -font {Arial 8}] 
+  set num_i 0
+  foreach lab_i [list General Style Highlight] {
+    $w_tabset insert $num_i $lab_i -text "  [mc $lab_i]  " -background \#d9d9d9 
+    set tab_i [$w_tabset getframe $lab_i]
+    $tab_i configure -borderwidth 2 -background \#d9d9d9
+    incr num_i    
+    set f$num_i [frame $tab_i.f]
+    pack $tab_i.f -fill both -expand yes  
+  }
+  $w_tabset raise [$w_tabset pages 0]
+          
   # Fill up each one of the tabs
   OptionsCreateGeneral $instance $f1
   OptionsCreateStyle   $instance $f2
@@ -626,9 +625,10 @@ proc ::CalendarTms::OptionsCreate {instance} {
           -image [::Bitmap::get apply] -compound left -padx 5 -pady 1 \
           -command [list ::CalendarTms::OptionsApply $instance]     
     
-    # Pack all created components
-    pack $w_bbox -fill x -expand false -side bottom
-    pack $w_tabset -fill both -expand true
+  # Pack all created components
+  pack $w_bbox -fill x -expand false -side bottom
+  $w_tabset compute_size
+  pack $w_tabset -fill both -expand true
     
   $dialog draw
 }

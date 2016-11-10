@@ -314,8 +314,7 @@ proc ::TolInspector::CreatePaneRight { paneRight } {
   variable wt_funcs
   
   # creates the tabset to display the variables & functions
-  set w_tabset [NoteBook $paneRight.nb -tabbevelsize 8 -tabpady {2 6} \
-    -font $toltk_options(fonts,Label)]            
+  set w_tabset [NoteBook $paneRight.nb -tabbevelsize 8 -tabpady {2 6} -font {Arial 8}]            
   
   # inserts in the tabset the tabs of functions and variables        
   $w_tabset insert 0 Variables -text [mc Variables] -image [::Bitmap::get Variables] -background \#d9d9d9

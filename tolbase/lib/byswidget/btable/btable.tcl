@@ -3541,27 +3541,24 @@ if { [string equal $tcl_platform(platform) "windows"] } {
     set w [$dialog getframe]
     wm resizable $dialog 0 0
     
-    set w_tabset [::blt::tabset $w.ts -relief flat -highlightthickness 0\
-                          -bd 0 -outerpad 0 -tier 1 -slant right -textside right]
+    set w_tabset [NoteBook $w.nb -tabbevelsize 8 -tabpady {2 6} -font {Arial 8}]
     
-    #insertar tabset
-    $w_tabset insert end Export Style Behaviour
-  
-    set f1 [frame $w_tabset.f1]
-    set f2 [frame $w_tabset.f2]
-    set f3 [frame $w_tabset.f3]
-
-    $w_tabset tab configure "Export" -text [mc "Export"] -window $f1\
-      -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75  
-    $w_tabset tab configure "Style"     -text [mc "Style"]    -window $f2\
-      -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-    $w_tabset tab configure "Behaviour"     -text [mc "Behaviour"] -window $f3\
-      -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
+    #insertar tabset  
+    set num_i 0
+    foreach lab_i [list Export Style Behaviour] {
+      $w_tabset insert $num_i $lab_i -text "  [mc $lab_i]  " -background \#d9d9d9 
+      set tab_i [$w_tabset getframe $lab_i]
+      $tab_i configure -borderwidth 2 -background \#d9d9d9
+      incr num_i      
+      set f$num_i [frame $tab_i.f]
+      pack $tab_i.f -fill both -expand yes  
+    }
+    $w_tabset raise [$w_tabset pages 0]
 
     $self _OptionsGet
-    $self _OptionsCreateExport $f1
-    $self _OptionsCreateStyle $f2
-    $self _OptionsCreateBehaviour $f3
+    $self _OptionsCreateExport    $f1
+    $self _OptionsCreateStyle     $f2
+    $self _OptionsCreateBehaviour $f3   
     
     set w_bbox \
           [ButtonBox $w.bb -orient horizontal -spacing 10 -padx 0 -pady 0 \
@@ -3579,6 +3576,7 @@ if { [string equal $tcl_platform(platform) "windows"] } {
           -image [::Bitmap::get apply] -compound left -padx 5 -pady 1 \
           -command [list $self _OptionsSet]
   
+    $w_tabset compute_size
     grid $w_tabset -sticky news
     grid $w_bbox   -sticky news
         

@@ -171,27 +171,32 @@ proc ::TolConsole::Create { w } {
   ::TolInspector::OnBusy ::TolConsole::OnBusy
 
   # tabset for eval, output & description
-  set widgets(tabset) $pane2.ts
-  set w_tabset [::blt::tabset $widgets(tabset) -side top -relief flat \
-		    -bd 0 -outerpad 0 -tearoff 0  -slant right -textside right \
-		    -highlightthickness 0 ]
-  set sw2 [ScrolledWindow $w_tabset.sw2 -auto both]
-  set sw3 [ScrolledWindow $w_tabset.sw3 -auto both]
-  set widgets(tabset,info) $sw3
-    
-  $w_tabset insert end \
-     Eval   -text "[mc Eval]   <Ctrl+A>" -selectbackground \#d9d9d9 -bg gray75 -pady 0\
-     Output -text "[mc Output] <Ctrl+O>" -selectbackground \#d9d9d9 -bg gray75 -pady 0\
-     Info   -text "[mc Info]   <Ctrl+I>" -selectbackground \#d9d9d9 -bg gray75 -pady 0
+  set widgets(tabset) $pane2.nb
+  set w_tabset [NoteBook $widgets(tabset) -tabbevelsize 8 -tabpady {2 6} -font {Arial 8}]
 
-  # OUTPUT CONSOLE COMPONENT  
+  $w_tabset insert 0 Eval -text "  [mc Eval] <Ctrl+A>  " -background \#d9d9d9 
+  $w_tabset insert 1 Output -text "  [mc Output] <Ctrl+O>  " -background \#d9d9d9 
+  $w_tabset insert 2 Info -text "  [mc Info] <Ctrl+I>  " -background \#d9d9d9   
+  $w_tabset raise Eval      
+  set tab1 [$w_tabset getframe Eval]      
+  set tab2 [$w_tabset getframe Output] 
+  set tab3 [$w_tabset getframe Info] 
+  set widgets(tabset,tabInfo) $tab3  
+  $tab1 configure -borderwidth 2 -background \#d9d9d9 
+  $tab2 configure -borderwidth 2 -background \#d9d9d9  
+  $tab3 configure -borderwidth 2 -background \#d9d9d9    
+  set sw2 [ScrolledWindow $tab2.sw -scrollbar none]
+  set sw3 [ScrolledWindow $tab3.sw -scrollbar none]
+  set widgets(tabset,info) $sw3 
+
+  # OUTPUT CONSOLE COMPONENT
   set widgets(output) $sw2.out
   set w_output [text $widgets(output) -wrap none -cursor ""\
      -state disabled -font $data(font,output)]
   $sw2 setwidget $w_output
 
-  # EVAL CONSOLE COMPONENT      
-  set feval $w_tabset.f  
+  # EVAL CONSOLE COMPONENT
+  set feval $tab1.f  
   CreateEvalWindow $feval
 
   # configuro los mensajes del output
@@ -224,8 +229,7 @@ proc ::TolConsole::Create { w } {
       -state disabled
   set widgets(info) $widgets(info,text)
 
-  set widgets(info,markupviewer) [ markupviewer $w_tabset.mv \
-                                       -db $data(notebookdb) -showtitle 0 ]
+  set widgets(info,markupviewer) [markupviewer $tab3.mv -db $data(notebookdb) -showtitle 0]
 
   MarkupMenu $widgets(info,markupviewer)
 
@@ -255,11 +259,19 @@ proc ::TolConsole::Create { w } {
   # teclas acceso rapido solapas de Informacion
   $path bind <Control-F4> +[list $path kill]
   
-  bind $path <Control-KeyRelease> \
-      +[list ::TolConsole::OnControlKey %K %k]
-  $w_tabset tab configure Eval   -window $feval -fill both -padx 0
-  $w_tabset tab configure Output -window $sw2   -fill both -padx 0
-  $w_tabset tab configure Info   -window $sw3   -fill both -padx 0
+  bind $path <Control-KeyRelease> +[list ::TolConsole::OnControlKey %K %k]
+  pack $tab1.f -fill both -expand yes  
+  pack $tab2.sw -fill both -expand yes 
+
+  #@ Se añade al grid el .sw y se quita (sin olvidar su configuración)
+  #@ Luego se añade al grid el .mv.
+  #@ La función :TolConsole::ActivateInfoWidget alterna entre uno u otro
+  grid columnconfigure $tab3 0 -weight 1
+  grid rowconfigure $tab3 0 -weight 1    
+  grid $tab3.sw -column 0 -row 0 -sticky nwes
+  grid remove $tab3.sw
+  grid $tab3.mv -column 0 -row 0 -sticky nwes  
+  
   pack $w_tabset -fill both -expand yes
     
   pack $pw1 -fill both -expand yes    
@@ -406,14 +418,14 @@ proc ::TolConsole::ShowWindow {win} {
   #win can have values "eval" "output" "info"
   switch -exact $win  {
     "eval"   {
-      $widgets(tabset) select 0 
+      $widgets(tabset) raise Eval 
       $widgets(eval) mark set anchor insert
     }
-    "output" {
-      $widgets(tabset) select 1 
+    "output" { 
+      $widgets(tabset) raise Output
     }
     "info"   {
-      $widgets(tabset) select 2
+      $widgets(tabset) raise Info
     }
   }
 
@@ -508,20 +520,26 @@ proc ::TolConsole::Configure {} {
   return $val
 }
 
+#/////////////////////////////////////////////////////////////////////////////
 proc ::TolConsole::ActivateInfoWidget { id } {
+#/////////////////////////////////////////////////////////////////////////////
   variable widgets
 
   if { $id eq "text" } {
-    set w $widgets(tabset,info)
+    set w $widgets(tabset,info)   
   } elseif { $id eq "markup" } {
-    set w $widgets(info,markupviewer)
+    set w $widgets(info,markupviewer)  
   } else {
     error "unknown id '$id' in ::TolConsole::ActivateInfoWidget"
   }
-  if { [ $widgets(tabset) tab cget Info -window ] ne $w } {
-    $widgets(tabset) tab configure Info  -window $w -fill both -padx 0
+
+  set slave [lindex [grid slaves $widgets(tabset,tabInfo)] 0]
+  #@ se admite que solo hay un 'slave'  
+  if { $slave ne $w } {
+    grid remove $slave
+    grid $w
   }
-  $widgets(tabset) select 2
+  $widgets(tabset) raise Info
 }
 
 #/////////////////////////////////////////////////////////////////////////////      
@@ -699,11 +717,13 @@ proc ::TolConsole::OnBusy { state } {
     
     if { $state } {
         $widgets(eval) configure -cursor watch
-        $widgets(tabset) configure -cursor watch
+        #@TS2NB $widgets(tabset) configure -cursor watch
+        $widgets(panes,bottom) configure -cursor watch
        #  ::blt::busy hold .       
     } else {
         $widgets(eval) configure -cursor xterm
-        $widgets(tabset) configure -cursor ""
+        #@TS2NB $widgets(tabset) configure -cursor ""
+        $widgets(panes,bottom) configure -cursor ""
       #  ::blt::busy release .      
     }
 }
@@ -722,7 +742,7 @@ proc ::TolConsole::OnBusy { state } {
   upvar \#0 ::TolConsole::widgets(eval) w_eval
 
   $w_eval insert end "$message\n"
-  $w_tabset select 0
+  $w_tabset raise Eval
   $w_eval see end
 }
 
@@ -758,7 +778,7 @@ proc ::TolConsole::HciWriter { message } {
   switch $data(updateType) {
     always {
       if $data(chWrite) {
-        $w_tabset select 1
+        $w_tabset raise Output
         $w_output see end      
       }
       update
@@ -769,7 +789,7 @@ proc ::TolConsole::HciWriter { message } {
       if { $dif >= $data(updateSec) } {
         set time $time_now
         if $data(chWrite) {
-          $w_tabset select 1
+          $w_tabset raise Output          
           $w_output see end
         }
         update
@@ -1496,51 +1516,36 @@ proc ::TolConsole::OptionsCreate { {tabinit ""} } {
   wm protocol $dialog WM_DELETE_WINDOW \
     [list ::TolConsole::OptionsDestroy $dialog]
   set w [$dialog getframe]
-  
   wm resizable $dialog 0 0
-  # TabSet TolBase
-  set w_ts [::blt::tabset $w.ts -relief flat -highlightthickness 0 -bd 0 \
-    -outerpad 0 -tier 2 -slant both -textside right -side left -rotate 90 ]
-  #insertar tabset
-  $w_ts insert end TolBase
-  set f0 [frame $w_ts.f0]  
-  $w_ts tab configure "TolBase" -text "TolBase" \
-    -window $f0 -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75  
   
-  # TabSet Options
-  set w_tabset [::blt::tabset $f0.ts -relief flat -highlightthickness 0\
-    -bd 0 -outerpad 0 -tier 2 -slant right -textside right ]
-  
-  $w_tabset insert end TOL Output Precision Paths Others
-  set f1 [frame $w_tabset.f1]
-  set f2 [frame $w_tabset.f2]
-  set f3 [frame $w_tabset.f3]
-  set f4 [frame $w_tabset.f4]
-  set f5 [frame $w_tabset.f5]
+  #@ Se prescinde de la pestaña lateral TolBase
 
-  $w_tabset tab configure "TOL" -text [mc "TOL"] -window $f1\
-       -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-  $w_tabset tab configure "Output" -text [mc "Output"] -window $f2\
-       -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-  $w_tabset tab configure "Precision" -text [mc "Precision"] -window $f3\
-       -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-  $w_tabset tab configure "Paths" -text [mc "Paths"] -window $f5\
-       -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-  $w_tabset tab configure "Others" -text [mc "Others"] -window $f4\
-       -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
+  # TabSet Options
+  set w_tabset [NoteBook $w.nb -tabbevelsize 8 -tabpady {2 6} -font {Arial 8}]
+  
+  set num_i 0
+  foreach lab_i [list TOL Output Precision Paths Others] {
+    $w_tabset insert $num_i $lab_i -text "  $lab_i  " -background \#d9d9d9 
+    set tab_i [$w_tabset getframe $lab_i]
+    $tab_i configure -borderwidth 2 -background \#d9d9d9
+    incr num_i    
+    set f$num_i [frame $tab_i.f]
+    pack $tab_i.f -fill both -expand yes  
+  }
+  $w_tabset raise [$w_tabset pages 0]
 
   OptionsGet
   OptionsCreateTOL        $f1
   OptionsCreateOutput     $f2
   OptionsCreatePrecision  $f3
-  OptionsCreatePaths      $f5
-  OptionsCreateOthers     $f4
+  OptionsCreatePaths      $f4
+  OptionsCreateOthers     $f5
   
   # Options project
   if {[info exists data(proc,OnOptionCreate)] && \
       [string length $data(proc,OnOptionCreate)]} {
     foreach f $data(proc,OnOptionCreate) {
-      $f $w_ts
+      $f $w_tabset
     }
   }
 
@@ -1563,27 +1568,11 @@ proc ::TolConsole::OptionsCreate { {tabinit ""} } {
           -command ::TolConsole::OptionsApply
 
   pack $w_bbox   -side bottom -expand no  -fill x 
+  $w_tabset compute_size
   pack $w_tabset -side top    -expand yes -fill both 
-  pack $w_ts -expand yes -fill both ;#-sticky news
   
   if {!($tabinit eq "")} {
-    switch -exact $tabinit  {
-      "TOL" {
-        $w_tabset select 0 
-      }
-      "Output" {
-        $w_tabset select 1 
-      }
-      "Precision" {
-        $w_tabset select 2 
-      }
-      "Paths" {
-        $w_tabset select 3 
-      }
-      "Others" {
-        $w_tabset select 4 
-      }      
-    }
+    $w_tabset raise $tabinit
   }
   bind $dialog <F1> "ShowHelp Tb4Opc"
   $dialog draw

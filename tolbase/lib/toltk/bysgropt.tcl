@@ -697,21 +697,25 @@ proc ::bayesGraph::GrapOpt {this args} {
   wm protocol $dialog WM_DELETE_WINDOW [list ::bayesGraph::GrapOptDestroy $this $dialog]
   set w [$dialog getframe]
   wm resizable $dialog 0 0
-  set w_tabset [::blt::tabset $w.ts -relief flat -highlightthickness 0\
-		        -bd 0 -outerpad 0 -tier 2 -slant both -textside right\
-                -side left -rotate 90 ]
+  #@ Se ubican las pestañas abajo, ya que NoteBook no las admite a la izquierda
+  set w_tabset [NoteBook $w.nb -tabbevelsize 8 -tabpady {2 6} -font {Arial 8} -side bottom]
   
-  #insertar tabset
-  $w_tabset insert end General
-  set f0 [frame $w_tabset.f0]
-  $w_tabset tab configure "General" -text [mc "General"]\
-           -window $f0 -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
+  #insertar tabset 
+  set num_i 0
+  set lab_i General
+  $w_tabset insert $num_i $lab_i -text "  [mc $lab_i]  " -background \#d9d9d9 
+  set tab_i [$w_tabset getframe $lab_i]
+  $tab_i configure -borderwidth 2 -background \#d9d9d9  
+  set f$num_i [frame $tab_i.f]
+  pack $tab_i.f -fill both -expand yes   
+
   #Crear opciones generales
   eval GrapOptCreate $this $f0 [array get opts]
   #Crear opciones especificas
   if [info exists ${this}::data(proc,OnOptionCreate)] {
     $data(proc,OnOptionCreate) $this $w_tabset
   }
+  $w_tabset raise [$w_tabset pages 0]  
     
   set w_bbox \
           [ButtonBox $w.bb -orient horizontal -spacing 10 -padx 0 -pady 0 \
@@ -733,6 +737,7 @@ proc ::bayesGraph::GrapOpt {this args} {
   }
   
   pack $w_bbox -fill x -expand false -side bottom
+  $w_tabset compute_size
   pack $w_tabset -fill both -expand true
   bind $dialog <F1> "ShowHelp Tb4GraOpc"
   
@@ -776,34 +781,22 @@ proc ::bayesGraph::GrapOptCreate {this frame args} {
     -iniaxis x
   ]
   array set opts $args
-
-  set widgets(general,w_tabset) [::blt::tabset $frame.ts -relief flat \
-    -highlightthickness 0 -bd 0 -outerpad 0 -tier 2 -slant right \
-    -textside right]
-  #puts "GrapOptCreate. $widgets(general,w_tabset)"  
-  $widgets(general,w_tabset) insert end Axis Lines Grid Legend Style
-
-  set f1  [frame $widgets(general,w_tabset).f1]
-  set f2  [frame $widgets(general,w_tabset).f2]
-  set f3  [frame $widgets(general,w_tabset).f3]
-  set f4  [frame $widgets(general,w_tabset).f4]
-  set f5  [frame $widgets(general,w_tabset).f5]
-  
-  $widgets(general,w_tabset) tab configure "Axis" -text "[mc "Axis"]" \
-    -window $f1 -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-  $widgets(general,w_tabset) tab configure "Lines" -text [mc "Lines"] \
-    -window $f2 -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-  $widgets(general,w_tabset) tab configure "Grid" -text [mc "Grid"] \
-    -window $f3 -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-  $widgets(general,w_tabset) tab configure "Legend" -text [mc "Legend"] \
-    -window $f4 -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-  $widgets(general,w_tabset) tab configure "Style" -text [mc "Style"] \
-    -window $f5 -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
+    
+  set widgets(general,w_tabset) [NoteBook $frame.nb -tabbevelsize 8 -tabpady {2 6} -font {Arial 8}] 
+  set num_i 0
+  foreach lab_i [list Axis Lines Grid Legend Style] {
+    $widgets(general,w_tabset) insert $num_i $lab_i -text "  [mc $lab_i]  " -background \#d9d9d9 
+    set tab_i [$widgets(general,w_tabset) getframe $lab_i]
+    $tab_i configure -borderwidth 2 -background \#d9d9d9
+    incr num_i
+    set f$num_i [frame $tab_i.f]
+    pack $tab_i.f -fill both -expand yes
+  }
+  $widgets(general,w_tabset) raise [$widgets(general,w_tabset) pages 0]
   
   GrapOptGet            $this
   GrapOptCreateAxisXY   $this $f1 $opts(-iniaxis)
   GrapOptCreateLines    $this $f2 $opts(-nline)
-
   GrapOptCreateGrid     $this $f3
   GrapOptCreateLegend   $this $f4
   GrapOptCreateStyle    $this $f5
@@ -814,10 +807,10 @@ proc ::bayesGraph::GrapOptCreate {this frame args} {
   
   # show tabset indicates
   if {[string length $opts(-tabshow)]} {
-    set ts $widgets(general,w_tabset)
-    $ts select [$ts index -name $opts(-tabshow)]
+    $widgets(general,w_tabset) raise $opts(-tabshow)
   }  
 
+  $widgets(general,w_tabset) compute_size
   grid $widgets(general,w_tabset) -sticky news  
   grid rowconfigure    $frame 0 -weight 1
   grid columnconfigure $frame 0 -weight 1
@@ -953,24 +946,18 @@ proc ::bayesGraph::ShowAxisSelectXY {this} {
   grid rowconfigure    $fs 9 -weight 1
   grid columnconfigure $fs 0 -weight 1
 
-  # Tab Set
-  set w_tabset [::blt::tabset $w.ts -relief flat -highlightthickness 0\
-		        -bd 0 -outerpad 0 -tier 2 -slant right -textside right]
-  $w_tabset insert end Scales Title Format Marker
-
-  set f1 [frame $w_tabset.f1]
-  set f2 [frame $w_tabset.f2]
-  set f3 [frame $w_tabset.f3]
-  set f4 [frame $w_tabset.f4]
-  
-  $w_tabset tab configure "Scales" -text [mc Scales]  -window $f1 \
-    -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-  $w_tabset tab configure "Format" -text [mc Format]  -window $f2 \
-    -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-  $w_tabset tab configure "Marker" -text [mc Marker]  -window $f3 \
-    -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-  $w_tabset tab configure "Title"  -text [mc Title]   -window $f4 \
-    -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
+  # Tab Set   
+  set w_tabset [NoteBook $w.nb -tabbevelsize 8 -tabpady {2 6} -font {Arial 8}] 
+  set num_i 0
+  foreach lab_i [list Scales Format Marker Title] {
+    $w_tabset insert $num_i $lab_i -text "  [mc $lab_i]  " -background \#d9d9d9 
+    set tab_i [$w_tabset getframe $lab_i]
+    $tab_i configure -borderwidth 2 -background \#d9d9d9
+    incr num_i
+    set f$num_i [frame $tab_i.f]
+    pack $tab_i.f -fill both -expand yes  
+  }
+  $w_tabset raise [$w_tabset pages 0]
 
   # X-Axis
   TitleFrame $f1.tf1a -text [mc "Scales"]
@@ -1154,6 +1141,7 @@ proc ::bayesGraph::ShowAxisSelectXY {this} {
 
 
   # General
+  $w_tabset compute_size
   grid $w.tfxs  $w_tabset -sticky news -padx 2
   grid ^        $w.tfsf   -sticky news -padx 2
   grid rowconfigure    $w 0 -weight 1
@@ -1352,22 +1340,23 @@ proc ::bayesGraph::GrapOptCreateLines {this w {linedefault 1}} {
   grid columnconfigure $f0 0 -weight 1  
 
   # OPTIONS LINES AND DATA
-  set w_tabset [::blt::tabset $w.ts -relief flat -highlightthickness 0\
-    -bd 0 -outerpad 0 -tier 2 -slant right -textside right]
-  $w_tabset insert end Line Data
+  set w_tabset [NoteBook $w.nb -tabbevelsize 8 -tabpady {2 6} -font {Arial 8}] 
+  set num_i 0
+  foreach lab_i [list Line Data] {
+    $w_tabset insert $num_i $lab_i -text "  [mc $lab_i]  " -background \#d9d9d9 
+    set tab_i [$w_tabset getframe $lab_i]
+    $tab_i configure -borderwidth 2 -background \#d9d9d9
+    incr num_i
+    set f$num_i [frame $tab_i.f]
+    pack $tab_i.f -fill both -expand yes  
+  }
+  $w_tabset raise [$w_tabset pages 0]
 
-  set ts1 [frame $w_tabset.f1]
-  set ts2 [frame $w_tabset.f2]
-
-  $w_tabset tab configure "Line" -text [mc "Line"] \
-    -window $ts1 -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-  $w_tabset tab configure "Data" -text [mc "Data"]\
-    -window $ts2 -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-
-  GrapOptCreateLinesLine $this $ts1
-  GrapOptCreateLinesData $this $ts2
+  GrapOptCreateLinesLine $this $f1
+  GrapOptCreateLinesData $this $f2
   
   #GRID
+  $w_tabset compute_size
   grid  $w.tf0 $w_tabset -sticky news -padx 1   
   
   grid rowconfigure    $w 0 -weight 1
@@ -1704,18 +1693,19 @@ proc ::bayesGraph::GrapOptCreateMarkers {this w} {
 #
 #/////////////////////////////////////////////////////////////////////////////
   variable tmpOpt
-  # tab_set
-  set tsmarker [::blt::tabset $w.ts -relief flat -highlightthickness 0\
-		        -bd 0 -outerpad 0 -tier 2 -slant right -textside right]
-  $tsmarker insert end Marker Style
-
-  set f1 [frame $tsmarker.f1]
-  set f2 [frame $tsmarker.f2]
-
-  $tsmarker tab configure "Marker"   -text [mc Marker]   -window $f1 \
-    -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-  $tsmarker tab configure "Style" -text [mc Style] -window $f2 \
-    -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
+  # tab_set  
+  set tsmarker [NoteBook $w.nb -tabbevelsize 8 -tabpady {2 6} -font {Arial 8}]
+    
+  set num_i 0
+  foreach lab_i [list Marker Style] {
+    $tsmarker insert $num_i $lab_i -text "  [mc $lab_i]  " -background \#d9d9d9 
+    set tab_i [$tsmarker getframe $lab_i]
+    $tab_i configure -borderwidth 2 -background \#d9d9d9
+    incr num_i
+    set f$num_i [frame $tab_i.f]
+    pack $tab_i.f -fill both -expand yes  
+  }
+  $tsmarker raise [$tsmarker pages 0]  
 
   # Marker
   # Each
@@ -1770,6 +1760,7 @@ proc ::bayesGraph::GrapOptCreateMarkers {this w} {
   grid columnconfigure $f2 0 -weight 1
 
   # General
+  $tsmarker compute_size
   grid $tsmarker -sticky news -padx 2
   grid rowconfigure    $w 0 -weight 1
   grid columnconfigure $w 0 -weight 1

@@ -685,10 +685,12 @@ proc ::TolInspector::ToggleSelection {wt} {
 proc ::TolInspector::SelectionExpand { } {
 #/////////////////////////////////////////////////////////////////////////////
   variable wt_vars
+  #@! REVISAR dejó de funcionar!
   set node [$wt_vars selection get 0]
-  if {$node == ""} { 
+  if {$node == ""} {
     ::TolInspector::SelectionCollapse 
   } else { 
+    Tolcon_Trace "node $node"
     $wt_vars expand $node
   }
 }

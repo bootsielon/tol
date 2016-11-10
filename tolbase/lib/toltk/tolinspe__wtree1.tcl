@@ -145,8 +145,8 @@ proc ::TolInspector::InsertItem {wt grammar name content path desc subtype} {
   }
 
   set brief_cont [TrimContent $grammar $content]
-  set brief_desc [TrimContent DONTCARE $desc]
-                
+  set brief_desc [TrimContent DONTCARE $desc]  
+  
   set data3 $brief_cont
   if {$grammar eq "NameBlock"} {
     #(pgea) se utiliza la informacon de instancia
@@ -159,6 +159,13 @@ proc ::TolInspector::InsertItem {wt grammar name content path desc subtype} {
     } elseif {$classOf ne ""} {
       set data3 $classOf
     }    
+  }
+  
+  #@! Se introduce toda la descripción de la clase. REVISAR!
+  if {$grammar eq "Anything"} {
+    if { [regexp {@[^ ]+} $name] } {
+      set data3 $content
+    }
   }
 
   #@ Se localiza el icono según la gramática
@@ -189,7 +196,7 @@ proc ::TolInspector::InsertItem {wt grammar name content path desc subtype} {
     $icon_grammar $name $data3 $brief_desc $path $tolref]  
   #@! set idx [$wt insert $wt_row -at child -relative root]
   #@! Las líneas anteriores parecen lentas y se sustituyen por las siguientes:
-  set idx [$wt item create -button 1]
+  set idx [$wt item create -button 1 -open 0]
   $wt item element configure $idx \
     [RiIndex] eTXT -text $arguments(index) , \
     [RiGrammar] eTXT -text $grammar , \
@@ -303,7 +310,7 @@ proc ::TolInspector::InsertPackages {} {
 #/////////////////////////////////////////////////////////////////////////////
 proc ::TolInspector::InsertGrammars {} {
 #
-# PURPOSE: Inserts a node in wt_tree (left ::blt::treeview) for each TOL grammar
+# PURPOSE: Inserts a node in wt_tree (left ::wtree) for each TOL grammar
 #
 #/////////////////////////////////////////////////////////////////////////////
   variable wt_tree
@@ -602,7 +609,6 @@ proc ::TolInspector::SelectConsoleRoot { } {
 #  $ht_vars column  configure Index -hide yes
   
   foreach co [::tol::console stack list] {
-  Tolcon_Trace "co $co"
     #puts "SelectConsoleRoot: co = $co"
     set gra  [lindex $co 0]
     set name [lindex $co 1]
@@ -748,12 +754,10 @@ proc ::TolInspector::OpenVariable { node } {
 #/////////////////////////////////////////////////////////////////////////////
   variable wt_tree
   variable wt_vars
- 
+
   if { ![string length $node] } { return }
-  
   set treeParent [$wt_tree selection get 0]
   set treeParent_tolRef [$wt_tree item text $treeParent [LiReference]]
-  
   set treeNode -1
   if { [llength $treeParent_tolRef] > 1 } {
     set grammar [$wt_vars item text $node [RiGrammar]]
@@ -804,8 +808,6 @@ proc ::TolInspector::SelectItem { wt } {
  
   #@! set entry [$wt selection anchor] ;# id of entry selected
   set entry [$wt selection get end] ;# id of entry selected
-  
-  Tolcon_Trace "SelectItem $entry"
 
   if { [string length $OnSelectItem] } {
     # there are associated command

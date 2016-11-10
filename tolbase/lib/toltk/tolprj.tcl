@@ -1603,16 +1603,19 @@ proc ::TolProject::DecompileActiveNode {this args} {
   wm protocol $dialog WM_DELETE_WINDOW \
         [list ::TolProject::OptionsDestroy $this $dialog]
   set w [$dialog getframe]
-  set w_tabset [::blt::tabset $w.ts -relief flat -highlightthickness 0\
-            -bd 0 -outerpad 0 -tier 2 -slant right -textside right ]
-    
+  set w_tabset [NoteBook $w.nb -tabbevelsize 8 -tabpady {2 6} -font {Arial 8}] 
   #insertar tabset
-  $w_tabset insert end Others
-  set f1 [frame $w_tabset.f1]
-        
-  $w_tabset tab configure "Others" -text [mc "Others"] -window $f1\
-          -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-    
+  set num_i 0
+  foreach lab_i [list Others] {
+    $w_tabset insert $num_i $lab_i -text "  [mc $lab_i]  " -background \#d9d9d9 
+    set tab_i [$w_tabset getframe $lab_i]
+    $tab_i configure -borderwidth 2 -background \#d9d9d9
+    incr num_i    
+    set f$num_i [frame $tab_i.f]
+    pack $tab_i.f -fill both -expand yes  
+  }
+  $w_tabset raise [$w_tabset pages 0]
+      
   OptionsGet $this
   OptionsCreateOthers  $this $f1  
   OptionsCheck $this
@@ -1630,6 +1633,7 @@ proc ::TolProject::DecompileActiveNode {this args} {
     -command [list ::SetGraphDialog::Cancel $dialog]
     
   pack $w_bbox   -fill x -expand false -side bottom
+  $w_tabset compute_size
   pack $w_tabset -fill both -expand true
 
   bind $dialog <F1> "ShowHelp Tb4EdpOpc"

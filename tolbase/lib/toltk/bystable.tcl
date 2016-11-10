@@ -750,21 +750,22 @@ proc ::BayesTable::CmdOptions {this} {
   wm protocol $dialog WM_DELETE_WINDOW [list ::BayesTable::OptionsDestroy $this $dialog]
   wm resizable $dialog 0 0
   set w [$dialog getframe]
-  set w_tabset [::blt::tabset $w.ts -relief flat -highlightthickness 0\
-		        -bd 0 -outerpad 0 -tier 2 -slant both -textside right\
-                -side left -rotate 90 ]
-  
+  set w_tabset [NoteBook $w.nb -tabbevelsize 8 -tabpady {2 6} -font {Arial 8}] 
   #insertar tabset
-  $w_tabset insert end General
-  set f0 [frame $w_tabset.f0]
-  $w_tabset tab configure "General" -text [mc "General"]\
-           -window $f0 -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-  #Crear opciones generales
+  set num_i 0
+  set lab_i General
+  $w_tabset insert $num_i $lab_i -text "  [mc $lab_i]  " -background \#d9d9d9 
+  set tab_i [$w_tabset getframe $lab_i]
+  $tab_i configure -borderwidth 2 -background \#d9d9d9   
+  set f$num_i [frame $tab_i.f]
+  pack $tab_i.f -fill both -expand yes  
+  $w_tabset raise [$w_tabset pages 0]
+  
   OptionsCreate $this $f0
   #Crear opciones especificas 
   if [info exists ${this}::data(proc,OnOptionCreate)] {
     $data(proc,OnOptionCreate) $this $w_tabset
-  }
+  }  
 
   set w_bbox \
           [ButtonBox $w.bb -orient horizontal -spacing 10 -padx 0 -pady 0 \
@@ -788,18 +789,18 @@ proc ::BayesTable::CmdOptions {this} {
   $dialog draw
 }
 
-proc ::BayesTable::OptionsCreate {this frame} {
-  set w_tabset [::blt::tabset $frame.ts -relief flat -highlightthickness 0\
-		        -bd 0 -outerpad 0 -tier 2 -slant right -textside right]
-  $w_tabset insert end Export Style
-
-  set f1 [frame $w_tabset.f1]
-  set f2 [frame $w_tabset.f2]
-
-  $w_tabset tab configure "Export" -text [mc "Export"] -window $f1\
-    -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75  
-  $w_tabset tab configure "Style"     -text [mc "Style"]    -window $f2\
-    -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
+proc ::BayesTable::OptionsCreate {this frame} { 
+  set w_tabset [NoteBook $frame.nb -tabbevelsize 8 -tabpady {2 6} -font {Arial 8}] 
+  set num_i 0
+  foreach lab_i [list Export Style] {
+    $w_tabset insert $num_i $lab_i -text "  [mc $lab_i]  " -background \#d9d9d9 
+    set tab_i [$w_tabset getframe $lab_i]
+    $tab_i configure -borderwidth 2 -background \#d9d9d9
+    incr num_i    
+    set f$num_i [frame $tab_i.f]
+    pack $tab_i.f -fill both -expand yes  
+  }
+  $w_tabset raise [$w_tabset pages 0]
   
   OptionsGet           $this
   OptionsCreateExport  $this $f1
@@ -808,6 +809,7 @@ proc ::BayesTable::OptionsCreate {this frame} {
   OptionsCheck $this
   #OptionsSet   $this
 
+  $w_tabset compute_size
   grid $w_tabset -sticky news  
   grid rowconfigure    $frame 0 -weight 1
   grid columnconfigure $frame 0 -weight 1

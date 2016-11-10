@@ -22,13 +22,12 @@ foreach d {
   bguifunction
   bmultiselect
   beditselector
-  bodbc
-  bsersel
+  bodbc 
   btable
   barima
   bdialog
-  btab
 } {
+  #@!NO: bsersel btab
   set dir [file join $maindir $d]
   source [file join $dir pkgIndex.tcl]
 }
