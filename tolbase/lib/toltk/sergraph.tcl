@@ -864,25 +864,21 @@ proc ::SeriesGraph::OptionsCreateXMarkers {this w} {
 #/////////////////////////////////////////////////////////////////////////////  
   upvar \#0 ${this}::widgets widgets
   upvar \#0 ${this}::data data
-  upvar \#0 ${this}::options opt
   variable tmpOpt
-
-  set gr $data(gr,active)
-  set g $widgets(gr,$gr)
-
+  
   # X-Markers
-  set w_tabset [::blt::tabset $w.ts -relief flat -highlightthickness 0\
-        -bd 0 -outerpad 0 -tier 2 -slant right -textside right]
-  $w_tabset insert end Markers Style
-
-  set f1 [frame $w_tabset.f1]
-  set f2 [frame $w_tabset.f2]
-
-  $w_tabset tab configure "Markers" -text [mc "Markers"]\
-        -window $f1 -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-  $w_tabset tab configure "Style" -text [mc "Style"] \
-        -window $f2 -fill both -padx 0 -selectbackground \#d9d9d9 -bg gray75
-
+  set w_tabset [NoteBook $w.nb -tabbevelsize 8 -tabpady {2 6} -font {Arial 8}] 
+  set num_i 0
+  foreach lab_i [list Markers Style] {
+    $w_tabset insert $num_i $lab_i -text "  [mc $lab_i]  " -background \#d9d9d9 
+    set tab_i [$w_tabset getframe $lab_i]
+    $tab_i configure -borderwidth 2 -background \#d9d9d9
+    incr num_i    
+    set f$num_i [frame $tab_i.f]
+    pack $tab_i.f -fill both -expand yes  
+  }
+  $w_tabset raise [$w_tabset pages 0]
+  
   TitleFrame $f1.tf -text [mc "X-Markers"]
   set f [$f1.tf getframe]
   label $f.lxMarker -text [mc "Select TimeSets to mark"]:
@@ -944,7 +940,8 @@ proc ::SeriesGraph::OptionsCreateXMarkers {this w} {
   grid $f2.tf -sticky news -padx 2
   grid rowconfigure    $f2 0 -weight 1
   grid columnconfigure $f2 0 -weight 1
-    
+  
+  $w_tabset compute_size
   grid $w_tabset -sticky news
   grid rowconfigure    $w 0 -weight 1
   grid columnconfigure $w 0 -weight 1
