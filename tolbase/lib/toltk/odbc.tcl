@@ -224,7 +224,7 @@ package require bcombobox
   upvar #0 ${this}::data data
   variable tmpdata
 
-  blt::busy hold $tmpdata(dlg)
+  rbc::busy hold $tmpdata(dlg)
   update
   if [catch "database dbtest $tmpdata(alias) $tmpdata(user) $tmpdata(password)" msg] {
     set data(status) 0
@@ -248,7 +248,7 @@ package require bcombobox
     #::BayesTable::SetOption $this "db" db
     $tmpdata(dlg) enddialog ok
   }
-  blt::busy release $tmpdata(dlg)
+  rbc::busy release $tmpdata(dlg)
 }
 
 

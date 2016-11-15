@@ -484,7 +484,7 @@ proc SqlValidateData {P typFie} {
 #///////////////////////////////////////////////////////////////////////////
   #NOTE:  move traces to "DBQuery"
   . configure -cursor watch
-  ::blt::busy hold .
+  ::rbc::busy hold .
   set lst {}
   Tolcon_Trace "IniQuery: \
     [clock format [clock seconds] -format "%Y%m%d %T"]:\n[lindex $args 0]"
@@ -506,7 +506,7 @@ proc SqlValidateData {P typFie} {
   }
   Tolcon_Trace "EndQuery: [clock format [clock seconds] -format "%Y%m%d %T"]"
   . configure -cursor ""
-  ::blt::busy release .
+  ::rbc::busy release .
   update
   return $lst
 }

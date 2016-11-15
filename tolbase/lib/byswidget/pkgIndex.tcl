@@ -17,8 +17,6 @@ foreach d {
   blistboxplus
   bselectfields
   btoplevel
-  btreeview
-  btreeviewplus
   bguifunction
   bmultiselect
   beditselector
@@ -27,7 +25,7 @@ foreach d {
   barima
   bdialog
 } {
-  #@!NO: bsersel btab
+  #@!NO: bsersel btab btreeview btreeviewplus
   set dir [file join $maindir $d]
   source [file join $dir pkgIndex.tcl]
 }

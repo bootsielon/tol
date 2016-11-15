@@ -15,7 +15,7 @@
 if {0} {
   package require Tk
   package require BWidget
-  package require BLT  
+  package require RBC  
   Bitmap::use
   set toltk_script_path [file dirname [info script]]
   set toltk_images_path [file join $toltk_script_path images]
@@ -36,7 +36,7 @@ package require Img
 # VARIABLES:
 #   tmpOpt  -> temporary array used to store the widgets and variables of the
 #              options dialog. 
-#   instance -> asociative array of blt graph widget's path with the instance
+#   instance -> asociative array of rbc graph widget's path with the instance
 #              of bayesGraph.
 #
 #/////////////////////////////////////////////////////////////////////////////
@@ -137,7 +137,7 @@ package require Img
 
   set i 0
   foreach fr $panel {
-    set widgets(gr,$i) [blt::graph $fr.gr]
+    set widgets(gr,$i) [rbc::graph $fr.gr]
     set instance($fr.gr) $Instance
     pack $widgets(gr,$i) -fill both -expand yes
     incr i
@@ -685,7 +685,7 @@ proc ::bayesGraph::CreateColorTable { table ncolors } {
 #/////////////////////////////////////////////////////////////////////////////
   proc ::bayesGraph::ZoomFrame { this } {
 #
-# PURPOSE: Sets zoom-frame mode for the blt graph
+# PURPOSE: Sets zoom-frame mode for the rbc graph
 #      
 # PARAMETERS:
 #   this -> bayesgraph instance
@@ -698,7 +698,7 @@ proc ::bayesGraph::CreateColorTable { table ncolors } {
 #/////////////////////////////////////////////////////////////////////////////
   proc ::bayesGraph::ZoomIn { this } {
 #
-# PURPOSE: Sets zoom-in mode for the blt graph
+# PURPOSE: Sets zoom-in mode for the rbc graph
 #      
 # PARAMETERS:
 #   this -> bayesgraph instance
@@ -712,7 +712,7 @@ proc ::bayesGraph::CreateColorTable { table ncolors } {
 #/////////////////////////////////////////////////////////////////////////////
   proc ::bayesGraph::ZoomOut { this } {
 #
-# PURPOSE: Sets zoom-out mode for the blt graph
+# PURPOSE: Sets zoom-out mode for the rbc graph
 #      
 # PARAMETERS:
 #   this -> bayesgraph instance
@@ -726,7 +726,7 @@ proc ::bayesGraph::CreateColorTable { table ncolors } {
 #/////////////////////////////////////////////////////////////////////////////
   proc ::bayesGraph::ScrollView { this } {
 #
-# PURPOSE: Sets scroll mode for the blt graph
+# PURPOSE: Sets scroll mode for the rbc graph
 #      
 # PARAMETERS:
 #   this -> bayesgraph instance
@@ -740,13 +740,13 @@ proc ::bayesGraph::CreateColorTable { table ncolors } {
 #/////////////////////////////////////////////////////////////////////////////
   proc ::bayesGraph::SetViewMode { this mode } {
 #
-# PURPOSE: Sets zoom (or scroll) mode for the blt graph. It also enables and
+# PURPOSE: Sets zoom (or scroll) mode for the rbc graph. It also enables and
 #          disables toolbar buttons and sets cursors types acording to the
 #          mode choosen.
 #      
 # PARAMETERS:
 #   this -> bayesgraph instance
-#   mode -> mode for the blt graph
+#   mode -> mode for the rbc graph
 #
 #/////////////////////////////////////////////////////////////////////////////
 
@@ -765,7 +765,7 @@ proc ::bayesGraph::CreateColorTable { table ncolors } {
   for  {set gr 0} {$gr<$data(gr,numGraph)} {incr gr 1} {
     set item $widgets(gr,$gr)
     $item configure -cursor $widgets(cursor,$active)
-    Blt_ViewMode $item $active
+    Rbc_ViewMode $item $active
   }
 
 }
@@ -836,12 +836,12 @@ proc ::bayesGraph::CreateColorTable { table ncolors } {
   if { [ToggleButton $this "crosshair"] } {
     for  {set i 0} {$i<$data(gr,numGraph)} {incr i 1} {
       set item $widgets(gr,$i)
-      blt::Crosshairs $item
+      rbc::Crosshairs $item
     }    
   } else {
     for  {set i 0} {$i<$data(gr,numGraph)} {incr i 1} {
       set item $widgets(gr,$i)
-      blt::ClearCrosshairs $item
+      rbc::ClearCrosshairs $item
     }
   }
 }

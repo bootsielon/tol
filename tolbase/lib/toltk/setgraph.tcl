@@ -429,7 +429,7 @@ proc ::SetGraphDialog::DrawSet {path tableset set type {pairs {}} {names {}} {fi
 #          that allows to choose x and y columns for the elements to draw.
 #
 # PARAMETERS:
-#   path     -> path of the blt graph
+#   path     -> path of the rbc graph
 #   tableset -> command of the set
 #   set      -> reference to the TOL set
 #   type     -> 0 for custom association of data columns
@@ -510,7 +510,7 @@ proc ::SetGraphDialog::DrawSet {path tableset set type {pairs {}} {names {}} {fi
 #          that allows to choose x and y columns for the elements to draw.
 #
 # PARAMETERS:
-#   path     -> path of the blt graph
+#   path     -> path of the rbc graph
 #   tableset -> command of the set
 #   set      -> reference to the TOL set
 #
@@ -541,7 +541,7 @@ proc ::SetGraphDialog::OnDestroyGraph {list} {
 # 
 #/////////////////////////////////////////////////////////////////////////////  
   if [llength $list] {
-    eval blt::vector destroy $list
+    eval rbc::vector destroy $list
   }
 }
 
@@ -1155,7 +1155,7 @@ Tolcon_Trace "X. No se puede graficar: $colX"
 #/////////////////////////////////////////////////////////////////////////////
   proc ::SetGraphDialog::Finish {dialog} {
 #
-# PURPOSE: Creates the blt vectors acording to the columns selection done by
+# PURPOSE: Creates the rbc vectors acording to the columns selection done by
 #          the user. It also get the maximun and minimun x value of the
 #          selected series
 #
@@ -1171,7 +1171,7 @@ Tolcon_Trace "X. No se puede graficar: $colX"
 #/////////////////////////////////////////////////////////////////////////////
   proc ::SetGraphDialog::SetSelection {} {
 #
-# PURPOSE: Creates the blt vectors acording to the columns selection done by
+# PURPOSE: Creates the rbc vectors acording to the columns selection done by
 #          the user. It also get the maximun and minimun x value of the
 #          selected series
 #

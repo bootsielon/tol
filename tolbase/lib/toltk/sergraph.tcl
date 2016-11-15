@@ -31,7 +31,7 @@ proc ::SeriesGraph::BindSerieInfo { Instance } {
       [ string map [list %I $Instance] {
         ::SeriesGraph::ShowSerieInfo %I %W %x %y
       } ]
-  blt::AddBindTag $graph closest-point-$graph
+  rbc::AddBindTag $graph closest-point-$graph
   
 }
 

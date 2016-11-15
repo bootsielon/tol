@@ -8,8 +8,8 @@ package require blistbox
 package require blistboxplus
 package require bselectfields
 package require btoplevel
-package require btreeview
-package require btreeviewplus
+#@!NO package require btreeview
+#@!NO package require btreeviewplus
 package require bguifunction
 package require bmultiselect
 package require bfieldsdialog

@@ -305,7 +305,7 @@ snit::type bodbc {
 #    variable widget
     # wait
     if { 0 } {
-      blt::busy hold $widget(dlg)
+      rbc::busy hold $widget(dlg)
       update
     }
     # _Connect
@@ -328,7 +328,7 @@ snit::type bodbc {
     }
     # end wait
     if { 0 } {
-      blt::busy release $widget(dlg)
+      rbc::busy release $widget(dlg)
     }
   }
 
