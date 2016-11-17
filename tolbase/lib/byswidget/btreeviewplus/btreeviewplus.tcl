@@ -3,6 +3,9 @@
 # PURPOSE : Bayes Tree View. Tree View con un menu contextual y añadidos
 #/////////////////////////////////////////////////////////////////////////////
 
+#@! OBSOLETO
+#@! Usa BLT
+
 package require byscommon
 package require BLT
 package require bfunctions
@@ -98,7 +101,7 @@ package require bfieldsdialog
     $self configure -readonly [from args -readonly]
     $self _CreateMenu
 
-    $_treeview column configure [list BLT TreeView $_treeview] -titleborderwidth 1
+    #@T! $_treeview column configure [list BLT TreeView $_treeview] -titleborderwidth 1
     
     # Apply all arguments given:
     $self configurelist $args

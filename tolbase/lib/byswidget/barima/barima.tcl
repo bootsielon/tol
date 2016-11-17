@@ -3,7 +3,6 @@
 # PURPOSE : Editor of definitions of ARIMA models
 #/////////////////////////////////////////////////////////////////////////////
 package require byscommon
-package require BLT
 package require Toltcl
 package require blistboxplus
 package require bcomboboxplus

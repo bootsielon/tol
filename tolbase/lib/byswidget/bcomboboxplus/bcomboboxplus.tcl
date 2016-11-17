@@ -9,8 +9,6 @@
 #/////////////////////////////////////////////////////////////////////////////
 
 package require byscommon
-package require BLT
-
 package require blistboxplus
 package require bentrydate
 

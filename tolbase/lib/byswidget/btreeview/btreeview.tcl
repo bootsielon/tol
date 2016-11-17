@@ -5,6 +5,9 @@
 #         seleccionados atomaticamente pasa a estar seleccionado. 
 #/////////////////////////////////////////////////////////////////////////////
 
+#@! OBSOLETO
+#@! Usa BLT
+
 # include
 if {0} {
 #  set toltk_script_path [file dirname [info script]]

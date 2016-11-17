@@ -21,9 +21,7 @@
 #/////////////////////////////////////////////////////////////////////////////
 
 package require byscommon
-package require BLT
 package require blistboxplus
-package require btreeviewplus
 package require bcomboboxplus
 package require bfunctions
 package require bentrydate

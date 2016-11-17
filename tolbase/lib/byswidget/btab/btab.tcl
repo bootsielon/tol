@@ -3,6 +3,9 @@
 # PURPOSE : Bayes tab manager
 #/////////////////////////////////////////////////////////////////////////////
 
+#@! OBSOLETO
+#@! Usa BLT
+
 package require BLT
 package require snit
 

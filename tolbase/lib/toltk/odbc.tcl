@@ -13,7 +13,7 @@
 if {0} {
   package require Tk
   package require BWidget
-  package require BLT
+  package require rbc
   # force BWidget autoload
   Bitmap::use
   set toltk_script_path [file dirname [info script]]

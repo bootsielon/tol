@@ -15,7 +15,7 @@
 if {0} {
   package require Tk
   package require BWidget
-  package require BLT  
+  package require rbc
   Bitmap::use
   set toltk_script_path [file dirname [info script]]
   set toltk_images_path [file join $toltk_script_path images]

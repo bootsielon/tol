@@ -3,6 +3,9 @@
 # PURPOSE : This file 
 #/////////////////////////////////////////////////////////////////////////////
 
+#@! OBSOLETO
+#@! Usa BLT
+
 # Requiere funciones de acceso a archivo .ini ::iniFile::*
 # Ver test al final del archivo
 package require snit

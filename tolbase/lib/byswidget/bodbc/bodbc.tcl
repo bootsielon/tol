@@ -955,7 +955,7 @@ proc test_bodbc {} {
   
   package require tclodbc
   package require BWidget
-  package require BLT
+  package require rbc
   Bitmap::use
   #lappend Bitmap::path ../images
 
