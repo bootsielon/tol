@@ -717,6 +717,7 @@ snit::widget wtree {
   #    cada columna crea un stilo y el layout esa definido por el
   #    orden en que se describen los elementos de la columna.
   #
+
   method _conf-columns { _ columnsSpec } {
     if { $columnsSpec eq "" } {
       set columnsSpec [ list { text -tags C0 -label "Column 0" -editable 0 } ]
@@ -825,6 +826,65 @@ snit::widget wtree {
     return $ret
   }
 
+  method find { {first first} {last last} } {
+    if { [string match "-*" $first] } {
+      error "no flags allowed!"
+    } else {
+      return [$tree item range $first $last]
+    }
+  }
+  
+  method selection { args } {
+    if { [lindex $args 0] eq "set" } {
+      Tolcon_Trace "selection $args"
+      switch [llength $args] {
+        1 { $tree selection clear all }
+        2 { $tree selection modify [lindex $args 1] all }
+        3 { $tree selection modify [$tree item range [lindex $args 1] [lindex $args 2]] all }
+        default {
+          error "invalid number of arguments"        
+        }        
+      }
+    } elseif { [lindex $args 0] eq "clearall" } {
+      $tree selection clear all
+    }  {
+      eval $tree selection $args
+    }  
+  }
+  
+  method index { args } {
+    error "invalid method index"
+  }
+  
+  method move { item how dest } {
+    Tolcon_Trace "item: $item how: $how dest: $dest"
+    if { $item eq $dest } { return }
+    switch $how {
+      into {
+        $tree item lastchild $dest $item
+      }
+      after {
+        if { $dest eq "" } {
+          $tree item prevsibling $item [$tree item nextsibling $item]
+        } else {
+          $tree item nextsibling $dest $item
+          #$tree item prevsibling $item $dest
+        }
+      }
+      before {
+        if { $dest eq "" } {
+          $tree item nextsibling $item [$tree item prevsibling $item]
+        } else {
+          $tree item prevsibling $dest $item
+          #$tree item nextsibling $item $dest
+        }
+      }
+      default {
+        error "invalid argument 'how', should be: into (child), before or after"
+      }
+    } 
+  }  
+  
   method insert { data args } {
     array set insopt {
       -at end
