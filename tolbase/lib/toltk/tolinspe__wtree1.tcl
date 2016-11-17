@@ -3,10 +3,10 @@
 proc ::TolInspector::LNodeDef { } {
 #/////////////////////////////////////////////////////////////////////////////
   return [list \
-    [list {image text} -label Name] \
-    [list text -label Index] \
-    [list text -label Grammar] \
-    [list text -label Reference]
+    [list {image text} -label Name -tags Name] \
+    [list text -label Index -tags Index] \
+    [list text -label Grammar -tags Grammar] \
+    [list text -label Reference -tags Reference]
   ]
 }
 
@@ -21,46 +21,19 @@ proc ::TolInspector::LNode {index grammar icon name reference} {
   ]
 }
 
-proc ::TolInspector::LiName         { } { return 0 }
-proc ::TolInspector::LiIndex        { } { return 1 }
-proc ::TolInspector::LiGrammar      { } { return 2 }
-proc ::TolInspector::LiReference    { } { return 3 }
-
 #/////////////////////////////////////////////////////////////////////////////
 proc ::TolInspector::RNodeDef { } {
 #/////////////////////////////////////////////////////////////////////////////
   return [list \
-    [list text -label Index] \
-    [list text -label Grammar] \
-    [list {image text} -label Name] \
-    [list text -label Content] \
-    [list text -label Description] \
-    [list text -label Path] \
-    [list text -label Reference] \
+    [list text -label Index -tags Index] \
+    [list text -label Grammar -tags Grammar] \
+    [list {image text} -label Name -tags Name] \
+    [list text -label Content -tags Content] \
+    [list text -label Description -tags Description] \
+    [list text -label Path -tags Path] \
+    [list text -label Reference -tags Reference] \
   ]
 }
-
-#/////////////////////////////////////////////////////////////////////////////
-proc ::TolInspector::RNode {index grammar icon name content description path reference} {
-#/////////////////////////////////////////////////////////////////////////////
-  return [list \
-    [list $index] \
-    [list $grammar] \
-    [list $icon $name] \
-    [list $content] \
-    [list $description] \
-    [list $path] \
-    [list $reference] \
-  ]
-}
-
-proc ::TolInspector::RiIndex        { } { return 0 }
-proc ::TolInspector::RiGrammar      { } { return 1 }
-proc ::TolInspector::RiName         { } { return 2 }
-proc ::TolInspector::RiContent      { } { return 3 }
-proc ::TolInspector::RiDescription  { } { return 4 }
-proc ::TolInspector::RiPath         { } { return 5 }
-proc ::TolInspector::RiReference    { } { return 6 }
 
 #/////////////////////////////////////////////////////////////////////////////
 proc ::TolInspector::InsertChild { args } {
@@ -190,29 +163,21 @@ proc ::TolInspector::InsertItem {wt grammar name content path desc subtype} {
   #?   }
   #? }
   
-  #@ ::TolInspector::RNode index grammar 
-  #@   icon name content description path reference
-  #@! set wt_row [::TolInspector::RNode $arguments(index) $grammar \
-    $icon_grammar $name $data3 $brief_desc $path $tolref]  
-  #@! set idx [$wt insert $wt_row -at child -relative root]
-  #@! Las líneas anteriores parecen lentas y se sustituyen por las siguientes:
+  #@ No se usa el método insert de wtree porque es más lento
   set idx [$wt item create -button 1 -open 0]
-  $wt item element configure $idx \
-    [RiIndex] eTXT -text $arguments(index) , \
-    [RiGrammar] eTXT -text $grammar , \
-    [RiName] eIMG -image $icon_grammar + eTXT -text $name , \
-    [RiContent] eTXT -text $data3 , \
-    [RiDescription] eTXT -text $brief_desc , \
-    [RiPath] eTXT -text $path , \
-    [RiReference] eTXT -text $tolref
+  $wt item image $idx Name $icon_grammar
+  $wt item text $idx Index $arguments(index) Grammar $grammar \
+    Name $name Content $data3 Description $brief_desc Path $path Reference $tolref
+  
   $wt item lastchild root $idx  
  
+  #@WTREE a mejorar allí
   $wt item element configure $idx \
-    [RiIndex] eTXT -fill $fcolor , \
-    [RiName] eTXT -fill $fcolor , \
-    [RiContent] eTXT -fill $fcolor , \
-    [RiDescription] eTXT -fill $fcolor , \
-    [RiPath] eTXT -fill $fcolor
+    Index eTXT -fill $fcolor , \
+    Name eTXT -fill $fcolor , \
+    Content eTXT -fill $fcolor , \
+    Description eTXT -fill $fcolor , \
+    Path eTXT -fill $fcolor    
 
   incr arguments(index)
 }
@@ -263,7 +228,7 @@ proc ::TolInspector::OpenObject { node } {
   #@ Argumentos pasados por atributo
   #@  + parent_node es usado por InsertSubset para saber dónde insertar
   set arguments(parent_node) $node
-  set tolReference [$wt_tree item text $node [LiReference]]
+  set tolReference [$wt_tree item text $node Reference]
   
   if { [llength $tolReference] == 1 } {
     #@ Aquí llegan los nodos raíz y las gramáticas
@@ -280,7 +245,7 @@ proc ::TolInspector::OpenObject { node } {
     #@ Argumentos pasados por atributo
     #@  + parent_grammar es usado por InsertSubset para abrir o no un nodo
     #@  + parent_tolref es usado por InsertSubset para determinar tolref
-    set arguments(parent_grammar) [$wt_tree item text $node [LiGrammar]]
+    set arguments(parent_grammar) [$wt_tree item text $node Grammar]
     set arguments(parent_tolref) $tolReference
     ::tol::forallchild $tolReference ::TolInspector::InsertSubset
     NotBusy
@@ -452,10 +417,10 @@ proc ::TolInspector::InsertSubset { args } {
     set label [file tail $name]
     #puts [list InsertSubset, indices {lindex $args 5} = $indices]
     
-#noaun set obj_ref [lappend [$wt_tree item text $parent_node [LiReference] $indices] ] 
+#noaun set obj_ref [lappend [$wt_tree item text $parent_node Reference $indices] ] 
 #noaun Tolcon_Trace "Inserto un nodo nuevo. $obj_ref"
     set index [lindex $indices end]
-    set tolRefe [eval list [$wt_tree item text $parent_node [LiReference]] $index]
+    set tolRefe [eval list [$wt_tree item text $parent_node Reference] $index]
     set wt_row [::TolInspector::LNode $index $grammar $icon $label $tolRefe]
 
     if {$label eq ""} {
@@ -465,7 +430,7 @@ proc ::TolInspector::InsertSubset { args } {
     }
 
     set idnew [ $wt_tree insert $wt_row -at end -relative $parent_node -button $has_button]
-    $wt_tree item element configure $idnew [LiName] eTXT -fill $fcolor
+    $wt_tree item element configure $idnew Name eTXT -fill $fcolor
   }
   } msg
   #@! Tolcon_Trace "InsertSubSet: $msg"
@@ -490,7 +455,7 @@ proc ::TolInspector::SelectObject { } {
     return
   }
   
-  set tolReference [$wt_tree item text $node [LiReference]]
+  set tolReference [$wt_tree item text $node Reference]
   
   Busy
   if { [llength $tolReference] == 1 } {
@@ -516,7 +481,7 @@ proc ::TolInspector::SelectObject { } {
   } else {
     #@ Argumentos pasados por atributo
     #@  + parent_grammar es usado por InsertItem para saber si es NameBlock
-    set arguments(parent_grammar) [$wt_tree item text $node [LiGrammar]]
+    set arguments(parent_grammar) [$wt_tree item text $node Grammar]
     SelectSet $tolReference
   }
   NotBusy
@@ -659,7 +624,7 @@ proc ::TolInspector::SelectGrammar { } {
   
   set selAnchor [$wt_tree selection get 0]
   
-  set grammar [$wt_tree item text $selAnchor [LiName] ]
+  set grammar [$wt_tree item text $selAnchor Name ]
   if { [string compare $grammar "Anything"] } {
     #@ Por aquí si no es Anything
     if { [string length $OnSelectItem] } {
@@ -757,16 +722,16 @@ proc ::TolInspector::OpenVariable { node } {
 
   if { ![string length $node] } { return }
   set treeParent [$wt_tree selection get 0]
-  set treeParent_tolRef [$wt_tree item text $treeParent [LiReference]]
+  set treeParent_tolRef [$wt_tree item text $treeParent Reference]
   set treeNode -1
   if { [llength $treeParent_tolRef] > 1 } {
-    set grammar [$wt_vars item text $node [RiGrammar]]
+    set grammar [$wt_vars item text $node Grammar]
     if {$grammar eq "Set" || $grammar eq "NameBlock"} {
       $wt_tree item expand $treeParent
       #@ Se localiza el nodo seleccionado en el árbol (wt_tree)
-      set index [$wt_vars item text $node [RiIndex]]     
+      set index [$wt_vars item text $node Index]     
       foreach node_i [$wt_tree item children $treeParent] {
-        set index_i [$wt_tree item text $node_i [LiIndex]]
+        set index_i [$wt_tree item text $node_i Index]
         if { [string equal $index $index_i] } {
           set treeNode $node_i
           break
@@ -813,20 +778,20 @@ proc ::TolInspector::SelectItem { wt } {
     # there are associated command
     if { [string length $entry] } {
       # almost one entry of wt_* selected
-      set name   [$wt item text $entry [RiName]] ;# name of item     
-      set itemid [$wt item text $entry [RiIndex]] ;# id of item        
-      set path   [$wt item text $entry [RiPath]] ;# path of file of item
-      set objRef [$wt item text $entry [RiReference]] ;# info of item
-      set value [$wt item text $entry [RiContent]]
+      set name   [$wt item text $entry Name] ;# name of item     
+      set itemid [$wt item text $entry Index] ;# id of item        
+      set path   [$wt item text $entry Path] ;# path of file of item
+      set objRef [$wt item text $entry Reference] ;# info of item
+      set value  [$wt item text $entry Content]
       if { [string equal \"\n\" $value] } {
         # hasn't value        
         set value {"\n"}
       } else {
         set value [string trim $value]
       }
-      set desc [$wt item text $entry [RiDescription]]
-      set grammar [$wt item text $entry [RiGrammar]]
-      set icon [$wt item image $entry [RiName]]
+      set desc [$wt item text $entry Description]
+      set grammar [$wt item text $entry Grammar]
+      set icon [$wt item image $entry Name]
       #(pgea) lista de argumentos que recibe ::TolConsole::OnInfo
       set args [list $icon $grammar $name $value $path $desc $objRef]
     } else {

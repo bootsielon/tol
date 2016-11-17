@@ -17,7 +17,7 @@ proc ::TolInspector::ClearConsoleObjSel {wt} {
   variable vars_selected
 
   foreach var $vars_selected {
-    set name [$wt item text $var [RiName]]
+    set name [$wt item text $var Name]
     #puts "name=$name"
     #Quitamos el objeto de la consola de tol
     ::tol::console stack release $name
@@ -92,7 +92,7 @@ proc ::TolInspector::PostVariable { x y } {
   }
   
   set parent [$wt_tree selection get 0]
-  set parent_tolReference [$wt_tree item text $parent [LiReference]]
+  set parent_tolReference [$wt_tree item text $parent Reference]
   
   set InRootConsole [string equal $parent_tolReference "Console"]
   set InRootFiles [string equal $parent_tolReference "File"]
@@ -106,11 +106,11 @@ proc ::TolInspector::PostVariable { x y } {
     set vars_selected [$wt_vars selection get 0 end] ;# curselection
     if { [lsearch $vars_selected $node_act] >= 0 } {
       foreach var $vars_selected {
-        set itemid  [$wt_vars item text $var [RiIndex]]
-        set path    [$wt_vars item text $var [RiPath]]
-        set grammar [$wt_vars item text $var [RiGrammar]]
-        set objName [$wt_vars item text $var [RiName]]
-        set object [$wt_vars item text $var [RiReference]]  
+        set itemid  [$wt_vars item text $var Index]
+        set path    [$wt_vars item text $var Path]
+        set grammar [$wt_vars item text $var Grammar]
+        set objName [$wt_vars item text $var Name]
+        set object  [$wt_vars item text $var Reference] 
         
         #puts "OBJECT=$objName, PATH=$path"
         
@@ -469,11 +469,11 @@ proc ::TolInspector::PostFunction { x y } {
     set vars_selected [$wt_funcs selection get 0 end] ;# curselection
     if { [lsearch $vars_selected $node_act] >= 0 } {
       foreach var $vars_selected {
-        set itemid  [$wt_funcs item text $var [RiIndex]]
-        set path    [$wt_funcs item text $var [RiPath]]
-        set grammar [$wt_funcs item text $var [RiGrammar]]
-        set objName [$wt_funcs item text $var [RiName]]
-        set object [$wt_funcs item text $var [RiReference]]   
+        set itemid  [$wt_funcs item text $var Index]
+        set path    [$wt_funcs item text $var Path]
+        set grammar [$wt_funcs item text $var Grammar]
+        set objName [$wt_funcs item text $var Name]
+        set object  [$wt_funcs item text $var Reference] 
         # La única gramática seleccionable en wt_funcs es Code
         lappend code_selected [list $object $objName $path]
       }
@@ -534,7 +534,7 @@ proc ::TolInspector::PostTree { x y } {
   set selection [$wt_tree selection get 0]
   if { ![string length $selection] } { return }
   
-  set tolReference [$wt_tree item text $selection [LiReference]]
+  set tolReference [$wt_tree item text $selection Reference]
   if { [llength $tolReference] == 2 } {
     set InRootFiles [string equal [lindex $tolReference 0] "File"]
   } else {
@@ -553,12 +553,12 @@ proc ::TolInspector::PostTree { x y } {
       
       if { $index == 0 } return
       # if user selects a root or a grammar doesn't nothing      
-      set tolReference [$wt_tree item text $index [LiReference]]
+      set tolReference [$wt_tree item text $index Reference]
       if { [llength $tolReference] == 1 } return
       
       # label of object showed in the tree
-      set objName [$wt_tree item text [LiName]]
-      set object [$wt_tree item text [LiReference]]
+      set objName [$wt_tree item text Name]
+      set object [$wt_tree item text Reference]
       
       if {$InRootFiles} {
         set objName [lindex $tolReference 1]
@@ -633,7 +633,7 @@ proc ::TolInspector::AddToConsole {wt} {
   variable vars_selected
 
   foreach var $vars_selected {
-    set reference [$wt item text $var [RiReference]]
+    set reference [$wt item text $var Reference]
     #Tolcon_Trace "GetObjectFromAddress(\"[::tol::info address $reference]\")"
     ::tol::console eval "GetObjectFromAddress(\"[::tol::info address $reference]\")"
   }  
@@ -650,7 +650,7 @@ proc ::TolInspector::AddToEvalWindow {wt} {
 
   set names ""
   foreach var $vars_selected {   
-    lappend names [$wt item text $var [RiName]]
+    lappend names [$wt item text $var Name]
   }
   ::TolConsole::ToEvalWindow [ListToStr $names]
 }

@@ -260,9 +260,9 @@ proc ::TolInspector::CreatePaneLeft { paneLeft } {
   # creation of the root node "Tol Objects"
   set img [::Bitmap::get Objects]
   #@ Se pone el style a mano, no sé la manera natural de hacer esto con wtree
-  $wt_tree item style set root [LiName] [$wt_tree column cget [LiName] -itemstyle]
-  $wt_tree item text root [LiName] [mc "Tol Objects"]
-  $wt_tree item image root [LiName] $img
+  $wt_tree item style set root Name [$wt_tree column cget Name -itemstyle]
+  $wt_tree item text root Name [mc "Tol Objects"]
+  $wt_tree item image root Name $img
 
   # creation of the node father "Grammars"
   set img [::Bitmap::get Grammars]  
@@ -334,8 +334,8 @@ proc ::TolInspector::CreatePaneRight { paneRight } {
     -highlightthickness 0 -font $toltk_options(fonts,Label) \
     -columns [::TolInspector::RNodeDef] ]
   # configuration of the tree of variables
-  $wt_vars column configure [RiGrammar] -visible no
-  $wt_vars column configure [RiReference] -visible no
+  $wt_vars column configure Grammar -visible no
+  $wt_vars column configure Reference -visible no
   $wt_vars column configure all -itembackground ""
   $wt_vars notify bind $wt_vars <Expand-before> "::TolInspector::OpenVariable %I"
   $wt_vars notify bind $wt_vars <Selection> "::TolInspector::SelectItem $wt_vars"
@@ -350,8 +350,8 @@ proc ::TolInspector::CreatePaneRight { paneRight } {
     -highlightthickness 0 -font $toltk_options(fonts,Label) \
     -columns [::TolInspector::RNodeDef] ]
   # configuration of the tree of functions
-  $wt_funcs column configure [RiGrammar] -visible no
-  $wt_funcs column configure [RiReference] -visible no
+  $wt_funcs column configure Grammar -visible no
+  $wt_funcs column configure Reference -visible no
   $wt_funcs column configure all -itembackground ""     
   $wt_funcs notify bind $wt_funcs <Selection> "::TolInspector::SelectItem $wt_funcs"      
   bind ${wt_funcs}.frameTree.t <Button-1> "::focus $wt_funcs"      
