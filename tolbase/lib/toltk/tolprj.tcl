@@ -41,36 +41,6 @@ namespace eval TolProject {
 }
 
 #/////////////////////////////////////////////////////////////////////////////
-proc ::TolProject::NodeDef { } {
-#/////////////////////////////////////////////////////////////////////////////
-  return [list \
-    [list {image text} -label FileName] \
-    [list text -label Description] \
-    [list text -label Type] \
-    [list text -label Exclude] \
-    [list text -label ExcludeTOL]
-  ]
-}
-
-#/////////////////////////////////////////////////////////////////////////////
-proc ::TolProject::Node {icon filename desc type exclude excludetol} {
-#/////////////////////////////////////////////////////////////////////////////
-  return [list \
-    [list $icon $filename] \
-    [list $desc] \
-    [list $type] \
-    [list $exclude] \
-    [list $excludetol] \
-  ]
-}
-
-proc ::TolProject::NiFileName    { } { return 0 }
-proc ::TolProject::NiDescription { } { return 1 }
-proc ::TolProject::NiType        { } { return 2 }
-proc ::TolProject::NiExclude     { } { return 3 }
-proc ::TolProject::NiExcludeTOL  { } { return 4 }
-
-#/////////////////////////////////////////////////////////////////////////////
 proc ::TolProject::ComputeFullPath {this path} {
 #
 # PURPOSE: Prepends name of project base directory if necessary to a given 
@@ -321,7 +291,7 @@ proc ::TolProject::TraceNameFile {this name1 name2 op} {
   $data(f) configure -title "[mc Project] $data(labelWindow)"
   set tv [GetTreeview $this]
   #@ Antes se usaba $data(nameFile) como FileName y $data(labelWindow) como label   
-  $tv item text root [NiFileName] [file tail $data(labelWindow)]
+  $tv item text root FileName [file tail $data(labelWindow)]
 }
 
 #/////////////////////////////////////////////////////////////////////////////
@@ -435,20 +405,27 @@ proc ::TolProject::Create {path} {
 
   # treeview y scroll
   ScrolledWindow $f.sw
-  set data(treeview) [::wtree $f.sw.t -table 0 -filter no \
+  set tv [::wtree $f.sw.t -table 0 -filter no \
     -background white -showroot 1 -selectmode single -showheader 0 \
     -highlightbackground gray75 -highlightcolor black \
     -highlightthickness 0 -font $toltk_options(fonts,Label) \
-    -columns [::TolProject::NodeDef] ]
-  $data(treeview) item style set root [NiFileName] [$data(treeview) column cget [NiFileName] -itemstyle]
-  $data(treeview) item style set root [NiDescription] [$data(treeview) column cget [NiDescription] -itemstyle]
-  $data(treeview) item style set root [NiType] [$data(treeview) column cget [NiType] -itemstyle]
-  $data(treeview) item style set root [NiExclude] [$data(treeview) column cget [NiExclude] -itemstyle]
-  $data(treeview) item style set root [NiExcludeTOL] [$data(treeview) column cget [NiExcludeTOL] -itemstyle]
-  $data(treeview) column configure "range 1 end" -visible no
-  $data(treeview) column configure first -expand yes -weight 1
-  $data(treeview) column configure all -itembackground ""       
-  $data(treeview) notify bind $data(treeview) <Selection> "::TolProject::SelectProc $this"        
+    -columns [list \
+      [list {image text} -label FileName -tags FileName] \
+      [list text -label Description -tags Description] \
+      [list text -label Type -tags Type] \
+      [list text -label Exclude -tags Exclude] \
+      [list text -label ExcludeTOL -tags ExcludeTOL] \
+    ] ]
+  set data(treeview) $tv
+  $tv item style set root FileName    [$tv column cget FileName -itemstyle]
+  $tv item style set root Description [$tv column cget Description -itemstyle]
+  $tv item style set root Type        [$tv column cget Type -itemstyle]
+  $tv item style set root Exclude     [$tv column cget Exclude -itemstyle]
+  $tv item style set root ExcludeTOL  [$tv column cget ExcludeTOL -itemstyle]
+  $tv column configure "range 1 end" -visible no
+  $tv column configure first -expand yes -weight 1
+  $tv column configure all -itembackground ""       
+  $tv notify bind $tv <Selection> "::TolProject::SelectProc $this"        
   
   $f.sw setwidget $f.sw.t
    
@@ -464,27 +441,27 @@ proc ::TolProject::Create {path} {
   grid columnconfigure $f 0 -weight 1
 
 
-  bind $data(treeview).frameTree.t <Control-KeyRelease> [list ::TolProject::OnControlKey $this %K %k]
+  bind $tv.frameTree.t <Control-KeyRelease> [list ::TolProject::OnControlKey $this %K %k]
 
-  bind $data(treeview).frameTree.t <Button-1> "::focus $data(treeview)"  
+  bind $tv.frameTree.t <Button-1> "::focus $tv"  
  
-  bind $data(treeview).frameTree.t <Button-3> +[list ::TolProject::PostVariable $this %X %Y]
+  bind $tv.frameTree.t <Button-3> +[list ::TolProject::PostVariable $this %X %Y]
   
-  set prevBind [bind $data(treeview).frameTree.t <Double-1>]
+  set prevBind [bind $tv.frameTree.t <Double-1>]
   set newBind "[lrange $prevBind 0 [expr [llength $prevBind]-3]] ; mdidoc disableglobalraise ; ::TolProject::OpenNodeIfTerminal $this ; break"
   #@ mdidoc disableglobalraise y break parece que cumplen el mismo cometido 
-  bind $data(treeview).frameTree.t <Double-1> $newBind
+  bind $tv.frameTree.t <Double-1> $newBind
   
-  set prevBind [bind $data(treeview).frameTree.t <KeyPress-Return>]
+  set prevBind [bind $tv.frameTree.t <KeyPress-Return>]
   set newBind "[lrange $prevBind 0 [expr [llength $prevBind]-3]] ; ::TolProject::OpenNodeIfTerminal $this ; break"
-  bind $data(treeview).frameTree.t <KeyPress-Return> $newBind    
+  bind $tv.frameTree.t <KeyPress-Return> $newBind    
 
-  bind $data(treeview).frameTree.t <KeyPress-space>  +[list ::TolProject::NodeActiveAttributes $this]
-  bind $data(treeview).frameTree.t <KeyPress-Delete> +[list ::TolProject::DeleteActiveNode     $this]
-  bind $data(treeview).frameTree.t <KeyPress-F9>     "::TolProject::CompileActiveNode    $this ; break"
-  bind $data(treeview).frameTree.t <KeyPress-F8>     "::TolProject::DecompileActiveNode  $this ; break"  
+  bind $tv.frameTree.t <KeyPress-space>  +[list ::TolProject::NodeActiveAttributes $this]
+  bind $tv.frameTree.t <KeyPress-Delete> +[list ::TolProject::DeleteActiveNode     $this]
+  bind $tv.frameTree.t <KeyPress-F9>     "::TolProject::CompileActiveNode    $this ; break"
+  bind $tv.frameTree.t <KeyPress-F8>     "::TolProject::DecompileActiveNode  $this ; break"  
  
-  set data(mainMenu) [menu $data(treeview).m -tearoff 0]
+  set data(mainMenu) [menu $tv.m -tearoff 0]
 
   bind $data(f) <Destroy> +[list ::TolProject::Destroy $this %W]
   $data(f) bind <Control-F4> "$data(f) kill; break"
@@ -529,12 +506,9 @@ proc ::TolProject::CmdNew {this} {
   if [string equal [CheckOpen $this] "cancel"] return
   $tv item delete all
   set img [GetImageFromType ROOT]
-  $tv item image root [NiFileName] $img
-  $tv item text root [NiFileName] ""  
-  $tv item text root [NiDescription] "Root node"
-  $tv item text root [NiType] "ROOT" 
-  $tv item text root [NiExclude] 0
-  $tv item text root [NiExcludeTOL] 0
+  $tv item image root FileName $img
+  $tv item text root FileName "" Description "Root node" \
+    Type "ROOT" Exclude 0 ExcludeTOL 0
   InitState $this new
 }
 
@@ -824,10 +798,10 @@ proc ::TolProject::NodeToFile {this index fd name} {
 
   set tv [GetTreeview $this]
   # Guardar data del nodo actual
-  set excludeTOL [$tv item text $index [NiExcludeTOL]]
+  set excludeTOL [$tv item text $index ExcludeTOL]
   if ![string equal $excludeTOL 1] {
     if {[IsCompilable $this $index] } {
-      set filename [$tv item text $index [NiFileName]]
+      set filename [$tv item text $index FileName]
       set item "Set $name.$data(num)"
       set value "Include(\"$filename\");"
       Tolcon_Trace "item: $item, value: $value"
@@ -879,7 +853,7 @@ proc ::TolProject::SelectProc {this} {
   set tv [GetTreeview $this]
   set node [$tv selection get end] ;# anchor
   if { $node eq "" } return
-  set description [$tv item text $node [NiDescription]] 
+  set description [$tv item text $node Description]
   $data(sb,desc) configure -text "$description"
 }
 
@@ -987,8 +961,8 @@ proc ::TolProject::OpenNode {this node} {
   upvar \#0 ${this}::data data
   set tv [GetTreeview $this]
   
-  set type [$tv item text $node [NiType]]
-  set filename [$tv item text $node [NiFileName]]
+  set type [$tv item text $node Type]
+  set filename [$tv item text $node FileName]
   switch $type {
     TOL { ::Editor::Open \
           [::TolProject::ComputeFullPath $this $filename] }
@@ -1046,20 +1020,20 @@ proc ::TolProject::AddNode {this node {prev end}} {
       }
      
       set img [GetImageFromType $data(type)]                                        
-      set tv_row [::TolProject::Node $img $data(name) $data(desc) $data(type) $data(exclude) $data(excludeTOL)]
-      if {$prev eq "end"} {
-        set where end
-      } else {
-        set where next
-        set node $prev
-      }
       if { $data(type) eq "Fol" } {
         set hasbutton 1
       } else {
         set hasbutton 0
       }
-      #@ Tolcon_Trace "prev $prev node $node where $where"
-      $tv insert $tv_row -at $where -relative $node -button $hasbutton
+      Tolcon_Trace "prev $prev node $node"
+      if {$prev eq "end"} {
+        set idx [$tv item create -parent $node -button $hasbutton -open 0]
+      } else {
+        set idx [$tv item create -prevsibling $prev -button $hasbutton -open 0]
+      }
+      $tv item image $idx FileName $img
+      $tv item text $idx FileName $data(name) Description $data(desc) \
+        Type $data(type) Exclude $data(exclude) ExcludeTOL $data(excludeTOL)
       set data(isSaved) 0
     }
   }
@@ -1091,7 +1065,7 @@ proc ::TolProject::NodeAttributes {this node} {
   set desc_old $data(desc)
   set excl_old $data(exclude)
   set exct_old $data(excludeTOL)
-  set title "[$tv item text $node [NiFileName]] [mc Attributes]"
+  set title "[$tv item text $node FileName] [mc Attributes]"
   DialogAttributes $this $tv $title
   # si no se ha pulsado cancelar
   if {![string equal $data(name) ""]} {
@@ -1100,10 +1074,8 @@ proc ::TolProject::NodeAttributes {this node} {
         ![string equal $desc_old $data(desc)] ||
         ![string equal $excl_old $data(exclude)] ||
         ![string equal $exct_old $data(excludeTOL)]} {
-      $tv item text root FileName $data(name)  
-      $tv item text root Description $data(desc)
-      $tv item text root Exclude $data(exclude)
-      $tv item text root ExcludeTOL $data(excludeTOL)                       
+      $tv item text $node FileName $data(name) Description $data(desc) \
+        Exclude $data(exclude) ExcludeTOL $data(excludeTOL)                       
       set data(isSaved) 0
     }
   }
@@ -1131,7 +1103,7 @@ proc ::TolProject::DeleteNode {this node} {
   upvar \#0 ${this}::data data
 
   set tv [GetTreeview $this]
-  set name [$tv item text $node [NiFileName]]
+  set name [$tv item text $node FileName]
   set answer [tk_messageBox -title [mc "Question"]\
             -parent $tv\
             -message [mc "Are you sure you want to delete node %1\$s?" $name] \
@@ -1164,13 +1136,12 @@ proc ::TolProject::CompileNode {this node } {
 #/////////////////////////////////////////////////////////////////////////////
   upvar \#0 ${this}::data data
   set tv [GetTreeview $this]
-  set exclude [$tv item text $node [NiExclude]]
+  set exclude [$tv item text $node Exclude]
   if ![string equal $exclude 1] {  
     if [IsCompilable $this $node] {
       #Tolcon_Trace "  Compilo $node"
       set data(compiling) 1
-      #@T set filename $aryData(FileName)
-      set filename [$tv item text $node [NiFileName]]      
+      set filename [$tv item text $node FileName]    
       ::TolConsole::Include \
         [::TolProject::ComputeFullPath $this $filename]
       set data(compiling) 0
@@ -1248,10 +1219,10 @@ proc ::TolProject::DecompileNode {this node} {
 #
 #/////////////////////////////////////////////////////////////////////////////
   set tv [GetTreeview $this]
-  set exclude [$tv item text $node [NiExclude]]
+  set exclude [$tv item text $node Exclude]
   if ![string equal $exclude 1] {
     if [IsCompilable $this $node] {
-      set filename [$tv item text $node [NiFileName]]      
+      set filename [$tv item text $node FileName]    
       catch {::TolInspector::DecompileFile \
              [::TolProject::ComputeFullPath $this $filename]}
       ::TolInspector::UpdateFileRoot
@@ -1293,11 +1264,11 @@ proc ::TolProject::GetDataFromNode {this index} {
 #/////////////////////////////////////////////////////////////////////////////
   upvar \#0 ${this}::data data
   set tv [GetTreeview $this]
-  set data(name)       [$tv item text $index [NiFileName]]
-  set data(desc)       [$tv item text $index [NiDescription]]
-  set data(type)       [$tv item text $index [NiType]]
-  set data(exclude)    [$tv item text $index [NiExclude]]
-  set data(excludeTOL) [$tv item text $index [NiExcludeTOL]] ;#$aryData(ExcludeTOL)
+  set data(name)       [$tv item text $index FileName]
+  set data(desc)       [$tv item text $index Description]
+  set data(type)       [$tv item text $index Type]
+  set data(exclude)    [$tv item text $index Exclude]
+  set data(excludeTOL) [$tv item text $index ExcludeTOL]
 }
 
 #/////////////////////////////////////////////////////////////////////////////
@@ -1336,7 +1307,7 @@ proc ::TolProject::IsTerminal {this node} {
 #/////////////////////////////////////////////////////////////////////////////
   set terminal 0
   set tv [GetTreeview $this]
-  set type [$tv item text $node [NiType]]
+  set type [$tv item text $node Type]
   switch $type {
     Fol -
     ROOT { set terminal 0 }
@@ -1361,7 +1332,7 @@ proc ::TolProject::IsCompilable {this node} {
 #/////////////////////////////////////////////////////////////////////////////
   set compilable 0
   set tv [GetTreeview $this]
-  set type [$tv item text $node [NiType]]
+  set type [$tv item text $node Type]
   switch $type {
     Fol -
     ROOT { set compilable 0 }
@@ -1827,7 +1798,9 @@ proc ::TolProject::WriteIni {this} {
   ::iniFile::Flush
 }
 
-#@ Métodos (4) antes en ::BayesTreeview (bftrview.tcl)
+#/////////////////////////////////////////////////////////////////////////////
+# Métodos que estaban en ::BayesTreeview (bftrview.tcl)
+#/////////////////////////////////////////////////////////////////////////////
 
 #/////////////////////////////////////////////////////////////////////////////
 proc ::TolProject::WtreeFromFile {tv path {proc ""}} {
@@ -1886,17 +1859,13 @@ proc ::TolProject::BNodeToFile {tv index fd} {
   set key $index
 
   # Guardar data del nodo actual
-  #@T array set aryData [$tv entry cget $index -data]
-  #@T set columnNames [array names aryData]
   set columnNames [list FileName Description Type Exclude ExcludeTOL]
   foreach item $columnNames {
-    writeini $fd $key $item [$tv item text $index [Ni$item]]
+    writeini $fd $key $item [$tv item text $index $item]
   }
   
-  #@T writeini $fd $key Label [$tv entry cget $index -label]
-  writeini $fd $key Label [$tv item text $index [NiFileName]]
+  writeini $fd $key Label [$tv item text $index FileName]
   # Guardar sus hijos
-  #@T writeini $fd $key Children [$tv entry children $index]
   writeini $fd $key Children [$tv item children $index]
 
   # Llamar recursivamente para los hijos
@@ -1919,34 +1888,12 @@ proc ::TolProject::BNodeFromFile {tv index parent fd {imgFromType ""}} {
 #
 #/////////////////////////////////////////////////////////////////////////////
   set key $index
-
-  #@T if ![string equal $parent ""] {
-  #@T   set idx [$tv insert -at $parent end $index ]
-  #@T } else {
-  #@T   set idx root
-  #@T }
-  #@T # Configurar data del nodo actual
-  #@T foreach item [readini $fd $key] {
-  #@T   set value [readini $fd $key $item]
-  #@T   if {[lsearch -exact [$tv column names] $item] != -1} {
-  #@T     $tv entry configure $idx -data [list $item $value]    
-  #@T   }
-  #@T   if [string equal $item "Label"] {
-  #@T     $tv entry configure $idx -label $value
-  #@T   }
-  #@T   if {[string equal $item "Type"] && ![string equal $imgFromType ""]} {
-  #@T     if ![string equal [set img [$imgFromType $value]] ""] {
-  #@T       #@ $tv entry configure $idx -icons [list $img $img]
-  #@T       $tv item image $idx FileName $img
-  #@T     }
-  #@T   }
-  #@T }
   set image ""  
   set filename ""
   set description ""
   set type ""
   set exclude 0
-  set excludeTOL 0 ;#@T!! puede que no lo tenga el prj
+  set excludeTOL 0 ;#@ puede que no lo tenga el prj
   foreach item [readini $fd $key] {
     set value [readini $fd $key $item]
     switch -exact $item {
@@ -1965,23 +1912,21 @@ proc ::TolProject::BNodeFromFile {tv index parent fd {imgFromType ""}} {
     }
   }
   if ![string equal $parent ""] {
-    #@T se inserta un nodo
-    #@T set idx [$tv insert -at $parent end $index ]
-    set tv_row [::TolProject::Node $img $filename $description $type $exclude $excludeTOL]
+    #@ se inserta un nodo
     if { $type eq "Fol" } {
       set hasbutton 1
     } else {
       set hasbutton 0
     }  
-    set idx [$tv insert $tv_row -at end -relative $parent -button $hasbutton]
+    set idx [$tv item create -parent $parent -button $hasbutton -open 0]
+    $tv item image $idx FileName $img
+    $tv item text $idx FileName $filename Description $description \
+      Type $type Exclude $exclude ExcludeTOL $excludeTOL  
   } else {
-    #@T se actualiza root
-    $tv item image root [NiFileName] $img
-    $tv item text root [NiFileName] $filename 
-    $tv item text root [NiDescription] $description
-    $tv item text root [NiType] $type
-    $tv item text root [NiExclude] $exclude
-    $tv item text root [NiExcludeTOL] $excludeTOL
+    #@ se actualiza root
+    $tv item image root FileName $img
+    $tv item text root FileName $filename Description $description \
+      Type $type Exclude $exclude ExcludeTOL $excludeTOL
     set idx root
   }  
   # Llamar recursivamente para los hijos
