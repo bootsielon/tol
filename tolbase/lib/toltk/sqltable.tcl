@@ -4,6 +4,9 @@
 #           It's a child of BayesTable so inherites all its functionalities.
 #/////////////////////////////////////////////////////////////////////////////
 
+#@! OBSOLETO
+#@! Usa BLT
+
 package require bcombobox
 
 # load the helper tcl files
