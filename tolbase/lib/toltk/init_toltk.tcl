@@ -69,7 +69,7 @@ proc TraceMainGeometry { msg } {
   package require msgcat
   namespace import msgcat::*
   package require Tktable
-  package require -exact BLT 2.4
+  package require rbc
   package require autoscroll 1.1
   package require tclodbc
   package require -exact Toltcl 3.3
@@ -266,12 +266,12 @@ if {[lsearch $auto_path $toltk_library] == -1} {
   set auto_path [linsert $auto_path 0 $toltk_library]
 }
 
-if { ![info exists blt_libPath] } {
-  set blt_libPath [file join $toltk_library blt]
+if { ![info exists rbc_libPath] } {
+  set rbc_libPath [file join $toltk_library rbc]
 }
 
-if { ![info exists env(BLT_LIBRARY)] } {
-  set env(BLT_LIBRARY) [file join $toltk_library blt]
+if { ![info exists env(RBC_LIBRARY)] } {
+  set env(RBC_LIBRARY) [file join $toltk_library rbc]
 }
 
 if { ![info exists tkTable_libPath] } {

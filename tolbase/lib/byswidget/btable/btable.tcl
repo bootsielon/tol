@@ -3,11 +3,7 @@
 # PURPOSE : Bayes Table. 
 #/////////////////////////////////////////////////////////////////////////////
 
-#@! OBSOLETO
-#@! Usa BLT
-
 package require byscommon
-package require BLT
 package require Tktable
 package require snit
 package require BWidget

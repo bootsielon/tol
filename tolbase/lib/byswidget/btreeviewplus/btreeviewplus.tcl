@@ -101,7 +101,7 @@ package require bfieldsdialog
     $self configure -readonly [from args -readonly]
     $self _CreateMenu
 
-    #@T! $_treeview column configure [list BLT TreeView $_treeview] -titleborderwidth 1
+    $_treeview column configure [list BLT TreeView $_treeview] -titleborderwidth 1
     
     # Apply all arguments given:
     $self configurelist $args

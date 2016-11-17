@@ -14,11 +14,11 @@ if { 0 } {
   if { [lsearch $auto_path $toltk_library] == -1 } {
     lappend auto_path $toltk_library
   }
-  if { ![info exists blt_libPath] } {
-    set blt_libPath [file join $toltk_library blt]
+  if { ![info exists rbc_libPath] } {
+    set rbc_libPath [file join $toltk_library rbc]
   }
-  if { ![info exists env(BLT_LIBRARY)] } {
-    set env(BLT_LIBRARY) [file join $toltk_library blt]
+  if { ![info exists env(RBC_LIBRARY)] } {
+    set env(RBC_LIBRARY) [file join $toltk_library rbc]
   }
   package require BWidget
  
@@ -1149,9 +1149,9 @@ proc ::TolConsole::CreateButtonBar { {tolcon 1} } {
      #Function Search
        ::TolConsole::NewButtonB $tbTool funsearch [mc "Functions Search"] \
      [list ::funcSearch::Show] $TF
-     #SQL
-     ::TolConsole::NewButtonB $tbTool bysSql [mc "Bayes SQL"] \
-     [list ::SQLTable::TableBayesSQL] $TF
+     #@SQLTable #SQL
+     #@SQLTable ::TolConsole::NewButtonB $tbTool bysSql [mc "Bayes SQL"] \
+     #@SQLTable [list ::SQLTable::TableBayesSQL] $TF
      #Calendar
      ::TolConsole::NewButtonB $tbTool TimeSet [mc "Calendar Expert"] \
      [list ::CalendarTms::ViewTimeSet] $TF
@@ -2368,12 +2368,12 @@ proc ::TolConsole::WriteIni {} {
   $md add $id separator
   
   $md add $id command -label [mc "TOL Inspector"] \
-    -command "$::project::widgets(mainmdi).slave1 restore; $::project::widgets(mainmdi).slave1 raise"
+      -command "$::project::widgets(mainmdi).slave1 restore; $::project::widgets(mainmdi).slave1 raise"
   $md add $id command -label [mc "&Functions Search"] \
       -command "::funcSearch::Show"
   $md add $id command -label [mc "&Calendar Expert"] \
       -command "::CalendarTms::ViewTimeSet"
-  $md add $id command -label [mc "&Bayes SQL"] \
+  #@SQLTable $md add $id command -label [mc "&Bayes SQL"] \
       -command "::SQLTable::TableBayesSQL"
   
   $md add $id separator
