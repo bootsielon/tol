@@ -9,7 +9,7 @@
 package require bfunctions
 
 #/////////////////////////////////////////////////////////////////////////////
-  namespace eval TolProject {
+namespace eval TolProject {
 #
 # PURPOSE: The purpose of this namespace is organize code and functions and
 #          manage common options for all tol project editors such as last
@@ -71,7 +71,7 @@ proc ::TolProject::NiExclude     { } { return 3 }
 proc ::TolProject::NiExcludeTOL  { } { return 4 }
 
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::ComputeFullPath {this path} {
+proc ::TolProject::ComputeFullPath {this path} {
 #
 # PURPOSE: Prepends name of project base directory if necessary to a given 
 #          path.
@@ -93,9 +93,8 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
   }
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::New {{path ""}} {
+proc ::TolProject::New {{path ""}} {
 #
 # PURPOSE: Creates a new project window and an instance of it. This also 
 #          initializes the instance and register the window in the project.
@@ -120,9 +119,8 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
   return $this
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::Open {{path ""} {run 0}} {
+proc ::TolProject::Open {{path ""} {run 0}} {
 #
 # PURPOSE: Open a project file in a project window. If file is already opened
 #          it raises its window, else it creates a new tol project window and
@@ -164,9 +162,8 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
   }
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::postEdited {m {ord 0}} {
+proc ::TolProject::postEdited {m {ord 0}} {
 #
 # PURPOSE: Fills a menu with the last used project files, according to the
 #          information of 'options' variable.
@@ -197,7 +194,7 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
 }
 
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::clearEdited {} {
+proc ::TolProject::clearEdited {} {
 #
 # PURPOSE: Clears the list of last edited files
 #
@@ -208,9 +205,8 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
   ::iniFile::Flush
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::OnDelete {this} {
+proc ::TolProject::OnDelete {this} {
 #
 # PURPOSE: Procedure to check things before destroying tol project window
 #
@@ -226,9 +222,8 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
   return 1
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::Destroy {this w} {
+proc ::TolProject::Destroy {this w} {
 #
 # PURPOSE: Deletes the instance of the tol project. Before this, writes the 
 #          ini file.
@@ -244,9 +239,8 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
   }
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::InitState {this from} {
+proc ::TolProject::InitState {this from} {
 #
 # PURPOSE: Initializes some variables according to the state of the tol
 #          project.
@@ -277,9 +271,8 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
   }
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::SetTraces {this} {
+proc ::TolProject::SetTraces {this} {
 #
 # PURPOSE: Sets some traces of variables to control changes in tol project
 #          widget
@@ -298,9 +291,8 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
           [list ::TolProject::TraceCompiling $this]
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::TraceNameFile {this name1 name2 op} {
+proc ::TolProject::TraceNameFile {this name1 name2 op} {
 #
 # PURPOSE: Sets tol project's name each time var nameFile changes.
 #
@@ -332,9 +324,8 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
   $tv item text root [NiFileName] [file tail $data(labelWindow)]
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::TraceSaved {this name1 name2 op} {
+proc ::TolProject::TraceSaved {this name1 name2 op} {
 #
 # PURPOSE: Sets saved/not saved info in status bar each time var 'isSaved'
 #          changes.
@@ -353,10 +344,8 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
   }
 }
 
-
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::TraceCompiling {this name1 name2 op} {
+proc ::TolProject::TraceCompiling {this name1 name2 op} {
 #
 # PURPOSE: Enables/disables compiling options each time var 'compiling'
 #          changes.
@@ -379,9 +368,8 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
   }
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::Create {path} {
+proc ::TolProject::Create {path} {
 #
 # PURPOSE: Creates a Tol Project instance. Creates and packs the tol projedt
 #          window (toplevel, treeview, toolbar, statusbar, popup menu, ...).
@@ -504,7 +492,7 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
 }
 
 #///////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::OnControlKey {this keysym keycode} {
+proc ::TolProject::OnControlKey {this keysym keycode} {
 #
 # PURPOSE: Control the "Control + Key Press"
 #
@@ -522,13 +510,12 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
   }
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
 # File management commands (new, open, save, save as...)
 #/////////////////////////////////////////////////////////////////////////////
 
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::CmdNew {this} {
+proc ::TolProject::CmdNew {this} {
 #
 # PURPOSE: Cleans project window to edit a new white project
 #
@@ -551,9 +538,8 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
   InitState $this new
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::UpdateListEdited {path} {
+proc ::TolProject::UpdateListEdited {path} {
 #
 # PURPOSE: Updates list of last edited project files adding a new file path.
 #
@@ -581,9 +567,8 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
   set options(edited) [lrange $options(edited) 0 [expr $options(numEdited)-1]]
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::CmdOpen {{this ""}} {
+proc ::TolProject::CmdOpen {{this ""}} {
 #
 # PURPOSE: Asks for a project file path and if it's given opens it into the
 #          project window.
@@ -626,7 +611,7 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
 }
 
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::GetFromFile {this path {run 0}} {
+proc ::TolProject::GetFromFile {this path {run 0}} {
 #
 # PURPOSE: Loads a project into the project window . This converts from the 
 #          file especification to the treeview representation.
@@ -655,9 +640,8 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
   }
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::CheckAll {} {
+proc ::TolProject::CheckAll {} {
 #
 # PURPOSE: Checks for files opened if anyone has changed and asks for saving.
 #
@@ -673,7 +657,7 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
 }
 
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::CheckOpen {this {type "yesnocancel"}} {
+proc ::TolProject::CheckOpen {this {type "yesnocancel"}} {
 #
 # PURPOSE: Checks if a file has changed and asks for saving.
 #
@@ -713,9 +697,8 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
   return ok
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::CmdSave {this} {
+proc ::TolProject::CmdSave {this} {
 #
 # PURPOSE: Saves project info actually opened in the project editor. If it 
 #          doesn't have a name, asks for ti (CmdSaveAs).
@@ -736,9 +719,8 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
   return $ok
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::CmdSaveAs {this {nf ""}} {
+proc ::TolProject::CmdSaveAs {this {nf ""}} {
 #
 # PURPOSE: Saves project actually opened in project editor asking for the
 #          user to select a file to save it.
@@ -777,9 +759,8 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
   return $ok
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::FileSave { this path } {
+proc ::TolProject::FileSave { this path } {
 #
 # PURPOSE: Saves project actually opened in project editor in a text file.
 #
@@ -809,9 +790,8 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
   return $ok
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::AddEntry {this path} {
+proc ::TolProject::AddEntry {this path} {
 #
 # PURPOSE: Adds a special entry in file path for including proyect from TOL.
 #
@@ -827,9 +807,8 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
   iniparse:closefile $fd
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::NodeToFile {this index fd name} {
+proc ::TolProject::NodeToFile {this index fd name} {
 #
 # PURPOSE: 
 #
@@ -862,9 +841,8 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
   }
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::GetTreeview {this} {
+proc ::TolProject::GetTreeview {this} {
 #
 # PURPOSE: Returns treeview's path of a given instance
 #
@@ -878,9 +856,8 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
   return $data(treeview)
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::GetMenu {this} {
+proc ::TolProject::GetMenu {this} {
 #
 # PURPOSE: Returns treeview's menu of a given instance
 #
@@ -894,9 +871,8 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
   return $data(mainMenu)
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::SelectProc {this} {
+proc ::TolProject::SelectProc {this} {
 #
 #/////////////////////////////////////////////////////////////////////////////
   upvar \#0 ${this}::data data
@@ -907,9 +883,8 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
   $data(sb,desc) configure -text "$description"
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::PostVariable {this x y} {
+proc ::TolProject::PostVariable {this x y} {
 #
 # PURPOSE: Composes a popup menu and displays it. Its composed depending on 
 #          the node clicked by user.
@@ -984,7 +959,7 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
 }
 
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::OpenNodeIfTerminal {this} {
+proc ::TolProject::OpenNodeIfTerminal {this} {
 #
 # PURPOSE: 
 #
@@ -999,7 +974,7 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
 }
 
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::OpenNode {this node} {
+proc ::TolProject::OpenNode {this node} {
 #
 # PURPOSE: Opens a terminal node of the project. It depends on the node type
 #          what kind of editor use for opening the node (text or table).
@@ -1022,7 +997,6 @@ proc ::TolProject::NiExcludeTOL  { } { return 4 }
           [::TolProject::ComputeFullPath $this $filename] } 
   }
 }
-
 
 #/////////////////////////////////////////////////////////////////////////////
 proc ::TolProject::AddNode {this node {prev end}} {
@@ -1101,7 +1075,7 @@ proc ::TolProject::NodeActiveAttributes {this args} {
 }
 
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::NodeAttributes {this node} {
+proc ::TolProject::NodeAttributes {this node} {
 #
 # PURPOSE: Shows the attributes of the selected node.
 #
@@ -1135,8 +1109,6 @@ proc ::TolProject::NodeActiveAttributes {this args} {
   }
 }
 
-
-
 #/////////////////////////////////////////////////////////////////////////////
 proc ::TolProject::DeleteActiveNode {this args} {
 #/////////////////////////////////////////////////////////////////////////////
@@ -1147,7 +1119,7 @@ proc ::TolProject::DeleteActiveNode {this args} {
 }
 
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::DeleteNode {this node} {
+proc ::TolProject::DeleteNode {this node} {
 #
 # PURPOSE: Deletes a node and all its childs from the project.
 #
@@ -1170,7 +1142,6 @@ proc ::TolProject::DeleteActiveNode {this args} {
   }
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
 proc ::TolProject::CompileActiveNode {this args} {
 #/////////////////////////////////////////////////////////////////////////////
@@ -1181,7 +1152,7 @@ proc ::TolProject::CompileActiveNode {this args} {
 }
 
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::CompileNode {this node } {
+proc ::TolProject::CompileNode {this node } {
 #
 # PURPOSE: Compiles a node and all its childs if parameter 'childs' is true.
 #
@@ -1210,9 +1181,8 @@ proc ::TolProject::CompileActiveNode {this args} {
   }
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::CompileIfBeforeNode {this node ref} {
+proc ::TolProject::CompileIfBeforeNode {this node ref} {
 #
 # PURPOSE: Compiles a node if it's after a node given as reference
 #
@@ -1234,9 +1204,8 @@ proc ::TolProject::CompileActiveNode {this args} {
   }
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::CompileUpToHereNode {this node ref} {
+proc ::TolProject::CompileUpToHereNode {this node ref} {
 #
 # PURPOSE: Compiles up to here
 #
@@ -1259,7 +1228,6 @@ proc ::TolProject::CompileActiveNode {this args} {
   }
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
 proc ::TolProject::DecompileActiveNode {this args} {
 #/////////////////////////////////////////////////////////////////////////////
@@ -1270,7 +1238,7 @@ proc ::TolProject::DecompileActiveNode {this args} {
 }
 
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::DecompileNode {this node} {
+proc ::TolProject::DecompileNode {this node} {
 #
 # PURPOSE: Decompiles a node and all its childs.
 #
@@ -1294,9 +1262,8 @@ proc ::TolProject::DecompileActiveNode {this args} {
   }
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::ClearData {this} {
+proc ::TolProject::ClearData {this} {
 #
 # PURPOSE: Clears some variables of data array relatives to attributes of 
 #          active node.
@@ -1313,9 +1280,8 @@ proc ::TolProject::DecompileActiveNode {this args} {
   set data(excludeTOL) 0
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::GetDataFromNode {this index} {
+proc ::TolProject::GetDataFromNode {this index} {
 #
 # PURPOSE: Sets some variables of data array, getting its values from a given
 #          node.
@@ -1334,9 +1300,8 @@ proc ::TolProject::DecompileActiveNode {this args} {
   set data(excludeTOL) [$tv item text $index [NiExcludeTOL]] ;#$aryData(ExcludeTOL)
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::GetImageFromType {type} {
+proc ::TolProject::GetImageFromType {type} {
 #
 # PURPOSE: Returns the image's path of a node given its type
 #
@@ -1357,9 +1322,8 @@ proc ::TolProject::DecompileActiveNode {this args} {
   return $path
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::IsTerminal {this node} {
+proc ::TolProject::IsTerminal {this node} {
 #
 # PURPOSE: Determines if a node is terminal or not
 #
@@ -1383,9 +1347,8 @@ proc ::TolProject::DecompileActiveNode {this args} {
   return $terminal
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::IsCompilable {this node} {
+proc ::TolProject::IsCompilable {this node} {
 #
 # PURPOSE: Determines if a node is compilable or not
 #
@@ -1411,10 +1374,8 @@ proc ::TolProject::DecompileActiveNode {this args} {
   return $compilable
 }
 
-
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::DialogType {this path} {
+proc ::TolProject::DialogType {this path} {
 #
 # PURPOSE: Shows a dialog to ask for the type of a node
 #
@@ -1467,9 +1428,8 @@ proc ::TolProject::DecompileActiveNode {this args} {
   $dialog draw
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::DialogTypeOK {this dialog} {
+proc ::TolProject::DialogTypeOK {this dialog} {
 #
 # PURPOSE: 
 #
@@ -1483,9 +1443,8 @@ proc ::TolProject::DecompileActiveNode {this args} {
   destroy $dialog
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::DialogTypeDestroy {this dialog} {
+proc ::TolProject::DialogTypeDestroy {this dialog} {
 #
 # PURPOSE: Destroy get type dialog
 #
@@ -1499,10 +1458,8 @@ proc ::TolProject::DecompileActiveNode {this args} {
   destroy $dialog
 }
 
-
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::DialogAttributes {this path title} {
+proc ::TolProject::DialogAttributes {this path title} {
 #
 # PURPOSE: Shows a dialog to ask for the attributes of a node
 #
@@ -1591,9 +1548,8 @@ proc ::TolProject::DecompileActiveNode {this args} {
 
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::DialogAttributesOK {this dialog} {
+proc ::TolProject::DialogAttributesOK {this dialog} {
 #
 # PURPOSE:
 #
@@ -1607,9 +1563,8 @@ proc ::TolProject::DecompileActiveNode {this args} {
   destroy $dialog
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::DialogAttributesDestroy {this dialog} {
+proc ::TolProject::DialogAttributesDestroy {this dialog} {
 #
 # PURPOSE: Destroy get type dialog
 #
@@ -1623,17 +1578,12 @@ proc ::TolProject::DecompileActiveNode {this args} {
   destroy $dialog
 }
 
-
-
-
-
 #/////////////////////////////////////////////////////////////////////////////
 # OPTIONS
 #/////////////////////////////////////////////////////////////////////////////
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::CmdOptions {this} {
+proc ::TolProject::CmdOptions {this} {
 #
 # PURPOSE: Creates a dialog options for Tol Project Editors
 #
@@ -1685,9 +1635,8 @@ proc ::TolProject::DecompileActiveNode {this args} {
   $dialog draw
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::OptionsCreateOthers {this w} {
+proc ::TolProject::OptionsCreateOthers {this w} {
 #
 # PURPOSE: Creates a frame with general options as number of files edited
 #          recently
@@ -1724,9 +1673,8 @@ proc ::TolProject::DecompileActiveNode {this args} {
   grid columnconfigure $w 0 -weight 1
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::OptionsGet {this} {
+proc ::TolProject::OptionsGet {this} {
 #
 # PURPOSE: Gets all options variables values from ini file  and copies them
 #          to the temporary tmpOpt array. 
@@ -1741,9 +1689,8 @@ proc ::TolProject::DecompileActiveNode {this args} {
   set tmpOpt(var,numEdited)  $options(numEdited)
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::OptionsSet {this} {
+proc ::TolProject::OptionsSet {this} {
 #
 # PURPOSE: Copies all . 
 #
@@ -1760,9 +1707,8 @@ proc ::TolProject::DecompileActiveNode {this args} {
   }  
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::OptionsCheck {this} {
+proc ::TolProject::OptionsCheck {this} {
 #
 # PURPOSE: Checks for all widgets from dialog options that need to be checked
 #          for enabling/disabling other associated controls. 
@@ -1774,9 +1720,8 @@ proc ::TolProject::DecompileActiveNode {this args} {
   OptionsCheckEdited           $this
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::OptionsCheckEdited {this} {
+proc ::TolProject::OptionsCheckEdited {this} {
 #
 # PURPOSE: Checks if option chEdited is checked and enables/disabled other 
 #          associated controls. 
@@ -1793,9 +1738,8 @@ proc ::TolProject::DecompileActiveNode {this args} {
   }
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::OptionsDestroy {this dialog} {
+proc ::TolProject::OptionsDestroy {this dialog} {
 #
 # PURPOSE: Destroy options dialog
 #
@@ -1810,9 +1754,8 @@ proc ::TolProject::DecompileActiveNode {this args} {
   destroy $dialog
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////  
-  proc ::TolProject::OptionsApply {this} {
+proc ::TolProject::OptionsApply {this} {
 #
 # PURPOSE: Applies options from the options dialog
 #
@@ -1823,9 +1766,8 @@ proc ::TolProject::DecompileActiveNode {this args} {
   OptionsSet $this
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::OptionsOK {this dialog} {
+proc ::TolProject::OptionsOK {this dialog} {
 #
 # PURPOSE: Applies options and closes options dialog
 #
@@ -1838,14 +1780,12 @@ proc ::TolProject::DecompileActiveNode {this args} {
   OptionsDestroy $this $dialog
 }
 
-
-
 #/////////////////////////////////////////////////////////////////////////////
 # INIFILE
 #/////////////////////////////////////////////////////////////////////////////
 
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::ReadIniSpecial {} {
+proc ::TolProject::ReadIniSpecial {} {
 #
 # PURPOSE: Reads common Edit Table options from .ini file. This options are
 #          common for all instances of Tol Project Editor. They are read just 
@@ -1864,9 +1804,8 @@ proc ::TolProject::DecompileActiveNode {this args} {
   set options(lastDir)    [$rini TolProject lastDir  ""]
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::WriteIni {this} {
+proc ::TolProject::WriteIni {this} {
 #
 # PURPOSE: Write common Tol Projects options to .ini file
 #
@@ -1888,18 +1827,17 @@ proc ::TolProject::DecompileActiveNode {this args} {
   ::iniFile::Flush
 }
 
-
 #@ Métodos (4) antes en ::BayesTreeview (bftrview.tcl)
 
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::WtreeFromFile {tv path {proc ""}} {
+proc ::TolProject::WtreeFromFile {tv path {proc ""}} {
 #
 # PURPOSE: Loads a wtree info data from a text especification file of a wtree. 
 #
 # PARAMETERS:
 #   tv   -> wtree's path
 #   path -> name of file
-#   proc -> procedure that converts type node to the path of the image of node
+# proc -> procedure that converts type node to the path of the image of node
 #
 # RETURN: Returns 1 if wtree has been loaded correctly or 0 if not.
 #
@@ -1914,9 +1852,8 @@ proc ::TolProject::DecompileActiveNode {this args} {
   return 1
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::WtreeToFile {tv path} {
+proc ::TolProject::WtreeToFile {tv path} {
 #
 # PURPOSE: Saves a wtree info data into a text especification file of a wtree.
 #
@@ -1935,9 +1872,8 @@ proc ::TolProject::DecompileActiveNode {this args} {
   return 1
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::BNodeToFile {tv index fd} {
+proc ::TolProject::BNodeToFile {tv index fd} {
 #
 # PURPOSE: Saves a wtree's node info data into a text file.
 #
@@ -1970,9 +1906,8 @@ proc ::TolProject::DecompileActiveNode {this args} {
   }
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::TolProject::BNodeFromFile {tv index parent fd {imgFromType ""}} {
+proc ::TolProject::BNodeFromFile {tv index parent fd {imgFromType ""}} {
 #
 # PURPOSE: Loads a wtree's node info data from a text file.
 #
