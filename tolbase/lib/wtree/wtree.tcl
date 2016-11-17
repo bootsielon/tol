@@ -7,7 +7,7 @@ package require treectrl 2.2.8
 package require autoscroll
 package require snit
 
-# 
+#
 # TODO:
 #
 #  - filtrado: una entry y filtrar tipo google
@@ -57,7 +57,7 @@ if { 0 } {
  # elemento si la columna contiene solo un elemento o una lista de
  # pares indicando para cada tipo el valor de la propiedad
 }
-  
+
 snit::widget wtree {
   typevariable SystemButtonFace
   typevariable SystemHighlight
@@ -78,7 +78,7 @@ snit::widget wtree {
 
   option -columnfilter \
       -default "" -configuremethod "_conf-columnfilter"
-  
+
   variable tree
   variable vscrollbar
   variable hscrollbar
@@ -108,9 +108,9 @@ snit::widget wtree {
   delegate option -borderwidth to hull
   delegate option -bd to hull
   delegate option -relief to hull
-  
+
   typeconstructor {
-    
+
     set thisPlatform $::tcl_platform(platform)
     set w [ listbox .___lb___ ]
     set SystemButtonFace [$w cget -highlightbackground]
@@ -155,7 +155,7 @@ snit::widget wtree {
         UK8tC78qlrCWmvRKsJTquHkpZTKAsiCtWq0JAAA7
       }
     }
-    
+
     if { [ lsearch -exact [ image names ] folder-closed ] == -1 } {
       image create photo folder-closed -data {
         R0lGODlhDwANANIAAAAAAISEhMbGxv//AP////8AAAAAAAAAACH5BAkZAAUA
@@ -190,13 +190,13 @@ snit::widget wtree {
     if {[lindex $id 0] eq "item"} {
       #lassign $id where item arg1 arg2
       foreach  {where item arg1 arg2} $id break
-      
+
       if {[llength [$w item descendants $item]] == 0} {
         $self notify generate <<ItemSelected>> [list T $w c $item]
       } else {
         $w item toggle $item
       }
-      
+
     } else {
       TreeCtrl::DoubleButton1 $w $x $y
     }
@@ -210,7 +210,7 @@ snit::widget wtree {
       $w item toggle active
     }
   }
-  
+
   method Button3 {w x y rootX rootY} {
 
     set cmenu [$self cget -contextmenu]
@@ -224,7 +224,7 @@ snit::widget wtree {
     #}
     if {[lindex $id 0] == "item"} {
       foreach {where item arg1 arg2} $id break
-      
+
       if {[$w selection includes $item]==0} {
         $w selection clear
         $w selection add $item
@@ -233,12 +233,12 @@ snit::widget wtree {
     }
     tk_popup $cmenu $rootX $rootY
   }
-  
+
   method KeyPressEscape {} {
 
     $self notify generate <<Escape>>
   }
-  
+
   method SortbyColumn {t column} {
 
 	#puts "SortbyColumn: column=$column, tree=$t"
@@ -290,7 +290,7 @@ snit::widget wtree {
     grid rowconfigure $win.frameFilter.fentry 0 -weight 1
     grid columnconfigure $win.frameFilter.fentry 0 -weight 1
     grid remove $widgets(filter,bcancel)
-    
+
     bind $widgets(filter,entry) <Key-Return> [ mymethod _applyFilter ]
     grid $win.frameFilter.l -row 0 -column 1 -sticky "e"
     grid $win.frameFilter.b -row 0 -column 2 -sticky "e"
@@ -306,7 +306,7 @@ snit::widget wtree {
     grid $win.frameTree -row 1 -column 0 -sticky "snew"
     grid rowconfigure $win.frameTree 0 -weight 1
     grid columnconfigure $win.frameTree 0 -weight 1
-    
+
     install tree as treectrl $win.frameTree.t \
         -highlightthickness 0 -borderwidth 0 \
         -xscrollincrement 20 -showheader 1 -indent 19 \
@@ -322,17 +322,17 @@ snit::widget wtree {
     $tree notify install <Edit-begin>
     $tree notify install <Edit-end>
     $tree notify install <Edit-accept>
-    
+
     $tree notify bind $tree <Edit-begin> \
         [ mymethod EditCallback begin %I %C %E %t ]
     $tree notify bind $tree <Edit-end> \
         [ mymethod EditCallback end %I %C %E %t ]
     $tree notify bind $tree <Edit-accept>  \
         [ mymethod EditCallback accept %I %C %E %t ]
-    
+
     bind $tree <ButtonPress-1> [ mymethod OnButtonPress1 %x %y ]
-    bind $tree <Control-ButtonPress-1> { } 
-    bind $tree <Shift-ButtonPress-1> { } 
+    bind $tree <Control-ButtonPress-1> { }
+    bind $tree <Shift-ButtonPress-1> { }
 
     set height [font metrics [$tree cget -font] -linespace]
     if {$height < 18} {
@@ -347,7 +347,7 @@ snit::widget wtree {
                            -fill [list $wtree::SystemHighlightText \
                                       {selected focus}] ]
     set elements(check) [ $tree element create eCHK window ]
-    
+
     set elements(rect) [ $tree element create eRECT rect \
                              -showfocus yes -open ew \
                              -fill [ list \
@@ -376,7 +376,7 @@ snit::widget wtree {
     grid rowconfigure    $win 1 -weight 1
 
     focus $tree
-    
+
     $self _configure_bindings
     $self _conf-columns -columns $options(-columns)
     $self _conf-contextmenu -contextmenu $options(-contextmenu)
@@ -386,7 +386,7 @@ snit::widget wtree {
     }
     #return $win
   }
-  
+
   method AcceptEdit { } {
     ::TreeCtrl::EditClose $tree entry 1 0
   }
@@ -508,7 +508,7 @@ snit::widget wtree {
         $positiveWords $negativeRegExp
     $self _setNormalCursor
   }
- 
+
   method _filterNodesMatching { } {
     if { [ llength $listFilterOff ] } {
       $tree item configure [ list list $listFilterOff ] -visible 0
@@ -531,7 +531,7 @@ snit::widget wtree {
     # recorro cada uno de los nodos
     foreach n $nodes {
       # filtro el nodo
-      
+
       #esto es para el filtrado automatico incremental
       if { $breakFilter } {
         return 0
@@ -541,7 +541,7 @@ snit::widget wtree {
       # desciendo a los hijos
       $self _filterNodeSet [ $tree item children $n ] \
           $positiveWords $negativeRegExp
-      
+
       if { 0 } {
       if { [ $self _filterNode $n $positiveWords $negativeRegExp ] } {
         # si el resultado es visible desciendo y filtro a los hijos
@@ -568,7 +568,7 @@ snit::widget wtree {
     #puts "itemText $itemText"
     # hago match, luego hago algo mas sofisticado con regexp
     # set visible [ string match "*${text}*" $itemText ]
-    if { [ string length $negativeRegExp ] && 
+    if { [ string length $negativeRegExp ] &&
          ![ regexp -nocase $negativeRegExp $itemText ] } {
       # itemText contiene alguna de las palabra prohibidas
       #puts "itemText contiene alguna de las palabra prohibidas"
@@ -624,29 +624,29 @@ snit::widget wtree {
       set idWaitFilter [ after 500 $self _scheduleFilter ]
     }
   }
-  
+
   method _scheduleFilter { } {
     after cancel $idIdleFilter
     set idIdleFilter [ after idle $self _applyFilter ]
   }
 
   method _configure_bindings { } {
-    
+
     bind $tree <Double-ButtonPress-1> "[mymethod DoubleButton1 %W %x %y] ; break"
     bind $tree <Return> "[mymethod KeyPressReturn %W] ; break"
 
     bind $tree <ButtonPress-3> [ mymethod Button3 %W %x %y %X %Y]
 
     bind $tree <Escape> "[mymethod KeyPressEscape] ; break"
-    
+
     $tree notify bind $tree <Header-invoke> [mymethod SortbyColumn %W %C]
 
     $tree notify bind $vscrollbar <Scroll-y> { %W set %l %u }
     bind $vscrollbar <ButtonPress-1> [list focus $tree]
-    
+
     $tree notify bind $hscrollbar <Scroll-x> { %W set %l %u }
     bind $hscrollbar <ButtonPress-1> [list focus $tree]
-    
+
     ::autoscroll::autoscroll $vscrollbar
     ::autoscroll::autoscroll $hscrollbar
   }
@@ -663,7 +663,7 @@ snit::widget wtree {
 
   method _conf-buttonstyle { _ bs } {
     set valid_bstyles [ array names wtree::ButtonImageConf ]
-    if { [ lsearch $valid_bstyles $bs ] == -1 } { 
+    if { [ lsearch $valid_bstyles $bs ] == -1 } {
       error "invalid button style $bs should be one of $valid_bstyles"
     } else {
       set options(-buttonstyle) $bs
@@ -672,12 +672,12 @@ snit::widget wtree {
   }
 
   method _conf-contextmenu { _ cmenu } {
-    set options(-contextmenu) $cmenu 
+    set options(-contextmenu) $cmenu
   }
 
   method _conf-filter { _ value } {
     if { [ string is boolean $value ] } {
-      if { ( $options(-filter)  && $value ) || 
+      if { ( $options(-filter)  && $value ) ||
            ( !$options(-filter) && !$value ) } {
         return
       }
@@ -704,7 +704,7 @@ snit::widget wtree {
 
   #
   # columnsSpec es una lista de "columnas" y una columna puede ser
-  # 
+  #
   #  - un unico elemento con valor: image, text o check
   #
   #  - una lista de elementos, donde cada elemento puede estar dado
@@ -743,7 +743,7 @@ snit::widget wtree {
                       -text [ msgcat::mc $opts(-label) ] \
                       -image $opts(-image) \
                       -itembackground "\#e0e8f0 {}" \
-                      -tags $opts(-tags) ]                     
+                      -tags $opts(-tags) ]
       # "
       set column_info($idx,ID) $colID
       set column_info(MAPIDX,$colID) $idx
@@ -901,7 +901,7 @@ snit::widget wtree {
       }
     } else {
       return [ list $elements($etype) $def_prop($etype) "" ]
-    } 
+    }
   }
 
   method EditCallback { callback item column elem t } {
@@ -911,19 +911,19 @@ snit::widget wtree {
   }
 
   method OnButtonPress1 { x y } {
-    
+
     set treeInfo [ $tree identify $x $y ]
     if { $treeInfo eq "" } {
       $tree selection clear
       return
     }
-    
+
     if { [ llength $treeInfo ] != 6 } {
       return
     }
-    
+
     foreach { item I column C elem E } $treeInfo { }
-    
+
     if { $item == "item" && \
              $column == "column" && \
              $elem == "elem" && \
@@ -933,7 +933,7 @@ snit::widget wtree {
 
       set idx_info $column_info(MAPIDX,$C)
 
-      if { $column_info($idx_info,-editable) && 
+      if { $column_info($idx_info,-editable) &&
            ( $E eq "eTXT" || $E eq "eRECT" ) } {
         set exists [winfo exists $tree.entry]
         ::TreeCtrl::EntryOpen $tree $I $C eTXT
@@ -957,7 +957,7 @@ snit::widget wtree {
       }
     }
   }
-  
+
   proc test_GetTextContents { T item } {
     set textDump ""
     # buscar las columnas que tiene elemento eTXT
@@ -999,12 +999,12 @@ snit::widget wtree {
       grid columnconfigure $w.fsearch 0 -weight 1
       grid $w.fsearch -row 0 -column 0 -sticky "snew"
     }
-    
+
     set T [ wtree $w.t -table $istable -filter yes -buttonstyle mac \
                 -columns [ list \
                                { {image text} -tags ID   -label Identifier } \
                                { text -tags DESC -label Description -editable yes } ] ]
-    
+
     $T notify bind $T <Expand-before> {
       #puts "before openning %I"
     }
@@ -1022,7 +1022,7 @@ snit::widget wtree {
       trace remove variable ::wtreeSearch write "::wtree::test_ListenSearch $T"
       trace add    variable ::wtreeSearch write "::wtree::test_ListenSearch $T"
     }
-    
+
     set bugValue {
 Serie AlgGetData(
  "Lla_MetCon.Atendi.Ser_TNuXXX_GHLAll.Ind.ALL_TLlTLl.XXX_RotXXX.XXX.XXX.XXX_EspEsp.XXX_SegSeg.XXX_PerMHo.XXX_FecDia",
@@ -1052,11 +1052,11 @@ Serie AlgGetData(
         -command [ string map [ list "%T" $T ] {
           %T CancelEdit
         } ]
-    grid $w.btn1 -row 1 -column 0 
-    grid $w.btn2 -row 1 -column 1 
+    grid $w.btn1 -row 1 -column 0
+    grid $w.btn2 -row 1 -column 1
     grid rowconfigure $w 1 -weight 1
-    grid columnconfigure $w 0 -weight 1 
-    
+    grid columnconfigure $w 0 -weight 1
+
     for { set r 0 } { $r < 100 } { incr r } {
       $T insert [list  [list folder-open "node $r"] [ list "Description for node $r" ] ]
     }
