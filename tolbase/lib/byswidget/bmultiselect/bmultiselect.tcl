@@ -471,13 +471,17 @@ package require blistboxplus
       set first [lindex $indexes 0]
       set last [lindex $indexes end]      
       if { $plus } {
-        set start [$right first]
-        if { $first != $start } {
-          $right move [lindex [$right range [$right first] $first] end-1] \
-                 after $last
-          $right selection clearall
-          $right selection set $first $last
-        }        
+        # hacia arriba
+        if {$first eq [$right item firstchild root]} return
+        foreach index $indexes {
+          $right move $index before {}
+        }
+        #@+ set start [$right first]
+        #@+ if { $first != $start } {
+        #@+   $right move [lindex [$right range [$right first] $first] end-1] after $last
+        #@+   $right selection clearall
+        #@+   $right selection set $first $last
+        #@+ }        
       } else {
         if { $first != 0 } {
           set previous [$right get [expr {$first-1}]]
@@ -498,14 +502,19 @@ package require blistboxplus
     set indexes [$right curselection]
     if {$indexes != ""} {
       set first [lindex $indexes 0]
-      set last [lindex $indexes end]      
+      set last [lindex $indexes end]
       if { $plus } {
-        set end [$right last]
-        if { $last != $end } {
-          $right move [lindex [$right find $last] 1] before $first
-          $right selection clearall
-          $right selection set $first $last
-        }    
+        # hacia abajo
+        if {$last eq [$right item lastchild root]} return
+        foreach index [lreverse $indexes] {
+          $right move $index after {}
+        }
+        #@+ set end [$right last]
+        #@+ if { $last != $end } {
+        #@+   $right move [lindex [$right find $last] 1] before $first
+        #@+   $right selection clearall
+        #@+   $right selection set $first $last
+        #@+ }
       } else {
         set end [$right index end]
         if { $last != [expr {$end-1}] } {

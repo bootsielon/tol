@@ -804,7 +804,6 @@ proc ::TolProject::NodeToFile {this index fd name} {
       set filename [$tv item text $index FileName]
       set item "Set $name.$data(num)"
       set value "Include(\"$filename\");"
-      Tolcon_Trace "item: $item, value: $value"
       writeini $fd $key $item $value
       incr data(num)
     }
@@ -1025,7 +1024,6 @@ proc ::TolProject::AddNode {this node {prev end}} {
       } else {
         set hasbutton 0
       }
-      Tolcon_Trace "prev $prev node $node"
       if {$prev eq "end"} {
         set idx [$tv item create -parent $node -button $hasbutton -open 0]
       } else {
@@ -1818,7 +1816,6 @@ proc ::TolProject::WtreeFromFile {tv path {proc ""}} {
   if ![file exists $path] {
     return -code error "File $path doesn't exist"
   }
-  #@ Tolcon_Trace "Llamada a WtreeFromFile"
   set fd [iniparse:openfile $path] 
   BNodeFromFile $tv root "" $fd $proc
   iniparse:closefile $fd
@@ -1870,7 +1867,6 @@ proc ::TolProject::BNodeToFile {tv index fd} {
 
   # Llamar recursivamente para los hijos
   foreach child [$tv item children $index] {
-    Tolcon_Trace "child $child"
     BNodeToFile $tv $child $fd
   }
 }

@@ -836,7 +836,6 @@ snit::widget wtree {
   
   method selection { args } {
     if { [lindex $args 0] eq "set" } {
-      Tolcon_Trace "selection $args"
       switch [llength $args] {
         1 { $tree selection clear all }
         2 { $tree selection modify [lindex $args 1] all }
@@ -857,7 +856,6 @@ snit::widget wtree {
   }
   
   method move { item how dest } {
-    Tolcon_Trace "item: $item how: $how dest: $dest"
     if { $item eq $dest } { return }
     switch $how {
       into {
