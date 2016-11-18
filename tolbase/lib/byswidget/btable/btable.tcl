@@ -14,7 +14,7 @@ package require bcolor
 package require tclodbc
 
 if { [string equal $tcl_platform(platform) "windows"] } {
-  package require cwind
+  package require twapi  
 }
 
 
@@ -3880,8 +3880,10 @@ if { [string equal $tcl_platform(platform) "windows"] } {
         exec $env(COMSPEC) /c start excel.exe &
 
         $self _CmdSpecialCopy table
-        ::cwind::waitwind {Microsoft Excel*} 10
-        ::cwind::send |CTRL+| v |CTRL-|
+        set xlsapp [::twapi::comobj {Excel.Application}]
+        after 1000 set sleep_end 1      
+        vwait sleep_end
+        twapi::send_keys {^v}
         $self configure -colseparator $tempcolsep
         $self configure -rowseparator $temprowsep
       } else {

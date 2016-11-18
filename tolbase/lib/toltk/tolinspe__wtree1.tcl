@@ -721,24 +721,30 @@ proc ::TolInspector::OpenVariable { node } {
   variable wt_vars
 
   if { ![string length $node] } { return }
+  
   set treeParent [$wt_tree selection get 0]
   set treeParent_tolRef [$wt_tree item text $treeParent Reference]
+  if { [llength $treeParent_tolRef] < 1 } return
+  if { [lindex $treeParent_tolRef 0] eq "Grammar" } return  
+  
   set treeNode -1
-  if { [llength $treeParent_tolRef] > 1 } {
-    set grammar [$wt_vars item text $node Grammar]
-    if {$grammar eq "Set" || $grammar eq "NameBlock"} {
-      $wt_tree item expand $treeParent
-      #@ Se localiza el nodo seleccionado en el árbol (wt_tree)
-      set index [$wt_vars item text $node Index]     
-      foreach node_i [$wt_tree item children $treeParent] {
-        set index_i [$wt_tree item text $node_i Index]
-        if { [string equal $index $index_i] } {
-          set treeNode $node_i
-          break
-        }
+
+  set grammar [$wt_vars item text $node Grammar]
+  if {$grammar eq "Set" || $grammar eq "NameBlock"} {
+    $wt_tree item expand $treeParent
+    #@ Se localiza el nodo seleccionado en el árbol (wt_tree)
+    set index [$wt_vars item text $node Index]   
+    foreach node_i [$wt_tree item children $treeParent] {
+      set index_i [$wt_tree item text $node_i Index]
+      if { [string equal $index $index_i] } {
+        set treeNode $node_i
+        break
       }
     }
+  } else {
+    return
   }
+  
   if { $treeNode != -1 } {
     update
     $wt_tree selection clear    
