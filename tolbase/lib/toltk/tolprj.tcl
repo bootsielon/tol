@@ -407,6 +407,7 @@ proc ::TolProject::Create {path} {
   ScrolledWindow $f.sw
   set tv [::wtree $f.sw.t -table 0 -filter no \
     -background white -showroot 1 -selectmode single -showheader 0 \
+    -selectcommand "::TolProject::SelectProc $this" \
     -highlightbackground gray75 -highlightcolor black \
     -highlightthickness 0 -font $toltk_options(fonts,Label) \
     -columns [list \
@@ -424,8 +425,7 @@ proc ::TolProject::Create {path} {
   $tv item style set root ExcludeTOL  [$tv column cget ExcludeTOL -itemstyle]
   $tv column configure "range 1 end" -visible no
   $tv column configure first -expand yes -weight 1
-  $tv column configure all -itembackground ""       
-  $tv notify bind $tv <Selection> "::TolProject::SelectProc $this"        
+  $tv column configure all -itembackground ""
   
   $f.sw setwidget $f.sw.t
    
@@ -440,26 +440,17 @@ proc ::TolProject::Create {path} {
   grid rowconfigure    $f 1 -weight 1
   grid columnconfigure $f 0 -weight 1
 
+  bind $tv <Control-KeyRelease> [list ::TolProject::OnControlKey $this %K %k]
+  bind $tv <Button-1> "::focus $tv"
+  bind $tv <Button-3> +[list ::TolProject::PostVariable $this %X %Y]
 
-  bind $tv.frameTree.t <Control-KeyRelease> [list ::TolProject::OnControlKey $this %K %k]
+  bind $tv <Double-1> "mdidoc disableglobalraise ; ::TolProject::OpenNodeIfTerminal $this"
+  bind $tv <KeyPress-Return> "::TolProject::OpenNodeIfTerminal $this" 
 
-  bind $tv.frameTree.t <Button-1> "::focus $tv"  
- 
-  bind $tv.frameTree.t <Button-3> +[list ::TolProject::PostVariable $this %X %Y]
-  
-  set prevBind [bind $tv.frameTree.t <Double-1>]
-  set newBind "[lrange $prevBind 0 [expr [llength $prevBind]-3]] ; mdidoc disableglobalraise ; ::TolProject::OpenNodeIfTerminal $this ; break"
-  #@ mdidoc disableglobalraise y break parece que cumplen el mismo cometido 
-  bind $tv.frameTree.t <Double-1> $newBind
-  
-  set prevBind [bind $tv.frameTree.t <KeyPress-Return>]
-  set newBind "[lrange $prevBind 0 [expr [llength $prevBind]-3]] ; ::TolProject::OpenNodeIfTerminal $this ; break"
-  bind $tv.frameTree.t <KeyPress-Return> $newBind    
-
-  bind $tv.frameTree.t <KeyPress-space>  +[list ::TolProject::NodeActiveAttributes $this]
-  bind $tv.frameTree.t <KeyPress-Delete> +[list ::TolProject::DeleteActiveNode     $this]
-  bind $tv.frameTree.t <KeyPress-F9>     "::TolProject::CompileActiveNode    $this ; break"
-  bind $tv.frameTree.t <KeyPress-F8>     "::TolProject::DecompileActiveNode  $this ; break"  
+  bind $tv <KeyPress-space>  +[list ::TolProject::NodeActiveAttributes $this]
+  bind $tv <KeyPress-Delete> +[list ::TolProject::DeleteActiveNode     $this]
+  bind $tv <KeyPress-F9>     "::TolProject::CompileActiveNode    $this ; break"
+  bind $tv <KeyPress-F8>     "::TolProject::DecompileActiveNode  $this ; break"  
  
   set data(mainMenu) [menu $tv.m -tearoff 0]
 

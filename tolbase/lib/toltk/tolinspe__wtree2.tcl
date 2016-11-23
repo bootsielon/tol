@@ -557,8 +557,8 @@ proc ::TolInspector::PostTree { x y } {
       if { [llength $tolReference] == 1 } return
       
       # label of object showed in the tree
-      set objName [$wt_tree item text Name]
-      set object [$wt_tree item text Reference]
+      set objName [$wt_tree item text $index Name]
+      set object [$wt_tree item text $index Reference]
       
       if {$InRootFiles} {
         set objName [lindex $tolReference 1]

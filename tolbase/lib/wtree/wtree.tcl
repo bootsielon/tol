@@ -79,6 +79,12 @@ snit::widget wtree {
   option -columnfilter \
       -default "" -configuremethod "_conf-columnfilter"
 
+  option -bindtags \
+      -default "" -configuremethod "_conf-bindtags"      
+
+  option -selectcommand \
+      -default "" -configuremethod "_conf-selectcommand"           
+      
   variable tree
   variable vscrollbar
   variable hscrollbar
@@ -265,6 +271,14 @@ snit::widget wtree {
 	
 	$t item sort root $order -column $column -dictionary
   }
+  
+  method focus { itemid } {
+    if { $itemid eq "" } {
+      $self item id active 
+    } else {
+      $self activate $itemid
+    }
+  }
 
   constructor { args } {
     # frame para el filtro de nodos
@@ -313,6 +327,8 @@ snit::widget wtree {
         -selectmode extended -showroot no \
         -showrootbutton no -showbuttons yes -showlines yes \
         -scrollmargin 16 -xscrolldelay "500 50" -yscrolldelay "500 50"
+   
+    bindtags $tree [linsert [bindtags $tree] 0 $win Wtree]
 
     $tree notify install <<ItemSelected>>
     $tree notify install <<Escape>>
@@ -701,6 +717,18 @@ snit::widget wtree {
 	  set columnsToFilter($idx) $v
     }
   }
+  
+  method _conf-bindtags { _ addtags } {
+    set options(-bindtags) $addtags
+    bindtags $self [concat $addtags [bindtags $self]]
+	bindtags $tree [concat $addtags [bindtags $tree]]
+  }
+  
+  method _conf-selectcommand { _ cmd } {
+    set options(-selectcommand) $cmd
+    if { $cmd eq "" } return
+    $self notify bind $self <Selection> $cmd
+  }  
 
   #
   # columnsSpec es una lista de "columnas" y una columna puede ser
@@ -741,7 +769,7 @@ snit::widget wtree {
       # opciones dadas en la llamada.
       array set opts [ lrange $col_spec 1 end ]
       set colID [ $tree column create \
-                      -text [ msgcat::mc $opts(-label) ] \
+                      -text $opts(-label) \
                       -image $opts(-image) \
                       -itembackground "\#e0e8f0 {}" \
                       -tags $opts(-tags) ]

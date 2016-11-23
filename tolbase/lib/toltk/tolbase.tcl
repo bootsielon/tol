@@ -185,8 +185,8 @@ proc ::TolConsole::Create { w } {
   $tab1 configure -borderwidth 2 -background \#d9d9d9 
   $tab2 configure -borderwidth 2 -background \#d9d9d9  
   $tab3 configure -borderwidth 2 -background \#d9d9d9    
-  set sw2 [ScrolledWindow $tab2.sw -scrollbar none]
-  set sw3 [ScrolledWindow $tab3.sw -scrollbar none]
+  set sw2 [ScrolledWindow $tab2.sw -auto both]
+  set sw3 [ScrolledWindow $tab3.sw -auto both]
   set widgets(tabset,info) $sw3 
 
   # OUTPUT CONSOLE COMPONENT

@@ -76,6 +76,11 @@ proc debug_msg { msg } {
   option -valuesinsert {}
   option -iniconfig ""
   
+  #@O treeview options
+  option -exportselection false
+  option -linewidth 1 ;# unused
+  option -selectbackground "unused"
+  
   variable _listbox
   variable menu
   variable xbar
@@ -95,24 +100,25 @@ proc debug_msg { msg } {
   #   args -> opciones
   #
   #///////////////////////////////////////////////////////////////////////////
-
     debug_init
 
     debug_msg "install listbox ..."
 
-    if {0} {
-      return
+    if {1} {
       #@T install _listbox using ::blt::treeview $win.lb -hideroot yes \
           -activeicons "" -icons {} -selectmode multiple \
           -selectbackground grey -selectforeground white \
           -highlightthickness 0 -borderwidth 1 -selectborderwidth 1 \
           -nofocusselectbackground grey -font {Arial 9} -flat yes
+      install _listbox using ::wtree $win.lb -table 0 -filter no \
+        -background white -showroot 0 -selectmode extended -showheader 1 \
+        -highlightbackground gray75 -highlightcolor black \
+        -highlightthickness 0 -font {Arial 9}
     } else {
       set _listbox [::wtree $win.lb -table 0 -filter no \
         -background white -showroot 0 -selectmode extended -showheader 1 \
         -highlightbackground gray75 -highlightcolor black \
-        -highlightthickness 0 -font {Arial 9} \
-        -columns [::TolInspector::LNodeDef] ]
+        -highlightthickness 0 -font {Arial 9}]
       #@T set _listbox [::blt::treeview $win.lb -hideroot yes \
                         -activeicons "" -icons {} -selectmode multiple \
                         -selectbackground grey -selectforeground white \
@@ -124,13 +130,13 @@ proc debug_msg { msg } {
     debug_msg "despues de install listbox"
 
     install menu using menu $win.m -tearoff 0
-    install xbar using scrollbar $win.sbh -orient horizontal \
+    #@!scroll install xbar using scrollbar $win.sbh -orient horizontal \
                                            -command "$win xview"
-    install ybar using scrollbar $win.sbv -orient vertical \
+    #@!scroll install ybar using scrollbar $win.sbv -orient vertical \
                                            -command "$win yview"
 
     #bindtags is modified to make possible to associate binds to self
-    bindtags $_listbox [linsert [bindtags $_listbox] 2 $win]
+    $_listbox configure -bindtags [list $self Blistboxplus]
 
     #@T! $_listbox style  configure text     -bg white
     #@T! to do
@@ -160,13 +166,13 @@ proc debug_msg { msg } {
 
     #pack
     grid $_listbox -row 0 -column 0 -sticky news
-    grid $ybar -row 0 -column 1 -sticky ns
-    grid $xbar -row 1 -column 0 -sticky ew
+    #@!scroll grid $ybar -row 0 -column 1 -sticky ns
+    #@!scroll grid $xbar -row 1 -column 0 -sticky ew
     grid columnconfigure $self 0 -weight 1
     grid rowconfigure    $self 0 -weight 1
 
-    ::autoscroll::autoscroll $ybar
-    ::autoscroll::autoscroll $xbar
+    #@!scroll ::autoscroll::autoscroll $ybar
+    #@!scroll ::autoscroll::autoscroll $xbar
     debug_msg "voy a pillarte: antes de _ReadIni"
     $self _ReadIni 
     debug_msg "pase?"
@@ -205,10 +211,11 @@ proc debug_msg { msg } {
     
     set lstx [list [list image -label Icon -tags Icon] ]
     foreach col $lst {
+      #set colx [list text -label [msgcat::mc $col] -tags $col]
       set colx [list text -label $col -tags $col]
       lappend lstx $colx
     }
-    Tolcon_Trace "lstx $lstx"
+    #@! Tolcon_Trace "lstx $lstx"
     $_listbox configure -columns $lstx
     
     if { $options(-icon) == "" } {
@@ -239,8 +246,9 @@ proc debug_msg { msg } {
 
   onconfigure -showtitles { bool } {
     set options(-showtitles) $bool
-    $_listbox configure -showtitles $bool
-    $_listbox show
+    #@O $_listbox configure -showtitles $bool
+    $_listbox configure -showheader $bool    
+    #@O! $_listbox show
   }
 
   onconfigure -icon { icon } {
@@ -262,7 +270,8 @@ proc debug_msg { msg } {
     set c 0
     set cols [$self column names]
     foreach col $cols {
-     $self column configure $col -title [mc [lindex $titles $c] ]
+     #@O $self column configure $col -title [mc [lindex $titles $c] ]
+     $_listbox column configure $col -text [mc [lindex $titles $c] ]
      incr c 1     
     } 
   }
@@ -298,6 +307,7 @@ proc debug_msg { msg } {
     } else {
       set options(-selectmode) $mode
     }
+    $_listbox configure -selectmode $options(-selectmode)
   }  
 
   onconfigure -filtercols { lst } {
@@ -317,6 +327,41 @@ proc debug_msg { msg } {
       }
     }
   }
+  
+  onconfigure -exportselection { bool } {
+    if { $bool } {
+      error "\[blistboxplus\] option -exportselection should be 'no'"
+    }
+  }
+  
+  #///////////////////////////////////////////////////////////////////////////
+  method show { args } {
+  #///////////////////////////////////////////////////////////////////////////
+    error "\[blistboxplus\] method show unimplemented"
+  }
+  
+  #///////////////////////////////////////////////////////////////////////////
+  method hide { args } {
+  #///////////////////////////////////////////////////////////////////////////
+    error "\[blistboxplus\] method hide unimplemented"
+  }
+  
+  #///////////////////////////////////////////////////////////////////////////
+  method sort { args } {
+  #///////////////////////////////////////////////////////////////////////////
+    if { [lindex $args 1] eq "configure" } {
+      if { [lindex $args 2] eq "-column" } {
+        return [$self _SortByColumn [lindex $args 3]]
+      } else {
+        return
+      }
+    } elseif { [lindex $args 1] eq "auto" } { 
+      #@O! Nothing to do ??
+      return 
+    } else {
+      return
+    }     
+  } 
 
   #///////////////////////////////////////////////////////////////////////////
   method _CreateMenu {args} {
@@ -370,32 +415,19 @@ proc debug_msg { msg } {
       $mf add command -label "[mc "Load form file"] ..." \
         -command "$self _LoadFromFile"
     }
-    # bindings   
-    #@T $self bind all <Control-KeyRelease> +[list $self _OnControlKey $self %K %k]
-    #@T $self bind all <Key-Delete>    "lbDeleteSelection $self"
-    #@T $self bind all <Key-Insert>    "$self _OpenWR"    
-    #@T $self bind all <Shift-Up>      "$self addPrevious"
-    #@T $self bind all <Shift-Down>    "$self addNext"
-    #@T $self bind all <Up>            "$self previous"
-    #@T $self bind all <Down>          "$self next"
-    #@T $self bind all <Home>          "$self first"
-    #@T $self bind all <End>           "$self last"
-    #@T $self bind all <Shift-Home>    "$self addAllPrevious"
-    #@T $self bind all <Shift-End>     "$self addAllNext"
-    #@T $self bind all <Button-1>      +[list focus -force %W]
-    
-    bind $_listbox.frameTree.t <Control-KeyRelease> +[list $self _OnControlKey $self %K %k]
-    bind $_listbox.frameTree.t <Key-Delete>    "lbDeleteSelection $self"
-    bind $_listbox.frameTree.t <Key-Insert>    "$self _OpenWR"    
-    bind $_listbox.frameTree.t <Shift-Up>      "$self addPrevious"
-    bind $_listbox.frameTree.t <Shift-Down>    "$self addNext"
-    bind $_listbox.frameTree.t <Up>            "$self previous"
-    bind $_listbox.frameTree.t <Down>          "$self next"
-    bind $_listbox.frameTree.t <Home>          "$self first"
-    bind $_listbox.frameTree.t <End>           "$self last"
-    bind $_listbox.frameTree.t <Shift-Home>    "$self addAllPrevious"
-    bind $_listbox.frameTree.t <Shift-End>     "$self addAllNext"
-    bind $_listbox.frameTree.t <Button-1>      +[list focus -force %W]    
+    # bindings  
+    bind $_listbox <Control-KeyRelease> +[list $self _OnControlKey $self %K %k]
+    bind $_listbox <Key-Delete>         "lbDeleteSelection $self"  
+    bind $_listbox <Key-Insert>         "$self _OpenWR"
+    bind $_listbox <Shift-Up>           "$self addPrevious"
+    bind $_listbox <Shift-Down>         "$self addNext"
+    bind $_listbox <Up>                 "$self previous"
+    bind $_listbox <Down>               "$self next"
+    bind $_listbox <Home>               "$self first"
+    bind $_listbox <End>                "$self last"
+    bind $_listbox <Shift-Home>         "$self addAllPrevious"
+    bind $_listbox <Shift-End>          "$self addAllNext"
+    bind $_listbox <Button-1>           +[list focus -force %W]    
   }
 
   #@//////////////////////////////////////////////////////////////////////////
@@ -630,7 +662,6 @@ proc debug_msg { msg } {
       # open file to read
       if { ![ catch { set fd [open $filNam r] } msgerr] } {
          while { [gets $fd line ] >= 0} {
-           Tolcon_Trace "adding $line"
            $self add $line
          } 
          close $fd      
@@ -649,6 +680,9 @@ proc debug_msg { msg } {
   #
   #///////////////////////////////////////////////////////////////////////////
 
+    #@O!
+    return [$_listbox SortbyColumn $_listbox $col]
+  
     set numofel [$self size]
     set lst [list]
     set fulllst [$self get]
@@ -869,7 +903,6 @@ proc debug_msg { msg } {
   #   data
   #
   #///////////////////////////////////////////////////////////////////////////   
-    Tolcon_Trace "insert pos: $pos args: $args"
     if { [lindex $args 0] eq "cols" } {
       set cols [lindex $args 1]
       set args [lrange $args 2 end]
@@ -962,7 +995,6 @@ proc debug_msg { msg } {
   #  cols: name of the cols from which retrieve data
   #
   #///////////////////////////////////////////////////////////////////////////
-    Tolcon_Trace "get ids: $ids cols: $cols"
     if { $ids eq "" } { 
       #@T! return [lrange [$self find] 1 end]
       set items [$_listbox item children root]
@@ -996,9 +1028,7 @@ proc debug_msg { msg } {
       lappend result $elem
     }
      
-    if { [llength $ids] eq 1 } { 
-      Tolcon_Trace "get result: $result" 
-      Tolcon_Trace "get result0: [lindex $result 0]"       
+    if { [llength $ids] eq 1 } {   
       return [lindex $result 0] 
     }
     Tolcon_Trace "get result: $result"    
@@ -1016,7 +1046,6 @@ proc debug_msg { msg } {
   #  cols: name of the cols from which retrieve data
   #
   #///////////////////////////////////////////////////////////////////////////
-    Tolcon_Trace "set id: $id data: $data cols: $cols"
     if { "$cols" eq "" } {
       set cols [$self column names]
     }    
@@ -1268,18 +1297,17 @@ proc debug_msg { msg } {
   # PURPOSE: modifies a particular case of column -> column names
   #
   #///////////////////////////////////////////////////////////////////////////
-    #@T! if { [lindex $args 0] eq "names" } {
-    #@T!   return [lrange [$_listbox column names] 1 end]
-    #@T! }
-    #@T! return [eval $_listbox column $args]
     if { [lindex $args 0] eq "names" } {
       set names {}
       foreach col [lrange [$_listbox column list] 1 end] {
         lappend names [$_listbox column tag names $col]
       }
       return $names
-    }
-    return [eval $_listbox column id $args]    
+    } elseif { [lindex $args 0] eq "configure" } {
+      return [eval $_listbox column $args] 
+    } else {
+      return [eval $_listbox column id $args] 
+    }  
   }
 
   #///////////////////////////////////////////////////////////////////////////
