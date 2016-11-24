@@ -35,12 +35,30 @@ proc ::TolInspector::UpdateFileRoot { } {
     $wt_tree collapse $idx_file
     set open 1
   }
-  #@! if { [$wt_tree index focus] == $idx_file } 
   if { [$wt_tree item state get $idx_file focus] } {
     SelectObject
   }
   if $open {
     $wt_tree expand $idx_file
+  }
+}
+
+#/////////////////////////////////////////////////////////////////////////////
+proc ::TolInspector::UpdatePackageRoot { } {
+#/////////////////////////////////////////////////////////////////////////////  
+  variable wt_tree
+
+  set open 0
+  set idx [$wt_tree item id "root-packages"]
+  if { [$wt_tree item isopen $idx] } {
+    $wt_tree collapse $idx
+    set open 1
+  }
+  if { [$wt_tree item state get $idx focus] } {
+    SelectObject
+  }
+  if $open {
+    $wt_tree expand $idx
   }
 }
 
@@ -53,8 +71,6 @@ proc ::TolInspector::UpdateConsoleObj { } {
   if { [$wt_tree item isopen $idx_con] } {
     $wt_tree collapse $idx_con
   }
-  #@! $ht_tree selection anchor root-console
-  #@! $ht_tree selection mark root-console
   $wt_tree selection clear
   $wt_tree selection add $idx_con
 
@@ -65,7 +81,7 @@ proc ::TolInspector::UpdateConsoleObj { } {
 }
 
 #/////////////////////////////////////////////////////////////////////////////
-proc ::TolInspector::PostVariable { x y } {
+proc ::TolInspector::PostVariable { x y X Y } {
 #
 # PURPOSE: Composes a popup menu for variables and displays it. Its composed
 #          depending on the node/s clicked by user.
@@ -98,11 +114,13 @@ proc ::TolInspector::PostVariable { x y } {
   set InRootFiles [string equal $parent_tolReference "File"]
   set InRootGrammars [string equal $parent_tolReference "Grammar"]  
   
-  #puts "PostVariable: InRootConsole,InRootFiles = $InRootConsole,$InRootFiles"
-  #@! set node_act [$ht_vars index current]
-  set node_act [$wt_vars selection get end] ;# current
+  #@ node_act es el nodo bajo el puntero
+  array set obj_act [$wt_vars identify $x $y]
+  if { ![array size obj_act] } { return }
+  if { [lsearch [array names obj_act] item] eq -1 } { return }
+  set node_act $obj_act(item)
+  
   if { [string length $node_act] } {
-    #@! set vars_selected [$ht_vars curselection]
     set vars_selected [$wt_vars selection get 0 end] ;# curselection
     if { [lsearch $vars_selected $node_act] >= 0 } {
       foreach var $vars_selected {
@@ -437,14 +455,14 @@ proc ::TolInspector::PostVariable { x y } {
                 -command [list ::TolInspector::SelectAll $wt_vars]
         $data_menu(main) add command -label [mc "Toggle selection"] \
                 -command [list ::TolInspector::ToggleSelection $wt_vars]
-        tk_popup $data_menu(main) $x $y
+        tk_popup $data_menu(main) $X $Y
       } ;#end del if
     }
   }
 }
 
 #/////////////////////////////////////////////////////////////////////////////
-proc ::TolInspector::PostFunction { x y } {
+proc ::TolInspector::PostFunction { x y X Y } {
 #
 # PURPOSE: Composes a popup menu for functions and displays it. Its composed
 #          depending on the node/s clicked by user.
@@ -464,7 +482,12 @@ proc ::TolInspector::PostFunction { x y } {
     $data_menu($it) delete 0 end
   }
   
-  set node_act [$wt_funcs selection get 0] ;# current
+  #@ node_act es el nodo bajo el puntero
+  array set obj_act [$wt_funcs identify $x $y]
+  if { ![array size obj_act] } { return }
+  if { [lsearch [array names obj_act] item] eq -1 } { return }
+  set node_act $obj_act(item)
+  
   if { [string length $node_act] } {
     set vars_selected [$wt_funcs selection get 0 end] ;# curselection
     if { [lsearch $vars_selected $node_act] >= 0 } {
@@ -499,13 +522,13 @@ proc ::TolInspector::PostFunction { x y } {
               -command [list ::TolInspector::SelectAll $wt_funcs]
       $data_menu(main) add command -label [mc "Toggle selection"] \
               -command [list ::TolInspector::ToggleSelection $wt_funcs]
-      tk_popup $data_menu(main) $x $y
+      tk_popup $data_menu(main) $X $Y
     }
   }
 }
 
 #/////////////////////////////////////////////////////////////////////////////
-proc ::TolInspector::PostTree { x y } {
+proc ::TolInspector::PostTree { x y X Y } {
 #
 # PURPOSE: Composes a popup menu for left treeview and displays it. Its
 #          composed depending on the node clicked by user.
@@ -530,7 +553,6 @@ proc ::TolInspector::PostTree { x y } {
     $data_menu($it) delete 0 end
   }
   
-  #@!! revisar!! el uso de selection y node_act
   set selection [$wt_tree selection get 0]
   if { ![string length $selection] } { return }
   
@@ -541,15 +563,17 @@ proc ::TolInspector::PostTree { x y } {
     set InRootFiles 0
   }
   
-  # index of the selected node
-  set node_act [$wt_tree selection get 0] ;# current  
-  #puts "node_act: $node_act"  
+  #@ node_act es el nodo bajo el puntero
+  array set obj_act [$wt_tree identify $x $y]
+  if { ![array size obj_act] } { return }
+  if { [lsearch [array names obj_act] item] eq -1 } { return }
+  set node_act $obj_act(item)   
+  
   if { [string length $node_act] } {
     set vars_selected [$wt_tree selection get 0 end] ;# curselection    
     #puts "vars_selected: $vars_selected"      
     if { [lsearch $vars_selected $node_act] >= 0 } { ;# Not root node
-      #@! set index [$ht_tree index anchor]
-      set index [$wt_tree selection get 0]
+      set index [$wt_tree selection get 0] ;# anchor
       
       if { $index == 0 } return
       # if user selects a root or a grammar doesn't nothing      
@@ -621,7 +645,7 @@ proc ::TolInspector::PostTree { x y } {
                 -command [list ::TolInspector::DrawSet $object]
         }
       }
-      tk_popup $data_menu(main) $x $y
+      tk_popup $data_menu(main) $X $Y
     }
   }
 }

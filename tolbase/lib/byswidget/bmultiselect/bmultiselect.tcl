@@ -211,7 +211,8 @@ package require blistboxplus
        } else {
          $left configure -selectmode multiple
        }
-       $left bind all <Double-Button-1> +[list $self _LBLeftToRight]
+       #@ anteriormente era una llamada a un método bind
+       bind $left <Double-Button-1> +[list $self _LBLeftToRight]
     }
 
     # buttons
@@ -260,7 +261,8 @@ package require blistboxplus
        } else {
          $right configure -selectmode multiple
        }
-       $right bind all <Double-Button-1> +[list $self _LBRightToLeft]
+       #@ anteriormente era una llamada a un método bind
+       bind $right <Double-Button-1> +[list $self _LBRightToLeft]
     }
   
     # fill the listbox
@@ -475,13 +477,7 @@ package require blistboxplus
         if {$first eq [$right item firstchild root]} return
         foreach index $indexes {
           $right move $index before {}
-        }
-        #@+ set start [$right first]
-        #@+ if { $first != $start } {
-        #@+   $right move [lindex [$right range [$right first] $first] end-1] after $last
-        #@+   $right selection clearall
-        #@+   $right selection set $first $last
-        #@+ }        
+        }        
       } else {
         if { $first != 0 } {
           set previous [$right get [expr {$first-1}]]
@@ -509,12 +505,6 @@ package require blistboxplus
         foreach index [lreverse $indexes] {
           $right move $index after {}
         }
-        #@+ set end [$right last]
-        #@+ if { $last != $end } {
-        #@+   $right move [lindex [$right find $last] 1] before $first
-        #@+   $right selection clearall
-        #@+   $right selection set $first $last
-        #@+ }
       } else {
         set end [$right index end]
         if { $last != [expr {$end-1}] } {

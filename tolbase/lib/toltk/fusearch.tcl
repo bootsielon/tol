@@ -190,7 +190,8 @@ if {0} {
             -command  [list ::funcSearch::ViewDefinition] -accelerator CTRL+W
           
   # binds of listboxplus
-  $tmpOpt(widget,res) bind all <Control-KeyRelease> \
+  #@ anteriormente era una llamada a un método bind
+  bind $tmpOpt(widget,res) <Control-KeyRelease> \
     +[list ::funcSearch::OnControlKey $tmpOpt(widget,res) %K %k]
   
   # blisboxplus auto-adjust width of columns without configured width

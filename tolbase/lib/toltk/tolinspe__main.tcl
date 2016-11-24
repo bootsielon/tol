@@ -20,11 +20,9 @@ if {"unix" eq $::tcl_platform(platform)} {
     set comm [string map "%d $units" {
       %W yview scroll %d units
     }]
-    #@! REVISAR
     bind TreeView <$but> $comm
   }
 } else {
-  #@! REVISAR
   bind TreeView <MouseWheel> {
     %W yview scroll [expr int(-1*%D/36)] units
   }
@@ -217,14 +215,6 @@ proc ::TolInspector::Create { w args } {
   CreateMenus
   # packing the panedwindowmain
   pack $pwMain -fill both -expand yes
-
-  # esto es para evitar que aparezca el icono open cuando
-  # relleno estando el mouse sobre ht_*
-  #@! Por revisar
-  #@! $ht_vars  bind Entry <Enter>  ""
-  #@! $ht_vars  bind Entry <Leave>  ""
-  #@! $ht_funcs bind Entry <Enter>  ""
-  #@! $ht_funcs bind Entry <Leave>  ""
 }
 
 #/////////////////////////////////////////////////////////////////////////////
@@ -247,7 +237,12 @@ proc ::TolInspector::CreatePaneLeft { paneLeft } {
     -background white -showroot 1 -selectmode single -showheader 0 \
     -highlightbackground gray75 -highlightcolor black \
     -highlightthickness 0 -font $toltk_options(fonts,Label) \
-    -columns [::TolInspector::LNodeDef] ]
+    -columns [list \
+    [list {image text} -label Name -tags Name] \
+    [list text -label Index -tags Index] \
+    [list text -label Grammar -tags Grammar] \
+    [list text -label Reference -tags Reference]
+  ]]
     
   # configuration of the left tree
   $wt_tree column configure "range 1 end" -visible no
@@ -259,33 +254,32 @@ proc ::TolInspector::CreatePaneLeft { paneLeft } {
            
   # creation of the root node "Tol Objects"
   set img [::Bitmap::get Objects]
-  #@ Se pone el style a mano, no sé la manera natural de hacer esto con wtree
-  $wt_tree item style set root Name [$wt_tree column cget Name -itemstyle]
   $wt_tree item text root Name [mc "Tol Objects"]
   $wt_tree item image root Name $img
 
   # creation of the node father "Grammars"
-  set img [::Bitmap::get Grammars]  
-  set wt_row [::TolInspector::LNode "" Root $img [mc "Grammars"] "Grammar"]
-  $wt_tree insert $wt_row -at child -relative root -tags "root-grammars"
+  set node [$wt_tree item create -parent root -button 1 -open 0 -tags "root-grammars"]
+  $wt_tree item image $node Name [::Bitmap::get Grammars]
+  $wt_tree item text $node Index "" Grammar "Root" Name [mc "Grammars"] Reference "Grammar"  
   # Inserts in the node of grammars a node by each grammar that exists in Tol
   InsertGrammars
 
   # creation of the node father "Packages"
-  set img [::Bitmap::get "package"]  
-  set wt_row [::TolInspector::LNode "" Root $img [mc "Packages"] "Package"]    
-  $wt_tree insert $wt_row -at child -relative root -tags "root-packages" -button yes
+  set node [$wt_tree item create -parent root -button 1 -open 0 -tags "root-packages"]
+  $wt_tree item image $node Name [::Bitmap::get "package"]
+  $wt_tree item text $node Index "" Grammar "Root" Name [mc "Packages"] Reference "Package"  
 
   # creation of the node father "Included Files"
-  set img [::Bitmap::get "Files"]
-  set wt_row [::TolInspector::LNode "" Root $img [mc "Included Files"] "File"]    
-  $wt_tree insert $wt_row -at child -relative root -tags "root-files" -button yes
+  set node [$wt_tree item create -parent root -button 1 -open 0 -tags "root-files"]
+  $wt_tree item image $node Name [::Bitmap::get "Files"]
+  $wt_tree item text $node Index "" Grammar "Root" Name [mc "Included Files"] Reference "File"  
       
-  # creation of the node father "Console Objects"  
-  set img [::Bitmap::get "Console"]
-  set wt_row [::TolInspector::LNode "" Root $img [mc "Console Objects"] "Console"]  
-  $wt_tree insert $wt_row -at child -relative root -tags "root-console" -button yes
-      
+  # creation of the node father "Console Objects"
+  set node [$wt_tree item create -parent root -button 1 -open 0 -tags "root-console"]
+  $wt_tree item image $node Name [::Bitmap::get "Console"]
+  $wt_tree item text $node Index "" Grammar "Root" Name [mc "Console Objects"] Reference "Console"
+
+  
   # associates the tree to scrolled window 
   $sw1 setwidget $wt_tree
 
@@ -293,10 +287,10 @@ proc ::TolInspector::CreatePaneLeft { paneLeft } {
   pack $sw1 -fill both -expand yes
   
   # bind the focus on tree
-  bind ${wt_tree}.frameTree.t <Button-1> "::focus $wt_tree"
+  bind $wt_tree <Button-1> "::focus $wt_tree"
   
   # expand/collapse (and fill/unfill) a node with a double clic
-  bind ${wt_tree}.frameTree.t <Double-1> "::TolInspector::ToggleItem %x %y"
+  bind $wt_tree <Double-1> "::TolInspector::ToggleItem %x %y"
 }
 
 #/////////////////////////////////////////////////////////////////////////////
@@ -332,29 +326,44 @@ proc ::TolInspector::CreatePaneRight { paneRight } {
     -background white -showroot 0 -selectmode extended -showheader 1 \
     -highlightbackground gray75 -highlightcolor black \
     -highlightthickness 0 -font $toltk_options(fonts,Label) \
-    -columns [::TolInspector::RNodeDef] ]
+    -columns [list \
+    [list text -label Index -tags Index] \
+    [list text -label Grammar -tags Grammar] \
+    [list {image text} -label Name -tags Name] \
+    [list text -label Content -tags Content] \
+    [list text -label Description -tags Description] \
+    [list text -label Path -tags Path] \
+    [list text -label Reference -tags Reference] \
+  ]]
   # configuration of the tree of variables
   $wt_vars column configure Grammar -visible no
   $wt_vars column configure Reference -visible no
   $wt_vars column configure all -itembackground ""
   $wt_vars notify bind $wt_vars <Expand-before> "::TolInspector::OpenVariable %I"
   $wt_vars notify bind $wt_vars <Selection> "::TolInspector::SelectItem $wt_vars"
-  #@! el bind debería poder hacerse directamente sobre el wtree
-  bind ${wt_vars}.frameTree.t <Button-1> "::focus $wt_vars"    
-  bind ${wt_vars}.frameTree.t <Double-1> "::TolInspector::SelectionExpand"
+  bind $wt_vars <Button-1> "::focus $wt_vars"    
+  bind $wt_vars <Double-1> "::TolInspector::SelectionExpand"
   
   # Creation of the right TREE RIGHT with FUNCTIONS
   set wt_funcs [::wtree $sw22.vars -table 1 -filter no \
     -background white -showroot 0 -selectmode extended -showheader 1 \
     -highlightbackground gray75 -highlightcolor black \
     -highlightthickness 0 -font $toltk_options(fonts,Label) \
-    -columns [::TolInspector::RNodeDef] ]
+    -columns [list \
+    [list text -label Index -tags Index] \
+    [list text -label Grammar -tags Grammar] \
+    [list {image text} -label Name -tags Name] \
+    [list text -label Content -tags Content] \
+    [list text -label Description -tags Description] \
+    [list text -label Path -tags Path] \
+    [list text -label Reference -tags Reference] \
+  ]]
   # configuration of the tree of functions
   $wt_funcs column configure Grammar -visible no
   $wt_funcs column configure Reference -visible no
   $wt_funcs column configure all -itembackground ""     
   $wt_funcs notify bind $wt_funcs <Selection> "::TolInspector::SelectItem $wt_funcs"      
-  bind ${wt_funcs}.frameTree.t <Button-1> "::focus $wt_funcs"      
+  bind $wt_funcs <Button-1> "::focus $wt_funcs"      
   
   # associates the trees to scrolled windows
   $sw21 setwidget $wt_vars
@@ -367,10 +376,6 @@ proc ::TolInspector::CreatePaneRight { paneRight } {
   pack $tab1.sw12 -fill both -expand yes
   pack $tab2.sw22 -fill both -expand yes    
   pack $w_tabset -fill both -expand yes  
-  #@! $w_tabset tab configure Variables\
-  #@!        -command "::TolInspector::SelectItem $wt_vars"
-  #@! $w_tabset tab configure Functions\
-  #@!        -command "::TolInspector::SelectItem $wt_funcs"
 }
 
 #/////////////////////////////////////////////////////////////////////////////
@@ -434,9 +439,9 @@ proc ::TolInspector::CreateMenus {} {
   #$ht_vars  bind Entry <Button-3> +[$ht_vars bind Entry <Button-1>]
   
   # composes the  menus for each one of the trees, depending the node that is selected
-  bind ${wt_tree}.frameTree.t <Button-3> "::TolInspector::PostTree %X %Y" 
-  bind ${wt_vars}.frameTree.t <Button-3> "::TolInspector::PostVariable %X %Y" 
-  bind ${wt_funcs}.frameTree.t <Button-3> "::TolInspector::PostFunction %X %Y" 
+  bind $wt_tree <Button-3> "::TolInspector::PostTree %x %y %X %Y" 
+  bind $wt_vars <Button-3> "::TolInspector::PostVariable %x %y %X %Y" 
+  bind $wt_funcs <Button-3> "::TolInspector::PostFunction %x %y %X %Y" 
 }
 
 #/////////////////////////////////////////////////////////////////////////////
@@ -465,7 +470,7 @@ proc ::TolInspector::Destroy { } {
 #          content & description of items
 #
 #/////////////////////////////////////////////////////////////////////////////  
-  #@! wtree destroy ??
+  #@ Hay algo que destruir?
   return
 }
 
@@ -813,6 +818,7 @@ proc ::TolInspector::CallUserFunction {grammar idx} {
       default {
       }
     }
+    ::TolInspector::UpdatePackageRoot
     ::TolInspector::UpdateConsoleObj
   }
 }

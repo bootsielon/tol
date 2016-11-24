@@ -418,11 +418,6 @@ proc ::TolProject::Create {path} {
       [list text -label ExcludeTOL -tags ExcludeTOL] \
     ] ]
   set data(treeview) $tv
-  $tv item style set root FileName    [$tv column cget FileName -itemstyle]
-  $tv item style set root Description [$tv column cget Description -itemstyle]
-  $tv item style set root Type        [$tv column cget Type -itemstyle]
-  $tv item style set root Exclude     [$tv column cget Exclude -itemstyle]
-  $tv item style set root ExcludeTOL  [$tv column cget ExcludeTOL -itemstyle]
   $tv column configure "range 1 end" -visible no
   $tv column configure first -expand yes -weight 1
   $tv column configure all -itembackground ""
@@ -1892,8 +1887,8 @@ proc ::TolProject::BNodeFromFile {tv index parent fd {imgFromType ""}} {
       Label { set void 0 }      
     }
     if {[string equal $item "Type"] && ![string equal $imgFromType ""]} {
-      if ![string equal [set img [$imgFromType $value]] ""] {
-        #@ $tv entry configure $idx -icons [list $img $img]
+      set img [$imgFromType $value]
+      if ![string equal $img ""] {
         set image $img
       }
     }
@@ -1906,12 +1901,12 @@ proc ::TolProject::BNodeFromFile {tv index parent fd {imgFromType ""}} {
       set hasbutton 0
     }  
     set idx [$tv item create -parent $parent -button $hasbutton -open 0]
-    $tv item image $idx FileName $img
+    $tv item image $idx FileName $image
     $tv item text $idx FileName $filename Description $description \
       Type $type Exclude $exclude ExcludeTOL $excludeTOL  
   } else {
     #@ se actualiza root
-    $tv item image root FileName $img
+    $tv item image root FileName $image
     $tv item text root FileName $filename Description $description \
       Type $type Exclude $exclude ExcludeTOL $excludeTOL
     set idx root

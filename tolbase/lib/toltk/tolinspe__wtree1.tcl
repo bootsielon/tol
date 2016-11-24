@@ -1,41 +1,5 @@
 
 #/////////////////////////////////////////////////////////////////////////////
-proc ::TolInspector::LNodeDef { } {
-#/////////////////////////////////////////////////////////////////////////////
-  return [list \
-    [list {image text} -label Name -tags Name] \
-    [list text -label Index -tags Index] \
-    [list text -label Grammar -tags Grammar] \
-    [list text -label Reference -tags Reference]
-  ]
-}
-
-#/////////////////////////////////////////////////////////////////////////////
-proc ::TolInspector::LNode {index grammar icon name reference} {
-#/////////////////////////////////////////////////////////////////////////////
-  return [list \
-    [list $icon $name] \
-    [list $index] \
-    [list $grammar] \
-    [list $reference] \
-  ]
-}
-
-#/////////////////////////////////////////////////////////////////////////////
-proc ::TolInspector::RNodeDef { } {
-#/////////////////////////////////////////////////////////////////////////////
-  return [list \
-    [list text -label Index -tags Index] \
-    [list text -label Grammar -tags Grammar] \
-    [list {image text} -label Name -tags Name] \
-    [list text -label Content -tags Content] \
-    [list text -label Description -tags Description] \
-    [list text -label Path -tags Path] \
-    [list text -label Reference -tags Reference] \
-  ]
-}
-
-#/////////////////////////////////////////////////////////////////////////////
 proc ::TolInspector::InsertChild { args } {
 #
 # PURPOSE: Inserts a node in the corresponding wtree of the right panel.
@@ -134,7 +98,7 @@ proc ::TolInspector::InsertItem {wt grammar name content path desc subtype} {
     }    
   }
   
-  #@! Se introduce toda la descripción de la clase. REVISAR!
+  #@ Se introduce toda la descripción de la clase.
   if {$grammar eq "Anything"} {
     if { [regexp {@[^ ]+} $name] } {
       set data3 $content
@@ -156,29 +120,15 @@ proc ::TolInspector::InsertItem {wt grammar name content path desc subtype} {
     set icon_grammar [::Bitmap::get $grammar]
   }
   
-  #? set label [OneLine $name]
-  #? if {$label eq ""} {
-  #?   if {[set label $brief_desc] eq ""} {
-  #?     set label " "
-  #?   }
-  #? }
-  
   #@ No se usa el método insert de wtree porque es más lento
-  set idx [$wt item create -button 1 -open 0]
+  #@ Crea y completa los datos de un nodo
+  set idx [$wt item create -button 1 -open 0 -parent root]
   $wt item image $idx Name $icon_grammar
   $wt item text $idx Index $arguments(index) Grammar $grammar \
     Name $name Content $data3 Description $brief_desc Path $path Reference $tolref
-  
-  $wt item lastchild root $idx  
- 
-  #@WTREE a mejorar allí
-  $wt item element configure $idx \
-    Index eTXT -fill $fcolor , \
-    Name eTXT -fill $fcolor , \
-    Content eTXT -fill $fcolor , \
-    Description eTXT -fill $fcolor , \
-    Path eTXT -fill $fcolor    
-
+  if { $fcolor ne "black" } {
+    $wt item-color $idx $fcolor
+  }
   incr arguments(index)
 }
 
@@ -197,9 +147,6 @@ proc ::TolInspector::ClearHiertables { } {
   $wt_vars item delete all
   $wt_funcs selection clear
   $wt_funcs item delete all
-
-  #@ToDo $wt_vars  column configure Index -hide no
-  #@ToDo $wt_funcs column configure Index -hide no
   
   $w_tabset itemconfigure Variables -text [mc Variables] -state normal 
   $w_tabset itemconfigure Functions -state normal
@@ -263,11 +210,10 @@ proc ::TolInspector::InsertPackages {} {
   
   set order 1
   foreach pkg [::tol::info packages] {
-    # takes an icon with the same name that the grammar
-    set img [ ::Bitmap::get NameBlock ]
-    set wt_row [::TolInspector::LNode $order NameBlock $img $pkg "NameBlock $pkg"]       
-    $wt_tree insert $wt_row -at child -relative "root-packages" \
-      -tags "package-$order" -button yes
+    # takes an icon with the same name that the grammar     
+    set idnew [$wt_tree item create -parent "root-packages" -button yes -open 0 -tags "package-$order"]
+    $wt_tree item image $idnew Name [::Bitmap::get NameBlock]
+    $wt_tree item text $idnew Index $order Grammar "NameBlock" Name $pkg Reference "NameBlock $pkg"      
     incr order
   }
 }
@@ -284,10 +230,9 @@ proc ::TolInspector::InsertGrammars {} {
   set id 1
   foreach g [::tol::info grammars] {
     # takes an icon with the same name that the grammar
-    set img [::Bitmap::get $g]  
-    set wt_row [::TolInspector::LNode $id Grammar $img $g "Grammar $g"]      
-    $wt_tree insert $wt_row -at child -relative "root-grammars" \
-      -tags "grammar-$id" -button no
+    set idnew [$wt_tree item create -parent "root-grammars" -button no -open 0 -tags "grammar-$id"]
+    $wt_tree item image $idnew Name [::Bitmap::get $g]
+    $wt_tree item text $idnew Index $id Grammar "Grammar" Name $g Reference "Grammar $g"
     incr id
   }
 }
@@ -310,10 +255,9 @@ proc ::TolInspector::InsertFiles { } {
     set img [SubTypeImage $subtype]
     # Tail del fichero. Podría hacerse configurable por el usuario
     set label [file tail $f]
-    set wt_row [::TolInspector::LNode $index File $img $label [list File $f]]     
-    #@ la columna FileName se incorpora en la columna 4
-    $wt_tree insert $wt_row -at child -relative "root-files" \
-      -tags "file-$index" -button $button
+    set idnew [$wt_tree item create -parent "root-files" -button $button -open 0 -tags "file-$index"]
+    $wt_tree item image $idnew Name $img
+    $wt_tree item text $idnew Index $index Grammar "File" Name $label Reference [list File $f]
     incr index
   }
 }
@@ -345,10 +289,9 @@ proc ::TolInspector::InsertConsoleObj { } {
           set name " "
         }
       }
-      set wt_row [::TolInspector::LNode $index $grammar $icon $name "Console $index"]      
-      #@ la columna FileName de ht_tree se incorpora en la columna 4
-      $wt_tree insert $wt_row -at child -relative "root-console" \
-        -tags "console-$index" -button $has_button      
+      set idnew [$wt_tree item create -parent "root-console" -button $has_button -open 0 -tags "console-$index"]
+      $wt_tree item image $idnew Name $icon
+      $wt_tree item text $idnew Index $index Grammar $grammar Name $name Reference "Console $index"
     }
     incr index
   }
@@ -382,7 +325,6 @@ proc ::TolInspector::InsertSubset { args } {
   #@ para obtener el icono de las instancias
   set parent_tolref $arguments(parent_tolref)
   
-#@# Tolcon_Trace "InsertSubset $args"   
   catch {
   #puts "InsertSubset, args=$args"
   set grammar [lindex $args 0]
@@ -417,23 +359,22 @@ proc ::TolInspector::InsertSubset { args } {
     set label [file tail $name]
     #puts [list InsertSubset, indices {lindex $args 5} = $indices]
     
-#noaun set obj_ref [lappend [$wt_tree item text $parent_node Reference $indices] ] 
-#noaun Tolcon_Trace "Inserto un nodo nuevo. $obj_ref"
     set index [lindex $indices end]
     set tolRefe [eval list [$wt_tree item text $parent_node Reference] $index]
-    set wt_row [::TolInspector::LNode $index $grammar $icon $label $tolRefe]
-
     if {$label eq ""} {
       if {[set label [TrimContent DONTCARE [lindex $args 4]]] eq ""} {
         set label " "
       }
     }
 
-    set idnew [ $wt_tree insert $wt_row -at end -relative $parent_node -button $has_button]
-    $wt_tree item element configure $idnew Name eTXT -fill $fcolor
+    set idnew [$wt_tree item create -parent $parent_node -button $has_button -open 0]
+    $wt_tree item image $idnew Name $icon
+    $wt_tree item text $idnew Index $index Grammar $grammar Name $label Reference $tolRefe  
+    if { $fcolor ne "black" } {
+      $wt_tree item-color $idnew $fcolor
+    }
   }
   } msg
-  #@! Tolcon_Trace "InsertSubSet: $msg"
 }
 
 #/////////////////////////////////////////////////////////////////////////////
@@ -505,9 +446,7 @@ proc ::TolInspector::SelectPackageRoot { } {
   ClearHiertables
   $w_tabset itemconfigure Variables -text [mc Packages]  
   $w_tabset raise Variables  
-  #@D $w_tabset itemconfigure Functions -state disabled  
-  
-  #@=> tiene que incrementarse automáticamente es el contador del foreach  
+  #@D $w_tabset itemconfigure Functions -state disabled    
   
   foreach pkg [::tol::info packages] {
     set pi [::tol::info var "NameBlock $pkg"]
@@ -539,7 +478,6 @@ proc ::TolInspector::SelectFileRoot { } {
   $w_tabset raise Variables
   #@D $w_tabset itemconfigure Functions -state disabled
   
-  #@=> tiene que incrementarse automáticamente es el contador del foreach  
   foreach f [lreverse [::tol::info included]] {
     # this catch is needed because info include could return files not really included
     if { [catch { ::tol::info included $f } fi] } continue
@@ -619,8 +557,6 @@ proc ::TolInspector::SelectGrammar { } {
   set arguments(index) 1
   
   ClearHiertables
-  #@! $ht_vars column  configure Index -hide yes
-  #@! $ht_funcs column configure Index -hide yes
   
   set selAnchor [$wt_tree selection get 0]
   
@@ -749,16 +685,6 @@ proc ::TolInspector::OpenVariable { node } {
     update
     $wt_tree selection clear    
     $wt_tree selection add $treeNode
-    
-#@!! REVISAR  
-#@!! blt::tv::SetSelectionAnchor $ht_tree $treeNode
-#@!! set blt::tv::scroll 1
-    #$ht_tree selection clearall
-    #$ht_tree see $treeNode
-    #$ht_tree focus $treeNode
-    #$ht_tree selection set $treeNode
-    #$ht_tree selection anchor $treeNode
-    #set blt::Hiertable::scroll 1
   }
 }
 
@@ -777,7 +703,7 @@ proc ::TolInspector::SelectItem { wt } {
 # variable w_text       ;# TODO: ????
   variable OnSelectItem ;#Command to invoke on SelectItem in wt_*
  
-  #@! set entry [$wt selection anchor] ;# id of entry selected
+  #@ entry era el 'selection anchor'
   set entry [$wt selection get end] ;# id of entry selected
 
   if { [string length $OnSelectItem] } {

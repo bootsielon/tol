@@ -633,11 +633,11 @@ proc ::TolConsole::EvalExpr {tolexpr} {
 #
 #/////////////////////////////////////////////////////////////////////////////
   ::TolInspector::Busy
-  Tolcon_Trace "tolexpr = $tolexpr"
   if { [string length $tolexpr] } {
     ::tol::console eval $tolexpr
     SaveEval $tolexpr
   }
+  ::TolInspector::UpdatePackageRoot  
   ::TolInspector::UpdateConsoleObj
   ::TolInspector::NotBusy
 }
@@ -717,12 +717,10 @@ proc ::TolConsole::OnBusy { state } {
     
     if { $state } {
         $widgets(eval) configure -cursor watch
-        #@TS2NB $widgets(tabset) configure -cursor watch
         $widgets(panes,bottom) configure -cursor watch
        #  ::blt::busy hold .       
     } else {
         $widgets(eval) configure -cursor xterm
-        #@TS2NB $widgets(tabset) configure -cursor ""
         $widgets(panes,bottom) configure -cursor ""
       #  ::blt::busy release .      
     }
@@ -1149,9 +1147,9 @@ proc ::TolConsole::CreateButtonBar { {tolcon 1} } {
      #Function Search
        ::TolConsole::NewButtonB $tbTool funsearch [mc "Functions Search"] \
      [list ::funcSearch::Show] $TF
-     #@SQLTable #SQL
-     #@SQLTable ::TolConsole::NewButtonB $tbTool bysSql [mc "Bayes SQL"] \
-     #@SQLTable [list ::SQLTable::TableBayesSQL] $TF
+     #@Obsoleto: #SQL
+     #@Obsoleto: ::TolConsole::NewButtonB $tbTool bysSql [mc "Bayes SQL"] \
+     #@Obsoleto: [list ::SQLTable::TableBayesSQL] $TF
      #Calendar
      ::TolConsole::NewButtonB $tbTool TimeSet [mc "Calendar Expert"] \
      [list ::CalendarTms::ViewTimeSet] $TF
@@ -2373,7 +2371,7 @@ proc ::TolConsole::WriteIni {} {
       -command "::funcSearch::Show"
   $md add $id command -label [mc "&Calendar Expert"] \
       -command "::CalendarTms::ViewTimeSet"
-  #@SQLTable $md add $id command -label [mc "&Bayes SQL"] \
+  #@Obsoleto: $md add $id command -label [mc "&Bayes SQL"] \
       -command "::SQLTable::TableBayesSQL"
   
   $md add $id separator

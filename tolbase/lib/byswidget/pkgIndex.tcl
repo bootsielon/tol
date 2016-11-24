@@ -25,7 +25,7 @@ foreach d {
   barima
   bdialog
 } {
-  #@!NO: bsersel btab btreeview btreeviewplus
+  #@ bsersel btab btreeview btreeviewplus
   set dir [file join $maindir $d]
   source [file join $dir pkgIndex.tcl]
 }

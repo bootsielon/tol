@@ -279,6 +279,11 @@ snit::widget wtree {
       $self activate $itemid
     }
   }
+  
+  method item-identify {x y} {
+    $self identify
+  
+  }
 
   constructor { args } {
     # frame para el filtro de nodos
@@ -346,9 +351,11 @@ snit::widget wtree {
     $tree notify bind $tree <Edit-accept>  \
         [ mymethod EditCallback accept %I %C %E %t ]
 
-    bind $tree <ButtonPress-1> [ mymethod OnButtonPress1 %x %y ]
-    bind $tree <Control-ButtonPress-1> { }
-    bind $tree <Shift-ButtonPress-1> { }
+    #@ El bind se hace con $self para poder ser modificado externamente
+    #@ Hay mas binds en _configure_bindings
+    bind $self <ButtonPress-1>         [mymethod OnButtonPress1 %x %y]
+    bind $self <Control-ButtonPress-1> {}
+    bind $self <Shift-ButtonPress-1>   {}
 
     set height [font metrics [$tree cget -font] -linespace]
     if {$height < 18} {
@@ -392,11 +399,14 @@ snit::widget wtree {
     grid rowconfigure    $win 1 -weight 1
 
     focus $tree
-
+    
+    #@ Se antepone la configuración de $args para que el nodo root esté o no
+    #@ y se le pueda aplicar la configuración de columnas
+    $self configurelist $args
     $self _configure_bindings
     $self _conf-columns -columns $options(-columns)
     $self _conf-contextmenu -contextmenu $options(-contextmenu)
-    $self configurelist $args
+
     if { !$options(-filter) } {
       grid remove $win.frameFilter
     }
@@ -409,6 +419,27 @@ snit::widget wtree {
 
   method CancelEdit { } {
     ::TreeCtrl::EditClose $tree entry 0 0
+  }
+  
+  method item-color { item color } {
+    set args {}
+    set first 1
+    foreach c [ $tree column list ] {
+      # extraigo el style asociado a la columna
+      set columnStyle [ $tree column cget $c -itemstyle ]
+      # extraigo los elementos del style
+      set styleElements [ $tree style elements $columnStyle ]
+      # busco si eTXT es uno de esos elementos
+      if { [ lsearch $styleElements "eTXT" ] != -1 } {
+        if { $first } {
+          set first 0
+        } else {
+          lappend args {,}
+        }
+        lappend args $c eTXT -fill $color
+      }
+    }
+    return [eval $self item element configure $item $args]
   }
 
   method getItemText { item } {
@@ -424,7 +455,7 @@ snit::widget wtree {
       set styleElements [ $tree style elements $columnStyle ]
       # busco si eTXT es uno de esos elementos
       if { [ lsearch $styleElements "eTXT" ] != -1 } {
-        # el root no tiene styles
+        # el root no tiene styles | #@ ya sí
         catch {
           append itemText [ $tree item element cget $item $c eTXT -text ] " "
         }
@@ -648,12 +679,12 @@ snit::widget wtree {
 
   method _configure_bindings { } {
 
-    bind $tree <Double-ButtonPress-1> "[mymethod DoubleButton1 %W %x %y] ; break"
-    bind $tree <Return> "[mymethod KeyPressReturn %W] ; break"
-
-    bind $tree <ButtonPress-3> [ mymethod Button3 %W %x %y %X %Y]
-
-    bind $tree <Escape> "[mymethod KeyPressEscape] ; break"
+    #@ El bind se hace con $self para poder ser modificado externamente
+    #@ Hay mas binds en el constructor
+    bind $self <Double-ButtonPress-1> "[mymethod DoubleButton1 %W %x %y] ; break"
+    bind $self <Return>               "[mymethod KeyPressReturn %W] ; break"
+    bind $self <ButtonPress-3>         [mymethod Button3 %W %x %y %X %Y]
+    bind $self <Escape>               "[mymethod KeyPressEscape] ; break"
 
     $tree notify bind $tree <Header-invoke> [mymethod SortbyColumn %W %C]
 
@@ -772,7 +803,7 @@ snit::widget wtree {
                       -text $opts(-label) \
                       -image $opts(-image) \
                       -itembackground "\#e0e8f0 {}" \
-                      -tags $opts(-tags) ]
+                      -tags $opts(-tags) -expand 1]
       # "
       set column_info($idx,ID) $colID
       set column_info(MAPIDX,$colID) $idx
@@ -800,6 +831,12 @@ snit::widget wtree {
       }
       # asocio el style a la columna
       $tree column configure $colID -itemstyle $s
+      
+      #@ Se añaden las columnas al nodo root si está visible
+      if { [$tree cget -showroot] } {
+        $tree item style set root $colID $s
+      }
+      
       incr idx
     }
     # Specifies a column description that determines which column

@@ -158,8 +158,10 @@ proc debug_msg { msg } {
     }
     
     # bind
+    #@!bind
     #@T! $_listbox bind all <KeyPress> +[list $self _OnKeyPress %A]
     #@T! to do    
+    bind $_listbox <KeyPress> +[list $self _OnKeyPress %A]
     
     $self configure -nomenu [from args -nomenu]
     $self configure -filtercols [from args -filtercols]
@@ -428,20 +430,6 @@ proc debug_msg { msg } {
     bind $_listbox <Shift-Home>         "$self addAllPrevious"
     bind $_listbox <Shift-End>          "$self addAllNext"
     bind $_listbox <Button-1>           +[list focus -force %W]    
-  }
-
-  #@//////////////////////////////////////////////////////////////////////////
-  method bind { args } {
-  #
-  # PURPOSE: modifies a particular case of bind
-  #
-  #///////////////////////////////////////////////////////////////////////////
-    if { [lindex $args 1] eq "<Selection>" } {
-      #@T no se usa
-      return [eval $_listbox notify bind $args]
-    } else {
-      return [bind $_listbox.frameTree.t [lindex $args 1] [lindex $args 2]]
-    }
   }
    
   method curselection {} {
@@ -886,7 +874,6 @@ proc debug_msg { msg } {
         }
         return $result
       } else {
-        #@T! return [eval $_listbox curselection]
         return [$self curselection]
       }
     }
@@ -915,7 +902,7 @@ proc debug_msg { msg } {
         # una sola columna
         foreach dats $args {
           set datos [list [lindex $cols 0] $dats]
-          #@T! $_listbox insert $pos $currentId -data $datos
+          #@ Crea y completa los datos de un nodo
           set node [$_listbox item create -parent root -button 0 -open 0]
           eval $_listbox item text $node $datos
           if { $options(-icon) != "" } {
@@ -933,8 +920,8 @@ proc debug_msg { msg } {
             lappend datos $col [lindex $dats $i]
             incr i
           } 
-          #@T! $_listbox insert $pos $currentId -data $datos
-          set node [$_listbox item create -parent root -button 0 -open 0] ;# -parent $pos
+          #@ Crea y completa los datos de un nodo
+          set node [$_listbox item create -parent root -button 0 -open 0]
           eval $_listbox item text $node $datos
           if { $options(-icon) != "" } {
             $_listbox item image $node [Bitmap::get $options(-icon)]
@@ -969,7 +956,6 @@ proc debug_msg { msg } {
   #
   #///////////////////////////////////////////////////////////////////////////
     if { "-1" eq [lsearch $args 0] } {
-      #@T! eval $_listbox delete $args
       eval $_listbox item delete $args
     } else {
       puts "Root node can't be deleted"
@@ -996,10 +982,8 @@ proc debug_msg { msg } {
   #
   #///////////////////////////////////////////////////////////////////////////
     if { $ids eq "" } { 
-      #@T! return [lrange [$self find] 1 end]
       set items [$_listbox item children root]
-      Tolcon_Trace "items $items"
-      return $items  ;#??
+      return $items
     }
   
     set result {}
@@ -1009,29 +993,17 @@ proc debug_msg { msg } {
     } 
 
     foreach id $ids {
-    
-      set elem {}
-    
-      #@T! set data [$_listbox entry cget $id -data]    
-      #@T! foreach col $cols {
-      #@T!   set inx [lsearch $data $col]
-      #@T!   if { "-1" ne $inx } {
-      #@T!     incr inx
-      #@T!     lappend elem [lindex $data $inx]
-      #@T!   }
-      #@T! }
-      
+      set elem {}   
       foreach col $cols {
         lappend elem [$_listbox item text $id $col]
       }
-      
       lappend result $elem
     }
      
     if { [llength $ids] eq 1 } {   
       return [lindex $result 0] 
     }
-    Tolcon_Trace "get result: $result"    
+   
     return $result
   }
 
@@ -1056,7 +1028,6 @@ proc debug_msg { msg } {
       lappend datos [lindex $data $i]
       incr i
     }
-    #@T! return [$_listbox entry configure $id -data $datos]
     return [eval $_listbox item text $id $datos]
   }
 
