@@ -51,8 +51,6 @@ proc debug_msg { msg } {
 # variables
 # listbox -> el treeview que hace de listbox propiamente
 # menu -> el menu contextual del listbox
-# xbar -> horizontal scrollbar
-# ybar -> vertical scrollbar
 # afterTime -> tiempo desde que se pulso la ultima tecla
 # listKey -> lista de teclas pulsadas
 #/////////////////////////////////////////////////////////////////////////////
@@ -76,15 +74,13 @@ proc debug_msg { msg } {
   option -valuesinsert {}
   option -iniconfig ""
   
-  #@O treeview options
-  option -exportselection false
+  #@O! (treeview options) Se introducen para evitar errores
+  option -exportselection false ;# unused
   option -linewidth 1 ;# unused
   option -selectbackground "unused"
   
   variable _listbox
   variable menu
-  variable xbar
-  variable ybar
   
   variable afterTime 0
   variable listKey   ""
@@ -105,11 +101,6 @@ proc debug_msg { msg } {
     debug_msg "install listbox ..."
 
     if {1} {
-      #@T install _listbox using ::blt::treeview $win.lb -hideroot yes \
-          -activeicons "" -icons {} -selectmode multiple \
-          -selectbackground grey -selectforeground white \
-          -highlightthickness 0 -borderwidth 1 -selectborderwidth 1 \
-          -nofocusselectbackground grey -font {Arial 9} -flat yes
       install _listbox using ::wtree $win.lb -table 0 -filter no \
         -background white -showroot 0 -selectmode extended -showheader 1 \
         -highlightbackground gray75 -highlightcolor black \
@@ -119,48 +110,26 @@ proc debug_msg { msg } {
         -background white -showroot 0 -selectmode extended -showheader 1 \
         -highlightbackground gray75 -highlightcolor black \
         -highlightthickness 0 -font {Arial 9}]
-      #@T set _listbox [::blt::treeview $win.lb -hideroot yes \
-                        -activeicons "" -icons {} -selectmode multiple \
-                        -selectbackground grey -selectforeground white \
-                        -highlightthickness 0 -borderwidth 1 \
-                        -selectborderwidth 1 \
-                        -nofocusselectbackground grey -font {Arial 9} -flat yes]
     }
 
     debug_msg "despues de install listbox"
 
     install menu using menu $win.m -tearoff 0
-    #@!scroll install xbar using scrollbar $win.sbh -orient horizontal \
-                                           -command "$win xview"
-    #@!scroll install ybar using scrollbar $win.sbv -orient vertical \
-                                           -command "$win yview"
 
     #bindtags is modified to make possible to associate binds to self
-    $_listbox configure -bindtags [list $self Blistboxplus]
-
-    #@T! $_listbox style  configure text     -bg white
-    #@T! to do
-
-    #@T! $_listbox column configure treeView -bg white
-    #@T! to do    
+    $_listbox configure -bindtags [list $self Blistboxplus] 
 
     $self configure -readonly [from args -readonly]
     $self _CreateMenu  
     
     # Apply all arguments given:
     $self configurelist $args
-
-    #@T! $_listbox configure -xscrollcommand "$xbar set"
-    #@T! $_listbox configure -yscrollcommand "$ybar set"
-    #@T! to do    
+   
     if { $options(-parent) eq "" } {
       $self configure -parent [winfo parent $win]
     }
     
-    # bind
-    #@!bind
-    #@T! $_listbox bind all <KeyPress> +[list $self _OnKeyPress %A]
-    #@T! to do    
+    # bind  
     bind $_listbox <KeyPress> +[list $self _OnKeyPress %A]
     
     $self configure -nomenu [from args -nomenu]
@@ -168,13 +137,9 @@ proc debug_msg { msg } {
 
     #pack
     grid $_listbox -row 0 -column 0 -sticky news
-    #@!scroll grid $ybar -row 0 -column 1 -sticky ns
-    #@!scroll grid $xbar -row 1 -column 0 -sticky ew
     grid columnconfigure $self 0 -weight 1
     grid rowconfigure    $self 0 -weight 1
 
-    #@!scroll ::autoscroll::autoscroll $ybar
-    #@!scroll ::autoscroll::autoscroll $xbar
     debug_msg "voy a pillarte: antes de _ReadIni"
     $self _ReadIni 
     debug_msg "pase?"
@@ -202,14 +167,8 @@ proc debug_msg { msg } {
 
   onconfigure -cols { lst } {
     set options(-cols) $lst
-    #@T! foreach col [$self column names] {
-    #@T!   $_listbox column delete $col
-    #@T! }
+
     $_listbox column delete all
-    #@T! foreach col $options(-cols) {
-    #@T!   $_listbox column insert end $col -justify left
-    #@T!   $_listbox column configure $col -command "$self _SortByColumn [list $col]" -titleborderwidth 1
-    #@T! }
     
     set lstx [list [list image -label Icon -tags Icon] ]
     foreach col $lst {
@@ -217,18 +176,14 @@ proc debug_msg { msg } {
       set colx [list text -label $col -tags $col]
       lappend lstx $colx
     }
-    #@! Tolcon_Trace "lstx $lstx"
     $_listbox configure -columns $lstx
     
     if { $options(-icon) == "" } {
-      #@T! $_listbox column configure "BLT TreeView $_listbox" -hide 1
       $_listbox column configure Icon -visible 0
     } else {
-      #@T! $_listbox column configure "BLT TreeView $_listbox" -hide 0
       $_listbox column configure Icon -visible 1
     }
     
-    #@T adds
     $_listbox column configure first -expand yes -weight 1
     $_listbox column configure all -itembackground ""    
   }
@@ -237,10 +192,8 @@ proc debug_msg { msg } {
     set options(-hiddencols) $lst
     foreach col [$self column names] {
       if { "-1" eq [lsearch $options(-hiddencols) $col] } {
-        #@T! $_listbox column configure $col -hide 0
         $_listbox column configure $col -visible 1
       } else {
-        #@T! $_listbox column configure $col -hide 1
         $_listbox column configure $col -visible 0
       }
     }
@@ -248,21 +201,15 @@ proc debug_msg { msg } {
 
   onconfigure -showtitles { bool } {
     set options(-showtitles) $bool
-    #@O $_listbox configure -showtitles $bool
-    $_listbox configure -showheader $bool    
-    #@O! $_listbox show
+    $_listbox configure -showheader $bool
   }
 
   onconfigure -icon { icon } {
     set options(-icon) $icon
     if { $icon != "" } {
-      #@T! $_listbox column configure "BLT TreeView $_listbox" -min 16 -max 16 \
-      #@T!   -hide 0 -titleborderwidth 1
-      #@T! $_listbox configure -icons [list [Bitmap::get $icon] [Bitmap::get $icon]]
       $_listbox column configure Icon -minwidth 16 -maxwidth 16 -visible 1 ;# -titleborderwidth 1
       
     } else {
-      #@T! $_listbox column configure "BLT TreeView $_listbox" -hide 1
       $_listbox column configure Icon -visible 0
     }
   }
@@ -272,7 +219,6 @@ proc debug_msg { msg } {
     set c 0
     set cols [$self column names]
     foreach col $cols {
-     #@O $self column configure $col -title [mc [lindex $titles $c] ]
      $_listbox column configure $col -text [mc [lindex $titles $c] ]
      incr c 1     
     } 
@@ -358,7 +304,7 @@ proc debug_msg { msg } {
         return
       }
     } elseif { [lindex $args 1] eq "auto" } { 
-      #@O! Nothing to do ??
+      #@O! Llamado desde barima. Hace falta hacer algo?
       return 
     } else {
       return
@@ -667,34 +613,7 @@ proc debug_msg { msg } {
   #  col -> the column which the sort is performed
   #
   #///////////////////////////////////////////////////////////////////////////
-
-    #@O!
     return [$_listbox SortbyColumn $_listbox $col]
-  
-    set numofel [$self size]
-    set lst [list]
-    set fulllst [$self get]
-
-    foreach i $fulllst {
-      lappend lst [$self get $i ]
-    }
-# lst:    contains a list of values
-    set coln 0
-    set cols [$self cget -cols]
-    set hidcols [$self cget -hiddencols]
-    for { set j 0 } { $j < [llength $cols] } { incr j } {
-      if {[lindex $cols $j] eq $col} {
-        set coln $j
-      }
-    }
-# coln:   contains the index of the column to be ordered
-    set lst [lsort -index $coln $lst]
-    $self clear
-    for { set i 0 } { $i < $numofel } { incr i } {
-      set el [lindex $lst $i ]
-      $self insert end $el
-    }
-
   }
 
   #///////////////////////////////////////////////////////////////////////////
