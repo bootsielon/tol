@@ -577,16 +577,6 @@ proc ::Editor::OnConfigure { this w h } {
                   -command [list ::Editor::CmdPaste $this]
   $me add command -label [mc "Select all"] -accelerator CTRL+E \
                   -command [list ::Editor::CmdSelectAll $this]
-  
-  #CVS Utilities
-  #$m add separator
-  #set mc [menu $f.m.cvs -tearoff 0]
-  #$m add cascade -label [mc "CVS Utilities"] -menu $mc
-  #$mc add command -label [mc "TkCVS"] \
-  #                -command [list ::Editor::CmdTkcvs $this 0]
-  #$mc add command -label [mc "TkDiff"] \
-  #                -command [list ::Editor::CmdTkcvs $this  1]
-  
 
   bind $data(txt,ctext) <Button-3>  "tk_popup $m %X %Y"
   #pedro
@@ -1265,35 +1255,6 @@ proc ::Editor::PreProc {this args} {
     set ok 0
   }
   return $ok
-}
-
-#/////////////////////////////////////////////////////////////////////////////
-  proc ::Editor::CmdTkcvs { this mode} {
-#
-# PURPOSE: Execute CVS utilities
-#
-# PARAMETERS:
-#   this -> Instance of editor 
-#   mode -> type of execution (0 -> tkCvs, 1 -> tkdiff)
-#
-#/////////////////////////////////////////////////////////////////////////////
-  global toltk_bin
-  global tkcvs_library
-  
-  variable options
-  upvar \#0 ${this}::data data
-  
-  if {$mode == 0} {
-    set cmd "[file join $toltk_bin wish84.exe] [file join $tkcvs_library tkcvs.tcl]"
-    #exec c:/TclTk/bin/wish84.exe c:/TclTk/bin/tkcvs.tcl -dir $options(lastDir) &
-    exec $cmd -dir $options(lastDir) &
-  } else {
-    set cmd "[file join $toltk_bin wish84.exe] [file join $tkcvs_library tkdiff.tcl]"
-    #exec c:/TclTk/bin/wish84.exe c:/TclTk/bin/tkdiff.tcl $data(nameFile) &
-    exec $cmd $data(nameFile) &
-  }
-
-  
 }
 
 #/////////////////////////////////////////////////////////////////////////////

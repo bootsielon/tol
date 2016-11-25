@@ -10,9 +10,11 @@ exec wish "$0" -- ${1+"$@"}
 
 package require Tk
 
+# trace: muestra (o no) la ventana de trazas de TOL
 set trace 0
+
 #/////////////////////////////////////////////////////////////////////////////
-  proc Tolcon_Trace { msg {tags ""} {args ""} } {
+proc Tolcon_Trace { msg {tags ""} {args ""} } {
 #
 # PURPOSE: Writes a trace message in a toplevel window. It's used for
 #          debugging. If release versions uncomment the initial return.
@@ -53,13 +55,15 @@ set trace 0
   update
 }
 
+#/////////////////////////////////////////////////////////////////////////////
 proc TraceMainGeometry { msg } {
+#/////////////////////////////////////////////////////////////////////////////
   puts "== $msg == wm geometry . == [wm geometry .]"
   puts "== $msg == winfo geometry . == [winfo geometry .]"
 }
 
 #/////////////////////////////////////////////////////////////////////////////
-  proc LoadPackages {} {
+proc LoadPackages {} {
 #
 # PURPOSE: Load packages
 #
@@ -82,7 +86,7 @@ proc TraceMainGeometry { msg } {
 }
 
 #/////////////////////////////////////////////////////////////////////////////
- proc OpenAssocFile {file {run 0} {inc 0}} {
+proc OpenAssocFile {file {run 0} {inc 0}} {
 #/////////////////////////////////////////////////////////////////////////////
   switch [string toupper [file extension $file]] {
     ".SQL" {
@@ -126,9 +130,8 @@ proc TraceMainGeometry { msg } {
   }
 }
 
-
 #/////////////////////////////////////////////////////////////////////////////
-  proc loadInfoProjects { prjini } {
+proc loadInfoProjects { prjini } {
 #
 # PURPOSE: Loads in a list the name and paths of each project to load
 #
@@ -227,12 +230,16 @@ proc TraceMainGeometry { msg } {
   return $values
 }
 
+#/////////////////////////////////////////////////////////////////////////////
+# Main
+# Secuencia de instrucciones para la carga de tolbase
+# 
+
 if {[info exist ::env(DEBUG_TOLTCL)] && $::env(DEBUG_TOLTCL) eq "yes"} {
   set tt_debug "d"  
 } else {
   set tt_debug ""  
 }
-
 
 set info_script [info script]
 if {[file type $info_script] eq "link"} {
@@ -254,42 +261,19 @@ if { [string equal $tcl_platform(platform) "windows"] } {
   set home_path $env(HOME)  
 }
 
+if { [string equal $tcl_platform(platform) "windows"] } {
+  #@ Cambia el 'current directory' al bin de tol para evitar problemas en la carga
+  set tolBin [file normalize [file join [file dir [info script]] .. .. .. bin]]
+  cd $tolBin
+}
+
 if { ![info exists toltk_library] } {
   set toltk_library [file normalize [file join $toltk_script_path ..]]
 }
-
-if { ![info exists toltk_bin] } {
-  set toltk_bin [file normalize [file join $toltk_library ../bin]]
-}
-
 if {[lsearch $auto_path $toltk_library] == -1} {
   set auto_path [linsert $auto_path 0 $toltk_library]
 }
 
-if { ![info exists rbc_libPath] } {
-  set rbc_libPath [file join $toltk_library rbc]
-}
-
-if { ![info exists env(RBC_LIBRARY)] } {
-  set env(RBC_LIBRARY) [file join $toltk_library rbc]
-}
-
-if { ![info exists tkTable_libPath] } {
-  set tkTable_libPath [file join $toltk_library Tktable]
-  set env(TK_TABLE_LIBRARY) [file join $toltk_library Tktable]
-}
-
-if { ![info exists byswidget_library] } {
-  set byswidget_library [file normalize [file join $toltk_script_path byswidget]]
-}
-# NOTE: necessary for TkCVS
-if { ![info exists tkcvs_library] } {
-  set tkcvs_library [file normalize [file join $toltk_script_path tkcvs]]
-}
-
-if {[lsearch $auto_path $toltk_library] == -1} {
-  set auto_path [linsert $auto_path end $byswidget_library]
-}
 
 # Load project
 namespace import project::*
@@ -433,3 +417,5 @@ if { $salir } { exit }
 # Show the dialog
 
 #::TolConsole::ODBCShow
+
+#/////////////////////////////////////////////////////////////////////////////
