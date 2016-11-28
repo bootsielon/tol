@@ -32,6 +32,9 @@ Text _.autodoc.member.TolVersion =
   };
 
   ////////////////////////////////////////////////////////////////////////////
+  // Se introduce una cache para agilizar las llamadas a esta función.
+  Set _ObtainIntegers.Cache = Copy(Empty);
+  ////////////////////////////////////////////////////////////////////////////
   Set ObtainIntegers(Text version)
   ////////////////////////////////////////////////////////////////////////////
   {
@@ -39,20 +42,27 @@ Text _.autodoc.member.TolVersion =
     If(v!="v", {
       If(False, ?)
     }, {
-      Real firstEnd = TextFind(version, ".", 2)-1;
-      Real If(firstEnd<0, firstEnd:=TextLength(version));
-      Real v1 = Eval(Text Sub(version, 2, firstEnd));
-      If(v1<=2, {
-        Text versionM = Replace(Sub(version, 2, TextLength(version)), 
-          ".", " ");
-        EvalSet(Select(Tokenizer(versionM, " "), _IsIntegerText), 
-          Real (Text it) { Eval(it) })
+      Real index = FindIndexByName(_ObtainIntegers.Cache, version);
+      Set If(index, {
+        _ObtainIntegers.Cache[index]
       }, {
-        Text versionM = Replace(Replace(
-          Replace(Sub(version, 2, TextLength(version)), ".", " "), 
-          " p", " 1 "), " b", " 0 ");
-        EvalSet(Select(Tokenizer(versionM, " "), _IsIntegerText), 
-          Real (Text it) { Eval(it) })
+        Real firstEnd = TextFind(version, ".", 2)-1;
+        Real If(firstEnd<0, firstEnd:=TextLength(version));
+        Real v1 = Eval(Text Sub(version, 2, firstEnd));
+        Set integers = If(v1<=2, {
+          Text versionM = Replace(Sub(version, 2, TextLength(version)), 
+            ".", " ");
+          EvalSet(Select(Tokenizer(versionM, " "), _IsIntegerText), 
+            Real (Text it) { Eval(it) })
+        }, {
+          Text versionM = Replace(Replace(
+            Replace(Sub(version, 2, TextLength(version)), ".", " "), 
+            " p", " 1 "), " b", " 0 ");
+          EvalSet(Select(Tokenizer(versionM, " "), _IsIntegerText), 
+            Real (Text it) { Eval(it) })
+        });
+        Set Append(_ObtainIntegers.Cache, [[ PutName(version, integers) ]]);
+        integers
       })
     })
   };

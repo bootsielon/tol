@@ -269,6 +269,14 @@
     Set compRecords = server::GetCompatibleRecords(Platform(?), Version, 
       UnknownDate);
     SetConcat(EvalSet(compRecords, Set (Set list) {
+      // localRelease se obtiene sólo una vez por cada list
+      Set record1 = list[1];
+      Text localIdentifier = client::ObtainIdentifier_Show(record1::name, 
+        Platform(?), Version, UnknownDate, 0);
+      Date localRelease = If(TextLength(localIdentifier), {
+        Set localRecord = client::GetRecord(localIdentifier);
+        localRecord::release
+      }, TheBegin);    
       EvalSet(list, Set (Set record) {
         Text dependencies = If(Card(record::freeDependencies), {
           SetSum([[ record::freeDependencies[1] ]]
@@ -276,12 +284,6 @@
               ", "<<record::freeDependencies[i] 
           }))
         }, "");
-        Text localIdentifier = client::ObtainIdentifier_Show(record::name, 
-          Platform(?), Version, UnknownDate, 0);
-        Date localRelease = If(TextLength(localIdentifier), {
-          Set localRecord = client::GetRecord(localIdentifier);
-          localRecord::release
-        }, TheBegin);
         @VersionSynchro(record::repository, record::name, record::identifier,
           "<...>", record::minTolVersion, record::maxTolVersion, 
           dependencies, record::release, localRelease, ?)

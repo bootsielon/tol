@@ -17,7 +17,7 @@ NameBlock TolPackage =
   // La versión 4 aúna las vesiones 2 y 3 y es válida desde tol.3.1
   Text _.autodoc.minTolVersion = "v3.1";
   Real _.autodoc.version.high = 4;
-  Real _.autodoc.version.low = 3;
+  Real _.autodoc.version.low = 4;
 
   Text _.version = ""<<_.autodoc.version.high<<"."<<_.autodoc.version.low;
   // Se usa la version alta para todas las rutas locales

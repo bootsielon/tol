@@ -71,10 +71,10 @@ Class @Catalog
       True, TolPlatform::IsCompatibleWith(tolPlatform, record::platform));
     Real If(ok, {
       // Se comprueba la versión de TOL
-      Real ok := If(tolVersion=="any", True, {
-        TolVersion::CompareVersions(record::minTolVersion, tolVersion)<=0
-        & TolVersion::CompareVersions(tolVersion, record::maxTolVersion)<=0
-      })
+      Real ok := Case(tolVersion=="any", True,
+        TolVersion::CompareVersions(record::minTolVersion, tolVersion)>0, False,
+        TolVersion::CompareVersions(tolVersion, record::maxTolVersion)>0, False,
+        True, True)
     });
     If(ok, {
       // Se comprueba que la fecha no es posterior a la indicada
@@ -147,19 +147,9 @@ Class @Catalog
         // Se comprueba si encaja con el patrón indicado
         Real ok = TextMatch(record::identifier, txtPattern1) 
           | TextMatch(record::identifier, txtPattern2);
-        // Se comprueba la plataforma de TOL
+        // Se comprueba la plataforma y versión de TOL y la fecha
         Real If(ok, ok := _Record.IsCompatible(record, tolPlatform, 
           tolVersion, date));
-        // Se comprueba la versión de TOL
-        Real If(ok, ok := Case(tolVersion=="any", True,
-          TolVersion::CompareVersions(record::minTolVersion, tolVersion)>0,
-            False,
-          TolVersion::CompareVersions(tolVersion, record::maxTolVersion)>0, 
-            False,
-          True, True));
-        // Se comprueba que la fecha no es posterior a la indicada
-        Real If(ok, ok := If(""<<date=="Unknown", True,
-          record::release<=date));
         ok
       });
       If(Card(options), options[1]["identifier"], "#NotCompatible")
