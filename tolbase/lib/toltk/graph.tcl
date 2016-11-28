@@ -19,7 +19,7 @@ proc Busy_Patched { cmd args } {
         return 1
       }
       default {
-        
+
       }
     }
 }
@@ -51,23 +51,23 @@ proc Rbc_ViewMode { graph mode } {
     bind scroll-$graph <ButtonPress-1> { rbc::SetScrollPoint %W %x %y }
     bind scroll-$graph <ButtonRelease-1> { rbc::SetScrollPoint %W %x %y }
     # este evento posiblemente ya no hara falta
-    bind scroll-$graph <ButtonPress-3> { 
-      if { [%W inside %x %y] } { 
-        rbc::ResetScroll %W 
+    bind scroll-$graph <ButtonPress-3> {
+      if { [%W inside %x %y] } {
+        rbc::ResetScroll %W
       }
     }
     rbc::AddBindTag $graph scroll-$graph
   } elseif { [regexp "zoom-*" $mode] } {
     puts "mode = $mode"
     bind zoom-$graph <ButtonPress-1> { rbc::SetZoomPoint %W %x %y }
-    if { [string equal $mode zoom-frame] } { 
+    if { [string equal $mode zoom-frame] } {
       bind zoom-$graph <ButtonRelease-1> { rbc::SetZoomPoint %W %x %y }
     } else {
       bind zoom-$graph <ButtonRelease-1> ""
     }
-    bind zoom-$graph <ButtonPress-3> { 
-      if { [%W inside %x %y] } { 
-        rbc::ResetZoom %W 
+    bind zoom-$graph <ButtonPress-3> {
+      if { [%W inside %x %y] } {
+        rbc::ResetZoom %W
       }
     }
     rbc::AddBindTag $graph zoom-$graph
@@ -79,17 +79,17 @@ proc rbc::RemoveBindTag { widget args } {
   foreach tag $args {
     set index [lsearch $oldTagList $tag]
     if { $index >= 0 } {
-	bindtags $widget [lreplace $oldTagList $index $index]
+        bindtags $widget [lreplace $oldTagList $index $index]
     }
   }
 }
 
 proc rbc::InitStack { graph {mode zoom-frame} } {
     global zoomInfo
-  
+
     _rbc_InitStack $graph
     # this is to allow zoom in, out scroll
-  
+
     set zoomInfo($graph,mode) $mode
 }
 
@@ -134,7 +134,7 @@ proc rbc::ZoomScale { graph } {
     append cmd "$c\n"
   }
   set zoomInfo($graph,stack) [linsert $zoomInfo($graph,stack) 0 $cmd]
-  busy hold $graph 
+  busy hold $graph
   # This update lets the busy cursor take effect.
   update
 
@@ -161,7 +161,7 @@ proc rbc::ZoomScale { graph } {
   #Tolcon_Trace "Aplicando Axis Ticks ZoomScale"
   ::bayesGraph::GrapOptApplyAxisTicks    $this ${this}::options gr,$gr
   update
-  
+
   busy release $graph
 }
 
@@ -184,27 +184,27 @@ proc rbc::SetZoomPoint { graph x y } {
   } else {
     set modifier "Any-"
   }
-  bind select-region-$graph <${modifier}Motion> { 
+  bind select-region-$graph <${modifier}Motion> {
     rbc::GetCoords %W %x %y B
     #rbc::MarkPoint $graph B
     rbc::Box %W
   }
   if { $zoomInfo($graph,corner) == "A" } {
-	if { ![$graph inside $x $y] } {
-	    return
-	}
-	# First corner selected, start watching motion events
+    if { ![$graph inside $x $y] } {
+      return
+    }
+    # First corner selected, start watching motion events
 
-	#rbc::MarkPoint $graph A
-	rbc::ZoomTitleNext $graph 
+    #rbc::MarkPoint $graph A
+    rbc::ZoomTitleNext $graph
 
-	rbc::AddBindTag $graph select-region-$graph
-	set zoomInfo($graph,corner) B
+    rbc::AddBindTag $graph select-region-$graph
+    set zoomInfo($graph,corner) B
   } else {
-	# Delete the modal binding
-	rbc::RemoveBindTag $graph select-region-$graph
-	rbc::PushZoom $graph 
-	set zoomInfo($graph,corner) A
+    # Delete the modal binding
+    rbc::RemoveBindTag $graph select-region-$graph
+    rbc::PushZoom $graph
+    set zoomInfo($graph,corner) A
   }
 }
 
@@ -212,25 +212,25 @@ proc rbc::SetScrollPoint { graph x y } {
     global zoomInfo
 
     rbc::GetCoords $graph $x $y A
-    bind scroll-region-$graph <Any-Motion> { 
-	rbc::GetCoords %W %x %y B
-	#rbc::MarkPoint $graph B
-	rbc::Scroll %W
+    bind scroll-region-$graph <Any-Motion> {
+        rbc::GetCoords %W %x %y B
+        #rbc::MarkPoint $graph B
+        rbc::Scroll %W
     }
     if { $zoomInfo($graph,corner) == "A" } {
-	if { ![$graph inside $x $y] } {
-	    return
-	}
-	# First corner selected, start watching motion events
+        if { ![$graph inside $x $y] } {
+          return
+        }
+        # First corner selected, start watching motion events
 
-	#rbc::MarkPoint $graph A
-	rbc::ScrollTitle $graph 
+        #rbc::MarkPoint $graph A
+        rbc::ScrollTitle $graph
 
-	rbc::AddBindTag $graph scroll-region-$graph
-	set zoomInfo($graph,corner) B
+        rbc::AddBindTag $graph scroll-region-$graph
+        set zoomInfo($graph,corner) B
     } else {
-	# Delete the modal binding
-      ResetScroll $graph
+        # Delete the modal binding
+        ResetScroll $graph
     }
 }
 
@@ -261,15 +261,15 @@ proc rbc::ResetScroll { graph } {
 
   eval $graph marker delete [$graph marker names "scroll*"]
   rbc::RemoveBindTag $graph scroll-region-$graph
-  set zoomInfo($graph,corner) A  
+  set zoomInfo($graph,corner) A
 }
 
 proc rbc::ScrollTitle { graph } {
     if { [$graph cget -invertxy] } {
-	set coords "-Inf -Inf"
+        set coords "-Inf -Inf"
     } else {
-	set coords "-Inf Inf"
+        set coords "-Inf Inf"
     }
     $graph marker create text -name "scrollTitle" -text "scrolling ..." \
-	-coords $coords -bindtags "" -anchor nw
+        -coords $coords -bindtags "" -anchor nw
 }
