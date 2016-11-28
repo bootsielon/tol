@@ -84,6 +84,11 @@ proc rbc::RemoveBindTag { widget args } {
   }
 }
 
+proc rbc::ClearCrosshairs { graph } {
+    rbc::RemoveBindTag $graph crosshairs-$graph
+    $graph crosshairs off
+}
+
 proc rbc::InitStack { graph {mode zoom-frame} } {
     global zoomInfo
 
@@ -92,7 +97,6 @@ proc rbc::InitStack { graph {mode zoom-frame} } {
 
     set zoomInfo($graph,mode) $mode
 }
-
 
 proc rbc::SetZoomScale { graph scale } {
   global zoomInfo
@@ -154,6 +158,8 @@ proc rbc::ZoomScale { graph } {
     set max [expr $v + $delta]
     $graph axis configure $axis -min $min -max $max
   }
+  #@! Redibuja el gráfico
+  event generate $graph <Configure>
   # This "update" forces the graph to be redrawn
   set this [::bayesGraph::getInstance $graph]
   upvar \#0 ${this}::data data
@@ -252,6 +258,8 @@ proc rbc::Scroll { graph } {
     set upper [expr [lindex $limits 1] + $delta]
     $graph axis configure $axis -min $lower -max $upper
   }
+  #@! Redibuja el gráfico
+  event generate $graph <Configure>
   set zoomInfo($graph,A,x) $zoomInfo($graph,B,x)
   set zoomInfo($graph,A,y) $zoomInfo($graph,B,y)
 }

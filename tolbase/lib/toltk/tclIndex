@@ -794,6 +794,7 @@ set auto_index(::ListOrder::Up) [list source [file join $dir listorde.tcl]]
 set auto_index(::ListOrder::Down) [list source [file join $dir listorde.tcl]]
 
 set auto_index(Rbc_ViewMode) [list source [file join $dir graph.tcl]]
+set auto_index(::rbc::ClearCrosshairs) [list source [file join $dir graph.tcl]]
 set auto_index(::rbc::SetZoomScale) [list source [file join $dir graph.tcl]]
 set auto_index(::rbc::ClearMode) [list source [file join $dir graph.tcl]]
 set auto_index(::rbc::ZoomScale) [list source [file join $dir graph.tcl]]

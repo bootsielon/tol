@@ -35,7 +35,7 @@ proc ::TolInspector::UpdateFileRoot { } {
     $wt_tree collapse $idx_file
     set open 1
   }
-  if { [$wt_tree item state get $idx_file focus] } {
+  if { [$wt_tree item state get $idx_file selected] } {
     SelectObject
   }
   if $open {
@@ -54,7 +54,7 @@ proc ::TolInspector::UpdatePackageRoot { } {
     $wt_tree collapse $idx
     set open 1
   }
-  if { [$wt_tree item state get $idx focus] } {
+  if { [$wt_tree item state get $idx selected] } {
     SelectObject
   }
   if $open {
@@ -75,7 +75,7 @@ proc ::TolInspector::UpdateConsoleObj { } {
   $wt_tree selection add $idx_con
 
   #Tolcon_Trace "Abierto el nodo root-console"
-  if { [$wt_tree item state get $idx_con focus] } {
+  if { [$wt_tree item state get $idx_con selected] } {
     SelectObject
   }
 }
@@ -375,7 +375,7 @@ proc ::TolInspector::PostVariable { x y X Y } {
             }
             File {
               if {[llength $options_selected(File)] == 1} {
-                set objName [lindex [lindex $options_selected(File) 0] 1]
+                set objName [lindex [lindex $options_selected(File) 0] 2]               
                 $data_menu(main) add command -label [mc "View file"] \
                   -command [list ::TolInspector::ViewFile $objName]
                 if $InRootFiles {
@@ -387,14 +387,14 @@ proc ::TolInspector::PostVariable { x y X Y } {
                   -menu $data_menu(File,View)
                 foreach objInfo $options_selected(File) {
                   $data_menu(File,View) add command -label [lindex $objInfo 1] \
-                    -command [list ::TolInspector::ViewFile [lindex $objInfo 1]]
+                    -command [list ::TolInspector::ViewFile [lindex $objInfo 2]]
                 }
                 if $InRootFiles {
                   $data_menu(main) add cascade -label [mc "Decompile file"] \
                     -menu $data_menu(File,Decompile)
                   foreach objInfo $options_selected(File) {
                     $data_menu(File,Decompile) add command -label [lindex $objInfo 1] \
-                      -command [list ::TolInspector::DecompileFile [lindex $objInfo 1]]
+                      -command [list ::TolInspector::DecompileFile [lindex $objInfo 2]]
                   }
                 }
               }            

@@ -3758,6 +3758,8 @@ proc ::bayesGraph::WriteInfo {this text} {
       set max [expr $max + 0.5]
     }
     $g axis configure $axis $axis -min $min -max $max
+    #@! Redibuja el gráfico
+    event generate $g <Configure>
   }
 }
 

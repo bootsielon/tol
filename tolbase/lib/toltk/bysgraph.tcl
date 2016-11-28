@@ -652,7 +652,6 @@ proc ::bayesGraph::CreateColorTable { table ncolors } {
   }
   # comprobamos que existan valores y aplicamos
   if {([info exists values_y]) && ([llength $values_y])} {
-
     set tmpOpt(var,yAxisMin) [lindex $values_y 0]
     set tmpOpt(var,yAxisMax) [lindex $values_y 1]
     ::bayesGraph::GrapOptApplyAxisLimits $this y \
@@ -678,8 +677,8 @@ proc ::bayesGraph::CreateColorTable { table ncolors } {
     ::bayesGraph::GrapOptApplyAxisLimits $this x2 \
       $tmpOpt(var,x2AxisMin) $tmpOpt(var,x2AxisMax)
   }
-  #Aplicamos valores a loe ejes
-  GrapOptApplyAxisTicks    $this ${this}::options gr,$gr
+  #Aplicamos valores a los ejes
+  GrapOptApplyAxisTicks $this ${this}::options gr,$gr
 }
 
 #/////////////////////////////////////////////////////////////////////////////
