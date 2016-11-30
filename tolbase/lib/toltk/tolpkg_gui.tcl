@@ -753,11 +753,11 @@ proc ::TolPkgGUI::FillTreeInfo { T } {
   ReadVersSyncInfo
   ReadLocalVersionInfo
 
-  $T configure -table no -filter yes -columns {
-    { {image text} -tags NAME -label "Name" }
-    { {text} -tags STATUS -label "Status" }
-    { {text} -tags REPO -label "Repository" }
-  }
+  $T configure -table no -filter yes -columns [list \
+    [list {image text} -tags NAME -label [mc "Name"]] \
+    [list {text} -tags STATUS -label [mc "Status"]] \
+    [list {text} -tags REPO -label [mc "Repository"]] \
+  ]
 
   # insert package information
   foreach p [ lsort [ array names packSyncInfo ] ] {
@@ -1757,6 +1757,7 @@ proc ::TolPkgGUI::Show { } {
   } else {
     toplevel $win
     wm state $win withdrawn
+    wm title $win [mc "TOL Packages"]
     CreateTree $win.tree
     ::TolPkg::UpdateRepositoryInfo
     FillTreeInfo $win.tree
