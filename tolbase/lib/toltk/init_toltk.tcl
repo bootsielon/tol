@@ -10,6 +10,8 @@ exec wish "$0" -- ${1+"$@"}
 
 package require Tk
 
+# show_filters: muestra (o no) los filtros en el inspector de TOL
+set show_filters 0
 # trace: muestra (o no) la ventana de trazas de TOL
 set trace 0
 

@@ -80,30 +80,23 @@ proc ::TolInspector::InsertItem {wt grammar name content path desc subtype} {
   } else {
     set fcolor "black"
   }
-
-  set brief_cont [TrimContent $grammar $content]
-  set brief_desc [TrimContent DONTCARE $desc]  
   
-  set data3 $brief_cont
+  set cont $content
   if {$grammar eq "NameBlock"} {
-    #(pgea) se utiliza la informacon de instancia
-    #puts "Tol_ClassOfFromReference $tolref"
+    # se utiliza la información de instancia
     set classOf [Tol_ClassOfFromReference $tolref]
-    #puts "Tol_InstanceContentFromReference $tolref"
-    set insCont [Tol_InstanceContentFromReference $tolref]
-    if {$insCont ne ""} {
-      set data3 [TrimContent $grammar $insCont]
-    } elseif {$classOf ne ""} {
-      set data3 $classOf
-    }    
-  }
-  
-  #@ Se introduce toda la descripción de la clase.
-  if {$grammar eq "Anything"} {
-    if { [regexp {@[^ ]+} $name] } {
-      set data3 $content
+    if {$classOf ne ""} {
+      set insCont [Tol_InstanceContentFromReference $tolref]
+      if {$insCont ne ""} {
+        set cont $insCont
+      } else {
+        set cont $classOf
+      }
     }
   }
+
+  #@ set brief_cont [TrimContent $grammar $cont]
+  #@ set brief_desc [TrimContent DONTCARE $desc]
 
   #@ Se localiza el icono según la gramática
   if {$grammar eq "Set" || $grammar eq "NameBlock"} {
@@ -125,7 +118,7 @@ proc ::TolInspector::InsertItem {wt grammar name content path desc subtype} {
   set idx [$wt item create -button 1 -open 0 -parent root]
   $wt item image $idx Name $icon_grammar
   $wt item text $idx Index $arguments(index) Grammar $grammar \
-    Name $name Content $data3 Description $brief_desc Path $path Reference $tolref
+    Name $name Content $cont Description $desc Path $path Reference $tolref
   if { $fcolor ne "black" } {
     $wt item-color $idx $fcolor
   }

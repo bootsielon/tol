@@ -303,6 +303,7 @@ proc ::TolInspector::CreatePaneRight { paneRight } {
 #
 #/////////////////////////////////////////////////////////////////////////////
   global toltk_options
+  global show_filters
   variable w_tabset
   variable wt_vars
   variable wt_funcs
@@ -322,19 +323,21 @@ proc ::TolInspector::CreatePaneRight { paneRight } {
   set sw22 [ScrolledWindow $tab2.sw22 -scrollbar none] 
 
   # Creation of the right TREE RIGHT with VARIABLES
-  set wt_vars [::wtree $sw21.vars -table 1 -filter no \
+  set wt_vars [::wtree $sw21.vars -table 1 -filter $show_filters \
     -background white -showroot 0 -selectmode extended -showheader 1 \
     -highlightbackground gray75 -highlightcolor black \
     -highlightthickness 0 -font $toltk_options(fonts,Label) \
     -columns [list \
-    [list text -label Index -tags Index] \
-    [list text -label Grammar -tags Grammar] \
-    [list {image text} -label Name -tags Name] \
-    [list text -label Content -tags Content] \
-    [list text -label Description -tags Description] \
-    [list text -label Path -tags Path] \
-    [list text -label Reference -tags Reference] \
+    [list text -label [mc Index] -tags Index] \
+    [list text -label [mc Grammar] -tags Grammar] \
+    [list {image text} -label [mc Name] -tags Name] \
+    [list text -label [mc Content] -tags Content] \
+    [list text -label [mc Description] -tags Description] \
+    [list text -label [mc Path] -tags Path] \
+    [list text -label [mc Reference] -tags Reference] \
   ]]
+  #@ filtro: 0(Index) 0(no) 2(Name) 1(yes)
+  $wt_vars configure -columnfilter [list 0 0 2 1]
   # configuration of the tree of variables
   $wt_vars column configure Grammar -visible no
   $wt_vars column configure Reference -visible no
@@ -345,19 +348,21 @@ proc ::TolInspector::CreatePaneRight { paneRight } {
   bind $wt_vars <Double-1> "::TolInspector::SelectionExpand"
   
   # Creation of the right TREE RIGHT with FUNCTIONS
-  set wt_funcs [::wtree $sw22.vars -table 1 -filter no \
+  set wt_funcs [::wtree $sw22.vars -table 1 -filter $show_filters \
     -background white -showroot 0 -selectmode extended -showheader 1 \
     -highlightbackground gray75 -highlightcolor black \
     -highlightthickness 0 -font $toltk_options(fonts,Label) \
     -columns [list \
-    [list text -label Index -tags Index] \
-    [list text -label Grammar -tags Grammar] \
-    [list {image text} -label Name -tags Name] \
-    [list text -label Content -tags Content] \
-    [list text -label Description -tags Description] \
-    [list text -label Path -tags Path] \
-    [list text -label Reference -tags Reference] \
+    [list text -label [mc Index] -tags Index] \
+    [list text -label [mc Grammar] -tags Grammar] \
+    [list {image text} -label [mc Name] -tags Name] \
+    [list text -label [mc Content] -tags Content] \
+    [list text -label [mc Description] -tags Description] \
+    [list text -label [mc Path] -tags Path] \
+    [list text -label [mc Reference] -tags Reference] \
   ]]
+  #@ filtro: 0(Index) 0(no) 2(Name) 1(yes)
+  $wt_funcs configure -columnfilter [list 0 0 2 1]
   # configuration of the tree of functions
   $wt_funcs column configure Grammar -visible no
   $wt_funcs column configure Reference -visible no
@@ -510,16 +515,6 @@ proc ::TolInspector::TrimContent { grammar content } {
       set content {"\n"}
     }
     return [OneLine $content]
-    set content [string trim $content]
-    set lnidx [string first "\n" $content]
-    if { $lnidx != -1 } {
-      if { [incr lnidx -1] > 0 } {
-        return "[string range $content 0 $lnidx]..."
-      } else {
-        return "..."
-      }
-    }
-    set content
   }
 }
 
