@@ -6,7 +6,8 @@
 #
 ###############################################################################
 
-package provide TolshApp 3.3
+#@ Se lleva al pkgIndex.tcl.in para gestionar mejor las versiones.
+#@ package provide TolshApp 3.3
 
 ###############################################################################
 #
@@ -399,7 +400,7 @@ proc ::tolsh::run { cmdline } {
   # Load Toltcl (+tol) and initLibrary if required
   #
   if {$options(runmode) != "server" && $options(runmode) != "shared"} {
-    package require -exact Toltcl 3.3
+    package require Toltcl
     #puts "tol::initkernel $options(lang) $options(vmode)"
     tol::initkernel $options(lang) $options(vmode)
 

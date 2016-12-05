@@ -27,4 +27,5 @@ package ifneeded Toltcl @TOLTCL_VERSION_MAJOR@.@TOLTCL_VERSION_MINOR@ \
 package ifneeded TolshApp @TOLTCL_VERSION_MAJOR@.@TOLTCL_VERSION_MINOR@ \
     [ string map [list %d $dir] {
       source [ file join {%d} tolsh.tcl ]
+      package provide TolshApp @TOLTCL_VERSION_MAJOR@.@TOLTCL_VERSION_MINOR@      
     } ]
