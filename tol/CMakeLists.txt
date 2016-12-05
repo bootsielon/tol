@@ -479,7 +479,7 @@ if( WIN32 AND TOL_EXTERNAL_DEVEL_DIR )
   if( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/lib/datefield" )
     file( GLOB tcl-libs "${TOL_EXTERNAL_DEVEL_DIR}/tcl-libs/*" )
     file( INSTALL ${tcl-libs} DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" )
-  endif( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/lib/tkdnd" )
+  endif( NOT EXISTS "${CMAKE_INSTALL_PREFIX}/lib/datefield" )
   
   set( tcldirs "")
   foreach( pdir tcl8 tk8 dde reg TclCurl twapi )
