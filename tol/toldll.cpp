@@ -25,7 +25,7 @@ extern "C" BOOL APIENTRY DllMain(
          // Initialize once for each new process.
          // Return FALSE to fail DLL load.
           GetModuleFileNameA( hinstDLL, pathTolDll, sizeof( pathTolDll ) );
-          printf( "pathTolDll = %s\n", pathTolDll );
+          // printf( "pathTolDll = %s\n", pathTolDll );
           break;
 
         case DLL_THREAD_ATTACH:

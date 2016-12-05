@@ -79,8 +79,8 @@ BTraceInit("oisapitol.cpp");
   oisCurrentVersion_ = OIS_VERSION;
   oisWriteVersion_ = "02.16";
 
-  Std(I2("OIS: implemented version: ",
-         "OIS: versión implementada: ") << oisCurrentVersion_);
+  Std(I2("\nOIS: implemented version: ",
+         "\nOIS: versión implementada: ") << oisCurrentVersion_);
   oisDefRoot_ = BSys::GetEnv("Ois.DefRoot");
   if(!oisDefRoot_.HasName())
   {

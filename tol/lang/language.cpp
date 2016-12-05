@@ -249,17 +249,17 @@ void InteractiveTOLHelp()
   "============================\n"
   "Comandos de TOL Interactivo:\n" 
   "============================\n"
-  "  <tol expression>  : ejecuta una expresiÃ³n TOL\n"
+  "  <tol expression>  : ejecuta una expresión TOL\n"
   "  $HELP             : muestra esta ayuda\n" 
   "  $SYS <command>    : ejecuta un comando del sistema operativo\n" 
-  "  $GRAMMAR          : especifica la gramÃ¡tica por defecto\n" 
+  "  $GRAMMAR          : especifica la gramática por defecto\n" 
   "  $DELETE           : borra objetos TOL creados previamente\n" 
   "  $DUMP             : muestra un objeto TOL\n" 
-  "  $STATUS           : muestra algunas estatidÃ­sticas acerca del estado de TOL\n" 
-  "  $SHOW_CLASS_SIZES : muestra el tamaÃ±o de algunas clases C++ internas\n" 
+  "  $STATUS           : muestra algunas estatidísticas acerca del estado de TOL\n" 
+  "  $SHOW_CLASS_SIZES : muestra el tamaño de algunas clases C++ internas\n" 
   "  $OIS              : visualizador interactivo de imagenes OIS\n" 
   "  $END              : sale del modo interactivo de TOL\n"
-  "Si no visualiza correctamente las tildes o la Ã± en el modo de diÃ¡logo "
+  "Si no visualiza correctamente las tildes o la ñ en el modo de diálogo "
   "escoja un tipo de letra adecuado como el 'lucilda console' y ejecute "
   "el comando:\n"
   "$SYS chcp 1252\n";
@@ -348,7 +348,7 @@ void InteractiveTOL()
          "\nAnalizador de expresiones simples TOL."));
   Std("\n-----------------------------------------------------------------");
   Std(I2("\nType $HELP and return to know more about this TOL environment.",
-         "\nTeclee $HELP para saber mï¿½s de este entorno TOL."));
+         "\nTeclee $HELP para saber más de este entorno TOL."));
   BDat x;
   BList* stack = NIL;
   BText txt;
@@ -612,13 +612,13 @@ DefExtOpr(1, BSetTable, "BSTFile", 1, 6, "Set Text Text Real Text Text",
        "You can specify any column and row separators.\n"
        "Results only will be readable by TOL if default parameters are used.",
        "Escribe un conjunto de conjuntos de tipo tabla en un fichero con formato BST.\n"
-       "Si no se especifica ningï¿½n fichero se usarï¿½ la salida estï¿½ndar \"Std\" \n"
-       "Se puede especificar una cadena de cabecera que se escribirï¿½ en la primera lï¿½nea\n"
-       "Si la cabecera es \"_DEFAULT_HEADER_\" y la primera lï¿½nea tiene estructura se usarï¿½ la lista de nombres de campos como cabecera" 
-       "Si la cabecera es \"\" no se escribirï¿½ cabecera.\n" 
-       "Si se quiere aï¿½adir los resultados a un fichero existente usese rewrite=FALSE\n"
+       "Si no se especifica ningún fichero se usará la salida estándar \"Std\" \n"
+       "Se puede especificar una cadena de cabecera que se escribirá en la primera línea\n"
+       "Si la cabecera es \"_DEFAULT_HEADER_\" y la primera línea tiene estructura se usará la lista de nombres de campos como cabecera" 
+       "Si la cabecera es \"\" no se escribirá cabecera.\n" 
+       "Si se quiere añadir los resultados a un fichero existente úsese rewrite=FALSE\n"
        "Es posible especificar cualquier separador de columna y fila \n"
-       "El resultado sï¿½lo serï¿½ legible por TOL si se usan los parï¿½metros por defecto."),
+       "El resultado sólo será legible por TOL si se usan los parámetros por defecto."),
     BOperClassify::General_);
 
 //--------------------------------------------------------------------
@@ -712,12 +712,12 @@ DefExtOpr(1, BSetBMTFile, "BMTFile", 1, 6, "Set Text Text Real Text Text",
        "You can specify any column and row separators.\n"
        "Results only will be readable by TOL if default parameters are used.",
        "Escribe un conjunto de matrices en un fichero con formato BMT.\n"
-       "Si no se especifica ningï¿½n fichero se usarï¿½ la salida estï¿½ndar \"Std\" \n"
-       "Se puede especificar una cadena de cabecera que se escribirï¿½ en la primera lï¿½nea\n"
-       "Si la cabecera es \"_DEFAULT_HEADER_\" o \"\" no se escribirï¿½ cabecera\n" 
-       "Si se quiere aï¿½adir los resultados a un fichero existente usese rewrite=FALSE\n"
+       "Si no se especifica ningún fichero se usará la salida estándar \"Std\" \n"
+       "Se puede especificar una cadena de cabecera que se escribirá en la primera línea\n"
+       "Si la cabecera es \"_DEFAULT_HEADER_\" o \"\" no se escribirá cabecera\n" 
+       "Si se quiere añadir los resultados a un fichero existente úsese rewrite=FALSE\n"
        "Es posible especificar cualquier separador de columna y fila\n"
-       "El resultado sï¿½lo serï¿½ legible por TOL si se usan los parï¿½metros por defecto."),
+       "El resultado sólo será legible por TOL si se usan los parámetros por defecto."),
     BOperClassify::General_);
 
 //--------------------------------------------------------------------
@@ -773,15 +773,15 @@ static void StatWriteFile(BList* lst,
   i=0;
   if(header=="_DEFAULT_HEADER_")
   {
-    table[i++][0] = I2("Statistic  ", "EstadÃ­stico");
+    table[i++][0] = I2("Statistic  ", "Estadístico");
     table[i++][0] = I2("Count      ", "Longitud   ");
-    table[i++][0] = I2("Maximum    ", "MÃ¡ximo     ");
-    table[i++][0] = I2("Minimum    ", "MÃ­nimo     ");
+    table[i++][0] = I2("Maximum    ", "Máximo     ");
+    table[i++][0] = I2("Minimum    ", "Mínimo     ");
     table[i++][0] = I2("Sum        ", "Suma       ");
     table[i++][0] = I2("Average    ", "Media      ");
     table[i++][0] = I2("Std. Desv. ", "Desv. Tip. ");
     table[i++][0] = I2("Varianze   ", "Varianza   ");
-    table[i++][0] = I2("Asymmetry  ", "AsimetrÃ­a  ");
+    table[i++][0] = I2("Asymmetry  ", "Asimetría  ");
     table[i++][0] = I2("Kurtosis   ", "Curtosis   ");
     table[i++][0] = I2("Median     ", "Mediana    ");
     j=0;
@@ -868,12 +868,12 @@ DefExtOpr(1, BSetStatFile, "StatFile", 1, 6, "Set Text Text Real Text Text",
        "If header is \"\" no header will be written.\n" 
        "If you want to append results to an existant file use rewrite=FALSE\n"
        "You can specify any column and row separators.",
-       "Escribe un conjunto de estadï¿½sticos acerca de un conjunto de series en un fichero.\n"
-       "Si no se especifica ningï¿½n fichero se usarï¿½ la salida estï¿½ndar \"Std\" \n"
-       "Se puede especificar una cadena de cabecera que se escribirï¿½ en la primera lï¿½nea\n"
-       "Si la cabecera es \"_DEFAULT_HEADER_\" se usarï¿½n los nombres de los estadï¿½sticos como cabecera\n" 
-       "Si la cabecera es \"\" no se escribirï¿½ cabecera.\n" 
-       "Si se quiere aï¿½adir los resultados a un fichero existente usese rewrite=FALSE\n"
+       "Escribe un conjunto de estadísticos acerca de un conjunto de series en un fichero.\n"
+       "Si no se especifica ningún fichero se usará la salida estándar \"Std\" \n"
+       "Se puede especificar una cadena de cabecera que se escribirá en la primera línea\n"
+       "Si la cabecera es \"_DEFAULT_HEADER_\" se usarán los nombres de los estadísticos como cabecera\n" 
+       "Si la cabecera es \"\" no se escribirá cabecera.\n" 
+       "Si se quiere añadir los resultados a un fichero existente úsese rewrite=FALSE\n"
        "Es posible especificar cualquier separador de columna y fila"),
     BOperClassify::General_);
 //--------------------------------------------------------------------
@@ -926,13 +926,13 @@ DefExtOpr(1, BSetBDTFile, "BDTFile", 1, 6, "Set Text Text Real Text Text",
        "You can specify any column and row separators.\n"
        "Results only will be readable by TOL if default parameters are used.",
        "Escribe un conjunto de series en un fichero con formato BDT."
-       "Si no se especifica ningï¿½n fichero se usarï¿½ la salida estï¿½ndar \"Std\" \n"
-       "Se puede especificar una cadena de cabecera que se escribirï¿½ en la primera lï¿½nea\n"
-       "Si la cabecera es \"_DEFAULT_HEADER_\" se usarï¿½n los nombres del fechado y de la lista de series como cabecera\n" 
-       "Si la cabecera es \"\" no se escribirï¿½ cabecera.\n" 
-       "Si se quiere aï¿½adir los resultados a un fichero existente usese rewrite=FALSE\n"
+       "Si no se especifica ningún fichero se usará la salida estándar \"Std\" \n"
+       "Se puede especificar una cadena de cabecera que se escribirá en la primera línea\n"
+       "Si la cabecera es \"_DEFAULT_HEADER_\" se usarán los nombres del fechado y de la lista de series como cabecera\n" 
+       "Si la cabecera es \"\" no se escribirá cabecera.\n" 
+       "Si se quiere añadir los resultados a un fichero existente úsese rewrite=FALSE\n"
        "Es posible especificar cualquier separador de columna y fila.\n"
-       "El resultado sï¿½lo serï¿½ legible por TOL si se usan los parï¿½metros por defecto."),
+       "El resultado sólo será legible por TOL si se usan los parámetros por defecto."),
     BOperClassify::General_);
 
 //--------------------------------------------------------------------
@@ -1250,7 +1250,7 @@ void BAnythingTableMethod::Apply(BList* lst, const BText& fileName) const
     else
     {
       Error(I2("Can't apply method Table ",
-               "No se puede aplicar el mï¿½todo Table ")+
+               "No se puede aplicar el método Table ")+
 		        I2(" over objects of type ", 
                " sobre objetos de tipo ")+g->Name()); 
     }
@@ -1313,7 +1313,7 @@ void BAnythingChartMethod::Apply(BList* lst, const BText& fileName) const
     else
     {
       Error(I2("Can't apply method Chart ",
-               "No se puede aplicar el mï¿½todo Chart ")+
+               "No se puede aplicar el método Chart ")+
 		        I2(" over objects of type ", 
                " sobre objetos de tipo ")+g->Name()); 
     }
@@ -1389,7 +1389,7 @@ BDate TsrLastDate(BSyntaxObject* obj)
 
 BText BPackage::help_ = I2(
   "Read information about TOL packages on ",
-  "Lea informaciÃ³n acerca de los paquetes TOL en ")+
+  "Lea información acerca de los paquetes TOL en ")+
   "https://www.tol-project.org/wiki/TolPackageRulesAndComments\n";
 
 

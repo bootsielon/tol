@@ -509,7 +509,9 @@ BBool InitGrammars(const char* calledProgram)
   initGrammars_=BTRUE;
   BStandardOperator::evaluatingFunctionArgument_ = false;
 
-  Std(BText("\nInitializing TOL ")+_tolVersion_);
+  _tolVersion_ = TOLVersion();
+  Std(I2(BText("\nInitializing TOL "), 
+         BText("\nInicializando TOL "))+_tolVersion_);
 
   TrcIG("Setting system defaults: ");
   TrcIGSL(BText("Output logging ")+BOut::DumpFile());
@@ -948,7 +950,8 @@ BBool InitGrammars(const char* calledProgram)
     int BTolOprProfiler_Init();
     BTolOprProfiler_Init();
 
-  _tolVersion_ = TOLVersion();
+  // se anticipa la asignación:
+  // _tolVersion_ = TOLVersion();
   version_=new BSystemText("Version", _tolVersion_,
   I2("Time Oriented Language Version full identifier.",
      "Identificador completo de la versión de Time Oriented Language."));
@@ -1561,7 +1564,7 @@ void InitTolKernel(const char* calledProgram, int lang, const char* vmode )
     }
 #endif
 
-  printf( "Inicializando con %s\n", ptr );
+  Std(I2(BText("Initializing with "), BText("Inicializando con "))+ptr);
 
   InitGrammars( ptr );
 }
