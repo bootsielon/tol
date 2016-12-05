@@ -40,6 +40,7 @@
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_multifit_nlin.h>
+#include <gsl/gsl_version.h>
 
 BTraceInit("nrealfun.cpp");
 
@@ -1786,8 +1787,15 @@ BDat BRnRmFunction::gsl_Marquardt(BArray<BDat>& X, BArray<BDat>& r, BMatrix<BDat
       status = gsl_multifit_test_delta (s->dx, s->x, 1e-4, 1e-4);
     }
   while (status == GSL_CONTINUE && iter < 500);
-  
+
+#if GSL_MAJOR_VERSION>=2
+  gsl_matrix *jac = gsl_matrix_alloc(n, p);
+  gsl_multifit_fdfsolver_jac(s, jac);
+  gsl_multifit_covar (jac, 0.0, covar);
+  gsl_matrix_free(jac);
+#else  
   gsl_multifit_covar (s->J, 0.0, covar);
+#endif
   
   for(i=0; i<n_; i++) { X(i) = gsl_vector_get(s->x, i);}
   (*this).Evaluate(r, X);
