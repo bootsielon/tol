@@ -3,6 +3,7 @@
 package ifneeded TolbaseApp @TOLBASE_VERSION_MAJOR@.@TOLBASE_VERSION_MINOR@ \
     [ string map [list %d $dir] {
       lappend auto_path {%d}
+      set tolbase_version @TOLBASE_VERSION_MAJOR@.@TOLBASE_VERSION_MINOR@
       source [ file join {%d} toltk init_toltk.tcl ]
       package provide TolbaseApp @TOLBASE_VERSION_MAJOR@.@TOLBASE_VERSION_MINOR@
     } ]

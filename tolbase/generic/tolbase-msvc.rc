@@ -2,12 +2,12 @@
 #include <windows.h>
 
 // Icon resources
-1 ICON "../lib/toltk/images/tolbase-gnu.ico"
+1 ICON "../lib/toltk/images/tolbase-msvc.ico"
 
 // Version Information resources
 1 VERSIONINFO
-    FILEVERSION     3,2,0,0
-    PRODUCTVERSION  3,2,0,0
+    FILEVERSION     3,0,0,0
+    PRODUCTVERSION  3,0,0,0
     FILEOS          VOS__WINDOWS32
     FILETYPE        VFT_APP
     FILESUBTYPE     VFT2_UNKNOWN
@@ -21,14 +21,14 @@
             VALUE "Comments", ""
             VALUE "CompanyName", "Bayes Forecast"
             VALUE "FileDescription", "TOLBase (MSVC)"
-            VALUE "FileVersion", "3.2.0.0"
+            VALUE "FileVersion", "3.0.0.0"
             VALUE "InternalName", "tolbase"
             VALUE "LegalCopyright", "GPL-3"
             VALUE "LegalTrademarks", ""
             VALUE "OriginalFilename", "tolbase.exe"
             VALUE "PrivateBuild", ""
             VALUE "ProductName", "TOLBase"
-            VALUE "ProductVersion", "3.2.0.0"
+            VALUE "ProductVersion", "3.0.0.0"
             VALUE "SpecialBuild", ""
         }
         BLOCK "0C0A0352" // Español
@@ -36,14 +36,14 @@
             VALUE "Comments", ""
             VALUE "CompanyName", "Bayes Forecast"
             VALUE "FileDescription", "TOLBase (MSVC)"
-            VALUE "FileVersion", "3.2.0.0"
+            VALUE "FileVersion", "3.0.0.0"
             VALUE "InternalName", "tolbase"
             VALUE "LegalCopyright", "GPL-3"
             VALUE "LegalTrademarks", ""
             VALUE "OriginalFilename", "tolbase.exe"
             VALUE "PrivateBuild", ""
             VALUE "ProductName", "TOLBase"
-            VALUE "ProductVersion", "3.2.0.0"
+            VALUE "ProductVersion", "3.0.0.0"
             VALUE "SpecialBuild", ""
         }
     }

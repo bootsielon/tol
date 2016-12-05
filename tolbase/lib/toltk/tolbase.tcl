@@ -1338,9 +1338,7 @@ proc ::TolConsole::ApplyViewMode {{change 1}} {
 
   # tol platform selection
   array set tol_platform [lindex [toltcl::eval {PlatformInfo(?)} -named 1] 1]
-  if {$tol_platform(CompilerID) eq "GNU"} {
-    set imgfile [file join $toltk_library toltk images splash-gnu.gif]
-  } elseif {$tol_platform(CompilerID) eq "MSVC"} {
+  if {$tol_platform(CompilerID) eq "MSVC"} {
     set imgfile [file join $toltk_library toltk images splash-msvc.gif]
   } else {
     set imgfile [file join $toltk_library toltk images splash.gif]

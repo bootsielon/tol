@@ -133,7 +133,13 @@ namespace eval ::project {
     # tol platform selection
     array set tol_platform [lindex [toltcl::eval {PlatformInfo(?)} -named 1] 1]
     if {$tol_platform(CompilerID) eq "GNU"} {
-      set prjtitle "TOLBase (GNU)"
+      if {$tol_platform(PointerSize) eq "4"} {
+        set prjtitle "TOLBase $::tolbase_version (32-bits)"
+      } elseif {$tol_platform(PointerSize) eq "8"} {
+        set prjtitle "TOLBase $::tolbase_version (64-bits)"      
+      } else {
+        set prjtitle "TOLBase (GNU)"      
+      }
     } elseif {$tol_platform(CompilerID) eq "MSVC"} {
       set prjtitle "TOLBase (MSVC)"
     } else {
@@ -222,9 +228,7 @@ namespace eval ::project {
   } else {
     # tol platform selection
     array set tol_platform [lindex [toltcl::eval {PlatformInfo(?)} -named 1] 1]
-    if {$tol_platform(CompilerID) eq "GNU"} {
-      wm iconbitmap . -default [file join $toltk_images_path tolbase-gnu.ico]
-    } elseif {$tol_platform(CompilerID) eq "MSVC"} {
+    if {$tol_platform(CompilerID) eq "MSVC"} {
       wm iconbitmap . -default [file join $toltk_images_path tolbase-msvc.ico]
     } else {
       wm iconbitmap . -default [file join $toltk_images_path tolbase.ico]
