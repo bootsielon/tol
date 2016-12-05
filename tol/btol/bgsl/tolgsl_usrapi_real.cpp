@@ -167,7 +167,7 @@ There are 387 functions in this TOL user's API about these GSL chapters
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_cdf.h>
 #include <tol/tol_bmatgra.h>
-
+#include <gsl/gsl_version.h>
 
 //--------------------------------------------------------------------
 // specialized macro for GSL reals to real functions declaration
@@ -2670,7 +2670,11 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_sf_ellint_D(Real(Arg(1)), Real(Arg(2)), Real(Arg(3)), GSL_PREC_DOUBLE); 
+#if (GSL_MAJOR_VERSION>=2)
+  contens_ = gsl_sf_ellint_D(Real(Arg(1)), Real(Arg(2)), GSL_PREC_DOUBLE);
+#else
+  contens_ = gsl_sf_ellint_D(Real(Arg(1)), Real(Arg(2)), Real(Arg(3)), GSL_PREC_DOUBLE);
+#endif
 #else
   ErrorGslFVer(10400,"gsl_sf_ellint_D");
 #endif
