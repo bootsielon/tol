@@ -22,7 +22,7 @@
 // DEFINES
 ////////////////////////////////////////////////////////////////////////////////////
 #define VERSION_MAJOR   3
-#define VERSION_MINOR   3
+#define VERSION_MINOR   4
 #define VERSION_BUILD   "p001"
 
 #if defined(_MSC_VER)
