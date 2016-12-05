@@ -11,7 +11,7 @@ include( LibFindMacros )
 
 # The version number.
 set (TOLBASE_VERSION_MAJOR 3)
-set (TOLBASE_VERSION_MINOR 3)
+set (TOLBASE_VERSION_MINOR 4)
 
 # look for tol
 find_package( TOL REQUIRED )
