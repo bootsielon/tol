@@ -27,7 +27,7 @@ proc Busy_Patched { cmd args } {
 if { [ catch { rbc::busy patched } ] } {
   rename ::rbc::busy _rbc_busy
   interp alias {} ::rbc::busy {} Busy_Patched
-  puts "interp alias {} ::rbc::busy {} Busy_Patched"
+  #@ puts "interp alias {} ::rbc::busy {} Busy_Patched"
 }
 
 
@@ -58,7 +58,7 @@ proc Rbc_ViewMode { graph mode } {
     }
     rbc::AddBindTag $graph scroll-$graph
   } elseif { [regexp "zoom-*" $mode] } {
-    puts "mode = $mode"
+    #@ puts "mode = $mode"
     bind zoom-$graph <ButtonPress-1> { rbc::SetZoomPoint %W %x %y }
     if { [string equal $mode zoom-frame] } {
       bind zoom-$graph <ButtonRelease-1> { rbc::SetZoomPoint %W %x %y }

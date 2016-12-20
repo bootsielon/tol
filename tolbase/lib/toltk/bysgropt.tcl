@@ -3243,8 +3243,8 @@ proc ::bayesGraph::GrapOptApplyShowSymbols {this var pre} {
     $g marker delete $marker
   }
   # marker each
-  puts "::bayesGraph::GrapOptApplyMarkers: $g, var=$var, pre=$pre"
-  puts "[ $g axis cget x -majorticks ]"
+  #@ puts "::bayesGraph::GrapOptApplyMarkers: $g, var=$var, pre=$pre"
+  #@ puts "[ $g axis cget x -majorticks ]"
   foreach {axis map} {x mapx y mapy x2 mapx y2 mapy} {
     # comprobamos si esta visible el eje
     if {![$g axis cget $axis -hide]} {
@@ -3276,7 +3276,7 @@ proc ::bayesGraph::GrapOptApplyShowSymbols {this var pre} {
           set i 0
           }
           set j 0
-          puts "lstMarkers = $lstMarkers"
+          #@ puts "lstMarkers = $lstMarkers"
           foreach it $lstMarkers {
             if {$j==5} { set j 0 }
             set color $tmpOpt(var,${axis}MarkerColorInEach$j)
@@ -3291,7 +3291,7 @@ proc ::bayesGraph::GrapOptApplyShowSymbols {this var pre} {
             set majorTicks [ $g axis cget $axis -majorticks ]
             $g marker bind $it <Leave> \
                 [list ::bayesGraph::WriteInfo $this ""]
-            puts "voy con it = $it"
+            #@ puts "voy con it = $it"
             for { set mt 0 } { $mt < [ llength $majorTicks ] } { incr mt } {
               if { [ expr { ( $mt + 1 ) % int( $it ) } ] } continue
               set pos [ lindex $majorTicks $mt ]
@@ -3300,7 +3300,7 @@ proc ::bayesGraph::GrapOptApplyShowSymbols {this var pre} {
               } else {
                 set coord [list -Inf $pos Inf $pos]
               }
-              puts "añadiendo marcador $mt en posicion $pos"
+              #@ puts "añadiendo marcador $mt en posicion $pos"
               catch { 
                 $g marker create line -name ${it}_$pos -coords $coord \
                     -outline $color -dashes $dashe -$map $axis \
@@ -3327,7 +3327,7 @@ proc ::bayesGraph::GrapOptApplyShowSymbols {this var pre} {
       }
     }
   }
-  puts "[ $g axis cget x -majorticks ]"
+  #@ puts "[ $g axis cget x -majorticks ]"
 }
 
 #/////////////////////////////////////////////////////////////////////////////

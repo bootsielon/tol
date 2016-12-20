@@ -58,7 +58,7 @@ proc ::SeriesGraph::Create { path list args } {
   set t0 [time {
   set Instance [::bayesGraph::Create $path $opts(-struct) -photo $opts(-photo)]
   }]
-  puts "time in ::bayesGraph::Create = $t0"
+  #@ puts "time in ::bayesGraph::Create = $t0"
   upvar \#0 ${Instance}::widgets widgets
   upvar \#0 ${Instance}::data data
 

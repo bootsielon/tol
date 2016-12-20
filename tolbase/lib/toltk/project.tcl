@@ -237,7 +237,7 @@ namespace eval ::project {
     
   wm state . normal
   wm geometry . [set geom [::iniFile::Read Project topgeom $defgeom]]
-puts "initWM: geometria: $geom"
+  #@ puts "initWM: geometria: $geom"
   if { [expr $project::data(oculto)] } {
     wm iconify .
   } else {

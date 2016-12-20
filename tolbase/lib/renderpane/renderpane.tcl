@@ -860,7 +860,7 @@ snit::widgetadaptor renderpane {
     # If the image is "tall", it's broken into strips;
     # this helps everything scroll better.
     proc LoadImage {filename {width 0} {height 0}} {
-        puts "LoadImage $filename"
+        #@ puts "LoadImage $filename"
         if { [ file readable $filename ] } {
           # FIRST, load the image
           set img [image create photo -file $filename]
