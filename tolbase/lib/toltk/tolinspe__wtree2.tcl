@@ -29,17 +29,20 @@ proc ::TolInspector::ClearConsoleObjSel {wt} {
 proc ::TolInspector::UpdateFileRoot { } {
 #/////////////////////////////////////////////////////////////////////////////  
   variable wt_tree
-  set open 0
   set idx_file [$wt_tree item id "root-files"]
   if { [$wt_tree item isopen $idx_file] } {
+    #@ si está abierto el nodo de archivos, se cierra y se abre
     $wt_tree collapse $idx_file
-    set open 1
+    $wt_tree expand $idx_file
+    #@ si la selección estaba en el nodo de archivos se pierde
+    #@ de modo que seleccionamos el nodo raíz
+    if { [$wt_tree selection get] eq "" } {
+      $wt_tree selection modify $idx_file all
+    }
   }
+  #@ si la selección es el nodo raíz, actualizamos la vista
   if { [$wt_tree item state get $idx_file selected] } {
     SelectObject
-  }
-  if $open {
-    $wt_tree expand $idx_file
   }
 }
 
