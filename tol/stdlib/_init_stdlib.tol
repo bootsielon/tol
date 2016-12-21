@@ -124,11 +124,6 @@ Code Ois.ModuleLoader = FindCode("Set","Ois.UseModule");
 //////////////////////////////////////////////////////////////////////////////
 // TolPackage Client initialization
 //////////////////////////////////////////////////////////////////////////////
-Real If(OSName=="WINDOWS", {
-  // Se cambia el directorio actual al bin de TOL para evitar errores
-  // en la carga de libcurl-4.dll al llamar a tolbase64 desde un archivo BATCH
-  Set Tcl_Eval("cd {"<<TOLSH_PATH<<"}");
-1});
 Real TolPackage::Client::Initialize(0);
 
 //////////////////////////////////////////////////////////////////////////////

@@ -85,6 +85,9 @@ proc LoadPackages {} {
   #NOTE. Por precaución cargamos el paquete aqui
   #En un futuro cambiar
   package require bfunctions
+  #@ Se incorpora aquí para evitar errores localizando la libcurl-4.dll
+  #@ cuando la carga se pospone y se hace en el marco de un proyecto: project
+  package require TclCurl
 }
 
 #/////////////////////////////////////////////////////////////////////////////
