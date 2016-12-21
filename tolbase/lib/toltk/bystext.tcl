@@ -556,7 +556,7 @@ proc ::BayesText::SaveTxt {texto path} {
 #
 #/////////////////////////////////////////////////////////////////////////////   
   if { ![ catch { set fd [open $path w] } msgerr] } {
-    #@ puts -nonewline $fd $texto
+    puts -nonewline $fd $texto
     close $fd
     return 1
   }

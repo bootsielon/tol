@@ -341,7 +341,7 @@ proc ::BayesTable::Save {this path {replace 0}} {
     }
     set struct "{$numCols {\n} {} { ; }} {1 { ; } {} {}}"
     set txt [ListToStrStruct $list $struct]  
-    #@ puts $fd $txt
+    puts $fd $txt
     close $fd
     return 1
   }
