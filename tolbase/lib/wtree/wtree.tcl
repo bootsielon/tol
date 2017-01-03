@@ -681,10 +681,10 @@ snit::widget wtree {
 
     #@ El bind se hace con $self para poder ser modificado externamente
     #@ Hay mas binds en el constructor
-    bind $self <Double-ButtonPress-1> "[mymethod DoubleButton1 %W %x %y] ; break"
-    bind $self <Return>               "[mymethod KeyPressReturn %W] ; break"
-    bind $self <ButtonPress-3>         [mymethod Button3 %W %x %y %X %Y]
-    bind $self <Escape>               "[mymethod KeyPressEscape] ; break"
+    bind $self <Double-ButtonPress-1> [mymethod DoubleButton1 %W %x %y]
+    bind $self <Return>               [mymethod KeyPressReturn %W]
+    bind $self <ButtonPress-3>        [mymethod Button3 %W %x %y %X %Y]
+    bind $self <Escape>               [mymethod KeyPressEscape]
 
     $tree notify bind $tree <Header-invoke> [mymethod SortbyColumn %W %C]
 
