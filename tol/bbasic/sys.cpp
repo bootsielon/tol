@@ -1075,7 +1075,7 @@ void BSys::SleepMilliSeconds(unsigned int milliseconds)
 //--------------------------------------------------------------------
 {
 //boost::this_thread::sleep( boost::posix_time::milliseconds(milliseconds) );
-#ifdef _MSC_VER
+#ifdef WIN32
   Sleep(milliseconds);
 #else
   usleep(milliseconds*1000);
