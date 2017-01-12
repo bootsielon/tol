@@ -194,7 +194,7 @@ extern "C" DLLEXPORT(void) RTolGetMatrix(char **name, double *value)
 //////////////////////////////////////////////////////////////////////////////
 
 //----------------------------------------------------------------------------
-extern "C" DLLEXPORT(void) RTolSetReal(char **name, int *type, double *value)
+extern "C" DLLEXPORT(void) RTolSetReal(char **name, int *type, double *value, int *ok)
 //----------------------------------------------------------------------------
 {
   if(TOLHasBeenInitialized()==0) RInitTolKernel();
@@ -214,11 +214,16 @@ extern "C" DLLEXPORT(void) RTolSetReal(char **name, int *type, double *value)
     BList* result = NIL;
     BList* aux = NIL;
     LstFastAppend(result, aux, so);
+    R_concat(&R_stack, result);    
+    *ok = 1;
+  }
+  else {
+    *ok = 0;
   }
 }
 
 //----------------------------------------------------------------------------
-extern "C" DLLEXPORT(void) RTolSetText(char **name, char **value)
+extern "C" DLLEXPORT(void) RTolSetText(char **name, char **value, int *ok)
 //----------------------------------------------------------------------------
 {
   if(TOLHasBeenInitialized()==0) RInitTolKernel();
@@ -229,11 +234,16 @@ extern "C" DLLEXPORT(void) RTolSetText(char **name, char **value)
     BList* result = NIL;
     BList* aux = NIL;
     LstFastAppend(result, aux, so);
+    R_concat(&R_stack, result);    
+    *ok = 1;
+  }
+  else {
+    *ok = 0;
   }
 }
 
 //----------------------------------------------------------------------------
-extern "C" DLLEXPORT(void) RTolSetDate(char **name, int *type, double *value)
+extern "C" DLLEXPORT(void) RTolSetDate(char **name, int *type, double *value, int *ok)
 //----------------------------------------------------------------------------
 {
   if(TOLHasBeenInitialized()==0) RInitTolKernel();
@@ -242,9 +252,9 @@ extern "C" DLLEXPORT(void) RTolSetDate(char **name, int *type, double *value)
   if(*type == 0) {
     d.PutIndex(*value);
   } else if(*type == 2) {
-    d.PutIndex(-115782); // Begin
-  } else if(*type == 3) {
     d.PutIndex(219147); // End
+  } else if(*type == 3) {
+    d.PutIndex(-115782); // Begin
   } else { // type 1
     d.PutIndex(-300000); // Unknown
   }
@@ -253,6 +263,50 @@ extern "C" DLLEXPORT(void) RTolSetDate(char **name, int *type, double *value)
     BList* result = NIL;
     BList* aux = NIL;
     LstFastAppend(result, aux, so);
+    R_concat(&R_stack, result);    
+    *ok = 1;
+  }
+  else {
+    *ok = 0;
+  }
+}
+
+//----------------------------------------------------------------------------
+extern "C" DLLEXPORT(void) RTolSetMatrix(char **name, int *rows, int *cols, 
+  bool *mask, int *type, double *value, int *ok)
+//----------------------------------------------------------------------------
+{
+  if(TOLHasBeenInitialized()==0) RInitTolKernel();
+  char* str_name = (char*)*name;
+  BMat d(*rows, *cols);
+  for (int c=0; c< (*cols); ++c) {   
+    for (int r=0; r< (*rows); ++r) {
+      int p = c * (*rows) + r;
+      if(*mask) {
+        if(type[p] == 0) {
+          d(r, c).PutValue(value[p]);
+        } else if(type[p] == 2) {
+          d(r, c).PutValue(BDat::PosInf());
+        } else if(type[p] == 3) {
+          d(r, c).PutValue(BDat::NegInf());
+        } else { // type 1
+          d(r, c).PutKnown(BUNKNOWN);
+        }
+      } else {
+        d(r, c).PutValue(value[p]);
+      }
+    }
+  }
+  BSyntaxObject * so = new BContensMat(str_name, d, "");
+  if (so) {
+    BList* result = NIL;
+    BList* aux = NIL;
+    LstFastAppend(result, aux, so);
+    R_concat(&R_stack, result);    
+    *ok = 1;
+  }
+  else {
+    *ok = 0;
   }
 }
 
