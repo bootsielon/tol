@@ -95,23 +95,11 @@ DLLEXPORT(pgsqld *)postgres_Open( void **args)
 {
   pgsqld *dbd;
   PGconn *conn;
-  const char *database;
-  const char *username;
-  const char *password;
-  const char *host;
-  const char *port;
   int rc_fclose;
-
-  username = args[0];
-  password = args[1];
-  database = args[2];
-  host = args[3];
-  port = args[4];
-
-  conn = PQsetdbLogin(host, port,
-		      "", // pgoptions
-		      "", // pgtty
-		      database, username, password);
+  
+  const char *keys[] = { "host", "port", "dbname", "user", "password", "client_encoding", NULL };
+  const char *values[] = { args[3], args[4], args[2], args[0], args[1], "auto", NULL };
+  conn = PQconnectdbParams(keys, values, 0);
 
   /* Check to see that the backend connection was successfully made */
   if(PQstatus(conn) != CONNECTION_OK) 
