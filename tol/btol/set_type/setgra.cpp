@@ -141,7 +141,7 @@ public:
        "will be incremented if original set had an index and new "
        "elements are compatible with old ones; or created if set "
        "was null"  ,
-	     "Concatena los elementos del conjunto set1 al final de set2 "
+	     "Concatena los elementos del conjunto set2 al final de set1 "
        "sin eliminar elementos repetidos y conservando el orden.\n"
        "Si incrementalIndexByName es cierto entonces el índice de "
        "nombres, se mantendrá incrementalmente, siempre y cuando "
