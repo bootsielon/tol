@@ -31,6 +31,8 @@
 #include <tol/tol_bsetgra.h>
 #include <tol/tol_btxtgra.h>
 
+#define DB_MODULES_SONAME 0
+
 #ifdef UNIX
 #  include <dlfcn.h>
 #  define GET_FUNC dlsym
