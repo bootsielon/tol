@@ -50,3 +50,21 @@ if( BUILD_TKTABLE )
     )
   install( DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib/Tktable${TKTABLE_VERSION} COMPONENT RUNTIME DESTINATION lib )
 endif( BUILD_TKTABLE )
+
+if( NOT IMG_VERSION )
+  set( IMG_VERSION 1.4.6 )
+endif( )
+
+if( BUILD_IMG )
+  message( STATUS "Third party Img${IMG_VERSION} will be built." )
+  ExternalProject_Add( img
+    URL ${CMAKE_CURRENT_SOURCE_DIR}/Img-Source-${IMG_VERSION}.tar.gz
+    PREFIX ${CMAKE_CURRENT_BINARY_DIR}
+    CONFIGURE_COMMAND ${CMAKE_CURRENT_BINARY_DIR}/src/img/configure
+    --prefix=${CMAKE_CURRENT_BINARY_DIR}
+    --exec-prefix=${CMAKE_CURRENT_BINARY_DIR}
+    --with-tcl=${TCL_LIB_DIR}
+    --with-tk=${TK_LIB_DIR}
+    )
+  install( DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib/Img${IMG_VERSION} COMPONENT RUNTIME DESTINATION lib )
+endif( BUILD_IMG )
