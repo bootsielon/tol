@@ -68,3 +68,21 @@ if( BUILD_IMG )
     )
   install( DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib/Img${IMG_VERSION} COMPONENT RUNTIME DESTINATION lib )
 endif( BUILD_IMG )
+
+if( NOT RBC_VERSION )
+  set( RBC_VERSION 0.1 )
+endif( )
+
+if( BUILD_RBC )
+  message( STATUS "Third party rbc${RBC_VERSION} will be built." )
+  ExternalProject_Add( rbc
+    URL ${CMAKE_CURRENT_SOURCE_DIR}/rbc${RBC_VERSION}.zip
+    PREFIX ${CMAKE_CURRENT_BINARY_DIR}
+    CONFIGURE_COMMAND ${CMAKE_CURRENT_BINARY_DIR}/src/rbc/configure
+    --prefix=${CMAKE_CURRENT_BINARY_DIR}
+    --exec-prefix=${CMAKE_CURRENT_BINARY_DIR}
+    --with-tcl=${TCL_LIB_DIR}
+    --with-tk=${TK_LIB_DIR}
+    )
+  install( DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib/rbc${RBC_VERSION} COMPONENT RUNTIME DESTINATION lib )
+endif( BUILD_RBC )
