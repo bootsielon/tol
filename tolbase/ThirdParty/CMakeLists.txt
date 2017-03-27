@@ -86,3 +86,21 @@ if( BUILD_RBC )
     )
   install( DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib/rbc${RBC_VERSION} COMPONENT RUNTIME DESTINATION lib )
 endif( BUILD_RBC )
+
+if(NOT TREECTRL_VERSION)
+  set(TREECTRL_VERSION 2.4.1)
+endif(NOT TREECTRL_VERSION)
+
+if(BUILD_TREECTRL)
+  message( STATUS "Third party tktreectrl-${RBC_VERSION} will be built." )
+  ExternalProject_Add( treectrl
+    URL ${CMAKE_CURRENT_SOURCE_DIR}/tktreectrl-${TREECTRL_VERSION}.tar.gz
+    PREFIX ${CMAKE_CURRENT_BINARY_DIR}
+    CONFIGURE_COMMAND ${CMAKE_CURRENT_BINARY_DIR}/src/treectrl/configure
+    --prefix=${CMAKE_CURRENT_BINARY_DIR}
+    --exec-prefix=${CMAKE_CURRENT_BINARY_DIR}
+    --with-tcl=${TCL_LIB_DIR}
+    --with-tk=${TK_LIB_DIR}
+    )
+  install( DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib/treectrl${TREECTRL_VERSION} COMPONENT RUNTIME DESTINATION lib )
+endif(BUILD_TREECTRL)
