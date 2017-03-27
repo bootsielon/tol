@@ -109,9 +109,13 @@ expose all R funcionality whithin TOL.
 
 " PARENT_SCOPE)
 
-set(CPACK_RPM_core_PACKAGE_REQUIRES "atlas, tcl >= 8.5, boost-filesystem >= 1.41, boost-thread >= 1.41, suitesparse >= 3, fftw >= 3, gsl >= 1.13, bzip2-libs, zlib, libtool-ltdl, libcurl >= 7.19, postgresql-libs >= 8.4, mysql-libs, unixODBC " PARENT_SCOPE)
-set(CPACK_RPM_headers_PACKAGE_REQUIRES "tol-core = ${CPACK_PACKAGE_VERSION} "  PARENT_SCOPE)
-set(CPACK_RPM_gui_PACKAGE_REQUIRES "tol-core = ${CPACK_PACKAGE_VERSION}, tk >= 8.5, bwidget, tcllib, blt, tcl-tktreectrl, tkimg "  PARENT_SCOPE)
+set(FEDORA_core_REQUIRES "atlas, tcl >= 8.5, tcllib, boost-filesystem >= 1.41, boost-thread >= 1.41, suitesparse >= 3, fftw >= 3, gsl >= 1.13, bzip2-libs, zlib, libtool-ltdl, libcurl >= 7.19, postgresql-libs >= 8.4, mysql-libs, unixODBC")
+set(CENTOS_core_REQUIRES "atlas, tcl >= 8.5, tcllib, boost-filesystem >= 1.41, boost-thread >= 1.41, suitesparse >= 3, fftw >= 3, gsl >= 1.13, bzip2-libs, zlib, libtool-ltdl, libcurl >= 7.19, postgresql-libs >= 8.4, mysql-libs, unixODBC")
+
+
+set(CPACK_RPM_core_PACKAGE_REQUIRES ${CENTOS_core_REQUIRES} PARENT_SCOPE)
+set(CPACK_RPM_headers_PACKAGE_REQUIRES "tol-core = ${CPACK_PACKAGE_VERSION}"  PARENT_SCOPE)
+set(CPACK_RPM_gui_PACKAGE_REQUIRES "tol-core = ${CPACK_PACKAGE_VERSION}, tk >= 8.5, bwidget"  PARENT_SCOPE)
 
 set(CPACK_RPM_core_PACKAGE_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR} PARENT_SCOPE)
 set(CPACK_RPM_headers_PACKAGE_ARCHITECTURE noarch PARENT_SCOPE)
