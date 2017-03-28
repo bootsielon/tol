@@ -110,7 +110,8 @@ expose all R funcionality whithin TOL.
 " PARENT_SCOPE)
 
 set(FEDORA_core_REQUIRES "atlas, tcl >= 8.5, tcllib, boost-filesystem >= 1.41, boost-thread >= 1.41, suitesparse >= 3, fftw >= 3, gsl >= 1.13, bzip2-libs, zlib, libtool-ltdl, libcurl >= 7.19, postgresql-libs >= 8.4, mysql-libs, unixODBC")
-set(CENTOS_core_REQUIRES "atlas, tcl >= 8.5, tcllib, boost-filesystem >= 1.41, boost-thread >= 1.41, suitesparse >= 3, fftw >= 3, gsl >= 1.13, bzip2-libs, zlib, libtool-ltdl, libcurl >= 7.19, postgresql-libs >= 8.4, mysql-libs, unixODBC")
+
+set(CENTOS_core_REQUIRES "epel-release, atlas, blas, lapack, tcl >= 8.5, tcllib, boost-atomic >= 1.41, boost-date-time >= 1.41, boost-chrono >= 1.41, boost-filesystem >= 1.41, boost-thread >= 1.41, suitesparse >= 3, fftw >= 3, gsl >= 1.13, bzip2-libs, zlib, libtool-ltdl, libcurl >= 7.19, postgresql-libs >= 8.4, mysql-libs, unixODBC")
 
 
 set(CPACK_RPM_core_PACKAGE_REQUIRES ${CENTOS_core_REQUIRES} PARENT_SCOPE)

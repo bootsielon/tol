@@ -7,7 +7,7 @@ if(NOT TOL_RUNTIME_DIR)
   message(FATAL_ERROR "You must specify the variable TOL_RUNTIME_DIR with the path to binary instalation of TOL. TOLTCL and TOLBASE should also be installed on that location.")
 endif(NOT TOL_RUNTIME_DIR)
 
-set(CPACK_PACKAGE_NAME "TOL")
+set(CPACK_PACKAGE_NAME "tol")
 set(CPACK_PACKAGE_VERSION_MAJOR "3")
 set(CPACK_PACKAGE_VERSION_MINOR "4")
 set(CPACK_PACKAGE_VERSION_PATCH "0")
