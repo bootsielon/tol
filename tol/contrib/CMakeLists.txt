@@ -6,3 +6,7 @@ endforeach( )
 if( CINT_HEADERS_FOUND )
   add_subdirectory( cint )
 endif( )
+
+if(UNIX)
+  add_subdirectory(ZipArchive)
+endif(UNIX)

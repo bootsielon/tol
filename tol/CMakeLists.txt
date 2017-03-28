@@ -168,9 +168,9 @@ set( skip_copy_headers 0 )
 set( COPY_HEADERS_DEPENDS "" CACHE INTERNAL "" )
 macro( create_header_links )
   if( WIN32 )
-    set( cmd "copy" )
+    set( _cmd "copy" )
   else( WIN32 )
-    set( cmd "create_symlink" )
+    set( _cmd "create_symlink" )
   endif( WIN32 )
   file( GLOB headers RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" *.h *.hpp )
   install( FILES ${headers} DESTINATION "include/tol"
@@ -185,7 +185,7 @@ macro( create_header_links )
       set( lst ${lst} "${destFile}" )
       add_custom_command ( 
         OUTPUT ${destFile}
-        COMMAND "${CMAKE_COMMAND}" "-E" ${cmd} ${srcFile} ${destFile}
+        COMMAND "${CMAKE_COMMAND}" "-E" ${_cmd} ${srcFile} ${destFile}
         DEPENDS ${srcFile}
         COMMENT "Creating header ${destFile}" )
     endforeach( )
@@ -363,11 +363,15 @@ else( )
 endif( )
 
 # ZIPARCHIVE configuration
-find_package( ZipArchive REQUIRED )
-if( ZIPARCHIVE_FOUND AND TRACE_COMPONENTS_FOUND )
-  message( "ZIPARCHIVE_INCLUDE_DIR = ${ZIPARCHIVE_INCLUDE_DIR}" )
-  message( "ZIPARCHIVE_LIBRARY = ${ZIPARCHIVE_LIBRARY}" )
-endif( )
+if(UNIX)
+  message(STATUS "On UNIX ZIPARCHIVE will be cmopiled as ExternalProject")
+else(UNIX)
+  find_package( ZipArchive REQUIRED )
+  if( ZIPARCHIVE_FOUND AND TRACE_COMPONENTS_FOUND )
+    message( "ZIPARCHIVE_INCLUDE_DIR = ${ZIPARCHIVE_INCLUDE_DIR}" )
+    message( "ZIPARCHIVE_LIBRARY = ${ZIPARCHIVE_LIBRARY}" )
+  endif( )
+endif(UNIX)
 
 # ZLIB configuration
 find_package( ZLIB REQUIRED )
@@ -411,9 +415,9 @@ target_include_directories( tol_init PRIVATE
     ${CHOLMOD_INCLUDE_DIR} )
     
 foreach( d 
-    bbasic bmath bparser btol dbdrivers contrib lang LoadDynLib OIS 
+    contrib bbasic bmath bparser btol dbdrivers lang LoadDynLib OIS 
     PackArchive )
-  add_subdirectory( ${d} )
+  add_subdirectory(${d})
 #  get_property(type TARGET ${d} PROPERTY TYPE)
 #  message("type(${d}) = '${type}'") 
 #  if( type STREQUAL "OBJECT_LIBRARY" )
