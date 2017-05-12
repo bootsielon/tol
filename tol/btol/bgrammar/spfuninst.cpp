@@ -884,92 +884,119 @@ static BSyntaxObject* EvElement(BGrammar* gra, const List* tre, BBool left)
 /*Std(BText("EvElement(")+gra->Name()+","+
       BParser::Unparse(tre,"","")+","+(int)left+")\n\n"+
       BParser::treWrite((List*)tre,"  ",false));  */
-  if(BSpecialFunction::TestNumArg(_name_, 2, nb, 2))
-  {
-  //Std(BText("\nEvElement tre=")+BParser::Unparse(tre));
+  if(BSpecialFunction::TestNumArg(_name_, 2, nb, 3))
+    {
+    //Std(BText("\nEvElement tre=")+BParser::Unparse(tre));
     if(left) uSet = GraSet()->LeftEvaluateTree(Branch(tre,1));
     else     uSet = GraSet()->EvaluateTree(Branch(tre,1));
     BGrammar::PutLast(gra);
     if (uSet) 
-    {
+      {
       BSet& set = Set(uSet);
       List* b2 = Branch(tre,2);
       BToken* tok  = BParser::treToken(b2);
       if(tok->Name()[0]!='\"')
-      {
+	{
         bool oldEnabled = BOut::Disable();
         int oldObjNum = BSyntaxObject::NSyntaxObject();
-	      uIndex = GraReal()->EvaluateTree(b2);
+	uIndex = GraReal()->EvaluateTree(b2);
         BGrammar::PutLast(gra);
         needCleanTree = true;
         deleteUIndex = (oldObjNum < BSyntaxObject::NSyntaxObject());
         if(oldEnabled) { BOut::Enable(); }
-      }
-	    if (uIndex) 
-      {
-		    if (uIndex->Grammar() != GraReal()) 
-        {
-		      BText msg("Unexpected result: Real Evaluate return an "
-			              "object of type ");
-		      msg += uIndex->Grammar()->Name();
-		      msg += BText(". Please report this to "
-				               "http://bugs.tol-project.org/");
-		      Warning(msg);
-        } 
+	}
+      if (uIndex) 
+	{
+	if (uIndex->Grammar() != GraReal()) 
+	  {
+	  BText msg("Unexpected result: Real Evaluate return an "
+		    "object of type ");
+	  msg += uIndex->Grammar()->Name();
+	  msg += BText(". Please report this to "
+		       "http://bugs.tol-project.org/");
+	  Warning(msg);
+	  } 
         else 
-        {
-		      result = set.GetElement((BInt)Real(uIndex));
-		    }
-	    } 
-      else 
-      {
-        int oldObjNum = BSyntaxObject::NSyntaxObject();
-        if(needCleanTree) { BGrammar::CleanTreeCache(b2, true); }
-		    uIndex = GraText()->EvaluateTree(b2);
-        BGrammar::PutLast(gra);
-        deleteUIndex = (oldObjNum < BSyntaxObject::NSyntaxObject());
-		    if (uIndex) 
-        {
-		      if (uIndex->Grammar() != GraText()) 
-          {
-			      BText msg("Unexpected result: Text Evaluate return "
-				              "an object of type ");
-			      msg += uIndex->Grammar()->Name();
-			      msg += BText(". Please report this to "
-				                 "http://bugs.tol-project.org/");
-			      Warning(msg);
-		      } 
-          else 
-          {
-			      result = set.GetElement(Text(uIndex).String());
-		      }
-        } 
-        else 
-        {
-		      BText msg(_name_);
-		      Error(I2(msg + ": invalid Set index type, must be "
-			             "Real or Text", msg + ":Indice de conjunto "
-			             "inválido, debe ser Real o Text"));
-		    }
+	  {
+	  bool oldEnabled;
+	  if(nb>=3)
+	    {
+	    oldEnabled = BOut::Disable();
+	    }
+	  result = set.GetElement((BInt)Real(uIndex));
+	  if (nb>=3)
+	    {
+	    if(oldEnabled)
+	      {
+	      BOut::Enable();
+	      }
+	    result = GraAnything()->EvaluateTree(Branch(tre,3));
 	    }
 	  }
-  }
-  result = BSpecialFunction::TestResult(_name_, result, tre, NIL, BFALSE);
-  BText resGraName = (result)?result->Grammar()->Name():"";
-  if (result && gra!=GraAnything() && result->Grammar() != gra) 
-  {
-  	BSyntaxObject *cast = gra->Casting(result);
-	  if(cast) result = cast;
+      } 
+      else 
+	{
+        int oldObjNum = BSyntaxObject::NSyntaxObject();
+        if(needCleanTree) { BGrammar::CleanTreeCache(b2, true); }
+	uIndex = GraText()->EvaluateTree(b2);
+        BGrammar::PutLast(gra);
+        deleteUIndex = (oldObjNum < BSyntaxObject::NSyntaxObject());
+	if (uIndex) 
+	  {
+	  if (uIndex->Grammar() != GraText()) 
+	    {
+	    BText msg("Unexpected result: Text Evaluate return "
+		      "an object of type ");
+	    msg += uIndex->Grammar()->Name();
+	    msg += BText(". Please report this to "
+			 "http://bugs.tol-project.org/");
+	    Warning(msg);
+	    } 
 	  else 
-    {
-	    BText msg(_name_);
-	    Error(I2("Incompatible types in " ,"Tipos incompatibles en ") + 
-		  msg + ": " + result->Identify() + I2(" is a ", " es de tipo ") +
-		  result->Grammar()->Name() +
-		  I2(" but not a ", ", pero no de tipo ") + gra->Name() + ".");
-	    result = NIL;
+	    {
+	    bool oldEnabled;
+	    if(nb>=3)
+	      {
+	      oldEnabled = BOut::Disable();
+	      }
+	    result = set.GetElement(Text(uIndex).String());
+	    if (nb>=3)
+	      {
+	      if(oldEnabled)
+		{
+		BOut::Enable();
+		}
+	      result = GraAnything()->EvaluateTree(Branch(tre,3));
+	      }
+	    }
+	  } 
+	else 
+	  {
+	  BText msg(_name_);
+	  Error(I2(msg + ": invalid Set index type, must be "
+		   "Real or Text", msg + ":Indice de conjunto "
+		   "inválido, debe ser Real o Text"));
 	  }
-  }
+	}
+      }
+    }
+
+    result = BSpecialFunction::TestResult(_name_, result, tre, NIL, BFALSE);
+    BText resGraName = (result)?result->Grammar()->Name():"";
+    if (result && gra!=GraAnything() && result->Grammar() != gra) 
+      {
+      BSyntaxObject *cast = gra->Casting(result);
+      if(cast) result = cast;
+      else 
+	{
+	BText msg(_name_);
+	Error(I2("Incompatible types in " ,"Tipos incompatibles en ") + 
+	      msg + ": " + result->Identify() + I2(" is a ", " es de tipo ") +
+	      result->Grammar()->Name() +
+	      I2(" but not a ", ", pero no de tipo ") + gra->Name() + ".");
+	result = NIL;
+	}
+      }
   if(uIndex && deleteUIndex) { SAFE_DESTROY(uIndex,result); }
   if(!left) { SAFE_DESTROY(uSet,result); }
   return(result);
