@@ -16,4 +16,5 @@ fi
 #echo package require TolbaseApp > ${TFILE}
 #echo after idle {file delete ${TFILE}} >> ${TFILE}
 
-${SCRIPTPATH}/tolbase ${SCRIPTPATH}/tolbase.tcl "${@}"
+LD_PRELOAD=/usr/local/tol3.3/lib/libtol.so wish
+#${SCRIPTPATH}/tolbase.tcl "${@}"
