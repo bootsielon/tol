@@ -924,13 +924,20 @@ static BSyntaxObject* EvElement(BGrammar* gra, const List* tre, BBool left)
 	    oldEnabled = BOut::Disable();
 	    }
 	  result = set.GetElement((BInt)Real(uIndex));
-	  if (nb>=3)
+	  if (!result && nb>=3)
 	    {
 	    if(oldEnabled)
 	      {
 	      BOut::Enable();
 	      }
 	    result = GraAnything()->EvaluateTree(Branch(tre,3));
+	    }
+	  if(nb>=3)
+	    {
+	    if(oldEnabled)
+	      {
+	      BOut::Enable();
+	      }
 	    }
 	  }
       } 
@@ -960,13 +967,20 @@ static BSyntaxObject* EvElement(BGrammar* gra, const List* tre, BBool left)
 	      oldEnabled = BOut::Disable();
 	      }
 	    result = set.GetElement(Text(uIndex).String());
-	    if (nb>=3)
+	    if (!result && nb>=3)
 	      {
 	      if(oldEnabled)
 		{
 		BOut::Enable();
 		}
 	      result = GraAnything()->EvaluateTree(Branch(tre,3));
+	      }
+	    if(nb>=3)
+	      {
+	      if(oldEnabled)
+		{
+		BOut::Enable();
+		}
 	      }
 	    }
 	  } 
