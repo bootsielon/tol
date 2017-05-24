@@ -1,4 +1,3 @@
-create_header_links( )
 
 foreach( dir
     bdb bgrammar bgsl bmodel bmonte code_type complex_type date_type 
@@ -8,3 +7,6 @@ foreach( dir
 endforeach( )
 
 add_tol_sublibrary( btol delay_init.cpp )
+
+create_header_links( btol )
+

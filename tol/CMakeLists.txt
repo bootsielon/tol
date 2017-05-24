@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 2.8 )
+cmake_minimum_required( VERSION 3.0 )
 project( TOL )
 
 #-----------------------------------------------------------------------------
@@ -166,7 +166,7 @@ endmacro( )
 set( skip_copy_headers 0 )
 
 set( COPY_HEADERS_DEPENDS "" CACHE INTERNAL "" )
-macro( create_header_links )
+macro( create_header_links target )
   if( WIN32 )
     set( _cmd "copy" )
   else( WIN32 )
@@ -193,6 +193,7 @@ macro( create_header_links )
     string( REPLACE "/" "_" COPY_TARGET_NAME "${COPY_TARGET_NAME}" )
     #message( "add_custom_target( ${COPY_TARGET_NAME} ALL DEPENDS ${lst} ) " )
     add_custom_target( ${COPY_TARGET_NAME} ALL DEPENDS ${lst} )  
+    add_dependencies(${target} ${COPY_TARGET_NAME})
     set( tmp ${COPY_HEADERS_DEPENDS} ${COPY_TARGET_NAME} )
     set( COPY_HEADERS_DEPENDS ${tmp} CACHE INTERNAL "" )
   endif( skip_copy_headers )
@@ -394,8 +395,6 @@ if( LTDL_FOUND AND TRACE_COMPONENTS_FOUND )
   message( "LTDL_LIBRARIES = ${LTDL_LIBRARIES}" )
 endif( )
 
-create_header_links( )
-
 if( NOT DEFINED WRITE_CONFIG_H )
   set( WRITE_CONFIG_H 1 )
 endif( NOT DEFINED WRITE_CONFIG_H )
@@ -406,17 +405,9 @@ if( ${WRITE_CONFIG_H} )
     ${CMAKE_CURRENT_BINARY_DIR}/tol/config.h )
 endif( )
 
-if( WIN32 )
-  add_tol_sublibrary( tol_init toldll.cpp init.cpp )
-else( WIN32 )
-  add_tol_sublibrary( tol_init init.cpp )
-endif( WIN32 )
-target_include_directories( tol_init PRIVATE
-    ${CHOLMOD_INCLUDE_DIR} )
-    
 foreach( d 
-    contrib bbasic bmath bparser btol dbdrivers lang LoadDynLib OIS 
-    PackArchive )
+    contrib bmath bparser btol dbdrivers lang LoadDynLib  
+    PackArchive OIS bbasic )
   add_subdirectory(${d})
 #  get_property(type TARGET ${d} PROPERTY TYPE)
 #  message("type(${d}) = '${type}'") 
@@ -426,6 +417,21 @@ foreach( d
 #    list( APPEND tol_sublibs ${d} )
 #  endif( )
 endforeach( )
+
+if( WIN32 )
+  add_tol_sublibrary( tol_init toldll.cpp init.cpp )
+else( WIN32 )
+  add_tol_sublibrary( tol_init init.cpp )
+endif( WIN32 )
+target_include_directories( tol_init PRIVATE
+    ${CHOLMOD_INCLUDE_DIR} )
+
+create_header_links( tol_init )
+
+add_dependencies(bbasic tol_init)
+add_dependencies(tol_init COPY_HEADERS)
+add_dependencies(lang prj_zipa)
+
 if( UNIX )
   SET(CMAKE_INSTALL_RPATH "$ORIGIN") 
 endif( UNIX )

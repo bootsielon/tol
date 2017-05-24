@@ -1,5 +1,3 @@
-create_header_links( )
-
 set( basic_src atm.cpp bfsmem.cpp bobject.cpp cor.cpp dircomma.cpp dir.cpp
   dirtext.cpp dtealgeb.cpp dte.cpp list.cpp lstalgeb.cpp lst.cpp lsttext.cpp
   optargtx.cpp opt.cpp opttext.cpp out.cpp qfile.cpp seed.cpp sys.cpp timer.cpp
@@ -12,3 +10,5 @@ else( WIN32 )
 endif( )
 
 add_tol_sublibrary( bbasic ${basic_src} )
+
+create_header_links( bbasic )

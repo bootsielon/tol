@@ -1,4 +1,3 @@
-create_header_links( )
 
 add_tol_sublibrary( blinalg
   divconq.cpp  matimp.cpp svdsep.cpp tol_lapack.cpp
@@ -6,3 +5,5 @@ add_tol_sublibrary( blinalg
   
 target_include_directories( blinalg PRIVATE 
   ${TOL_CBLAS_INCLUDE_DIR} ${CLAPACK_INCLUDE_DIR} )
+
+create_header_links( blinalg )

@@ -1,4 +1,3 @@
-create_header_links( )
 
 add_tol_sublibrary( vmatrix_type
   vmat.cpp vmat_convert.cpp vmat_stats.cpp vmat_arith.cpp vmat_logic.cpp
@@ -10,3 +9,5 @@ target_include_directories( vmatrix_type PRIVATE
   "${CHOLMOD_INCLUDE_DIR}"
   "${PROJECT_SOURCE_DIR}/bmath/gsl_ext" 
   "${TOL_CBLAS_INCLUDE_DIR}" )
+
+create_header_links( vmatrix_type )

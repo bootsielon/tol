@@ -1,4 +1,3 @@
-create_header_links( )
 
 message( STATUS "CMAKE_SIZEOF_VOID_P = ${CMAKE_SIZEOF_VOID_P}")
 
@@ -15,3 +14,5 @@ add_tol_sublibrary( set_type
 target_include_directories( set_type PRIVATE 
   "${PROJECT_SOURCE_DIR}/contrib/kmlocal" 
   "${PROJECT_SOURCE_DIR}/btol/real_type" )
+
+create_header_links( set_type )
