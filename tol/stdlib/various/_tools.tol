@@ -13,8 +13,7 @@
     Text name = Name(set[k]);
     Real hasName = And
     (
-      name!="",
-      name==ToName(name),
+      name!="",      name==ToName(name),
       name!="Empty"
     );
   //WriteLn("TRACE PlainNamedObjects  Element "+
@@ -54,13 +53,7 @@ PlainNamedObjects);
 {
   Text g = Grammar(optArgs);
   Case(
-    g=="Set",
-    If(!Card(optArgs), defValue,
-    {
-      Real Do If(Card(optArgs),!HasIndexByName(optArgs),SetIndexByName(optArgs));
-      Real idx = FindIndexByName(optArgs,name);
-      If(!idx, defValue, optArgs[idx])
-    }),
+    g=="Set", Element(optArgs, name, defValue),
     g=="NameBlock",
     If(!ObjectExist("Anything","optArgs::"+name), defValue,
        Eval("optArgs::"+name)),
