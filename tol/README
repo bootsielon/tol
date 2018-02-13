@@ -1,11 +1,11 @@
-TOL - GNU Time Oriented Language Library
+TOL - GNU Time-Oriented Language Library
 =========================================
 
-This is TOL, the GNU Time Oriented Language Library, an interpreter,  
-declarative, autoevaluative, with dinamic memory management, and
-lazy evaluation programming language.
+This is TOL, the GNU Time-Oriented Language Library: an interpreter,  
+declarative, autoevaluative programming language with dinamic memory management
+and lazy evaluation.
 
-TOL is free software, you can redistribute it and/or modify it under
+TOL is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License.
 
 The GNU General Public License does not permit this software to be
@@ -25,10 +25,10 @@ http://tol.bayesforecast.com under the downloads section.
 Installation
 ============
 
-TOL follows the standard GNU installation procedure.  Please consult
+TOL follows the standard GNU installation procedure.  Please refer to
 the INSTALL file in this distribution for more detailed instructions.
 
-For information about specific platforms and compilers see the
+For information about specific platforms and compilers, see the
 "Compilation Notes" section in the INSTALL file.
 
 More information about TOL
@@ -38,8 +38,8 @@ The project homepage is http://tol.bayesforecast.com
 
 See the NEWS file for recent changes to this software.
 
-The TOL Manual is being written. You have some web-based tutorials in
-the project homepage, http://tol.bayesforecast.com
+The TOL Manual is being written. You have some web-based tutorials on
+the project's homepage, http://tol.bayesforecast.com
 
 Reporting Bugs
 ==============
@@ -50,7 +50,7 @@ Details of compilation problems can be found in the INSTALL file.
 If you find a bug which is not listed in these files please report it
 to the website or at the nexts email address:
    Daniel Rus <daniel@uponeits.com>
-   Jorge Suit Pérez <jsperez@bayesinf.com>
+   Jorge Suit PÃ©rez <jsperez@bayesinf.com>
 
 All bug reports should include:
 
@@ -69,5 +69,5 @@ Contributing to TOL
 ===================
 
 If you are interested in participating in TOL development, please send
-an email to <request@bayesinf.com> or direct to Jorge Suit Pérez
+an email to <request@bayesinf.com> or direct to Jorge Suit PÃ©rez
 <jsperez@bayesinf.com> or Daniel Rus <daniel@uponeits.com>.
