@@ -137,7 +137,9 @@ set(CPACK_RPM_gui_PACKAGE_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR} PARENT_SCOPE)
 set(CPACK_DEBIAN_PACKAGE_SECTION "Mathematics" PARENT_SCOPE)
 set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "www.tol-project.org" PARENT_SCOPE)
 
-set(CPACK_DEBIAN_CORE_PACKAGE_DEPENDS "libatlas3-base, tcl (>= 8.5), libboost-filesystem-dev (>= 1.41), libboost-thread-dev (>= 1.41), libsuitesparse-dev, libfftw3-bin, libgsl0ldbl (>= 1.13), bzip2, zlib1g, libltdl7, libpq5, libmysqlclient18, unixodbc, tclcurl" PARENT_SCOPE) # tclcurl
+# 14.04 libgsl0ldbl libmysqlclient18
+# 16.04 libgsl2 libmysqlclient20
+set(CPACK_DEBIAN_CORE_PACKAGE_DEPENDS "libatlas3-base, tcl (>= 8.5), libboost-filesystem-dev (>= 1.41), libboost-thread-dev (>= 1.41), libsuitesparse-dev, libfftw3-bin, libgsl2 (>= 1.13), bzip2, zlib1g, libltdl7, libpq5, libmysqlclient20, unixodbc, tclcurl" PARENT_SCOPE) # tclcurl
 set(CPACK_DEBIAN_HEADERS_PACKAGE_DEPENDS "tol-core (= ${CPACK_PACKAGE_VERSION})" PARENT_SCOPE)
 set(CPACK_DEBIAN_GUI_PACKAGE_DEPENDS "tol-core (= ${CPACK_PACKAGE_VERSION}), tk (>= 8.5), bwidget, tcllib, blt, tktreectrl, libtk-img, tclodbc, tk-table" PARENT_SCOPE) # tclodbc, tk-table
 
