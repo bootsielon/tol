@@ -1,1 +1,1 @@
-# TOL = Time Oriented Language
+# TOL = Time-Oriented Language
