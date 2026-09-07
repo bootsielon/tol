@@ -1,6 +1,6 @@
 # pyTol: feasibility assessment and option set
 
-> Companion to `SPEC_SHEET.md`. Written 2026-09-06 from a full review of the `bootsielon/tol` repository at HEAD `3026db38`, three targeted explorations (package ecosystem, embedding API, capability inventory) and three independent option designs. Claims cite the file and line they come from; effort figures are estimates for one experienced engineer and should be read as relative sizes.
+> Companion to `SPEC_SHEET.md`. Written 2026-09-06 from a full review of the `bootsielon/tol` repository at HEAD `3026db38`, three targeted explorations (package ecosystem, embedding API, capability inventory) and three independent option designs. Claims cite the file and line they come from. Effort is quoted in two units: **person-weeks** for one experienced engineer, which size the options against each other, and **focused weeks** for a solo developer working with an AI assistant, which section 8.2 converts into calendar time.
 
 ## 1. Summary
 
@@ -10,13 +10,15 @@
 
 **The ranked option set** (details in sections 5-8):
 
-| Rank | Option | Effort | Risk | Payoff | Verdict |
-|---|---|---|---|---|---|
-| 1 | **D-phased**: A as the core; B only as a two-week build spike that becomes a differential oracle if it passes; C only as tooling inside A (census, parser, Pygments; DSL deferred) | ~50-60 person-weeks to a 1.0; the time-set/series layer is usable by week 9-12 | moderate | highest | **Recommended** |
-| 2 | **A**: clean-room Python library | ~44 person-weeks (plan 50-55) | moderate: ARIMA numerical parity, AIA fidelity, BSR sampler without an oracle | high | The destination |
-| 3 | **B**: bind the C++ kernel | ~8 person-weeks for a Linux developer tool, ~14-16 for distributable packages; GPL-3.0 | high: 1998-era toolchain, 64-bit, one interpreter per process, ~10 native dependencies | medium: runs kernel-only legacy code today, but most 2013-2015 user code still needs the absent packages | A bridge, not a destination; wins only if old packages are recovered and running them is the main goal |
-| 4 | **C**: TOL-like language on Python | ~6 person-weeks for the tooling subset, ~18 for the full option | high: semantic drift in transpiled code, and nothing legacy to run | low as a standalone | Not viable alone; the embedded Python API already reads as well as a new syntax |
-| — | **D-naive**: build all three fully | ~80-90 person-weeks | highest | same as D-phased | Rejected: roughly double the cost for the same value |
+| Rank | Option | Solo engineer | With Claude | Risk | Payoff | Verdict |
+|---|---|---|---|---|---|---|
+| 1 | **D-phased**: A as the core; B only as a two-week build spike that becomes a differential oracle if it passes; C only as tooling inside A (census, parser, Pygments; DSL deferred) | ~50-60 person-weeks to a 1.0 | **~23-32 focused weeks**; the time-set and series layer lands in the first 4.5-6 | moderate | highest | **Recommended** |
+| 2 | **A**: clean-room Python library | ~44 person-weeks (plan 50-55) | ~21-29 focused weeks | moderate: ARIMA numerical parity, AIA fidelity, BSR sampler without an oracle | high | The destination |
+| 3 | **B**: bind the C++ kernel | ~8 person-weeks for a Linux developer tool, ~14-16 for distributable packages | ~4-8 focused weeks; the go/no-go spike alone is 1-2; GPL-3.0 | high: 1998-era toolchain, 64-bit, one interpreter per process, ~10 native dependencies | medium: runs kernel-only legacy code today, but most 2013-2015 user code still needs the absent packages | A bridge, not a destination; wins only if old packages are recovered and running them is the main goal |
+| 4 | **C**: TOL-like language on Python | ~6 person-weeks for the tooling subset, ~18 for the full option | ~3-9 focused weeks; the census subset is 0.5-1 | high: semantic drift in transpiled code, and nothing legacy to run | low as a standalone | Not viable alone; the embedded Python API already reads as well as a new syntax |
+| — | **D-naive**: build all three fully | ~80-90 person-weeks | ~40-50 focused weeks | highest | same as D-phased | Rejected: roughly double the cost for the same value |
+
+Person-weeks assume one experienced engineer working full time; they are here to size the options against each other. A focused week is about 40 hours of your own attention with Claude drafting alongside you. Section 8.2 explains which work compresses and which does not, and converts focused weeks into calendar time at several weekly budgets.
 
 **Priority alignment.** The user ranked (1) time-set algebra and calendar-aware series, (2) forecasting and econometrics, (3) MMS-style model management, (4) Bayesian hierarchical models. Option A's roadmap delivers them in that order; the first two need no material outside this repository, the third is reconstructable from references, the fourth has its design documented in 17 LyX chapters but its estimator is absent.
 
@@ -123,18 +125,18 @@ Reconstructed from `runMms.tol` and `Ejemplo10.java`: `DataSet` with expression-
 
 `pytol/{dates, timeset, serie, lagpoly, arima, aia, bsr, mms, io/legacy, adapters, logic}`, about 10-12k lines of Python replacing about 40k of C++. Core dependencies: numpy, pandas, scipy. Optional extras: `stats` (statsmodels, arch), `fast` (numba), `io` (pyarrow, polars), `bayes` (scikit-sparse, arviz, lark), `mms` (duckdb, pydantic), `ml` (sktime, darts), `track` (mlflow). Tests: hypothesis strategies over random TimeSet expressions checking the algebraic laws, goldens on the 135 fixtures, parity against statsmodels and arch, `SimulArima` recovery tests, simulation-based calibration for BSR. Numeric goldens should be recorded once from a one-off Docker build of `tolsh`, not from a permanent binding.
 
-| Phase | Weeks | Deliverable |
-|---|---|---|
-| 0 Dates, TimeSet, calendars, Easter, cache, property suite | 4 | `pytol.timeset` 1.0 |
-| 1 Serie graph, alignment, `datch`/`subser`, regressors, pandas/polars/arrow adapters, legacy `.bdt/.bst/.bmt/.bdc` readers | 5 | priority 1 complete |
-| 2 LagPoly, Ratio, DifEq, PolMatrix, Schur, unit roots | 3 | `pytol.lagpoly` |
-| 3 ARIMA: Levinson, LM with Schur map, priors, transfer and non-linear inputs, missing values, diagnostics, forecast, statsmodels engine | 8 | `pytol.arima` with parity report |
-| 4 AIA, GARCH adapter, sktime/darts adapters, `auto_spec` | 4 | priority 2 complete |
-| 5 MMS layer | 6 | priority 3 |
-| 6 BSR parser, builder, Gibbs blocks, arviz reports | 10 | priority 4 |
-| 7 Docs, plotting, hierarchical reconciliation, packaging | 4 | 1.0 |
+| Phase | Solo (pw) | With Claude | Deliverable |
+|---|---|---|---|
+| 0 Dates, TimeSet, calendars, Easter, cache, property suite | 4 | 1.5-2 | `pytol.timeset` 1.0 |
+| 1 Serie graph, alignment, `datch`/`subser`, regressors, pandas/polars/arrow adapters, legacy `.bdt/.bst/.bmt/.bdc` readers | 5 | 2-2.5 | priority 1 complete |
+| 2 LagPoly, Ratio, DifEq, PolMatrix, Schur, unit roots | 3 | 1-1.5 | `pytol.lagpoly` |
+| 3 ARIMA: Levinson, LM with Schur map, priors, transfer and non-linear inputs, missing values, diagnostics, forecast, statsmodels engine | 8 | 4-6 | `pytol.arima` with parity report |
+| 4 AIA, GARCH adapter, sktime/darts adapters, `auto_spec` | 4 | 2-3 | priority 2 complete |
+| 5 MMS layer | 6 | 3-4 | priority 3 |
+| 6 BSR parser, builder, Gibbs blocks, arviz reports | 10 | 6-8 | priority 4 |
+| 7 Docs, plotting, hierarchical reconciliation, packaging | 4 | 1.5-2 | 1.0 |
 
-About 44 person-weeks; plan 50-55 with contingency. Phases 0-2 alone already deliver the user's first priority.
+About 44 person-weeks for a solo engineer (plan 50-55 with contingency), or about 21-29 focused weeks with Claude; 8.2 explains the difference. Phases 0-2 alone already deliver the user's first priority.
 
 Risks, ranked: ARIMA numerical parity (mitigated by statsmodels parity tests, `SimulArima` recovery tests, a one-off golden run); AIA fidelity (spec is `AIA.doc` plus the help text; record goldens on synthetic series with injected outliers); the BSR sampler has no oracle (simulation-based calibration, PyMC on unconstrained sub-cases); irregular TimeSet performance (regular fast tier, cache budget, numba); reconstructed calendars (confirm with the user); MMS scope creep (freeze to what `runMms.tol` shows); scikit-sparse wheels on Windows (dense or `splu` fallback).
 
@@ -182,6 +184,8 @@ Tooling a language layer enables: a Pygments lexer and a TextMate grammar for le
 
 ## 8. The recommended program: D-phased
 
+### 8.1 The sequence
+
 The "totalizing" option is right in spirit and wrong as a budget. Built naively it triples the cost for the same value, because A already contains the API that C would add and the runtime that B would wrap. Sequenced, it becomes the best plan:
 
 | Step | What | Weeks | Gate |
@@ -195,6 +199,57 @@ The "totalizing" option is right in spirit and wrong as a budget. Built naively 
 | 7 (optional) | **Option C M2-M3**: parser, best-effort transpiler for leaf code; DSL only on demonstrated pain | 9 | migration aid |
 
 Total about 50-60 person-weeks for one engineer with B as an oracle, or about 12-15 calendar months; two engineers (one Python/statistics, one C++/tooling) compress it to roughly 8-9 months because steps 2, 3 and the B oracle run alongside A.
+
+### 8.2 Building this with an AI collaborator
+
+The figures above are person-weeks for one experienced engineer working full time. They size the options against each other; they do not predict the calendar of a solo developer working with Claude, which is the configuration this project will actually be built in. This section converts them.
+
+**What compresses and what does not.** The gain is uneven, and knowing where it is absent matters more than the headline number.
+
+| Work | Compression | Why |
+|---|---|---|
+| Translating a specified algorithm from C++ to Python | high | the contract is already written down: `tol_btmset.h`, `tsrgrav.cpp`, `ar.cpp`, `arma.cpp` |
+| Property tests and golden tests | high | mechanical once the algebraic laws are stated |
+| A lexer or parser from the token tables | high | `tol/bparser/scn.cpp:260-390` is a data table, not a design problem |
+| Adapters, boilerplate, packaging scaffolding, prose docs | high | high volume, low judgment |
+| Reading the LyX chapters and the C++ you would otherwise read yourself | high | this is most of what the assessment itself was |
+| Deciding what the API should feel like | low | design judgment, informed by your memory of using TOL |
+| Confirming calendar semantics and model conventions | none | only you, or another former TOL user, knows what `Monthly` meant |
+| Numerical debugging | low | every cycle needs a run, a comparison against a reference, and a diagnosis |
+| Build, wheel and dependency friction | low | environment problems resist delegation |
+| Establishing that a sampler with no reference implementation is correct | low | the work is designing the evidence, not writing the code |
+| Your own review of what gets produced | none | it scales with output volume regardless of who wrote it |
+
+**Revised effort.** A focused week is about 40 hours of your attention on this project.
+
+| Phase | Solo (pw) | With Claude | What dominates |
+|---|---|---|---|
+| 0 Dates and TimeSet | 4 | 1.5-2 | a precise contract, mechanical translation, property tests |
+| 1 Serie | 5 | 2-2.5 | lazy-graph and alignment subtleties |
+| 2 LagPoly, Ratio, PolMatrix | 3 | 1-1.5 | almost entirely mechanical |
+| 3 ARIMA | 8 | 4-6 | numerical validation, not code volume |
+| 4 AIA, GARCH, adapters | 4 | 2-3 | reconstructing an algorithm with no reference output |
+| 5 MMS layer | 6 | 3-4 | design judgment and your memory of the workflow |
+| 6 BSR | 10 | 6-8 | mathematics from the LyX chapters, correctness with no oracle |
+| 7 Docs and packaging | 4 | 1.5-2 | mechanical |
+| B spike (M0) | 2 | 1-2 | build-system friction, the least compressible work here |
+| C census (M1) | 2 | 0.5-1 | parser generation, which suits an AI collaborator well |
+| **Total** | **~50-60** | **~23-32** | |
+
+**Calendar time.** Three stopping points, each independently useful, at three weekly budgets.
+
+| Weekly budget | Priorities 1 (phases 0-2, 180-240 h) | Priorities 1 and 2 (phases 0-4, 420-600 h) | Everything (23-32 weeks, 920-1280 h) |
+|---|---|---|---|
+| ~8 hours | 5-7 months | 12-17 months | just over 2 to 3 years |
+| ~16 hours | 3-4 months | 6-9 months | 13-18 months |
+| ~30 hours | 6-8 weeks | 3.5-5 months | 7-10 months |
+
+**Four things specific to this configuration.**
+
+1. **Your review bandwidth is the binding constraint, not the assistant's throughput.** Everything produced is yours to own, and reviewing unfamiliar numerical code is slower than reviewing code you wrote. Phases sized above assume you read what lands.
+2. **AI-written numerical code fails silently.** It is plausible, well-structured, and wrong in ways that only a reference implementation exposes. This makes the oracles load-bearing rather than optional polish, and it *raises* the value of the two-week kernel spike in this configuration relative to a team of humans: the old kernel is the only thing that can independently confirm an exact ARIMA likelihood or an AIA verdict. Where no oracle exists at all (the BSR sampler), budget for simulation-based calibration instead, and expect the phase to feel slower than its size suggests.
+3. **Every phase is independently shippable.** Stopping after phase 2 leaves a genuinely useful calendar and series library; stopping after phase 4 leaves a forecasting toolkit. There is no obligation to reach the Bayesian layer, and no sunk value if you never do.
+4. **Extra collaborators parallelise badly across phases and well across validation.** The phases depend on each other, so a second developer cannot simply take phase 3 while you do phase 1. A former TOL user is worth far more confirming calendar semantics, judging whether estimation output looks right, and recovering old packages than writing code.
 
 ## 9. Third-party libraries
 
@@ -246,6 +301,7 @@ Adapter surface: `Serie.to_pandas/to_polars/to_arrow/to_xarray/to_darts/to_sktim
 - **Indexing.** Zero-based (recommended, since the audience is numpy/pandas users) versus TOL's one-based.
 - **The binding's licence.** libtol, GSL and FFTW make the binding GPL-3.0; the pure-Python library can be licensed freely. If GPL is unacceptable even for an internal oracle, skip B and record goldens from a one-off container build.
 - **Where to run the build spike.** WSL2 or Docker on the current machine, or a cloud runner; the spike needs GCC 12+ and the conda-forge or EPEL packages for SuiteSparse, GSL, FFTW, Boost, sparsehash and OpenBLAS.
+- **Target stopping point and weekly budget.** Pick one of the three rows in 8.2 as the working assumption. The honest default is to commit only to phases 0-2, see how the collaboration feels on well-specified work, and decide about ARIMA afterwards.
 - **Old material.** Any of the items listed in section 3 changes the plan for the better: MMS or BysMcmc containers turn the model-management and Bayesian phases from reconstruction into porting.
 
 ## Appendix: evidence index
