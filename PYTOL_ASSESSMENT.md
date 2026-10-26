@@ -20,7 +20,7 @@
 
 Person-weeks assume one experienced engineer working full time; they are here to size the options against each other. A focused week is about 40 hours of your own attention with Claude drafting alongside you. Section 8.2 explains which work compresses and which does not, and converts focused weeks into calendar time at several weekly budgets.
 
-**Priority alignment.** The user ranked (1) time-set algebra and calendar-aware series, (2) forecasting and econometrics, (3) MMS-style model management, (4) Bayesian hierarchical models. Option A's roadmap delivers them in that order; the first two need no material outside this repository, the third is reconstructable from references, the fourth has its design documented in 17 LyX chapters but its estimator is absent.
+**Priority alignment.** The user ranked (1) time-set algebra and calendar-aware series, (2) forecasting and econometrics, (3) MMS-style model management, (4) Bayesian hierarchical models. Option A's roadmap delivers them in that order; the first two need no material outside this repository; the third and fourth were reconstructions from references and design chapters until 2026-10-26, when the user's archive yielded MMS 1.29 as readable source and the BysMcmc 7.6 estimator source (section 3 addendum), turning both into ports.
 
 ## 2. What this repository is for pyTol
 
@@ -53,6 +53,16 @@ What should be dropped without regret: the never-built trees (`tol/tai`, `bkfilt
 - **BysMcmc is also absent** and every BSR test requires it, so the Bayesian estimator has to be rebuilt from the 17 LyX chapters. The named calendars (`Weekly`, `Monthly`, `Quarterly`, `Yearly`, …) came from the `StdLib` package and are absent too; the kernel defines only `Daily`, `Easter` and the empty set (`tol/btol/timeset_type/tmsgra.cpp:171-175`).
 
 **What to look for in old installations.** The package client kept installed packages under `<TolAppDataPath>/TolPackage.4/Client/<package>/` with `<package>.oza` and `info.oza` inside (`tol/stdlib/TolPackage/client.tol`; on Windows the app-data path is under `%APPDATA%`, on Unix under `$HOME`). Directories named `MMS.*`, `BysMcmc.*`, `StdLib.*`, `RandVar.*`, `DecoTools.*`, `QltvRespModel.*` are the prize; `.oza` model containers and `.bsr` files from real projects are the second prize; any `_iniproject.tol` or `.tolConfig.*.tol` files show how projects were wired. OIS images are readable by the kernel binding (section 6) and, through it, convertible to parquet.
+
+**Addendum (2026-10-26).** The user's archive was searched (`C:\dev\pytol\docs\legacy\LEGACY_INVENTORY.md`); the "what to look for" list above was found almost in full, and several statements in this section are superseded:
+- MMS is not source-less: seven `.oza` builds exist (0.6006 … 1.29 of 2014-10-30, content `afb5a13701e5…`, archive folder `de083a7b9bc08f6d`), and because an OIS image stores class members as declaration/definition text and functions as parse trees, MMS 1.29 is fully readable TOL (183 classes, 3,802 member bodies, 680 functions; dumps in `C:\dev\tol-legacy\mms-source` and `ois-eval`). The model-management layer (5.4) should be designed from that source, with the vendor MatVeh samples (folder `d99bf9debb1fdd43`) and the user's own MMS pipelines as usage oracles. By 2014 MMS was published on the public OfficialTolArchiveNetwork; "private" is true for 2010-2012.
+- The reconstructed object model is confirmed but incomplete: `@Forecast`, `@Combination`, `@Fit`, `@Optimization`, `@Hierarchy`, scenarios, `@Repository`/`Store`/`Save_AtRepository` persistence and the full `@SettingsBSR` key set (inherited from `BysMcmc::@Config`) must be added.
+- BysMcmc does **not** have to be rebuilt from the LyX chapters: package 7.6 source (47 `.tol`, 13,739 LOC; `BysMcmc.tol` `5506aab40b02…`, folder `700f8b18424854b7`) plus 1.2 and the 1.1.7 stdlib copies are recovered, and the chapters BSR_P1_S2..S6 map 1:1 onto its `bsr/gibbs` blocks. Phase 6 is a port of ~9,200 lines, with the kernel-side primitives (`BSR.Parse`, ARMS, sparse Cholesky) still to supply.
+- The named calendars are recovered verbatim and unchanged from TOL 0.1.9 to StdLib 0.17 (`general/_constant.tol` `db5990599bb9…`; `general/_time_constant.tol` `5bbb35658d40…`): all nine pytol compositions match exactly, Weekly is Monday-anchored, `Fornigthly` is the only spelling, `Bimestral` is the correct Spanish twin (`Bimensual` deprecated, bug 493). Open decision 1 of section 11 is closed.
+- The old stdlib (three generations), `@strTestStatus`, `@ARIMAStruct`, `IntRand`/`IntText`/`NullSerie`, and source for 66 public packages (ArimaTools, BysSampler, BysPrior, BysInfDiag, NonLinGloOpt, TolIpopt, MatQuery, MPM, …) are present as TOL text; the kernel C++ for 1.1.7-3.4 and the rmtps/rmtpsd Tcl/C exist on the archive but were not copied.
+- The user's own pure-Python OIS reader (`ois.py`) round-trips 99% of 4,289 archived `.oza` byte-exactly; `.oza` loading therefore does not depend on the GPL binding (Option B stays an oracle only).
+- The user's code (895 files, 258,749 lines) uses MMS in 24% of files, never BysMcmc directly, Spanish calendar names as much as English ones, `Easter` in 87 files, and `Ois.Load` in 152; its `_iniproject.tol` files hold clear-text DB credentials and must not become fixtures unscrubbed.
+- Still missing: MMS's original `def_*.tol` layout (comments and formatting lost), MmsReports/MmsInBws/MmsToGromit, real-project `.bsr` files (none exist; models were OIS containers), and 34 small `.bst` whose Parquet renditions were removed.
 
 ## 4. Corrections to the working recollection
 
@@ -300,7 +310,7 @@ Adapter surface: `Serie.to_pandas/to_polars/to_arrow/to_xarray/to_darts/to_sktim
 
 ## 11. Open decisions for the user
 
-- **Named calendar definitions.** Confirm the intended semantics of `Weekly`, `Monthly`, `Quarterly`, `Yearly`, `Decenial`, `Fornigthly`, `Bimonthly`, `Thirdannual`, `HalfYearly` (anchor day, alignment with `Daily`), or recover `StdLib` from an old install.
+- **Named calendar definitions: closed on 2026-10-26.** The archive's StdLib source defines all nine exactly as pytol assumed (section 3 addendum); no confirmation needed.
 - **Unknown representation.** NaN in float64 (TOL's own choice, fastest, zero-copy) versus `pd.NA` nullable dtypes (exact three-valued logic in pandas). Recommended: NaN internally, `pd.NA` on export.
 - **Indexing.** Zero-based (recommended, since the audience is numpy/pandas users) versus TOL's one-based.
 - **The binding's licence.** libtol, GSL and FFTW make the binding GPL-3.0; the pure-Python library can be licensed freely. If GPL is unacceptable even for an internal oracle, skip B and record goldens from a one-off container build.
